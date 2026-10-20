@@ -73,12 +73,12 @@ def main():
         print("   全部通过 ✓")
 
     print("4) 检查生成站点 ...")
-    site = ROOT / "site"
+    site = ROOT / "docs"
     if site.exists():
         n = len([d for d in site.iterdir() if d.is_dir()])
-        print(f"   site/ 存在，{n} 个目录")
+        print(f"   docs/ 存在，{n} 个目录")
     else:
-        print("   site/ 尚未生成")
+        print("   docs/ 尚未生成")
 
 
 if __name__ == "__main__":

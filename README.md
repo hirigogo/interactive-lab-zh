@@ -26,19 +26,19 @@ python -m http.server 4173 --directory site
 ## 目录结构
 
 ```
-site/               生成好的中文站点（可直接用浏览器打开，这就是成品）
+docs/               生成好的中文站点（可直接用浏览器打开，这就是成品）
 启动.cmd            一键启动脚本
 ia_src/             上游英文原仓库（未改动，作为参照与构建依赖）
 i18n/               本地化流水线
   jobs/             每篇文章的翻译任务文件（英文 key → 中文 zh）
   tmp/              各篇文章的翻译映射中间产物
-  build/            注入译文后的文章源码树（site/ 由此构建）
+  build/            注入译文后的文章源码树（docs/ 由此构建）
   codekeys.py       「哪些是代码、不应翻译」的统一判定
   extract.py        从 HTML/JS 抽取可翻译文本
   build_jobs.py     生成翻译任务（extract 的封装）
   segment.py        HTML 分句与标签加锁
   inject.py         把译文写回源码树
-  build_site.py     构建 site/
+  build_site.py     构建 docs/
   patch_src.py      修复上游 bug
   check_job.py      校验单篇翻译
   check_math.py     校验公式块内是否混入中文
@@ -55,7 +55,7 @@ python i18n/rebuild.py
 ```
 
 它会依次执行注入译文、应用源码补丁、构建站点、全站校验四步。
-注意：构建前需先停掉正在运行的服务器（Windows 会锁定 `site/` 目录）。
+注意：构建前需先停掉正在运行的服务器（Windows 会锁定 `docs/` 目录）。
 
 ## 翻译是怎么做的
 

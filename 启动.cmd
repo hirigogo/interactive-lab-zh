@@ -3,7 +3,7 @@ REM 一键启动中文版「交互式实验室」
 REM 双击本文件即可：自动启动本地服务器并打开浏览器。
 
 setlocal
-set "SITE_DIR=%~dp0site"
+set "SITE_DIR=%~dp0docs"
 set "PORT=4173"
 set "PY=%LOCALAPPDATA%\Programs\Python\Python312\python.exe"
 

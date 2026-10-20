@@ -15,7 +15,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 SRC = HERE / "build" / "articles"
-OUT = ROOT / "site"
+OUT = ROOT / "docs"
 KATEX = ROOT / "ia_src" / "node_modules" / "katex" / "dist"
 SHARED = ROOT / "ia_src" / "src" / "shared"
 
