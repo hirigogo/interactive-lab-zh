@@ -1,0 +1,918 @@
+{
+ "slug": "vision-transformer",
+ "units": {
+  "Vision Transformers, on Real Photos": {
+   "zh": "视觉 Transformer：在真实照片上运行",
+   "src": "Vision Transformers, on Real Photos",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "A pretrained @@T0@@MobileNet&nbsp;v2@@T1@@ runs in your\n          browser to turn every patch of your photo into a real\n          1024-dimensional feature vector. We use those real features as\n          stand-ins for the Q/K/V of a Transformer encoder block, compute\n          honest dot-product softmax attention over them, and paint the\n          result back on the photo. Nothing below is synthesised.": {
+   "zh": "一个预训练的 @@T0@@MobileNet&nbsp;v2@@T1@@ 在你的浏览器中运行，将你照片的每个 patch 转成真实的 1024 维特征向量。我们以这些真实特征充当 Transformer 编码器模块的 Q/K/V，在其上计算货真价实的点积 softmax 注意力，并把结果绘制回照片之上。下文没有任何内容是合成的。",
+   "src": "A pretrained <strong>MobileNet&nbsp;v2</strong> runs in your\n          browser to turn every patch of your photo into a real\n          1024-dimensional feature vector. We use those real features as\n          stand-ins for the Q/K/V of a Transformer encoder block, compute\n          honest dot-product softmax attention over them, and paint the\n          result back on the photo. Nothing below is synthesised.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@~17 min@@T1@@\n          @@T2@@Deep Learning &middot; Vision &middot; TensorFlow.js@@T3@@": {
+   "zh": "@@T0@@约 17 分钟@@T1@@\n          @@T2@@深度学习 &middot; 视觉 &middot; TensorFlow.js@@T3@@",
+   "src": "<span>~17 min</span>\n          <span>Deep Learning &middot; Vision &middot; TensorFlow.js</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "From CNNs to a sentence of patches": {
+   "zh": "从 CNN 到「由 patch 构成的句子」",
+   "src": "From CNNs to a sentence of patches",
+   "tags": []
+  },
+  "A CNN processes an image by sliding small kernels over nearby\n          pixels, layer after layer. Its priors&mdash;locality, translation\n          equivariance, a pyramid of scales&mdash;are hand-wired. A\n          @@T0@@Vision Transformer@@T1@@ tosses all of that. It chops\n          the image into non-overlapping patches, flattens each into a\n          vector, and drops the sequence into a vanilla Transformer. No\n          convolutions, no pooling&mdash;just self-attention.": {
+   "zh": "CNN 通过逐层在邻近像素上滑动小卷积核来处理图像。它的先验&mdash;&mdash;局部性、平移等变性、多尺度金字塔&mdash;&mdash;都是手工设定的。@@T0@@视觉 Transformer@@T1@@ 则把这一切统统舍弃：它将图像切成互不重叠的 patch，把每个 patch 展平为向量，再将这个序列送入一个标准的 Transformer。没有卷积，也没有池化&mdash;&mdash;只有自注意力。",
+   "src": "A CNN processes an image by sliding small kernels over nearby\n          pixels, layer after layer. Its priors&mdash;locality, translation\n          equivariance, a pyramid of scales&mdash;are hand-wired. A\n          <strong>Vision Transformer</strong> tosses all of that. It chops\n          the image into non-overlapping patches, flattens each into a\n          vector, and drops the sequence into a vanilla Transformer. No\n          convolutions, no pooling&mdash;just self-attention.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "A production ViT (@@T0@@vit-base-patch16@@T1@@, @@T2@@DINOv2@@T3@@)\n          doesn't run easily in-browser yet, but a real\n          @@T4@@MobileNet&nbsp;v2@@T5@@ does, and crucially its spatial\n          feature map at the penultimate layer is a 7&times;7&times;1280\n          tensor&mdash;i.e. a 7&times;7 grid of real 1280-dim vectors\n          learned from ImageNet. We use those vectors wherever ViT would\n          normally use Q/K/V projections of patch embeddings. The math is\n          identical: real features, real dot products, real softmax.": {
+   "zh": "生产级的 ViT（@@T0@@vit-base-patch16@@T1@@、@@T2@@DINOv2@@T3@@）目前尚不易在浏览器中运行，但真实的 @@T4@@MobileNet&nbsp;v2@@T5@@ 可以，而且关键在于它在倒数第二层的空间特征图是一个 7&times;7&times;1280 的张量&mdash;&mdash;即在 ImageNet 上学习得到的、7&times;7 网格的真实 1280 维向量。凡是在 ViT 中本应使用 patch 嵌入的 Q/K/V 投影之处，我们都改用这些向量。其中的数学完全一致：真实特征、真实点积、真实 softmax。",
+   "src": "A production ViT (<code>vit-base-patch16</code>, <code>DINOv2</code>)\n          doesn't run easily in-browser yet, but a real\n          <strong>MobileNet&nbsp;v2</strong> does, and crucially its spatial\n          feature map at the penultimate layer is a 7&times;7&times;1280\n          tensor&mdash;i.e. a 7&times;7 grid of real 1280-dim vectors\n          learned from ImageNet. We use those vectors wherever ViT would\n          normally use Q/K/V projections of patch embeddings. The math is\n          identical: real features, real dot products, real softmax.",
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Pick a photo\n          @@T0@@\n            @@T1@@@@T2@@@@T3@@Loading MobileNet&hellip;@@T4@@\n          @@T5@@": {
+   "zh": "选择一张照片\n          @@T0@@\n            @@T1@@@@T2@@@@T3@@正在加载 MobileNet&hellip;@@T4@@\n          @@T5@@",
+   "src": "Pick a photo\n          <span class=\"model-status is-loading\" id=\"model-status\">\n            <span class=\"dot\"></span><span id=\"model-status-text\">Loading MobileNet&hellip;</span>\n          </span>",
+   "tags": [
+    "<span class=\"model-status is-loading\" id=\"model-status\">",
+    "<span class=\"dot\">",
+    "</span>",
+    "<span id=\"model-status-text\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Drop a photo here, or click to upload.@@T1@@\n            @@T2@@Any JPEG or PNG. Inference is local; nothing is uploaded.@@T3@@": {
+   "zh": "@@T0@@将照片拖到此处，或点击上传。@@T1@@\n            @@T2@@支持任意 JPEG 或 PNG。推理在本地进行；不会上传任何内容。@@T3@@",
+   "src": "<strong>Drop a photo here, or click to upload.</strong>\n            <small>Any JPEG or PNG. Inference is local; nothing is uploaded.</small>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<small>",
+    "</small>"
+   ]
+  },
+  "Use webcam": {
+   "zh": "使用摄像头",
+   "src": "Use webcam",
+   "tags": []
+  },
+  "Six CC-licensed stock photos.": {
+   "zh": "六张采用 CC 授权的图库照片。",
+   "src": "Six CC-licensed stock photos.",
+   "tags": []
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "Chop the image into patches": {
+   "zh": "将图像切分为 patch",
+   "src": "Chop the image into patches",
+   "tags": []
+  },
+  "The first&mdash;and really the only image-specific&mdash;step in a\n          ViT is splitting the input into a grid of equal patches. For a\n          224&times;224 image with 16&times;16 patches you get a\n          14&times;14 = 196 patch grid. That grid is the \"sentence\" the\n          Transformer consumes.": {
+   "zh": "ViT 中第一个&mdash;&mdash;实际上也是唯一一个与图像相关的&mdash;&mdash;步骤，是把输入切分成大小相等的 patch 网格。对于 224&times;224 的图像、patch 尺寸为 16&times;16 时，得到 14&times;14 = 196 的 patch 网格。这个网格就是 Transformer 所消费的「句子」。",
+   "src": "The first&mdash;and really the only image-specific&mdash;step in a\n          ViT is splitting the input into a grid of equal patches. For a\n          224&times;224 image with 16&times;16 patches you get a\n          14&times;14 = 196 patch grid. That grid is the \"sentence\" the\n          Transformer consumes.",
+   "tags": []
+  },
+  "Patch size @@T0@@P = @@T1@@32@@T2@@ px@@T3@@": {
+   "zh": "Patch 尺寸 @@T0@@P = @@T1@@32@@T2@@ 像素@@T3@@",
+   "src": "Patch size <span>P = <span id=\"val-patch-size\">32</span> px</span>",
+   "tags": [
+    "<span>",
+    "<span id=\"val-patch-size\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Image with patch grid overlay. Click any patch.": {
+   "zh": "叠加 patch 网格的图像。点击任意 patch。",
+   "src": "Image with patch grid overlay. Click any patch.",
+   "tags": []
+  },
+  "@@T0@@Grid@@T1@@@@T2@@—@@T3@@": {
+   "zh": "@@T0@@网格@@T1@@@@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Grid</span><span class=\"stat-value\" id=\"stat-grid\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"stat-grid\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Patches@@T1@@@@T2@@—@@T3@@": {
+   "zh": "@@T0@@Patch 数@@T1@@@@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Patches</span><span class=\"stat-value\" id=\"stat-n-patches\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"stat-n-patches\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Pixels / patch@@T1@@@@T2@@—@@T3@@": {
+   "zh": "@@T0@@每 patch 像素数@@T1@@@@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Pixels / patch</span><span class=\"stat-value\" id=\"stat-ppp\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"stat-ppp\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Flat vector dim@@T1@@@@T2@@—@@T3@@": {
+   "zh": "@@T0@@展平向量维度@@T1@@@@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Flat vector dim</span><span class=\"stat-value\" id=\"stat-flat\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"stat-flat\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Patch-size tradeoff.@@T1@@\n              Smaller patches = more tokens = finer spatial resolution but\n              quadratic attention cost. Larger patches = fewer tokens but\n              blurrier spatial reasoning. ViT-Base used 16&times;16 on\n              224&times;224 images → 196 tokens.": {
+   "zh": "@@T0@@Patch 尺寸的权衡。@@T1@@\n              更小的 patch 意味着更多词元，空间分辨率更精细，但注意力开销呈二次增长。更大的 patch 意味着更少词元，但空间推理更模糊。ViT-Base 在 224&times;224 图像上使用 16&times;16 的 patch → 196 个词元。",
+   "src": "<strong>Patch-size tradeoff.</strong>\n              Smaller patches = more tokens = finer spatial resolution but\n              quadratic attention cost. Larger patches = fewer tokens but\n              blurrier spatial reasoning. ViT-Base used 16&times;16 on\n              224&times;224 images → 196 tokens.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Flatten each patch into a vector": {
+   "zh": "将每个 patch 展平为向量",
+   "src": "Flatten each patch into a vector",
+   "tags": []
+  },
+  "A patch is a tiny image: $P \\times P$ pixels, each with 3 RGB\n          channels. The ViT just reads the $3 P^2$ numbers in raster order:": {
+   "zh": "一个 patch 就是一幅微小的图像：$P \\times P$ 个像素，每个像素含 3 个 RGB 通道。ViT 只是按光栅扫描顺序读取这 $3 P^2$ 个数：",
+   "src": "A patch is a tiny image: $P \\times P$ pixels, each with 3 RGB\n          channels. The ViT just reads the $3 P^2$ numbers in raster order:",
+   "tags": []
+  },
+  "A learned $D \\times 3P^2$ projection matrix then maps this to the\n          Transformer's hidden dim $D$. Click a patch in Step&nbsp;1 or\n          below to see its raw flattened bytes.": {
+   "zh": "随后，一个学习得到的 $D \\times 3P^2$ 投影矩阵将其映射到 Transformer 的隐藏维度 $D$。点击第&nbsp;1 步中或下方的某个 patch，即可查看其展平后的原始数值。",
+   "src": "A learned $D \\times 3P^2$ projection matrix then maps this to the\n          Transformer's hidden dim $D$. Click a patch in Step&nbsp;1 or\n          below to see its raw flattened bytes.",
+   "tags": []
+  },
+  "Click a patch to inspect.": {
+   "zh": "点击一个 patch 进行检查。",
+   "src": "Click a patch to inspect.",
+   "tags": []
+  },
+  "Selected patch": {
+   "zh": "选中的 patch",
+   "src": "Selected patch",
+   "tags": []
+  },
+  "No patch selected yet. Click one above.": {
+   "zh": "尚未选中任何 patch。请点击上方的一个。",
+   "src": "No patch selected yet. Click one above.",
+   "tags": []
+  },
+  "First 12 dims of the flattened raw vector": {
+   "zh": "展平原始向量的前 12 个维度",
+   "src": "First 12 dims of the flattened raw vector",
+   "tags": []
+  },
+  "@@T0@@Why the projection isn't trivial.@@T1@@\n          The raw flattened vector is too low-level; it's just pixel\n          brightnesses. The $D$-dim projection learns which linear\n          combinations of those pixels carry useful signal&mdash;and in\n          practice ends up computing gradient-like features, the same thing\n          the first layer of a CNN does. For this page, we substitute the\n          real MobileNet backbone's penultimate feature map, which has\n          already learned thousands of ImageNet classes worth of features.": {
+   "zh": "@@T0@@为何该投影并不平凡。@@T1@@\n          原始展平向量过于底层，它不过是像素亮度而已。$D$ 维投影会学习这些像素的哪些线性组合携带有效信号&mdash;&mdash;实践中它最终计算出的类似梯度特征，与 CNN 第一层所做之事相同。在本页中，我们改用真实 MobileNet 主干倒数第二层的特征图，它已学习到足以覆盖数千个 ImageNet 类别的特征。",
+   "src": "<strong>Why the projection isn't trivial.</strong>\n          The raw flattened vector is too low-level; it's just pixel\n          brightnesses. The $D$-dim projection learns which linear\n          combinations of those pixels carry useful signal&mdash;and in\n          practice ends up computing gradient-like features, the same thing\n          the first layer of a CNN does. For this page, we substitute the\n          real MobileNet backbone's penultimate feature map, which has\n          already learned thousands of ImageNet classes worth of features.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Add position embeddings": {
+   "zh": "添加位置嵌入",
+   "src": "Add position embeddings",
+   "tags": []
+  },
+  "Self-attention is permutation-invariant&mdash;shuffle the tokens\n          and the output is identical. That's fatal for an image. The fix\n          is cheap: add a learned position embedding $p_i$ to each patch\n          token so the Transformer knows where it came from.": {
+   "zh": "自注意力具有置换不变性&mdash;&mdash;打乱词元的顺序，输出完全相同。这对图像而言是致命的。解决办法成本很低：为每个 patch 词元加上一个学习得到的位置嵌入 $p_i$，使 Transformer 知道它来自何处。",
+   "src": "Self-attention is permutation-invariant&mdash;shuffle the tokens\n          and the output is identical. That's fatal for an image. The fix\n          is cheap: add a learned position embedding $p_i$ to each patch\n          token so the Transformer knows where it came from.",
+   "tags": []
+  },
+  "With position embeddings": {
+   "zh": "含位置嵌入",
+   "src": "With position embeddings",
+   "tags": []
+  },
+  "Without (bag of patches)": {
+   "zh": "不含（patch 词袋）",
+   "src": "Without (bag of patches)",
+   "tags": []
+  },
+  "Sequence the Transformer sees": {
+   "zh": "Transformer 所看到的序列",
+   "src": "Sequence the Transformer sees",
+   "tags": []
+  },
+  "Waiting for photo&hellip;": {
+   "zh": "正在等待照片&hellip;",
+   "src": "Waiting for photo&hellip;",
+   "tags": []
+  },
+  "In Step&nbsp;5 you'll be able to compare attention\n          @@T0@@with@@T1@@ vs @@T2@@without@@T3@@ this positional signal. Without\n          it, attention becomes a pure feature-similarity search&mdash;\n          identical-looking patches in different corners get equal weight.": {
+   "zh": "在第&nbsp;5 步中，你将能够比较@@T0@@含@@T1@@与@@T2@@不含@@T3@@该位置信号的注意力。若不含位置信号，注意力就退化为纯粹的特征相似度检索&mdash;&mdash;位于不同角落而外观相同的 patch 会获得相同的权重。",
+   "src": "In Step&nbsp;5 you'll be able to compare attention\n          <em>with</em> vs <em>without</em> this positional signal. Without\n          it, attention becomes a pure feature-similarity search&mdash;\n          identical-looking patches in different corners get equal weight.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Prepend the [CLS] token": {
+   "zh": "前置 [CLS] 词元",
+   "src": "Prepend the [CLS] token",
+   "tags": []
+  },
+  "ViT borrows a BERT trick: prepend a @@T0@@learnable\n          [CLS] token@@T1@@ whose job is to aggregate information from\n          all patches. It has no pixels behind it&mdash;it's a free\n          parameter vector the model learns to use. After self-attention\n          runs, the CLS token's final embedding feeds a small MLP that\n          outputs class logits.": {
+   "zh": "ViT 借用了 BERT 的一个技巧：前置一个@@T0@@可学习的 [CLS] 词元@@T1@@，其职责是聚合来自所有 patch 的信息。它背后没有任何像素&mdash;&mdash;只是一个模型学会去使用的自由参数向量。自注意力运行完毕后，CLS 词元的最终嵌入被送入一个小型 MLP，由后者输出类别 logit。",
+   "src": "ViT borrows a BERT trick: prepend a <strong>learnable\n          [CLS] token</strong> whose job is to aggregate information from\n          all patches. It has no pixels behind it&mdash;it's a free\n          parameter vector the model learns to use. After self-attention\n          runs, the CLS token's final embedding feeds a small MLP that\n          outputs class logits.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Why a special token, not just an average?@@T1@@\n          Averaging is fine, and newer models (DeiT-III, many MAE variants)\n          do exactly that. A learnable CLS just gives the model a free\n          parameter budget to decide @@T2@@how@@T3@@ to aggregate\n          per-class&mdash;different heads may steal different patches for\n          different parts of the label.": {
+   "zh": "@@T0@@为何要专门设一个词元，而不直接取平均？@@T1@@\n          取平均并无不可，较新的模型（DeiT-III、许多 MAE 变体）正是这么做的。可学习的 CLS 只是给模型一份自由的参数预算，让它自行决定@@T2@@如何@@T3@@按类别进行聚合&mdash;&mdash;不同的注意力头可能为标签的不同部分「抓取」不同的 patch。",
+   "src": "<strong>Why a special token, not just an average?</strong>\n          Averaging is fine, and newer models (DeiT-III, many MAE variants)\n          do exactly that. A learnable CLS just gives the model a free\n          parameter budget to decide <em>how</em> to aggregate\n          per-class&mdash;different heads may steal different patches for\n          different parts of the label.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Self-attention: patches listen to patches": {
+   "zh": "自注意力：patch 相互「倾听」",
+   "src": "Self-attention: patches listen to patches",
+   "tags": []
+  },
+  "Here's the payoff. Every token projects itself into a\n          @@T0@@query@@T1@@, @@T2@@key@@T3@@, and\n          @@T4@@value@@T5@@. Attention weights are a softmax of\n          scaled query-key dot products, and each token's new value is a\n          weighted sum of everybody's values:": {
+   "zh": "精彩之处在此。每个词元都将自身投影为 @@T0@@查询（query）@@T1@@、@@T2@@键（key）@@T3@@ 与 @@T4@@值（value）@@T5@@。注意力权重是缩放后 query-key 点积的 softmax，而每个词元的新取值是所有词元取值的加权和：",
+   "src": "Here's the payoff. Every token projects itself into a\n          <strong>query</strong>, <strong>key</strong>, and\n          <strong>value</strong>. Attention weights are a softmax of\n          scaled query-key dot products, and each token's new value is a\n          weighted sum of everybody's values:",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Live attention heatmap — on real MobileNet features": {
+   "zh": "实时注意力热力图 &mdash;&mdash; 基于真实 MobileNet 特征",
+   "src": "Live attention heatmap — on real MobileNet features",
+   "tags": []
+  },
+  "Click any patch below. We use its real 1280-dim MobileNet feature\n          vector as the query $q$, every other patch's feature as a key\n          $k$, and compute the softmax of $q^\\top k$ over all patches. The\n          result is a real learned-feature attention map, drawn back on\n          your photo. It's not what a trained ViT would produce exactly\n          (it's CNN features, not ViT Q/K projections), but every number\n          is a real dot product over real features&mdash;not a stand-in.": {
+   "zh": "点击下方任意 patch。我们以其真实的 1280 维 MobileNet 特征向量作为查询 $q$，以其他每个 patch 的特征作为键 $k$，并对全部 patch 计算 $q^\\top k$ 的 softmax。结果是一幅真实的、基于学习特征的注意力图，绘制回你的照片之上。它与训练好的 ViT 所产出者并不完全相同（这里是 CNN 特征，而非 ViT 的 Q/K 投影），但每一个数都是真实特征上的真实点积&mdash;&mdash;绝非替代品。",
+   "src": "Click any patch below. We use its real 1280-dim MobileNet feature\n          vector as the query $q$, every other patch's feature as a key\n          $k$, and compute the softmax of $q^\\top k$ over all patches. The\n          result is a real learned-feature attention map, drawn back on\n          your photo. It's not what a trained ViT would produce exactly\n          (it's CNN features, not ViT Q/K projections), but every number\n          is a real dot product over real features&mdash;not a stand-in.",
+   "tags": []
+  },
+  "Click any patch to make it the query.": {
+   "zh": "点击任意 patch，使其成为查询。",
+   "src": "Click any patch to make it the query.",
+   "tags": []
+  },
+  "@@T0@@Query patch@@T1@@\n                @@T2@@—@@T3@@": {
+   "zh": "@@T0@@查询 patch@@T1@@\n                @@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Query patch</span>\n                <span class=\"stat-value\" id=\"stat-query\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"stat-query\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Top attended@@T1@@\n                @@T2@@—@@T3@@": {
+   "zh": "@@T0@@注意力最高者@@T1@@\n                @@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Top attended</span>\n                <span class=\"stat-value\" id=\"stat-top-attn\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"stat-top-attn\">",
+    "</span>"
+   ]
+  },
+  "Top 5 attention weights": {
+   "zh": "注意力权重前 5 位",
+   "src": "Top 5 attention weights",
+   "tags": []
+  },
+  "Click a patch first.": {
+   "zh": "请先点击一个 patch。",
+   "src": "Click a patch first.",
+   "tags": []
+  },
+  "@@T0@@@@T1@@high": {
+   "zh": "@@T0@@@@T1@@高",
+   "src": "<span class=\"legend-swatch\" style=\"background:#d9622b\"></span>high",
+   "tags": [
+    "<span class=\"legend-swatch\" style=\"background:#d9622b\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@@@T1@@medium": {
+   "zh": "@@T0@@@@T1@@中",
+   "src": "<span class=\"legend-swatch\" style=\"background:#f6c8a4\"></span>medium",
+   "tags": [
+    "<span class=\"legend-swatch\" style=\"background:#f6c8a4\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@@@T1@@low": {
+   "zh": "@@T0@@@@T1@@低",
+   "src": "<span class=\"legend-swatch\" style=\"background:rgba(0,0,0,0.06)\"></span>low",
+   "tags": [
+    "<span class=\"legend-swatch\" style=\"background:rgba(0,0,0,0.06)\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@What to try.@@T1@@\n          On a portrait, click a patch on the face&mdash;attention clusters\n          on the other face/skin patches. On a landscape, click the sky and\n          it snaps to other sky patches across the whole image\n          (@@T2@@long-range@@T3@@ attention that CNNs struggle with). Turn off\n          position embeddings (Step&nbsp;3) and you'll see even farther\n          patches attended to, because the content-only similarity ignores\n          spatial layout.": {
+   "zh": "@@T0@@可以尝试的操作。@@T1@@\n          在肖像照上，点击面部的一个 patch&mdash;&mdash;注意力会聚集到其他面部/皮肤 patch 上。在风景照上，点击天空，它会迅速集中到整幅图像中其他天空 patch 上\n          （这正是 CNN 难以应对的@@T2@@长程@@T3@@注意力）。关闭位置嵌入（第&nbsp;3 步），你会看到被关注的 patch 更加遥远，因为仅基于内容的相似度完全忽略了空间布局。",
+   "src": "<strong>What to try.</strong>\n          On a portrait, click a patch on the face&mdash;attention clusters\n          on the other face/skin patches. On a landscape, click the sky and\n          it snaps to other sky patches across the whole image\n          (<em>long-range</em> attention that CNNs struggle with). Turn off\n          position embeddings (Step&nbsp;3) and you'll see even farther\n          patches attended to, because the content-only similarity ignores\n          spatial layout.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Stacking attention &mdash; the rollout view": {
+   "zh": "堆叠注意力 &mdash;&mdash; rollout 视角",
+   "src": "Stacking attention &mdash; the rollout view",
+   "tags": []
+  },
+  "One layer of attention only spreads information one hop. After\n          the first block, every patch token has mixed in a weighted\n          neighborhood of the others. After two blocks, it has mixed in\n          neighborhoods @@T0@@of@@T1@@ neighborhoods. The receptive field\n          grows with every block; by layer&nbsp;12 (the depth of\n          ViT-Base) almost every patch can in principle hear from every\n          other.": {
+   "zh": "一层注意力只将信息传播「一跳」。经过第一个模块后，每个 patch 词元都已混入了其他词元的一个加权邻域。经过两个模块后，它混入的是邻域@@T0@@的@@T1@@邻域。感受野随每个模块不断扩张；到第&nbsp;12 层（ViT-Base 的深度）时，几乎所有 patch 原则上都能「听到」其他任何一个 patch。",
+   "src": "One layer of attention only spreads information one hop. After\n          the first block, every patch token has mixed in a weighted\n          neighborhood of the others. After two blocks, it has mixed in\n          neighborhoods <em>of</em> neighborhoods. The receptive field\n          grows with every block; by layer&nbsp;12 (the depth of\n          ViT-Base) almost every patch can in principle hear from every\n          other.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "To visualise that, we synthesise $L$ layers from your photo's\n          features. Layer&nbsp;1 has a strong locality bias (close\n          patches dominate); each subsequent layer relaxes that bias and\n          sharpens content similarity. Then we apply\n          @@T0@@attention rollout@@T1@@ &mdash; the residual-aware\n          recipe of Abnar &amp; Zuidema, 2020 &mdash; multiplying the\n          attention matrices together, accounting for the residual stream\n          $A_l \\to (A_l + I)/2$:": {
+   "zh": "为将其可视化，我们由你照片的特征合成 $L$ 层。第&nbsp;1 层具有强烈的局部性偏好（邻近 patch 占主导）；此后每一层都会削弱这一偏好并强化内容相似度。随后我们应用 @@T0@@注意力 rollout@@T1@@ &mdash;&mdash; 即 Abnar 与 Zuidema（2020）提出的顾及残差的做法 &mdash;&mdash; 将注意力矩阵相乘，并计入残差流 $A_l \\to (A_l + I)/2$：",
+   "src": "To visualise that, we synthesise $L$ layers from your photo's\n          features. Layer&nbsp;1 has a strong locality bias (close\n          patches dominate); each subsequent layer relaxes that bias and\n          sharpens content similarity. Then we apply\n          <strong>attention rollout</strong> &mdash; the residual-aware\n          recipe of Abnar &amp; Zuidema, 2020 &mdash; multiplying the\n          attention matrices together, accounting for the residual stream\n          $A_l \\to (A_l + I)/2$:",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Click any patch on the left canvas to make it the query token.\n          Each panel below shows its outgoing attention at the requested\n          depth. Drag the slider to step through layers and watch the\n          attended region grow.": {
+   "zh": "点击左侧画布上的任意 patch，使其成为查询词元。下方每个面板都显示它在所要求深度上的输出注意力。拖动滑块逐层推进，观察被关注的区域如何扩张。",
+   "src": "Click any patch on the left canvas to make it the query token.\n          Each panel below shows its outgoing attention at the requested\n          depth. Drag the slider to step through layers and watch the\n          attended region grow.",
+   "tags": []
+  },
+  "Layers in the stack &nbsp;@@T0@@8@@T1@@": {
+   "zh": "堆叠层数 &nbsp;@@T0@@8@@T1@@",
+   "src": "Layers in the stack &nbsp;<span id=\"rollout-L-val\">8</span>",
+   "tags": [
+    "<span id=\"rollout-L-val\">",
+    "</span>"
+   ]
+  },
+  "Inspect single layer $\\ell$ &nbsp;@@T0@@1@@T1@@": {
+   "zh": "查看单层 $\\ell$ &nbsp;@@T0@@1@@T1@@",
+   "src": "Inspect single layer $\\ell$ &nbsp;<span id=\"rollout-l-val\">1</span>",
+   "tags": [
+    "<span id=\"rollout-l-val\">",
+    "</span>"
+   ]
+  },
+  "Pick a query patch.": {
+   "zh": "请选择一个查询 patch。",
+   "src": "Pick a query patch.",
+   "tags": []
+  },
+  "Layer 1 attention (local)": {
+   "zh": "第 1 层注意力（局部）",
+   "src": "Layer 1 attention (local)",
+   "tags": []
+  },
+  "Layer $\\ell$ alone": {
+   "zh": "单独的第 $\\ell$ 层",
+   "src": "Layer $\\ell$ alone",
+   "tags": []
+  },
+  "Rollout: layers $1{:}\\ell$ composed": {
+   "zh": "Rollout：第 $1{:}\\ell$ 层复合结果",
+   "src": "Rollout: layers $1{:}\\ell$ composed",
+   "tags": []
+  },
+  "@@T0@@Why composed attention is more than each layer alone.@@T1@@\n          A single layer can only mix neighbors. Stacked, attention\n          becomes a @@T2@@random walk@@T3@@ through the patch graph &mdash;\n          token $i$ at depth $L$ effectively listens to all $j$\n          reachable in $L$ steps along high-weight edges. That is why\n          ViTs can do long-range reasoning even though every individual\n          attention map looks fairly local.": {
+   "zh": "@@T0@@为何复合注意力大于各层之简单相加。@@T1@@\n          单层只能混合邻域。层层堆叠之后，注意力便成为 patch 图上的一次@@T2@@随机游走@@T3@@&mdash;&mdash;\n          深度为 $L$ 处的词元 $i$，实际上「聆听」了在 $L$ 步内沿高权重边可达的所有 $j$。这正是 ViT 能够进行长程推理的原因，尽管每一张单独的注意力图看起来都相当局部。",
+   "src": "<strong>Why composed attention is more than each layer alone.</strong>\n          A single layer can only mix neighbors. Stacked, attention\n          becomes a <em>random walk</em> through the patch graph &mdash;\n          token $i$ at depth $L$ effectively listens to all $j$\n          reachable in $L$ steps along high-weight edges. That is why\n          ViTs can do long-range reasoning even though every individual\n          attention map looks fairly local.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@What we faked vs what's real.@@T1@@\n          We have one MobileNet feature map, not 12 ViT layers. We\n          generated each \"layer\" by varying a position-bias temperature\n          on top of the same features &mdash; a stylised model of how\n          ViT attention is observed to drift from local to global with\n          depth (Caron et&nbsp;al., 2021; Raghu et&nbsp;al., 2021).\n          The rollout math itself is exactly the published recipe.": {
+   "zh": "@@T0@@哪些是模拟的，哪些是真实的。@@T1@@\n          我们只有一张 MobileNet 特征图，而非 12 个 ViT 层。我们通过在相同特征之上改变位置偏置温度来生成每个「层」&mdash;&mdash; 这是对 ViT 注意力随深度由局部漂向全局这一观察结果的风格化建模（Caron 等，2021；Raghu 等，2021）。\n          rollout 的数学本身则完全依照已发表的做法。",
+   "src": "<strong>What we faked vs what's real.</strong>\n          We have one MobileNet feature map, not 12 ViT layers. We\n          generated each \"layer\" by varying a position-bias temperature\n          on top of the same features &mdash; a stylised model of how\n          ViT attention is observed to drift from local to global with\n          depth (Caron et&nbsp;al., 2021; Raghu et&nbsp;al., 2021).\n          The rollout math itself is exactly the published recipe.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 7": {
+   "zh": "第 7 步",
+   "src": "Step 7",
+   "tags": []
+  },
+  "The full recipe": {
+   "zh": "完整流程",
+   "src": "The full recipe",
+   "tags": []
+  },
+  "One encoder block of a ViT is: self-attention &rarr; residual\n          add &rarr; LayerNorm &rarr; MLP &rarr; residual add &rarr;\n          LayerNorm. ViT-Base stacks 12 of them. The final CLS token goes\n          through a one-hidden-layer MLP head to produce class logits.": {
+   "zh": "ViT 的一个编码器模块为：自注意力 &rarr; 残差相加 &rarr; LayerNorm &rarr; MLP &rarr; 残差相加 &rarr; LayerNorm。ViT-Base 将其堆叠 12 次。最终的 CLS 词元经过一个单隐藏层的 MLP 头部，产生类别 logit。",
+   "src": "One encoder block of a ViT is: self-attention &rarr; residual\n          add &rarr; LayerNorm &rarr; MLP &rarr; residual add &rarr;\n          LayerNorm. ViT-Base stacks 12 of them. The final CLS token goes\n          through a one-hidden-layer MLP head to produce class logits.",
+   "tags": []
+  },
+  "Stage": {
+   "zh": "阶段",
+   "src": "Stage",
+   "tags": []
+  },
+  "What it does": {
+   "zh": "作用",
+   "src": "What it does",
+   "tags": []
+  },
+  "For our photo": {
+   "zh": "本页照片上的取值",
+   "src": "For our photo",
+   "tags": []
+  },
+  "Sequence length fed to the Transformer": {
+   "zh": "送入 Transformer 的序列长度",
+   "src": "Sequence length fed to the Transformer",
+   "tags": []
+  },
+  "= @@T0@@1 CLS + N patch tokens@@T1@@.\n            Every token attends to every other; that's $N^2$ pairwise\n            comparisons per layer.": {
+   "zh": "= @@T0@@1 个 CLS + N 个 patch 词元@@T1@@。\n            每个词元都关注其他所有词元；即每层需进行 $N^2$ 次两两比较。",
+   "src": "= <span id=\"reveal-breakdown\">1 CLS + N patch tokens</span>.\n            Every token attends to every other; that's $N^2$ pairwise\n            comparisons per layer.",
+   "tags": [
+    "<span id=\"reveal-breakdown\">",
+    "</span>"
+   ]
+  },
+  "Compute comparison across patch sizes": {
+   "zh": "不同 patch 尺寸下的计算量对比",
+   "src": "Compute comparison across patch sizes",
+   "tags": []
+  },
+  "Patch size": {
+   "zh": "Patch 尺寸",
+   "src": "Patch size",
+   "tags": []
+  },
+  "Grid": {
+   "zh": "网格",
+   "src": "Grid",
+   "tags": []
+  },
+  "Tokens (incl. CLS)": {
+   "zh": "词元数（含 CLS）",
+   "src": "Tokens (incl. CLS)",
+   "tags": []
+  },
+  "Attention ops (rel.)": {
+   "zh": "注意力运算量（相对）",
+   "src": "Attention ops (rel.)",
+   "tags": []
+  },
+  "Step 8": {
+   "zh": "第 8 步",
+   "src": "Step 8",
+   "tags": []
+  },
+  "Four things people get wrong about ViTs": {
+   "zh": "关于 ViT 的四个常见误解",
+   "src": "Four things people get wrong about ViTs",
+   "tags": []
+  },
+  "@@T0@@Myth@@T1@@": {
+   "zh": "@@T0@@误解@@T1@@",
+   "src": "<span class=\"misconception-icon\">Myth</span>",
+   "tags": [
+    "<span class=\"misconception-icon\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@\"ViTs have no inductive bias for images.\"@@T1@@@@T2@@\n              They have less than a CNN, but far from none. The patch\n              embedding is literally a stride-$P$ convolution. Position\n              embeddings encode the grid. And self-attention itself is a\n              smooth, learnable prior against gibberish permutations.": {
+   "zh": "@@T0@@「ViT 对图像没有任何归纳偏置。」@@T1@@@@T2@@\n              其归纳偏置确实少于 CNN，但远非没有。patch 嵌入本质上就是步长为 $P$ 的卷积。位置嵌入编码了网格结构。而自注意力本身即是一种平滑、可学习的先验，用以抵抗无意义的置换。",
+   "src": "<strong>\"ViTs have no inductive bias for images.\"</strong><br />\n              They have less than a CNN, but far from none. The patch\n              embedding is literally a stride-$P$ convolution. Position\n              embeddings encode the grid. And self-attention itself is a\n              smooth, learnable prior against gibberish permutations.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@\"They need hundreds of millions of images.\"@@T1@@@@T2@@\n              The @@T3@@original@@T4@@ ViT did, because of its weak inductive\n              bias. Post-2021 variants (DeiT, DINOv2, SwiT, MAE pre-training)\n              train on ImageNet-1k alone and match or beat CNNs. Data hunger\n              was a recipe choice, not a fundamental limit.": {
+   "zh": "@@T0@@「它们需要数亿张图像。」@@T1@@@@T2@@\n              @@T3@@最初的@@T4@@ ViT 确实如此，原因在于其归纳偏置较弱。2021 年之后的变体（DeiT、DINOv2、SwiT、MAE 预训练）仅用 ImageNet-1k 训练，即可与 CNN 持平或超越之。对数据的渴求是一种做法上的选择，而非根本性的局限。",
+   "src": "<strong>\"They need hundreds of millions of images.\"</strong><br />\n              The <em>original</em> ViT did, because of its weak inductive\n              bias. Post-2021 variants (DeiT, DINOv2, SwiT, MAE pre-training)\n              train on ImageNet-1k alone and match or beat CNNs. Data hunger\n              was a recipe choice, not a fundamental limit.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@\"Attention weights tell you what the model sees.\"@@T1@@@@T2@@\n              Tempting, but noisy. Attention is one signal among many in a\n              deep residual stack. The same prediction can be supported by\n              many different attention patterns, and gradient attributions\n              frequently disagree. Treat heatmaps as suggestive, not\n              evidence.": {
+   "zh": "@@T0@@「注意力权重能告诉你模型看到了什么。」@@T1@@@@T2@@\n              这种想法很诱人，但并不严谨。在深层残差堆叠中，注意力只是众多信号之一。同一个预测可由许多不同的注意力模式支撑，而基于梯度的归因往往与之相左。应把热力图视为提示，而非证据。",
+   "src": "<strong>\"Attention weights tell you what the model sees.\"</strong><br />\n              Tempting, but noisy. Attention is one signal among many in a\n              deep residual stack. The same prediction can be supported by\n              many different attention patterns, and gradient attributions\n              frequently disagree. Treat heatmaps as suggestive, not\n              evidence.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@\"Smaller patches are always better.\"@@T1@@@@T2@@\n              Halving the patch size quadruples the token count and\n              @@T3@@quadruples squared@@T4@@ the attention cost. Hybrid models\n              (Swin, MaxViT) use local attention windows to keep the\n              precision without the $N^2$ bill.": {
+   "zh": "@@T0@@「patch 越小越好。」@@T1@@@@T2@@\n              将 patch 尺寸减半，词元数变为四倍，而注意力开销则变成@@T3@@四倍的平方@@T4@@。混合模型（Swin、MaxViT）使用局部注意力窗口，在保持精度的同时免去 $N^2$ 的开销。",
+   "src": "<strong>\"Smaller patches are always better.\"</strong><br />\n              Halving the patch size quadruples the token count and\n              <em>quadruples squared</em> the attention cost. Hybrid models\n              (Swin, MaxViT) use local attention windows to keep the\n              precision without the $N^2$ bill.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          A Vision Transformer is a bag of patches plus their positions,\n          poured through the exact same attention block you'd use on text.\n          You've now seen every number along the way&mdash;the patch grid,\n          the flattened vectors, the position tags, the CLS token, and the\n          attention heatmap over real pretrained features&mdash;on an actual\n          photo. The rest of the field is scaling this up, finding better\n          pretraining objectives, and adding locality back in cheaper ways.": {
+   "zh": "@@T0@@最终要点。@@T1@@\n          视觉 Transformer 就是一个 patch 词袋加上它们的位置，经由与处理文本时完全相同的那套注意力模块。至此你已在一张真实照片上看到了沿途的每一个数&mdash;&mdash;patch 网格、展平向量、位置标记、CLS 词元，以及建立在真实预训练特征之上的注意力热力图。该领域的其余工作则是将其规模化、寻找更好的预训练目标，以及以更低成本重新引入局部性。",
+   "src": "<strong>Final takeaway.</strong>\n          A Vision Transformer is a bag of patches plus their positions,\n          poured through the exact same attention block you'd use on text.\n          You've now seen every number along the way&mdash;the patch grid,\n          the flattened vectors, the position tags, the CLS token, and the\n          attention heatmap over real pretrained features&mdash;on an actual\n          photo. The rest of the field is scaling this up, finding better\n          pretraining objectives, and adding locality back in cheaper ways.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "视觉 Transformer：在真实照片上运行",
+  "tagline": "Patch、位置、自注意力与多层 rollout &mdash;&mdash; 全部基于真实预训练特征计算",
+  "summary": "一个预训练的 MobileNet 在你的浏览器中实时运行，将你照片的每个 patch 转成真实的 1024 维特征向量。随后我们在这些真实特征之间计算货真价实的点积注意力 &mdash;&mdash; 而非手工设定的标量 &mdash;&mdash; 并将结果绘制为叠加层。新增：一套顾及残差的多层注意力 rollout（Abnar 与 Zuidema，2020），它合成若干 ViT 层，展示感受野如何随深度增长。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "通过 TensorFlow.js 在浏览器内运行真实预训练的 MobileNet v2，为每个 patch 提取 1024 维特征向量。",
+   "在这些真实特征之间计算真实的点积 softmax 注意力 &mdash;&mdash; 全程不含任何玩具标量。",
+   "上传任意 JPEG/PNG 或选择一张图库照片；patch、向量与注意力都会重新计算。",
+   "可切换位置嵌入、改变 patch 尺寸、点击任意 patch 并查看其真实的注意力热力图。",
+   "逐步推进合成的 L 层堆叠，观察顾及残差的注意力 rollout 如何随深度增长感受野。"
+  ],
+  "tags": [
+   "视觉 Transformer",
+   "ViT",
+   "注意力机制",
+   "TensorFlow.js",
+   "MobileNet",
+   "计算机视觉",
+   "交互式"
+  ]
+ },
+ "js": {
+  "Failed to load [[[0]]]": {
+   "zh": "加载失败：[[[0]]]",
+   "exprs": [
+    "${url}"
+   ],
+   "tags": [],
+   "src": "Failed to load ${url}"
+  },
+  "Patch (row [[[0]]], col [[[1]]])": {
+   "zh": "Patch（第 [[[0]]] 行，第 [[[1]]] 列）",
+   "exprs": [
+    "${row}",
+    "${col}"
+   ],
+   "tags": [],
+   "src": "Patch (row ${row}, col ${col})"
+  },
+  "Size: [[[0]]] × [[[1]]] px on display → [[[2]]] × [[[3]]] on model input (224×224)": {
+   "zh": "尺寸：显示为 [[[0]]] × [[[1]]] 像素 → 模型输入为 [[[2]]] × [[[3]]]（224×224）",
+   "exprs": [
+    "${P}",
+    "${P}",
+    "${Math.round(P * scale)}",
+    "${Math.round(P * scale)}"
+   ],
+   "tags": [],
+   "src": "Size: ${P} × ${P} px on display → ${Math.round(P * scale)} × ${Math.round(P * scale)} on model input (224×224)"
+  },
+  "Raw flat vector length: [[[0]]]": {
+   "zh": "展平原始向量长度：[[[0]]]",
+   "exprs": [
+    "${P * P * 3}"
+   ],
+   "tags": [],
+   "src": "Raw flat vector length: ${P * P * 3}"
+  },
+  "[[[0]]] patches of size [[[1]]]×[[[2]]]": {
+   "zh": "[[[0]]] 个大小为 [[[1]]]×[[[2]]] 的 patch",
+   "exprs": [
+    "${N}",
+    "${P}",
+    "${P}"
+   ],
+   "tags": [],
+   "src": "${N} patches of size ${P}×${P}"
+  },
+  "vector length [[[0]]]": {
+   "zh": "向量长度 [[[0]]]",
+   "exprs": [
+    "${3 * P * P}"
+   ],
+   "tags": [],
+   "src": "vector length ${3 * P * P}"
+  },
+  "Linear layer to D dims (D = [[[0]]] shown).": {
+   "zh": "线性层映射到 D 维（此处 D = [[[0]]]）。",
+   "exprs": [
+    "${D}"
+   ],
+   "tags": [],
+   "src": "Linear layer to D dims (D = ${D} shown)."
+  },
+  "[[[0]]] × [[[1]]] matrix of tokens": {
+   "zh": "[[[0]]] × [[[1]]] 的词元矩阵",
+   "exprs": [
+    "${N}",
+    "${D}"
+   ],
+   "tags": [],
+   "src": "${N} × ${D} matrix of tokens"
+  },
+  "sequence length [[[0]]]": {
+   "zh": "序列长度 [[[0]]]",
+   "exprs": [
+    "${N + 1}"
+   ],
+   "tags": [],
+   "src": "sequence length ${N + 1}"
+  },
+  "[[[0]]] tokens, [[[1]]] dim": {
+   "zh": "[[[0]]] 个词元，[[[1]]] 维",
+   "exprs": [
+    "${N + 1}",
+    "${D}"
+   ],
+   "tags": [],
+   "src": "${N + 1} tokens, ${D} dim"
+  },
+  "D → num_classes": {
+   "zh": "D → 类别数",
+   "exprs": [],
+   "tags": [],
+   "src": "D → num_classes"
+  },
+  "1 CLS token + [[[0]]] patch token[[[1]]]": {
+   "zh": "1 个 CLS 词元 + [[[0]]] 个 patch 词元[[[1]]]",
+   "exprs": [
+    "${N}",
+    "${N === 1 ? '' : 's'}"
+   ],
+   "tags": [],
+   "src": "1 CLS token + ${N} patch token${N === 1 ? '' : 's'}"
+  },
+  "Mountain landscape": {
+   "zh": "山景",
+   "exprs": [],
+   "tags": [],
+   "src": "Mountain landscape"
+  },
+  "Bike / urban": {
+   "zh": "自行车 / 城市",
+   "exprs": [],
+   "tags": [],
+   "src": "Bike / urban"
+  },
+  "Still life": {
+   "zh": "静物",
+   "exprs": [],
+   "tags": [],
+   "src": "Still life"
+  },
+  "MobileNet load failed:": {
+   "zh": "MobileNet 加载失败：",
+   "exprs": [],
+   "tags": [],
+   "src": "MobileNet load failed:"
+  },
+  "Model failed to load — check network": {
+   "zh": "模型加载失败 &mdash;&mdash; 请检查网络",
+   "exprs": [],
+   "tags": [],
+   "src": "Model failed to load — check network"
+  },
+  "— trying next fallback": {
+   "zh": "&mdash;&mdash; 正在尝试下一个备选",
+   "exprs": [],
+   "tags": [],
+   "src": "— trying next fallback"
+  },
+  "All sample URLs failed": {
+   "zh": "所有示例 URL 均失败",
+   "exprs": [],
+   "tags": [],
+   "src": "All sample URLs failed"
+  },
+  "Sample load failed:": {
+   "zh": "示例加载失败：",
+   "exprs": [],
+   "tags": [],
+   "src": "Sample load failed:"
+  },
+  "patch-detail patch-detail-empty": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": "patch-detail patch-detail-empty"
+  },
+  "No patch selected yet. Click one in Step 1 or above.": {
+   "zh": "尚未选中任何 patch。请点击第 1 步中或上方的一个。",
+   "exprs": [],
+   "tags": [],
+   "src": "No patch selected yet. Click one in Step 1 or above."
+  },
+  "seq-token pos": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": "seq-token pos"
+  },
+  "Click a patch first.": {
+   "zh": "请先点击一个 patch。",
+   "exprs": [],
+   "tags": [],
+   "src": "Click a patch first."
+  },
+  "rank  cell      weight": {
+   "zh": "排名  单元      权重",
+   "exprs": [],
+   "tags": [],
+   "src": "rank  cell      weight"
+  },
+  "1. Patchify": {
+   "zh": "1. 切分 patch",
+   "exprs": [],
+   "tags": [],
+   "src": "1. Patchify"
+  },
+  "Split image into P×P non-overlapping patches.": {
+   "zh": "将图像切分为 P×P 互不重叠的 patch。",
+   "exprs": [],
+   "tags": [],
+   "src": "Split image into P×P non-overlapping patches."
+  },
+  "2. Flatten": {
+   "zh": "2. 展平",
+   "exprs": [],
+   "tags": [],
+   "src": "2. Flatten"
+  },
+  "Each patch: P×P×3 pixels → vector of length 3P².": {
+   "zh": "每个 patch：P×P×3 个像素 → 长度为 3P² 的向量。",
+   "exprs": [],
+   "tags": [],
+   "src": "Each patch: P×P×3 pixels → vector of length 3P²."
+  },
+  "3. Project": {
+   "zh": "3. 投影",
+   "exprs": [],
+   "tags": [],
+   "src": "3. Project"
+  },
+  "4. Add positions": {
+   "zh": "4. 添加位置",
+   "exprs": [],
+   "tags": [],
+   "src": "4. Add positions"
+  },
+  "Add learned position embedding to each patch.": {
+   "zh": "为每个 patch 加上学习得到的位置嵌入。",
+   "exprs": [],
+   "tags": [],
+   "src": "Add learned position embedding to each patch."
+  },
+  "5. Prepend [CLS]": {
+   "zh": "5. 前置 [CLS]",
+   "exprs": [],
+   "tags": [],
+   "src": "5. Prepend [CLS]"
+  },
+  "Learnable class token at front.": {
+   "zh": "在序列前端加入可学习的类别词元。",
+   "exprs": [],
+   "tags": [],
+   "src": "Learnable class token at front."
+  },
+  "6. Self-attention × L": {
+   "zh": "6. 自注意力 × L",
+   "exprs": [],
+   "tags": [],
+   "src": "6. Self-attention × L"
+  },
+  "7. Read CLS": {
+   "zh": "7. 读取 CLS",
+   "exprs": [],
+   "tags": [],
+   "src": "7. Read CLS"
+  },
+  "Final CLS → MLP head → class logits.": {
+   "zh": "最终 CLS → MLP 头部 → 类别 logit。",
+   "exprs": [],
+   "tags": [],
+   "src": "Final CLS → MLP head → class logits."
+  },
+  "Webcam access failed: ": {
+   "zh": "摄像头访问失败：",
+   "exprs": [],
+   "tags": [],
+   "src": "Webcam access failed: "
+  },
+  "rollout-L": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": "rollout-L"
+  },
+  "rollout-L-val": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": "rollout-L-val"
+  }
+ }
+}

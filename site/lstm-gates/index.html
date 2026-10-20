@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LSTM 门控实验场</title>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../shared/site.css" />
+    <style>
+      :root { --ink:#1f1f1e; --paper:#faf8f3; --paper-alt:#f0eee5; --rule:#c9c4b5; --muted:#6b6a65; --accent:#d97757; --accent-soft:#ead3c5; --sage:#7b9e89; --slate:#4a6670; --wine:#a8324b; }
+      body { font-family:"Source Serif 4",Georgia,serif; background:var(--paper); color:var(--ink); line-height:1.55; max-width:800px; margin:0 auto; padding:40px 24px 80px 24px; }
+      .kicker { font-family:"Manrope",sans-serif; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin:0 0 6px 0; }
+      h1 { font-size:44px; line-height:1.1; margin:0 0 16px 0; }
+      h2 { font-size:28px; line-height:1.2; margin:48px 0 14px 0; }
+      .abstract { font-size:18px; color:var(--muted); font-style:italic; margin:0 0 16px 0; }
+      .byline { font-family:"Manrope",sans-serif; font-size:13px; color:var(--muted); border-top:1px solid var(--rule); border-bottom:1px solid var(--rule); padding:12px 0; margin-bottom:36px; }
+      .byline span { margin-right:14px; }
+      a.back-link { font-family:"Manrope",sans-serif; font-size:13px; color:var(--accent); text-decoration:none; display:inline-block; margin-bottom:24px; }
+      p { margin:0 0 16px 0; }
+      code { font-family:"IBM Plex Mono",monospace; font-size:.9em; background:var(--paper-alt); padding:2px 6px; border-radius:3px; }
+      .figure { background:var(--paper-alt); border:1px solid var(--rule); border-radius:6px; padding:20px; margin:24px 0; }
+      .controls { display:grid; grid-template-columns:auto 1fr auto; gap:12px 18px; align-items:center; margin-bottom:16px; font-family:"Manrope",sans-serif; font-size:14px; }
+      .controls label { display:contents; }
+      .controls label span:first-child { font-weight:600; }
+      input[type="range"] { width:260px; accent-color:var(--accent); }
+      .readout { font-family:"IBM Plex Mono",monospace; font-size:13px; min-width:50px; text-align:right; }
+      .preset-row { display:flex; gap:8px; margin-top:8px; }
+      .preset-row button { font-family:"Manrope",sans-serif; font-size:12px; padding:5px 12px; background:var(--paper); color:var(--muted); border:1px solid var(--rule); border-radius:4px; cursor:pointer; }
+      .preset-row button:hover { background:var(--accent-soft); border-color:var(--accent); color:var(--accent); }
+      svg { display:block; margin:12px auto 0 auto; }
+      .note { border-left:3px solid var(--accent); background:var(--accent-soft); padding:12px 16px; margin:20px 0; font-size:15px; }
+    </style>
+  </head>
+  <body>
+    <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+    <p class="kicker">交互式讲解</p>
+    <h1>LSTM 门控实验场</h1>
+    <p class="abstract">
+      一个 LSTM 单元有三道门：遗忘门决定从细胞状态中擦除什么，输入门决定写入什么，输出门决定读出什么。拖动每个滑块，送入一段输入序列，观察细胞状态如何流动 &mdash;&mdash; 或者冻结不动。
+    </p>
+    <div class="byline"><span>约 8 分钟</span><span>深度学习 · RNN · LSTM</span></div>
+
+    <p>
+      朴素 RNN 难以处理长程依赖。梯度经过一连串 W<sup>⊤</sup>·diag(tanh') 连乘之后，要么消失，要么爆炸。Hochreiter 与 Schmidhuber 在 1997 年的洞见在于：让循环拥有自己的状态，并由<em>门控</em> &mdash;&mdash; 即 [0, 1] 区间内的 sigmoid 值 &mdash;&mdash; 来更新该状态，而非通过矩阵乘法。
+    </p>
+    <p>
+      细胞状态由此成为一条传送带。在每个时间步，遗忘门做乘法，输入门做加法，而只有输出门决定将多少内容暴露为隐藏状态。
+    </p>
+
+    <h2>实验场</h2>
+    <div class="figure">
+      <div class="controls">
+        <label>
+          <span style="color: #a8324b;">遗忘门 (f)</span>
+          <input type="range" id="fg" min="0" max="1" step="0.05" value="0.9" />
+          <span class="readout" id="fg-val">0.90</span>
+        </label>
+        <label>
+          <span style="color: #7b9e89;">输入门 (i)</span>
+          <input type="range" id="ig" min="0" max="1" step="0.05" value="0.3" />
+          <span class="readout" id="ig-val">0.30</span>
+        </label>
+        <label>
+          <span style="color: #4a6670;">输出门 (o)</span>
+          <input type="range" id="og" min="0" max="1" step="0.05" value="1.0" />
+          <span class="readout" id="og-val">1.00</span>
+        </label>
+      </div>
+      <div class="preset-row" style="margin-bottom:10px">
+        <button data-scenario="pulse">场景 · 两个脉冲</button>
+        <button data-scenario="sentiment">场景 · 情感反转（「brilliant ... bad」）</button>
+        <button data-scenario="noisy">场景 · 持续信号 + 噪声</button>
+      </div>
+      <div class="preset-row">
+        <button data-preset="remember">永久记忆（f=1, i=0）</button>
+        <button data-preset="forget">始终遗忘（f=0）</button>
+        <button data-preset="overwrite">始终覆写（f=0, i=1）</button>
+        <button data-preset="default">默认</button>
+      </div>
+      <svg id="plot" width="720" height="280" viewBox="0 0 720 280"></svg>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #6b6a65; margin-top: 6px; text-align: center;">
+        输入在 t=3 与 t=7 处出现尖峰 · 实线 = 细胞状态 c_t · 虚线 = 隐藏状态 h_t
+      </div>
+    </div>
+
+    <h2>可尝试这些预设</h2>
+    <ul>
+      <li><strong>永久记忆</strong> &mdash;&mdash; f=1, i=0。细胞状态在首个输入之后便冻结。LSTM 正是以这种方式保存长程信息。</li>
+      <li><strong>始终遗忘</strong> &mdash;&mdash; f=0。每个时间步都擦除。效果类似于 tanh 饱和的朴素 RNN。</li>
+      <li><strong>始终覆写</strong> &mdash;&mdash; f=0, i=1。细胞状态只跟踪最新的输入。</li>
+    </ul>
+
+    <div class="note">
+      <strong>关键方程。</strong> c_t = f_t · c_{t-1} + i_t · c̃_t。遗忘门是一条<em>乘法式</em>路径（不含矩阵乘法），因此经由细胞状态的梯度既不会爆炸也不会消失 &mdash;&mdash; 它们按 f_t 缩放，而在记忆重要时，网络会学会让 f_t 保持在接近 1 的数值。
+    </div>
+
+    <h2>LSTM 与 GRU 对比</h2>
+    <p>
+      GRU（Cho，2014）将遗忘门与输入门合并为一个「更新」门，并把 c 与 h 合并。参数更少，精度往往相当。到 2026 年，在二者之间取舍基本属于个人偏好；在大多数任务上二者都被 Transformer 远远超越。但在微型设备与流式场景中，它们仍是主力。
+    </p>
+
+    <h2>BPTT 与梯度消失的故事</h2>
+    <p>
+      训练 RNN 即沿时间反向传播（BPTT）：将循环展开，视其为权重共享的前馈网络，并沿时间反向传播梯度。朴素 RNN 致命的问题在于：每回退一步，梯度都会乘以同一个循环映射的 Jacobian。若该 Jacobian 的谱半径 &lt; 1，梯度将指数级消失；若 &gt; 1，则会爆炸。
+    </p>
+    <p style="text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 15px; margin: 24px 0;">
+      ∂L/∂h_0 = ∂L/∂h_T · ∏_{t=1}^{T} ∂h_t/∂h_{t−1}
+    </p>
+    <p>
+      LSTM 为何能解决这一问题：细胞状态 $c_t$ 通过 $c_t = f_t \odot c_{t-1} + i_t \odot g_t$ 向前传递信息。其 Jacobian $\partial c_t / \partial c_{t-1} = f_t$ 恰恰就是遗忘门的取值 &mdash;&mdash; 一个位于 $(0,1)$ 区间、可逐步学习的标量。当模型想要记住时，$f_t \approx 1$，梯度便原封不动地回流。<em>这才是 LSTM 能够被训练的真正原因。</em>
+    </p>
+
+    <h2>窥孔式 / ConvLSTM / xLSTM 变体</h2>
+    <ul style="margin: 0 0 24px 1.4em; padding: 0;">
+      <li><strong>Peephole LSTM。</strong> 各门同时也能看到细胞状态 $c_{t-1}$。在长依赖任务上精度提升有限。</li>
+      <li><strong>GRU。</strong> 少一道门；少一个状态；在多数任务上表现相当；成本更低。</li>
+      <li><strong>ConvLSTM。</strong> 以卷积替代矩阵乘法；适用于时空数据（雷达、视频、卫星时间序列）。</li>
+      <li><strong>xLSTM（2024）。</strong> 更新后的门控 + 矩阵值记忆；可进一步扩展；在语言建模上与小型 Mamba 不相上下。</li>
+    </ul>
+
+    <h2>2026 年何时该选用 LSTM</h2>
+    <ul style="margin: 0 0 24px 1.4em; padding: 0;">
+      <li>状态空间承载逐步都至关重要的流式推理（低延迟语音、边缘端时间序列预测）。</li>
+      <li>Transformer 的 KV cache 过于昂贵的微型嵌入式设备。</li>
+      <li>在长时段时间序列上转向 <a href="../mamba/index.html">Mamba</a> 或
+        <a href="../ts-transformer/index.html">PatchTST</a> 之前，作为基线。</li>
+    </ul>
+    <p>
+      除此之外，现代 Transformer 与 SSM 占据主导。LSTM 之所以沿用至今，是因为它是讲解<a href="../vanishing-gradients/index.html">梯度消失问题</a>最清晰的教学模型，也是「记忆」被显式表达为门控状态的最简模型。
+    </p>
+
+    <p style="margin-top: 48px; color: var(--muted); font-size: 14px;">
+      配套阅读：<a href="../mamba/index.html">Mamba / SSM</a> · <a href="../vanishing-gradients/index.html">梯度消失</a> · <a href="../ts-transformer/index.html">PatchTST 预测</a>。
+    </p>
+
+    <script>
+      const svg = document.getElementById("plot");
+      const NS = "http://www.w3.org/2000/svg";
+      const T = 12;
+      const PLOT_W = 640, PLOT_H = 200, LEFT = 50, TOP = 30;
+
+      let f = 0.9, i = 0.3, o = 1.0;
+      let scenario = 'pulse';  // 'pulse' | 'sentiment' | 'noisy'
+
+      // Input sequences
+      function inputSeq() {
+        if (scenario === 'sentiment') {
+          // "movie was brilliant ... but ultimately bad"
+          return Array.from({length: T}, (_, t) => {
+            if (t === 2) return 0.9;   // brilliant
+            if (t === 8) return -1.0;  // bad
+            return 0;
+          });
+        } else if (scenario === 'noisy') {
+          // strong sustained signal with noise
+          return Array.from({length: T}, (_, t) => 0.5 + 0.4 * Math.sin(t * 0.7) + 0.2 * Math.random());
+        }
+        // pulse · spikes at t=3 and t=7
+        return Array.from({length: T}, (_, t) => {
+          if (t === 3) return 1.0;
+          if (t === 7) return -0.8;
+          return 0.1 * Math.sin(t);
+        });
+      }
+
+      function simulate() {
+        const xs = inputSeq();
+        const cs = [0], hs = [0];
+        for (let t = 1; t <= T; t++) {
+          const cTilde = Math.tanh(xs[t-1] * 2);  // candidate
+          const c = f * cs[t-1] + i * cTilde;
+          const h = o * Math.tanh(c);
+          cs.push(c);
+          hs.push(h);
+        }
+        return { xs, cs, hs };
+      }
+
+      function draw() {
+        svg.innerHTML = "";
+        const { xs, cs, hs } = simulate();
+
+        // Axes
+        const line = (x1,y1,x2,y2,col,w,d) => {
+          const ln = document.createElementNS(NS, "line");
+          ln.setAttribute("x1", x1); ln.setAttribute("y1", y1);
+          ln.setAttribute("x2", x2); ln.setAttribute("y2", y2);
+          ln.setAttribute("stroke", col || "#1f1f1e");
+          ln.setAttribute("stroke-width", w || 1);
+          if (d) ln.setAttribute("stroke-dasharray", d);
+          svg.appendChild(ln);
+        };
+        const text = (x,y,t,col,size,anchor) => {
+          const el = document.createElementNS(NS, "text");
+          el.setAttribute("x", x); el.setAttribute("y", y);
+          el.setAttribute("fill", col || "#1f1f1e");
+          el.setAttribute("font-family", "IBM Plex Mono, monospace");
+          el.setAttribute("font-size", size || 11);
+          el.setAttribute("text-anchor", anchor || "start");
+          el.textContent = t;
+          svg.appendChild(el);
+        };
+
+        // Zero line
+        const y0 = TOP + PLOT_H / 2;
+        line(LEFT, y0, LEFT + PLOT_W, y0, "#c9c4b5", 0.6);
+        line(LEFT, TOP, LEFT, TOP + PLOT_H, "#1f1f1e", 1);
+
+        // Find max magnitude for scaling
+        const maxMag = Math.max(1.2, ...cs.map(Math.abs), ...hs.map(Math.abs), ...xs.map(Math.abs));
+        const tx = (t) => LEFT + (t / T) * PLOT_W;
+        const vy = (v) => y0 - (v / maxMag) * (PLOT_H / 2);
+
+        // Input bars
+        xs.forEach((x, t) => {
+          const h = (x / maxMag) * (PLOT_H / 2);
+          const xPos = tx(t + 0.5) - 5;
+          const yPos = x >= 0 ? y0 - h : y0;
+          const rect = document.createElementNS(NS, "rect");
+          rect.setAttribute("x", xPos);
+          rect.setAttribute("y", yPos);
+          rect.setAttribute("width", 10);
+          rect.setAttribute("height", Math.abs(h));
+          rect.setAttribute("fill", "#c9c4b5");
+          rect.setAttribute("opacity", "0.6");
+          svg.appendChild(rect);
+        });
+
+        // Cell state c (solid rust)
+        const cPath = cs.map((c, t) => `${t === 0 ? "M" : "L"} ${tx(t)} ${vy(c)}`).join(" ");
+        const cEl = document.createElementNS(NS, "path");
+        cEl.setAttribute("d", cPath);
+        cEl.setAttribute("stroke", "#d97757");
+        cEl.setAttribute("stroke-width", "2.6");
+        cEl.setAttribute("fill", "none");
+        svg.appendChild(cEl);
+
+        // Hidden state h (dashed slate)
+        const hPath = hs.map((h, t) => `${t === 0 ? "M" : "L"} ${tx(t)} ${vy(h)}`).join(" ");
+        const hEl = document.createElementNS(NS, "path");
+        hEl.setAttribute("d", hPath);
+        hEl.setAttribute("stroke", "#4a6670");
+        hEl.setAttribute("stroke-width", "1.8");
+        hEl.setAttribute("fill", "none");
+        hEl.setAttribute("stroke-dasharray", "5 3");
+        svg.appendChild(hEl);
+
+        // Timestep labels
+        for (let t = 0; t <= T; t++) {
+          text(tx(t), y0 + PLOT_H / 2 + 20, `t=${t}`, "#6b6a65", 10, "middle");
+        }
+
+        // Legend
+        text(LEFT, TOP - 8, "cell state c_t", "#d97757", 12);
+        text(LEFT + 130, TOP - 8, "hidden state h_t", "#4a6670", 12);
+        text(LEFT + 280, TOP - 8, "input bars", "#6b6a65", 12);
+      }
+
+      // Wire controls
+      const bind = (id, key) => {
+        const el = document.getElementById(id);
+        const valEl = document.getElementById(id + "-val");
+        el.addEventListener("input", (e) => {
+          const v = parseFloat(e.target.value);
+          if (key === "f") f = v;
+          if (key === "i") i = v;
+          if (key === "o") o = v;
+          valEl.textContent = v.toFixed(2);
+          draw();
+        });
+      };
+      bind("fg", "f"); bind("ig", "i"); bind("og", "o");
+
+      document.querySelectorAll('[data-scenario]').forEach(b => b.addEventListener('click', () => {
+        scenario = b.dataset.scenario;
+        document.querySelectorAll('[data-scenario]').forEach(x => x.style.fontWeight = '');
+        b.style.fontWeight = '700';
+        draw();
+      }));
+
+      document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("click", () => {
+        const preset = b.dataset.preset;
+        if (preset === "remember") { f=1; i=0; o=1; }
+        else if (preset === "forget") { f=0; i=0.5; o=1; }
+        else if (preset === "overwrite") { f=0; i=1; o=1; }
+        else { f=0.9; i=0.3; o=1; }
+        document.getElementById("fg").value = f;
+        document.getElementById("ig").value = i;
+        document.getElementById("og").value = o;
+        document.getElementById("fg-val").textContent = f.toFixed(2);
+        document.getElementById("ig-val").textContent = i.toFixed(2);
+        document.getElementById("og-val").textContent = o.toFixed(2);
+        draw();
+      }));
+
+      draw();
+    </script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

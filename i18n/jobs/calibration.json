@@ -1,0 +1,538 @@
+{
+ "slug": "calibration",
+ "units": {
+  "Calibration & Reliability Diagrams": {
+   "zh": "校准与可靠性图",
+   "src": "Calibration & Reliability Diagrams",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "A model that says \"0.97\" should be right 97% of the time.\n          Most aren't. The reliability diagram tells you exactly how\n          off you are; ECE summarises it; temperature scaling\n          collapses it &mdash; one scalar parameter, no retraining.": {
+   "zh": "一个给出 “0.97” 的模型，应当在 97% 的情况下是正确的。但多数模型并非如此。可靠性图精确告诉你偏离了多少；ECE 将其概括为一个数；温度缩放则将其压平 &mdash; 仅需一个标量参数，无需重新训练。",
+   "src": "A model that says \"0.97\" should be right 97% of the time.\n          Most aren't. The reliability diagram tells you exactly how\n          off you are; ECE summarises it; temperature scaling\n          collapses it &mdash; one scalar parameter, no retraining.",
+   "tags": []
+  },
+  "@@T0@@~15 min@@T1@@\n          @@T2@@UQ &middot; Calibration &middot; Reliability@@T3@@": {
+   "zh": "@@T0@@约 15 分钟@@T1@@\n          @@T2@@不确定性量化 &middot; 校准 &middot; 可靠性@@T3@@",
+   "src": "<span>~15 min</span>\n          <span>UQ &middot; Calibration &middot; Reliability</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "What 'calibrated' actually means": {
+   "zh": "“经过校准”究竟意味着什么",
+   "src": "What 'calibrated' actually means",
+   "tags": []
+  },
+  "A classifier is calibrated if, among all examples where it\n          predicts confidence $p$, the fraction that are actually\n          correct is $p$. Across $p$. Always. Modern neural networks\n          are notoriously over-confident: a softmax of 0.97 on a\n          held-out test point is more likely to be right ~85% of the\n          time than 97% (Guo et&nbsp;al., 2017).": {
+   "zh": "若在所有被预测为置信度 $p$ 的样本中，实际正确的比例恰为 $p$，则称该分类器是校准的。对一切 $p$ 皆然，始终如此。现代神经网络以过度自信而闻名：对某个留出的测试点，softmax 给出 0.97，其实际正确比例更可能是约 85% 而非 97%（Guo 等，2017）。",
+   "src": "A classifier is calibrated if, among all examples where it\n          predicts confidence $p$, the fraction that are actually\n          correct is $p$. Across $p$. Always. Modern neural networks\n          are notoriously over-confident: a softmax of 0.97 on a\n          held-out test point is more likely to be right ~85% of the\n          time than 97% (Guo et&nbsp;al., 2017).",
+   "tags": []
+  },
+  "@@T0@@The slogan.@@T1@@\n          Accuracy and calibration are independent. A model can be\n          90% accurate and badly miscalibrated; a model can be 60%\n          accurate and perfectly calibrated. Any safety-relevant\n          deployment cares about both.": {
+   "zh": "@@T0@@一句话概括。@@T1@@\n          准确率与校准度彼此独立。一个模型可以准确率高达 90% 却校准得很差；也可以准确率仅 60% 却校准得完美。任何与安全相关的部署都同时关注这两者。",
+   "src": "<strong>The slogan.</strong>\n          Accuracy and calibration are independent. A model can be\n          90% accurate and badly miscalibrated; a model can be 60%\n          accurate and perfectly calibrated. Any safety-relevant\n          deployment cares about both.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "The reliability diagram": {
+   "zh": "可靠性图",
+   "src": "The reliability diagram",
+   "tags": []
+  },
+  "Bin predictions by their confidence. For each bin, plot\n          (mean predicted confidence) vs (empirical accuracy). On a\n          calibrated classifier this lies on the diagonal. Above the\n          diagonal: under-confident. Below: over-confident.": {
+   "zh": "按置信度将预测分箱。对每个箱，绘制（平均预测置信度）对（经验准确率）。对已校准的分类器，这些点落在对角线上。位于对角线上方：置信不足；位于下方：过度自信。",
+   "src": "Bin predictions by their confidence. For each bin, plot\n          (mean predicted confidence) vs (empirical accuracy). On a\n          calibrated classifier this lies on the diagonal. Above the\n          diagonal: under-confident. Below: over-confident.",
+   "tags": []
+  },
+  "@@T0@@ECE@@T1@@ (expected calibration error) is the\n          weighted average of $|\\text{bin acc} - \\text{bin\n          confidence}|$. @@T2@@MCE@@T3@@ (max calibration error)\n          is the worst bin. @@T4@@Brier@@T5@@ and\n          @@T6@@NLL@@T7@@ are scoring rules that combine\n          calibration and refinement.": {
+   "zh": "@@T0@@ECE@@T1@@（期望校准误差）是 $|\\text{bin acc} - \\text{bin\n          confidence}|$ 的加权平均。@@T2@@MCE@@T3@@（最大校准误差）则是最差的箱。@@T4@@Brier 分数@@T5@@ 与 @@T6@@NLL@@T7@@ 是将校准与锐化结合起来的评分规则。",
+   "src": "<strong>ECE</strong> (expected calibration error) is the\n          weighted average of $|\\text{bin acc} - \\text{bin\n          confidence}|$. <strong>MCE</strong> (max calibration error)\n          is the worst bin. <strong>Brier</strong> and\n          <strong>NLL</strong> are scoring rules that combine\n          calibration and refinement.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Train a classifier and watch it miscalibrate": {
+   "zh": "训练一个分类器，观察其如何失准",
+   "src": "Train a classifier and watch it miscalibrate",
+   "tags": []
+  },
+  "A 3-class RBF logistic regression on a 2-D dataset; we\n          train past the calibration sweet spot to deliberately push\n          it into the over-confident regime modern deep nets tend to\n          inhabit.": {
+   "zh": "在二维数据集上训练一个三分类 RBF 逻辑回归；我们刻意训练越过校准的最佳点，将其推入现代深度网络常有的一味过度自信的状态。",
+   "src": "A 3-class RBF logistic regression on a 2-D dataset; we\n          train past the calibration sweet spot to deliberately push\n          it into the over-confident regime modern deep nets tend to\n          inhabit.",
+   "tags": []
+  },
+  "Start training": {
+   "zh": "开始训练",
+   "src": "Start training",
+   "tags": []
+  },
+  "Reinitialise": {
+   "zh": "重新初始化",
+   "src": "Reinitialise",
+   "tags": []
+  },
+  "temperature T &nbsp;@@T0@@1.00@@T1@@": {
+   "zh": "温度 T &nbsp;@@T0@@1.00@@T1@@",
+   "src": "temperature T &nbsp;<span id=\"cal-T-val\">1.00</span>",
+   "tags": [
+    "<span id=\"cal-T-val\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@step @@T1@@0@@T2@@@@T3@@\n          @@T4@@accuracy @@T5@@—@@T6@@@@T7@@\n          @@T8@@ECE @@T9@@—@@T10@@@@T11@@": {
+   "zh": "@@T0@@步数 @@T1@@0@@T2@@@@T3@@\n          @@T4@@准确率 @@T5@@—@@T6@@@@T7@@\n          @@T8@@ECE @@T9@@—@@T10@@@@T11@@",
+   "src": "<span class=\"train-stat\">step <strong id=\"cal-step\">0</strong></span>\n          <span class=\"train-stat\">accuracy <strong id=\"cal-acc\">—</strong></span>\n          <span class=\"train-stat\">ECE <strong id=\"cal-ece\">—</strong></span>",
+   "tags": [
+    "<span class=\"train-stat\">",
+    "<strong id=\"cal-step\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"cal-acc\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"cal-ece\">",
+    "</strong>",
+    "</span>"
+   ]
+  },
+  "Decision boundary on test data": {
+   "zh": "测试数据上的决策边界",
+   "src": "Decision boundary on test data",
+   "tags": []
+  },
+  "Reliability diagram": {
+   "zh": "可靠性图",
+   "src": "Reliability diagram",
+   "tags": []
+  },
+  "Metrics over time": {
+   "zh": "指标随时间变化",
+   "src": "Metrics over time",
+   "tags": []
+  },
+  "@@T0@@What to watch for.@@T1@@\n          For the first ~50 steps accuracy and ECE both improve. Past\n          ~150 steps, accuracy plateaus but the bins drift below the\n          diagonal &mdash; the model has become over-confident.\n          Slide T from 1 toward ~2 and watch the bins migrate up to\n          the diagonal while accuracy stays exactly the same. That's\n          temperature scaling.": {
+   "zh": "@@T0@@观察要点。@@T1@@\n          在前约 50 步中，准确率与 ECE 同时改善。越过约 150 步后，准确率趋于平台，但各箱开始偏离对角线向下漂移 &mdash; 模型变得过度自信了。将 T 从 1 滑向约 2，观察各箱上移至对角线，而准确率完全保持不变。这就是温度缩放。",
+   "src": "<strong>What to watch for.</strong>\n          For the first ~50 steps accuracy and ECE both improve. Past\n          ~150 steps, accuracy plateaus but the bins drift below the\n          diagonal &mdash; the model has become over-confident.\n          Slide T from 1 toward ~2 and watch the bins migrate up to\n          the diagonal while accuracy stays exactly the same. That's\n          temperature scaling.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Temperature scaling — one parameter, big win": {
+   "zh": "温度缩放 —— 一个参数，收效显著",
+   "src": "Temperature scaling — one parameter, big win",
+   "tags": []
+  },
+  "Replace the softmax $p_c = e^{z_c} / \\sum e^{z_{c'}}$ with\n          $p_c^{(T)} = e^{z_c / T} / \\sum e^{z_{c'} / T}$ at inference.\n          Fit $T$ on a held-out validation set by minimising NLL.\n          Tipically $T \\in [1, 3]$ for over-confident networks; you\n          recover most of the calibration without touching the\n          weights.": {
+   "zh": "在推断时将 softmax $p_c = e^{z_c} / \\sum e^{z_{c'}}$ 替换为 $p_c^{(T)} = e^{z_c / T} / \\sum e^{z_{c'} / T}$。在留出的验证集上通过最小化 NLL 来拟合 $T$。对过度自信的网络，$T$ 通常取 $\\in [1, 3]$；你无需触碰权重即可恢复大部分校准度。",
+   "src": "Replace the softmax $p_c = e^{z_c} / \\sum e^{z_{c'}}$ with\n          $p_c^{(T)} = e^{z_c / T} / \\sum e^{z_{c'} / T}$ at inference.\n          Fit $T$ on a held-out validation set by minimising NLL.\n          Tipically $T \\in [1, 3]$ for over-confident networks; you\n          recover most of the calibration without touching the\n          weights.",
+   "tags": []
+  },
+  "Other recipes when temperature alone isn't enough:\n          @@T0@@Platt scaling@@T1@@ (logistic regression on\n          logits, binary), @@T2@@isotonic regression@@T3@@\n          (non-parametric monotone fit), @@T4@@histogram binning@@T5@@,\n          @@T6@@vector / matrix scaling@@T7@@ (per-class\n          temperatures). Pick the simplest that works.": {
+   "zh": "当仅靠温度不足以解决问题时，还有其他方案：@@T0@@Platt 缩放@@T1@@（在 logit 上做逻辑回归，适用于二分类）、@@T2@@等渗回归@@T3@@（非参数单调拟合）、@@T4@@直方图分箱@@T5@@、@@T6@@向量 / 矩阵缩放@@T7@@（逐类温度）。选择其中最简单而有效者。",
+   "src": "Other recipes when temperature alone isn't enough:\n          <strong>Platt scaling</strong> (logistic regression on\n          logits, binary), <strong>isotonic regression</strong>\n          (non-parametric monotone fit), <strong>histogram binning</strong>,\n          <strong>vector / matrix scaling</strong> (per-class\n          temperatures). Pick the simplest that works.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 3 ½": {
+   "zh": "第 3 ½ 步",
+   "src": "Step 3 ½",
+   "tags": []
+  },
+  "Four post-hoc calibrators, side by side": {
+   "zh": "四种事后校准器，并排比较",
+   "src": "Four post-hoc calibrators, side by side",
+   "tags": []
+  },
+  "Temperature scaling is a one-parameter fix. Sometimes one\n          parameter isn't enough. Here are the four post-hoc\n          calibrators you'll meet in practice, fit on the same\n          held-out validation set and then evaluated on the same test\n          set:": {
+   "zh": "温度缩放是一个单参数的修正手段。但有时一个参数并不够。以下是实践中会遇到的四种事后校准器，它们在同一留出验证集上拟合，随后在同一测试集上评估：",
+   "src": "Temperature scaling is a one-parameter fix. Sometimes one\n          parameter isn't enough. Here are the four post-hoc\n          calibrators you'll meet in practice, fit on the same\n          held-out validation set and then evaluated on the same test\n          set:",
+   "tags": []
+  },
+  "@@T0@@Temperature scaling.@@T1@@ One scalar $T$.\n            Cheap, accuracy-preserving. Most popular default.": {
+   "zh": "@@T0@@温度缩放。@@T1@@ 一个标量 $T$。开销低廉，保持准确率。最常用的默认选择。",
+   "src": "<strong>Temperature scaling.</strong> One scalar $T$.\n            Cheap, accuracy-preserving. Most popular default.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Platt scaling.@@T1@@ Logistic regression on\n            the max logit: $p = \\sigma(a\\,z_{\\max} + b)$. Two\n            parameters. Strong baseline for binary problems.": {
+   "zh": "@@T0@@Platt 缩放。@@T1@@ 对最大 logit 作逻辑回归：$p = \\sigma(a\\,z_{\\max} + b)$。两个参数。二分类问题上的强基线。",
+   "src": "<strong>Platt scaling.</strong> Logistic regression on\n            the max logit: $p = \\sigma(a\\,z_{\\max} + b)$. Two\n            parameters. Strong baseline for binary problems.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Isotonic regression.@@T1@@ Non-parametric\n            monotone fit on the binned reliability curve. Many\n            parameters, but reliably calibrates without distorting\n            the ordering.": {
+   "zh": "@@T0@@等渗回归。@@T1@@ 在分箱可靠性曲线上作非参数单调拟合。参数较多，但能在不扭曲排序的前提下可靠地完成校准。",
+   "src": "<strong>Isotonic regression.</strong> Non-parametric\n            monotone fit on the binned reliability curve. Many\n            parameters, but reliably calibrates without distorting\n            the ordering.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Vector scaling.@@T1@@ Per-class temperatures\n            $T_c$ on logits before softmax. $C$ parameters; useful\n            when over-confidence is class-dependent.": {
+   "zh": "@@T0@@向量缩放。@@T1@@ 在 softmax 之前对 logit 施加逐类温度 $T_c$。共 $C$ 个参数；当过度自信程度依赖类别时尤为有用。",
+   "src": "<strong>Vector scaling.</strong> Per-class temperatures\n            $T_c$ on logits before softmax. $C$ parameters; useful\n            when over-confidence is class-dependent.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Reliability diagrams for the four post-hoc calibrators on the same trained classifier. ECE shown under each panel.": {
+   "zh": "同一个已训练分类器上四种事后校准器的可靠性图。每个面板下方给出 ECE。",
+   "src": "Reliability diagrams for the four post-hoc calibrators on the same trained classifier. ECE shown under each panel.",
+   "tags": []
+  },
+  "@@T0@@The verdict.@@T1@@ Temperature scaling almost\n          always wins on accuracy + simplicity + parameter count.\n          Isotonic and vector scaling can edge ahead on\n          severely-miscalibrated multi-class problems but cost more\n          parameters. Platt is binary-only and largely subsumed by\n          temperature.": {
+   "zh": "@@T0@@结论。@@T1@@ 温度缩放在准确率 + 简洁性 + 参数数量上几乎总是胜出。等渗回归与向量缩放在严重失准的多分类问题上可能略胜一筹，但需要更多参数。Platt 缩放仅适用于二分类，且在很大程度上已被温度缩放所涵盖。",
+   "src": "<strong>The verdict.</strong> Temperature scaling almost\n          always wins on accuracy + simplicity + parameter count.\n          Isotonic and vector scaling can edge ahead on\n          severely-miscalibrated multi-class problems but cost more\n          parameters. Platt is binary-only and largely subsumed by\n          temperature.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Why this matters": {
+   "zh": "为何这一点重要",
+   "src": "Why this matters",
+   "tags": []
+  },
+  "@@T0@@Deployed alerting.@@T1@@ A \"high-risk\" alert with 0.95 calibrated confidence is actionable; the same number from an over-confident model is just noise.": {
+   "zh": "@@T0@@已部署的告警系统。@@T1@@ 一个带有 0.95 校准置信度的“高风险”告警是可据以行动的；而相同数值若出自一个过度自信的模型，则只是噪声。",
+   "src": "<strong>Deployed alerting.</strong> A \"high-risk\" alert with 0.95 calibrated confidence is actionable; the same number from an over-confident model is just noise.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Medical / safety-critical decisions.@@T1@@ A model whose outputs feed treatment or operational choices @@T2@@must@@T3@@ ship calibrated probabilities — otherwise downstream decisions are made on the wrong basis.": {
+   "zh": "@@T0@@医疗 / 安全攸关的决策。@@T1@@ 其输出用于支撑治疗方案或运行决策的模型@@T2@@必须@@T3@@ 交付经过校准的概率 —— 否则下游决策便建立在错误的依据之上。",
+   "src": "<strong>Medical / safety-critical decisions.</strong> A model whose outputs feed treatment or operational choices <em>must</em> ship calibrated probabilities — otherwise downstream decisions are made on the wrong basis.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Active learning + Bayes-Opt.@@T1@@\n            Acquisition functions (BALD, EI) read confidence; broken\n            calibration breaks every uncertainty-aware downstream\n            choice.": {
+   "zh": "@@T0@@主动学习 + 贝叶斯优化。@@T1@@\n            采集函数（BALD、EI）读取置信度；校准一旦失效，每一个考虑不确定性的下游选择都会随之失效。",
+   "src": "<strong>Active learning + Bayes-Opt.</strong>\n            Acquisition functions (BALD, EI) read confidence; broken\n            calibration breaks every uncertainty-aware downstream\n            choice.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Conformal sandwich.@@T1@@ Conformal\n            prediction (the\n            @@T2@@conformal article@@T3@@)\n            gives a coverage guarantee but tighter intervals when the\n            base model is well-calibrated. Calibrate first, conformal\n            second.": {
+   "zh": "@@T0@@保形三明治。@@T1@@ 保形预测（参见\n            @@T2@@保形一文@@T3@@）\n            能给出覆盖率保证，但当基模型校准良好时间隔会更紧。先校准，后保形。",
+   "src": "<strong>Conformal sandwich.</strong> Conformal\n            prediction (the\n            <a href=\"../conformal/index.html\">conformal article</a>)\n            gives a coverage guarantee but tighter intervals when the\n            base model is well-calibrated. Calibrate first, conformal\n            second.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<a href=\"../conformal/index.html\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          Every deployed model should ship with a reliability plot\n          and an ECE number. It's 30 lines of code and it tells you\n          whether the confidences mean anything. Temperature scaling\n          is the cheapest possible repair if they don't.": {
+   "zh": "@@T0@@最终要点。@@T1@@\n          每一个已部署的模型都应当随附一张可靠性图和一个 ECE 数值。这不过是 30 行代码，却能告诉你这些置信度究竟有没有意义。若没有意义，温度缩放就是最廉价的修补手段。",
+   "src": "<strong>Final takeaway.</strong>\n          Every deployed model should ship with a reliability plot\n          and an ECE number. It's 30 lines of code and it tells you\n          whether the confidences mean anything. Temperature scaling\n          is the cheapest possible repair if they don't.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Why neural nets miscalibrate in the first place": {
+   "zh": "神经网络为何从一开始就会失准",
+   "src": "Why neural nets miscalibrate in the first place",
+   "tags": []
+  },
+  "Guo et&nbsp;al. (2017) traced modern over-confidence to three things:": {
+   "zh": "Guo 等（2017）将现代的过度自信追溯到三个原因：",
+   "src": "Guo et&nbsp;al. (2017) traced modern over-confidence to three things:",
+   "tags": []
+  },
+  "@@T0@@Capacity.@@T1@@ Bigger models can drive training NLL to zero by pushing logits to $\\pm \\infty$. That fits the training set perfectly with maximally-confident softmaxes; the held-out distribution lags. Test confidence ends up systematically too high.": {
+   "zh": "@@T0@@容量。@@T1@@ 更大的模型可以通过把 logit 推向 $\\pm \\infty$ 而将训练 NLL 压至零。这以最强自信的 softmax 完美拟合训练集；留出分布却滞后。测试时的置信度最终系统性地偏高。",
+   "src": "<strong>Capacity.</strong> Bigger models can drive training NLL to zero by pushing logits to $\\pm \\infty$. That fits the training set perfectly with maximally-confident softmaxes; the held-out distribution lags. Test confidence ends up systematically too high.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Weight decay reduction.@@T1@@ Modern training uses much less weight decay than older models; without that implicit regulariser, logits drift larger.": {
+   "zh": "@@T0@@权重衰减的减少。@@T1@@ 现代训练所用的权重衰减远少于早先的模型；缺少这一隐式正则化器，logit 便会漂移得更大。",
+   "src": "<strong>Weight decay reduction.</strong> Modern training uses much less weight decay than older models; without that implicit regulariser, logits drift larger.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@BatchNorm.@@T1@@ Empirically correlated with worse calibration, possibly because per-batch statistics introduce stochasticity in logits that the model compensates by overcommitting on average.": {
+   "zh": "@@T0@@BatchNorm。@@T1@@ 经验上它与更差的校准相关联，可能是因为逐批统计量给 logit 引入了随机性，而模型通过平均意义上过度押注来加以补偿。",
+   "src": "<strong>BatchNorm.</strong> Empirically correlated with worse calibration, possibly because per-batch statistics introduce stochasticity in logits that the model compensates by overcommitting on average.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The good news: temperature scaling fixes essentially all of this on i.i.d. test sets. The bad news: @@T0@@under distribution shift, temperature scaling alone is no longer enough@@T1@@ — the optimal $T$ on the in-distribution validation set is wrong for the shifted test distribution. Ovadia et&nbsp;al. (2019) showed this empirically. Mitigations: train with mixup / label smoothing (intrinsic calibration), or use conformal prediction (which has a coverage guarantee under exchangeability assumptions that are still violated by shift, but less catastrophically).": {
+   "zh": "好消息是：在独立同分布的测试集上，温度缩放能修正上述几乎所有问题。坏消息是：@@T0@@在分布偏移之下，仅靠温度缩放已不再足够@@T1@@ —— 在分布内验证集上得到的最优 $T$ 对发生偏移的测试分布是错误的。Ovadia 等（2019）以实验证明了这一点。缓解手段包括：使用 mixup / 标签平滑训练（内禀校准），或采用保形预测（它在可交换性假设下具有覆盖率保证，而该假设仍会被偏移所破坏，只是破坏程度不那么灾难性）。",
+   "src": "The good news: temperature scaling fixes essentially all of this on i.i.d. test sets. The bad news: <strong>under distribution shift, temperature scaling alone is no longer enough</strong> — the optimal $T$ on the in-distribution validation set is wrong for the shifted test distribution. Ovadia et&nbsp;al. (2019) showed this empirically. Mitigations: train with mixup / label smoothing (intrinsic calibration), or use conformal prediction (which has a coverage guarantee under exchangeability assumptions that are still violated by shift, but less catastrophically).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Beyond classification — regression calibration": {
+   "zh": "超越分类 —— 回归的校准",
+   "src": "Beyond classification — regression calibration",
+   "tags": []
+  },
+  "For regression, \"calibrated\" means: a 90% predictive interval should cover the true value 90% of the time. The reliability diagram is replaced by a coverage-vs-nominal plot:": {
+   "zh": "对回归而言，“已校准”意味着：90% 的预测区间应当在 90% 的情况下覆盖真实值。可靠性图此时被覆盖率对名义水平的图所取代：",
+   "src": "For regression, \"calibrated\" means: a 90% predictive interval should cover the true value 90% of the time. The reliability diagram is replaced by a coverage-vs-nominal plot:",
+   "tags": []
+  },
+  "The expected calibration error for regression is $\\int_0^1 |\\mathrm{coverage}(\\alpha) - \\alpha|\\, d\\alpha$. Tools to fix regression miscalibration:": {
+   "zh": "回归的期望校准误差为 $\\int_0^1 |\\mathrm{coverage}(\\alpha) - \\alpha|\\, d\\alpha$。修正回归失准的工具包括：",
+   "src": "The expected calibration error for regression is $\\int_0^1 |\\mathrm{coverage}(\\alpha) - \\alpha|\\, d\\alpha$. Tools to fix regression miscalibration:",
+   "tags": []
+  },
+  "@@T0@@Quantile regression with pinball loss@@T1@@ directly learns conditional quantiles without distributional assumptions.": {
+   "zh": "@@T0@@使用 pinball 损失的分位数回归@@T1@@ 无需分布假设即可直接学习条件分位数。",
+   "src": "<strong>Quantile regression with pinball loss</strong> directly learns conditional quantiles without distributional assumptions.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Conformalised quantile regression (CQR)@@T1@@ wraps the quantile model in conformal prediction for a distribution-free coverage guarantee.": {
+   "zh": "@@T0@@保形化分位数回归（CQR）@@T1@@ 将分位数模型包裹进保形预测，以获得无需分布假设的覆盖率保证。",
+   "src": "<strong>Conformalised quantile regression (CQR)</strong> wraps the quantile model in conformal prediction for a distribution-free coverage guarantee.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Isotonic regression on the CDF.@@T1@@ Fit a monotone transformation $\\hat F(y|x) \\mapsto F(y|x)$ that maps the model's CDF to the empirical one.": {
+   "zh": "@@T0@@对 CDF 作等渗回归。@@T1@@ 拟合一个单调变换 $\\hat F(y|x) \\mapsto F(y|x)$，将模型的 CDF 映射到经验 CDF。",
+   "src": "<strong>Isotonic regression on the CDF.</strong> Fit a monotone transformation $\\hat F(y|x) \\mapsto F(y|x)$ that maps the model's CDF to the empirical one.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 7": {
+   "zh": "第 7 步",
+   "src": "Step 7",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "推荐阅读",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Guo, Pleiss, Sun, Weinberger (2017)@@T1@@ &mdash; @@T2@@On Calibration of Modern Neural Networks.@@T3@@ Defined ECE; introduced temperature scaling.": {
+   "zh": "@@T0@@Guo、Pleiss、Sun、Weinberger（2017）@@T1@@ &mdash; @@T2@@On Calibration of Modern Neural Networks.@@T3@@ 定义了 ECE；提出了温度缩放。",
+   "src": "<strong>Guo, Pleiss, Sun, Weinberger (2017)</strong> &mdash; <em>On Calibration of Modern Neural Networks.</em> Defined ECE; introduced temperature scaling.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Platt (1999)@@T1@@ &mdash; @@T2@@Probabilistic outputs for SVMs.@@T3@@ Platt scaling.": {
+   "zh": "@@T0@@Platt（1999）@@T1@@ &mdash; @@T2@@Probabilistic outputs for SVMs.@@T3@@ Platt 缩放。",
+   "src": "<strong>Platt (1999)</strong> &mdash; <em>Probabilistic outputs for SVMs.</em> Platt scaling.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Zadrozny &amp; Elkan (2002)@@T1@@ &mdash; @@T2@@Transforming Classifier Scores into Accurate Multiclass Probability Estimates.@@T3@@ Isotonic.": {
+   "zh": "@@T0@@Zadrozny &amp; Elkan（2002）@@T1@@ &mdash; @@T2@@Transforming Classifier Scores into Accurate Multiclass Probability Estimates.@@T3@@ 等渗回归。",
+   "src": "<strong>Zadrozny &amp; Elkan (2002)</strong> &mdash; <em>Transforming Classifier Scores into Accurate Multiclass Probability Estimates.</em> Isotonic.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Ovadia et&nbsp;al. (2019)@@T1@@ &mdash; @@T2@@Can You Trust Your Model's Uncertainty?@@T3@@ The OOD calibration paper.": {
+   "zh": "@@T0@@Ovadia 等（2019）@@T1@@ &mdash; @@T2@@Can You Trust Your Model's Uncertainty?@@T3@@ 关于分布外校准的论文。",
+   "src": "<strong>Ovadia et&nbsp;al. (2019)</strong> &mdash; <em>Can You Trust Your Model's Uncertainty?</em> The OOD calibration paper.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Kuleshov, Fenner, Ermon (2018)@@T1@@ &mdash; @@T2@@Accurate Uncertainties for Deep Learning Using Calibrated Regression.@@T3@@": {
+   "zh": "@@T0@@Kuleshov、Fenner、Ermon（2018）@@T1@@ &mdash; @@T2@@Accurate Uncertainties for Deep Learning Using Calibrated Regression.@@T3@@",
+   "src": "<strong>Kuleshov, Fenner, Ermon (2018)</strong> &mdash; <em>Accurate Uncertainties for Deep Learning Using Calibrated Regression.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Niculescu-Mizil &amp; Caruana (2005)@@T1@@ &mdash; @@T2@@Predicting Good Probabilities With Supervised Learning.@@T3@@ The classical calibrator-comparison paper.": {
+   "zh": "@@T0@@Niculescu-Mizil &amp; Caruana（2005）@@T1@@ &mdash; @@T2@@Predicting Good Probabilities With Supervised Learning.@@T3@@ 经典的各种校准器对比论文。",
+   "src": "<strong>Niculescu-Mizil &amp; Caruana (2005)</strong> &mdash; <em>Predicting Good Probabilities With Supervised Learning.</em> The classical calibrator-comparison paper.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "校准与可靠性图",
+  "tagline": "为何 softmax 的 0.97 并不意味着 97% —— 以及那个常能将其治愈的单参数修正",
+  "summary": "实时训练一个小型分类器；绘制可靠性图（分箱后的预测置信度对经验准确率）；并排比较 ECE、MCE、Brier 与 NLL。滑动温度缩放参数，观察校准误差如何在不改变准确率的情况下坍缩。本讲的要点是：任何已部署的可持续性模型都应随附一张可靠性图。",
+  "difficulty": "中级",
+  "collection": "概率与统计推断",
+  "highlights": [
+   "实时训练一个三分类 RBF 逻辑回归分类器；可靠性图在每一步后更新。",
+   "ECE / MCE / Brier / NLL 柱条并排展示，使你看到哪个指标对什么作出响应。",
+   "温度缩放滑块能在不触碰准确率的前提下压平 ECE —— 深度学习中最廉价的不确定性量化升级。",
+   "与实验对齐：已部署的传感器 / 空气质量 / 健康模型都应随附一张可靠性图。"
+  ],
+  "tags": [
+   "校准",
+   "不确定性",
+   "可靠性图",
+   "温度缩放",
+   "交互式"
+  ]
+ },
+ "js": {
+  "Vector scaling": {
+   "zh": "向量缩放",
+   "exprs": [],
+   "tags": [],
+   "src": "Vector scaling"
+  },
+  "bin accuracy": {
+   "zh": "箱准确率",
+   "exprs": [],
+   "tags": [],
+   "src": "bin accuracy"
+  },
+  "mean confidence": {
+   "zh": "平均置信度",
+   "exprs": [],
+   "tags": [],
+   "src": "mean confidence"
+  },
+  "Train to populate metrics": {
+   "zh": "开始训练以填充指标",
+   "exprs": [],
+   "tags": [],
+   "src": "Train to populate metrics"
+  },
+  "NLL/log_e": {
+   "zh": "NLL（nats，以 e 为底的对数）",
+   "exprs": [],
+   "tags": [],
+   "src": "NLL/log_e"
+  },
+  "Train past step ~50 to populate four calibrators.": {
+   "zh": "训练超过约第 50 步以填充四种校准器。",
+   "exprs": [],
+   "tags": [],
+   "src": "Train past step ~50 to populate four calibrators."
+  },
+  "cal-T-val": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": "cal-T-val"
+  },
+  "Start training": {
+   "zh": "开始训练",
+   "exprs": [],
+   "tags": [],
+   "src": "Start training"
+  }
+ }
+}

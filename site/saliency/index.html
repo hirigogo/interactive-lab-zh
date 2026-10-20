@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>显著图：并排比较</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>显著图：并排比较</h1>
+        <p class="abstract">
+          你的分类器究竟使用了哪些像素？四种归因方法（原始梯度、SmoothGrad、
+          积分梯度、Grad-CAM（梯度加权类激活映射））在同一张图像上实时计算。
+          它们在何处一致、在何处分歧，以及各自可能“说谎”的已知原因。
+        </p>
+        <div class="byline">
+          <span>约 16 分钟</span>
+          <span>可解释性 &middot; 显著图 &middot; 视觉</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>“为什么”这一问题</h2>
+        <p>
+          分类器在一张扫描图上输出“存在肿瘤，p = 0.92”。
+          随之而来的正确问题便是<em>为什么</em>。显著图方法会生成一张
+          逐像素的“重要性”图，回答“输入的哪些像素对本次预测影响最大？”。
+          它们很有用，有时却极具误导性，而且在发布或部署模型之前，
+          几乎总是值得运行一遍。
+        </p>
+        <div class="callout callout--warn">
+          <strong>其中的陷阱。</strong>
+          显著图并不等于证据。同一个预测可以由截然不同的图来支持。
+          关于显著图与 Shapley 值的实验（Adebayo 等，2018）表明，
+          某些方法在随机化模型上也能通过其健全性检验——这意味着
+          即便分类器是随机的，生成的图看起来仍与原来相似。
+          把显著图用于<em>生成假设</em>，而不是用它来证实假设。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>四种方法</h2>
+        <ul class="explanation-list">
+          <li><strong>原始梯度。</strong>
+            $\partial f_c / \partial x$。代价最低，噪声最大。
+            在 ReLU 上会饱和（当单元处于关闭状态时梯度为零）。</li>
+          <li><strong>SmoothGrad。</strong> 对图像的 $n$ 个加噪副本
+            上的原始梯度求平均。更平滑、更稳定；
+            但仍对模型敏感。</li>
+          <li><strong>积分梯度。</strong> 沿一条从基线（常取零）
+            到输入的路径对梯度做积分。它满足<em>完备性</em>：
+            各像素的归因之和等于（输出 − 基线输出）。</li>
+          <li><strong>Grad-CAM（梯度加权类激活映射）。</strong> 在选定的卷积层上计算
+            梯度加权的激活图。粒度更粗（每个 CNN 单元对应一个像素），
+            但忠实于网络内部的特征空间。</li>
+        </ul>
+        <div class="math-block" id="math-vg"></div>
+        <div class="math-block" id="math-sg"></div>
+        <div class="math-block" id="math-ig"></div>
+        <div class="math-block" id="math-gcam"></div>
+        <p>
+          对积分梯度而言，$x^\prime$ 是基线（常为黑色图像）。
+          该积分保证了<em>完备性</em>：
+          $\sum_i \mathrm{IG}_i = f_c(x) - f_c(x^\prime)$——预测的每一个单位
+          都被归因到<em>某个</em>像素上。任何没有积分路径的梯度方法
+          都不具备这一性质。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-1a">
+        <div class="step-badge">第 1½ 步</div>
+        <h2>公理——我们为何应当关注它们</h2>
+        <p>
+          Sundararajan、Taly、Yan（2017）提出了一个用于评估归因方法的公理化框架。四条关键公理为：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>敏感性。</strong> 若 $x$ 与 $x^\prime$ 在单个特征上不同并给出不同的预测，
+            则该特征必须获得非零归因。原始梯度因 ReLU 饱和而<em>不满足</em>
+            这一公理；IG 则满足。</li>
+          <li><strong>实现不变性。</strong> 两个功能上完全相同的网络应当给出相同的归因。
+            原始梯度满足；而某些在激活处保持梯度流的方法（DeepLIFT、LRP）
+            在病态情形下可能不满足。</li>
+          <li><strong>完备性。</strong> 各归因之和等于预测值减去基线值。
+            只有路径积分方法（IG、Shapley 值）满足这一性质。</li>
+          <li><strong>线性性。</strong> $\alpha f + \beta g$ 的归因等于 $\alpha$ × $f$ 的归因
+            + $\beta$ × $g$ 的归因。所有关于梯度线性的方法都满足。</li>
+        </ul>
+        <p>
+          当你同时要求 Shapley 式的对称性时，这些公理会唯一地选出路径积分梯度。
+          这正是为什么在代价可承受时，积分梯度（及其 Shapley 类亲属，如 Expected Gradients）
+          是学术上正确的选择。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>在合成图像上实时演示</h2>
+        <p>
+          下面：一个手工构造的小型 CNN（仅含 1 个卷积层 + 全局平均
+          + 线性头，权重为人工选定）对一张合成“热成像”图像进行分类。
+          切换图像，观察四种显著图随之变化。图像中的高温区域
+          即为真实信号；一个忠实的方法应把其归因聚焦在那里。
+        </p>
+        <div class="train-controls">
+          <label>图像
+            <select id="sa-img">
+              <option value="hot" selected>单个高温斑块</option>
+              <option value="two">两个斑块（温度不同）</option>
+              <option value="striped">条纹图案</option>
+            </select>
+          </label>
+        </div>
+        <div class="sa-grid">
+          <div class="sa-panel">
+            <div class="panel-label">输入 + 类别得分</div>
+            <canvas id="sa-input" width="220" height="220"></canvas>
+            <div class="panel-meta" id="sa-score">—</div>
+          </div>
+          <div class="sa-panel">
+            <div class="panel-label">原始梯度</div>
+            <canvas id="sa-grad" width="220" height="220"></canvas>
+          </div>
+          <div class="sa-panel">
+            <div class="panel-label">SmoothGrad（n=20，σ=0.15）</div>
+            <canvas id="sa-smooth" width="220" height="220"></canvas>
+          </div>
+          <div class="sa-panel">
+            <div class="panel-label">积分梯度（steps=30）</div>
+            <canvas id="sa-ig" width="220" height="220"></canvas>
+          </div>
+          <div class="sa-panel">
+            <div class="panel-label">Grad-CAM（梯度加权类激活映射）</div>
+            <canvas id="sa-cam" width="220" height="220"></canvas>
+          </div>
+          <div class="sa-panel">
+            <div class="panel-label">真实信号</div>
+            <canvas id="sa-gt" width="220" height="220"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>陷阱</h2>
+        <ul class="explanation-list">
+          <li><strong>原始梯度的噪声很大。</strong> 单像素的差异
+            会使结果散乱；网络中的微小非线性占据主导。
+            SmoothGrad 与 IG 通常更易解读。</li>
+          <li><strong>IG 依赖于基线。</strong> 黑色图像并不总是
+            恰当的“特征缺失”。对热成像而言，
+            使用恒定温度作为参照更为诚实。</li>
+          <li><strong>Grad-CAM（梯度加权类激活映射） 的类别判别性<em>按层</em>而异。</strong>
+            选错层就会得到一团均匀的斑块。
+            按惯例应使用最后一个卷积层。</li>
+          <li><strong>这些方法都不是因果性的。</strong> 显著图是
+            “$f$ 在 $x$ 处的梯度”，而不是“若移除该像素会发生什么”。
+            若需要因果归因，请考察
+            <em>遮挡法</em>、<em>RISE</em>，或
+            <em>基于扰动</em>的方法。</li>
+          <li><strong>Adebayo 的健全性检验。</strong> 置换模型
+            的最后一层；重新运行显著图。若所得图看起来没有变化，
+            说明你的显著图读的是输入，而非模型。</li>
+        </ul>
+        <div class="callout callout--think">
+          <strong>最终要点。</strong>
+          在论文插图中，始终把显著图与预测结果并排展示。
+          把使用具有领域意义基线的 IG 与 Grad-CAM（梯度加权类激活映射） 结合使用——
+          它们以不同的方式失效，而它们之间的分歧本身就富有信息。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>超越梯度方法：扰动方法</h2>
+        <p>
+          梯度方法回答的是“若我无穷小地改变这个像素，预测会如何变化？”。
+          扰动方法则提出更强、更具因果性的问题：“若我<em>彻底</em>移除这个像素，
+          预测会如何变化？”。共有三族方法：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>遮挡法（滑动窗口）。</strong> 用基线（灰色块、模糊）替换每个区域，并测量 $f_c$ 的下降量。速度慢（$O(\text{像素数} \times \text{前向次数})$），但与模型无关；可用于黑盒 API。</li>
+          <li><strong>RISE</strong>（Petsiuk et&nbsp;al.，2018）。对输入进行多次随机掩码，
+            以所得的 $f_c$ 为每个掩码加权，再求平均。这是一种蒙特卡洛扰动方法，
+            既比遮挡法更快，又比 IG 噪声更大。</li>
+          <li><strong>LIME / KernelSHAP。</strong> 对模型在 $x$ 附近扰动上的行为
+            拟合一个稀疏线性替代模型。KernelSHAP 还额外强制满足 Shapley 值的性质。</li>
+          <li><strong>因果解释。</strong> 若你想要真正的反事实推理
+            （“若该特征缺失，预测是否会不同？”），请参见 <a href="../concept-bottleneck/index.html">概念瓶颈一文</a>——
+            对显式概念进行干预，更接近人们通常所说的“为什么”。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>你应当始终运行的健全性检验</h2>
+        <ul class="explanation-list">
+          <li><strong>Adebayo 的随机化检验。</strong> 逐层随机化模型的参数。
+            若显著图没有变化，说明你的图读的是输入而非模型——
+            你得到的只是一个花哨的边缘检测器，而非解释。</li>
+          <li><strong>数据随机化。</strong> 训练两个模型，其中一个使用打乱的标签。
+            在标签被打乱的模型上，显著图应当在定性上有所不同。</li>
+          <li><strong>Sensitivity-N / 指向博弈。</strong> 按归因大小遮蔽前 K 个像素；
+            测量预测的下降幅度。在整个数据集上求平均。
+            在同一模型上比较各方法。</li>
+          <li><strong>像素翻转 / 插入-删除 AUC。</strong> 按归因从大到小插入像素；
+            绘制 $f_c$ 随插入比例变化的曲线；其曲线下面积是一项定量的质量指标
+            （Petsiuk et&nbsp;al.，2018）。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>视觉 Transformer 的显著图</h2>
+        <p>
+          ViT 没有卷积特征图，因此 Grad-CAM（梯度加权类激活映射） 无法直接适用。有三种替代方案：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>注意力回滚。</strong> 跨层相乘注意力矩阵（含残差）。
+            粒度粗但无需参数；参见 <a href="../vision-transformer/index.html">ViT 一文</a>。</li>
+          <li><strong>归因回滚</strong>（Chefer et&nbsp;al.，2021）。把注意力与梯度结合；
+            在多数基准上优于原始回滚。</li>
+          <li><strong>词元级 IG。</strong> 对词元嵌入而非像素求梯度积分。
+            天然的归因粒度 = 每个图像块一个数值。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-7">
+        <div class="step-badge">第 7 步</div>
+        <h2>阅读清单</h2>
+        <ul class="explanation-list">
+          <li><strong>Simonyan, Vedaldi, Zisserman (2014)</strong> &mdash; <em>《Deep Inside Convolutional Networks: Visualising Image Classification Models and Saliency Maps》</em>。开山之作。</li>
+          <li><strong>Sundararajan, Taly, Yan (2017)</strong> &mdash; <em>《Axiomatic Attribution for Deep Networks》</em>。IG 的论文。</li>
+          <li><strong>Selvaraju et&nbsp;al. (2017)</strong> &mdash; <em>《Grad-CAM（梯度加权类激活映射）》</em>。</li>
+          <li><strong>Smilkov et&nbsp;al. (2017)</strong> &mdash; <em>《SmoothGrad》</em>。</li>
+          <li><strong>Adebayo et&nbsp;al. (2018)</strong> &mdash; <em>《Sanity Checks for Saliency Maps》</em>。</li>
+          <li><strong>Petsiuk et&nbsp;al. (2018)</strong> &mdash; <em>《RISE》</em>。</li>
+          <li><strong>Chefer, Gur, Wolf (2021)</strong> &mdash; <em>《Transformer Interpretability Beyond Attention Visualization》</em>。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1404 @@
+{
+ "slug": "autograd",
+ "units": {
+  "Autograd, Seen": {
+   "zh": "再看自动微分",
+   "src": "Autograd, Seen",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Automatic differentiation is often introduced as if it were just backprop magic.\n              It is simpler than that. It is a way to compute exact derivatives of the program you\n              actually ran by storing intermediate values and applying the chain rule locally.": {
+   "zh": "自动微分常常被介绍成一种反向传播的魔法。\n              其实它比这更简单。它是一种通过对中间值进行存储、并在局部应用链式法则，\n              从而对实际运行的程序计算精确导数的方法。",
+   "src": "Automatic differentiation is often introduced as if it were just backprop magic.\n              It is simpler than that. It is a way to compute exact derivatives of the program you\n              actually ran by storing intermediate values and applying the chain rule locally.",
+   "tags": []
+  },
+  "Before we touch the interactive graph, we will separate autodiff from finite\n              differences and symbolic algebra, then sketch the graph mechanics in plain view.": {
+   "zh": "在接触交互式计算图之前，我们会先把自动微分与有限差分、符号代数区分开来，\n              然后直观地勾勒出计算图的运作机制。",
+   "src": "Before we touch the interactive graph, we will separate autodiff from finite\n              differences and symbolic algebra, then sketch the graph mechanics in plain view.",
+   "tags": []
+  },
+  "@@T0@@~20 min@@T1@@\n              @@T2@@Deep Learning &middot; Optimization &middot; Chain Rule@@T3@@": {
+   "zh": "@@T0@@约 20 分钟@@T1@@\n              @@T2@@深度学习 &middot; 优化 &middot; 链式法则@@T3@@",
+   "src": "<span>~20 min</span>\n              <span>Deep Learning &middot; Optimization &middot; Chain Rule</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Start with the definition@@T1@@\n              @@T2@@Jump to the interactive graph@@T3@@": {
+   "zh": "@@T0@@从定义开始@@T1@@\n              @@T2@@跳转到交互式计算图@@T3@@",
+   "src": "<a class=\"primary-link\" href=\"#what-is-autodiff\">Start with the definition</a>\n              <a class=\"ghost-link\" href=\"#single-example\">Jump to the interactive graph</a>",
+   "tags": [
+    "<a class=\"primary-link\" href=\"#what-is-autodiff\">",
+    "</a>",
+    "<a class=\"ghost-link\" href=\"#single-example\">",
+    "</a>"
+   ]
+  },
+  "The one-sentence version": {
+   "zh": "一句话概括",
+   "src": "The one-sentence version",
+   "tags": []
+  },
+  "The backward pass carries an @@T0@@upstream gradient@@T1@@ from right to left.\n              Each node contributes one @@T2@@local derivative@@T3@@. Multiply the two, send\n              the result to the parents, and accumulate whenever paths merge.": {
+   "zh": "反向传播将@@T0@@上游梯度@@T1@@从右向左传递。\n              每个节点贡献一个@@T2@@局部导数@@T3@@。将两者相乘，\n              把结果发送给父节点，并在路径汇合处进行累加。",
+   "src": "The backward pass carries an <strong>upstream gradient</strong> from right to left.\n              Each node contributes one <strong>local derivative</strong>. Multiply the two, send\n              the result to the parents, and accumulate whenever paths merge.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Not this@@T1@@\n                @@T2@@Repeatedly nudging inputs with a tiny @@T3@@h@@T4@@@@T5@@": {
+   "zh": "@@T0@@不是这样@@T1@@\n                @@T2@@用微小的 @@T3@@h@@T4@@ 反复扰动输入@@T5@@",
+   "src": "<span class=\"note-label\">Not this</span>\n                <strong>Repeatedly nudging inputs with a tiny <code>h</code></strong>",
+   "tags": [
+    "<span class=\"note-label\">",
+    "</span>",
+    "<strong>",
+    "<code>",
+    "</code>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@This@@T1@@\n                @@T2@@Exact chain-rule bookkeeping on executed intermediate values@@T3@@": {
+   "zh": "@@T0@@而是这样@@T1@@\n                @@T2@@对执行过的中间值进行精确的链式法则记账@@T3@@",
+   "src": "<span class=\"note-label\">This</span>\n                <strong>Exact chain-rule bookkeeping on executed intermediate values</strong>",
+   "tags": [
+    "<span class=\"note-label\">",
+    "</span>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@I.@@T1@@ What autodiff is, and what it is not": {
+   "zh": "@@T0@@I.@@T1@@ 自动微分是什么，以及它不是什么",
+   "src": "<span class=\"num\">I.</span> What autodiff is, and what it is not",
+   "tags": [
+    "<span class=\"num\">",
+    "</span>"
+   ]
+  },
+  "There are three different ideas that often get blurred together. They all answer the\n          question “how fast does the output change when the input changes?”, but they do it in\n          very different ways.": {
+   "zh": "有三种不同的思想常常被混为一谈。它们都在回答\n          “当输入变化时，输出变化得有多快？”这一问题，但实现方式截然不同。",
+   "src": "There are three different ideas that often get blurred together. They all answer the\n          question “how fast does the output change when the input changes?”, but they do it in\n          very different ways.",
+   "tags": []
+  },
+  "Finite differences": {
+   "zh": "有限差分",
+   "src": "Finite differences",
+   "tags": []
+  },
+  "Perturb the input and approximate the slope": {
+   "zh": "扰动输入并近似斜率",
+   "src": "Perturb the input and approximate the slope",
+   "tags": []
+  },
+  "This is numerical estimation. You rerun the function with a tiny change in the input.\n              It is useful for gradient checking, but it is slow, approximate, and sensitive to the\n              choice of @@T0@@h@@T1@@.": {
+   "zh": "这是一种数值估计。你对输入施加微小改动后重新运行函数。\n              它可用于梯度检查，但速度慢、结果为近似值，且对 @@T0@@h@@T1@@ 的取值敏感。",
+   "src": "This is numerical estimation. You rerun the function with a tiny change in the input.\n              It is useful for gradient checking, but it is slow, approximate, and sensitive to the\n              choice of <code>h</code>.",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Symbolic differentiation": {
+   "zh": "符号微分",
+   "src": "Symbolic differentiation",
+   "tags": []
+  },
+  "Rewrite the expression algebraically": {
+   "zh": "对表达式进行代数改写",
+   "src": "Rewrite the expression algebraically",
+   "tags": []
+  },
+  "This manipulates formulas directly. It can be exact, but large real programs are not\n              clean symbolic expressions. They include branching, reused values, and big composite\n              operations.": {
+   "zh": "它直接操作公式。结果可以是精确的，但大型真实程序并非\n              整洁的符号表达式。它们包含分支、重复使用的值以及大型复合运算。",
+   "src": "This manipulates formulas directly. It can be exact, but large real programs are not\n              clean symbolic expressions. They include branching, reused values, and big composite\n              operations.",
+   "tags": []
+  },
+  "Automatic differentiation": {
+   "zh": "自动微分",
+   "src": "Automatic differentiation",
+   "tags": []
+  },
+  "Differentiate the executed program by local rules": {
+   "zh": "按局部规则对已执行的程序求导",
+   "src": "Differentiate the executed program by local rules",
+   "tags": []
+  },
+  "\\[\n                \\text{upstream gradient} \\times \\text{local derivative}\n              \\]": {
+   "zh": "\\[\n                \\text{上游梯度} \\times \\text{局部导数}\n              \\]",
+   "src": "\\[\n                \\text{upstream gradient} \\times \\text{local derivative}\n              \\]",
+   "tags": []
+  },
+  "This is what deep-learning frameworks use. It follows the actual computation graph,\n              stores the intermediate values from the forward pass, and produces exact derivatives\n              up to normal floating-point arithmetic.": {
+   "zh": "这正是深度学习框架所采用的方法。它沿着实际的计算图，\n              存储前向传播产生的中间值，并产生在常规浮点运算意义下精确的导数。",
+   "src": "This is what deep-learning frameworks use. It follows the actual computation graph,\n              stores the intermediate values from the forward pass, and produces exact derivatives\n              up to normal floating-point arithmetic.",
+   "tags": []
+  },
+  "@@T0@@Practical takeaway.@@T1@@\n          If you are training a model, autodiff is the workhorse. Finite differences are mainly a\n          debugging tool. Symbolic differentiation is a different style of system.": {
+   "zh": "@@T0@@实践要点。@@T1@@\n          如果你在训练模型，自动微分才是主力。有限差分主要是一种\n          调试工具。符号微分则属于另一类系统。",
+   "src": "<strong>Practical takeaway.</strong>\n          If you are training a model, autodiff is the workhorse. Finite differences are mainly a\n          debugging tool. Symbolic differentiation is a different style of system.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@II.@@T1@@ A graph sketch before the interactive view": {
+   "zh": "@@T0@@II.@@T1@@ 进入交互视图前的计算图速写",
+   "src": "<span class=\"num\">II.</span> A graph sketch before the interactive view",
+   "tags": [
+    "<span class=\"num\">",
+    "</span>"
+   ]
+  },
+  "Here is the whole idea in still form. The forward pass creates intermediate values from\n          left to right. The backward pass sends gradients back from the loss to the leaves. The\n          graph matters because it tells us exactly who depends on whom.": {
+   "zh": "这里用静态形式呈现整个思想。前向传播从左到右\n          生成中间值。反向传播把梯度从损失传回叶节点。\n          计算图之所以重要，是因为它精确地告诉我们谁依赖于谁。",
+   "src": "Here is the whole idea in still form. The forward pass creates intermediate values from\n          left to right. The backward pass sends gradients back from the loss to the leaves. The\n          graph matters because it tells us exactly who depends on whom.",
+   "tags": []
+  },
+  "Scroll sideways to see the full diagram": {
+   "zh": "横向滚动以查看完整图示",
+   "src": "Scroll sideways to see the full diagram",
+   "tags": []
+  },
+  "Reverse-mode autodiff is especially useful in learning because many parameters feed one\n            scalar loss. One backward sweep gives all parameter gradients together.": {
+   "zh": "反向模式自动微分在学习任务中尤为有用，因为许多参数共同作用于\n            一个标量损失。一次反向扫描即可同时得到所有参数的梯度。",
+   "src": "Reverse-mode autodiff is especially useful in learning because many parameters feed one\n            scalar loss. One backward sweep gives all parameter gradients together.",
+   "tags": []
+  },
+  "A node only needs a small amount of memory": {
+   "zh": "一个节点只需少量内存",
+   "src": "A node only needs a small amount of memory",
+   "tags": []
+  },
+  "@@T0@@node = {\n  value,\n  parents,\n  backward(upstream) {\n    return parents.map((parent) =&gt; upstream * localDerivative(parent));\n  }\n}@@T1@@": {
+   "zh": "@@T0@@node = {\n  value,\n  parents,\n  backward(upstream) {\n    return parents.map((parent) =&gt; upstream * localDerivative(parent));\n  }\n}@@T1@@（节点对象：保存值、父节点与反向规则）",
+   "src": "<code>node = {\n  value,\n  parents,\n  backward(upstream) {\n    return parents.map((parent) =&gt; upstream * localDerivative(parent));\n  }\n}</code>",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@III.@@T1@@ The tiny rulebook every engine needs": {
+   "zh": "@@T0@@III.@@T1@@ 每个引擎都需要的微型规则手册",
+   "src": "<span class=\"num\">III.</span> The tiny rulebook every engine needs",
+   "tags": [
+    "<span class=\"num\">",
+    "</span>"
+   ]
+  },
+  "The scalar version of autograd can go a long way with a very small lookup table. The\n          exact list below matches the pedagogical core from the animation notes: multiplication,\n          addition, exponentiation, reciprocal, and logarithm. Everything more elaborate is built\n          from these or wrapped into a bigger module that knows how to backprop internally.": {
+   "zh": "标量版本的自动微分凭借一张很小的查找表就能走得很远。下面这份确切清单\n          与动画讲解中的教学核心一致：乘法、加法、指数、倒数与对数。\n          更复杂的运算都由这些基本运算搭建而成，或被封装进一个内部懂得如何反向传播的更大模块中。",
+   "src": "The scalar version of autograd can go a long way with a very small lookup table. The\n          exact list below matches the pedagogical core from the animation notes: multiplication,\n          addition, exponentiation, reciprocal, and logarithm. Everything more elaborate is built\n          from these or wrapped into a bigger module that knows how to backprop internally.",
+   "tags": []
+  },
+  "Selected local rule": {
+   "zh": "所选局部规则",
+   "src": "Selected local rule",
+   "tags": []
+  },
+  "Multiply": {
+   "zh": "乘法",
+   "src": "Multiply",
+   "tags": []
+  },
+  "Good engines stay humble here: they store the output value, remember the parents, and\n            attach a backward rule that converts an upstream gradient into contributions for each\n            parent.": {
+   "zh": "优秀的引擎在此保持谦逊：它们存储输出值、记住父节点，\n            并附加一条反向规则，将上游梯度转换为对每个父节点的贡献。",
+   "src": "Good engines stay humble here: they store the output value, remember the parents, and\n            attach a backward rule that converts an upstream gradient into contributions for each\n            parent.",
+   "tags": []
+  },
+  "@@T0@@IV.@@T1@@ One example, traced forward and backward": {
+   "zh": "@@T0@@IV.@@T1@@ 一个例子：前向与反向全程追踪",
+   "src": "<span class=\"num\">IV.</span> One example, traced forward and backward",
+   "tags": [
+    "<span class=\"num\">",
+    "</span>"
+   ]
+  },
+  "Now we can animate a concrete scalar graph. Start with a single positive example. We will\n          compute a log-loss from a scalar logit @@T0@@z = wx + b@@T1@@. The expression is\n          deliberately expanded into tiny operations so you can see what the engine is really doing\n          under the hood.": {
+   "zh": "现在我们可以对一个具体的标量计算图进行动画演示。从一个正类样本开始。\n          我们将由标量 logit @@T0@@z = wx + b@@T1@@ 计算对数损失。该表达式被\n          刻意展开为一个个微小运算，以便你能看清引擎在底层究竟做了什么。",
+   "src": "Now we can animate a concrete scalar graph. Start with a single positive example. We will\n          compute a log-loss from a scalar logit <code>z = wx + b</code>. The expression is\n          deliberately expanded into tiny operations so you can see what the engine is really doing\n          under the hood.",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Reset": {
+   "zh": "重置",
+   "src": "Reset",
+   "tags": []
+  },
+  "Forward": {
+   "zh": "前向",
+   "src": "Forward",
+   "tags": []
+  },
+  "Backward": {
+   "zh": "反向",
+   "src": "Backward",
+   "tags": []
+  },
+  "Auto play": {
+   "zh": "自动播放",
+   "src": "Auto play",
+   "tags": []
+  },
+  "Export stage JSON": {
+   "zh": "导出阶段 JSON",
+   "src": "Export stage JSON",
+   "tags": []
+  },
+  "Export all stages": {
+   "zh": "导出全部阶段",
+   "src": "Export all stages",
+   "tags": []
+  },
+  "@@T0@@Stage@@T1@@@@T2@@0 / 17@@T3@@": {
+   "zh": "@@T0@@阶段@@T1@@@@T2@@0 / 17@@T3@@",
+   "src": "<span>Stage</span><strong id=\"stageIndex\">0 / 17</strong>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong id=\"stageIndex\">",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Direction@@T1@@@@T2@@Setup@@T3@@": {
+   "zh": "@@T0@@方向@@T1@@@@T2@@初始化@@T3@@",
+   "src": "<span>Direction</span><strong id=\"stageDirection\">Setup</strong>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong id=\"stageDirection\">",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Active focus@@T1@@@@T2@@Inputs@@T3@@": {
+   "zh": "@@T0@@聚焦@@T1@@@@T2@@输入@@T3@@",
+   "src": "<span>Active focus</span><strong id=\"stageFocus\">Inputs</strong>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong id=\"stageFocus\">",
+    "</strong>"
+   ]
+  },
+  "Scrub the graph": {
+   "zh": "拖动浏览计算图",
+   "src": "Scrub the graph",
+   "tags": []
+  },
+  "Scroll sideways to follow the active nodes": {
+   "zh": "横向滚动以跟随活动节点",
+   "src": "Scroll sideways to follow the active nodes",
+   "tags": []
+  },
+  "Current reasoning": {
+   "zh": "当前推理",
+   "src": "Current reasoning",
+   "tags": []
+  },
+  "Inputs are known before any work happens.": {
+   "zh": "在任何运算发生之前，输入是已知的。",
+   "src": "Inputs are known before any work happens.",
+   "tags": []
+  },
+  "The parameters @@T0@@w@@T1@@ and @@T2@@b@@T3@@, plus the input @@T4@@x@@T5@@, are\n                already available. The forward pass will build the rest of the graph from left to\n                right.": {
+   "zh": "参数 @@T0@@w@@T1@@ 与 @@T2@@b@@T3@@，连同输入 @@T4@@x@@T5@@ 都已\n                就绪。前向传播将从左到右构建计算图的其余部分。",
+   "src": "The parameters <code>w</code> and <code>b</code>, plus the input <code>x</code>, are\n                already available. The forward pass will build the rest of the graph from left to\n                right.",
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "The graph stays visually quiet. Exact derivatives and local rules live in the ledger,\n            not as long labels colliding inside the diagram.": {
+   "zh": "计算图在视觉上保持简洁。精确导数与局部规则保存在账本中，\n            而不是以冗长标签的形式挤在图内。",
+   "src": "The graph stays visually quiet. Exact derivatives and local rules live in the ledger,\n            not as long labels colliding inside the diagram.",
+   "tags": []
+  },
+  "@@T0@@V.@@T1@@ Why frameworks collapse graphs into modules": {
+   "zh": "@@T0@@V.@@T1@@ 框架为何把计算图折叠为模块",
+   "src": "<span class=\"num\">V.</span> Why frameworks collapse graphs into modules",
+   "tags": [
+    "<span class=\"num\">",
+    "</span>"
+   ]
+  },
+  "A teaching graph should show everything. A production graph should show just enough.\n          That is why frameworks package chains of small operations into larger blocks. A linear\n          layer hides the multiply and add. A sigmoid hides negation, exponentiation, addition,\n          and reciprocal. A loss module can hide still more.": {
+   "zh": "用于教学的计算图应展示一切。用于生产的计算图则只展示恰到好处的部分。\n          这就是框架把一串微小运算打包成更大模块的原因。线性层隐藏了乘法与加法。\n          sigmoid 隐藏了取负、指数、加法与倒数。损失模块则能隐藏更多。",
+   "src": "A teaching graph should show everything. A production graph should show just enough.\n          That is why frameworks package chains of small operations into larger blocks. A linear\n          layer hides the multiply and add. A sigmoid hides negation, exponentiation, addition,\n          and reciprocal. A loss module can hide still more.",
+   "tags": []
+  },
+  "Atomic graph": {
+   "zh": "原子计算图",
+   "src": "Atomic graph",
+   "tags": []
+  },
+  "Framework blocks": {
+   "zh": "框架模块",
+   "src": "Framework blocks",
+   "tags": []
+  },
+  "Scroll sideways to compare every block": {
+   "zh": "横向滚动以比较每个模块",
+   "src": "Scroll sideways to compare every block",
+   "tags": []
+  },
+  "What changed?": {
+   "zh": "有什么变化？",
+   "src": "What changed?",
+   "tags": []
+  },
+  "Atomic graph: every local derivative is explicit.": {
+   "zh": "原子计算图：每个局部导数都是显式的。",
+   "src": "Atomic graph: every local derivative is explicit.",
+   "tags": []
+  },
+  "This is ideal when you are learning or debugging the engine itself. Every node has\n                a tiny backward rule and every edge is legible.": {
+   "zh": "当你学习或调试引擎本身时，这是理想形式。每个节点都有一条\n                微小的反向规则，每条边都清晰可读。",
+   "src": "This is ideal when you are learning or debugging the engine itself. Every node has\n                a tiny backward rule and every edge is legible.",
+   "tags": []
+  },
+  "@@T0@@VI.@@T1@@ Three examples, shared parameters, one update": {
+   "zh": "@@T0@@VI.@@T1@@ 三个样本、共享参数、一次更新",
+   "src": "<span class=\"num\">VI.</span> Three examples, shared parameters, one update",
+   "tags": [
+    "<span class=\"num\">",
+    "</span>"
+   ]
+  },
+  "The point of autograd is not a single example. It is repeated reuse. The same parameters\n          show up in every example, so the backward pass must accumulate gradient contributions\n          before the optimizer updates them. With only three points, you can already feel that\n          batching logic instead of treating it as abstraction.": {
+   "zh": "自动微分的意义不在于单个样本，而在于反复复用。相同的参数\n          会出现在每个样本中，因此反向传播必须在优化器更新参数之前\n          累加梯度贡献。仅用三个数据点，你就能亲身感受到批量处理逻辑，\n          而不只是把它当作抽象概念。",
+   "src": "The point of autograd is not a single example. It is repeated reuse. The same parameters\n          show up in every example, so the backward pass must accumulate gradient contributions\n          before the optimizer updates them. With only three points, you can already feel that\n          batching logic instead of treating it as abstraction.",
+   "tags": []
+  },
+  "Reset params": {
+   "zh": "重置参数",
+   "src": "Reset params",
+   "tags": []
+  },
+  "Apply one update": {
+   "zh": "应用一次更新",
+   "src": "Apply one update",
+   "tags": []
+  },
+  "Export batch JSON": {
+   "zh": "导出批量 JSON",
+   "src": "Export batch JSON",
+   "tags": []
+  },
+  "@@T0@@Mean loss@@T1@@@@T2@@0.000@@T3@@": {
+   "zh": "@@T0@@平均损失@@T1@@@@T2@@0.000@@T3@@",
+   "src": "<span>Mean loss</span><strong id=\"meanLoss\">0.000</strong>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong id=\"meanLoss\">",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Learning rate@@T1@@@@T2@@0.20@@T3@@": {
+   "zh": "@@T0@@学习率@@T1@@@@T2@@0.20@@T3@@",
+   "src": "<span>Learning rate</span><strong id=\"learningRateValue\">0.20</strong>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong id=\"learningRateValue\">",
+    "</strong>"
+   ]
+  },
+  "Shared parameters": {
+   "zh": "共享参数",
+   "src": "Shared parameters",
+   "tags": []
+  },
+  "Weight @@T0@@w@@T1@@": {
+   "zh": "权重 @@T0@@w@@T1@@",
+   "src": "Weight <code>w</code>",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Bias @@T0@@b@@T1@@": {
+   "zh": "偏置 @@T0@@b@@T1@@",
+   "src": "Bias <code>b</code>",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Learning rate": {
+   "zh": "学习率",
+   "src": "Learning rate",
+   "tags": []
+  },
+  "Each row produces its own probability, loss, and gradient contribution. The\n              parameter update uses the mean gradient over all rows.": {
+   "zh": "每一行都产生各自的概率、损失与梯度贡献。\n              参数更新使用所有行的平均梯度。",
+   "src": "Each row produces its own probability, loss, and gradient contribution. The\n              parameter update uses the mean gradient over all rows.",
+   "tags": []
+  },
+  "Example": {
+   "zh": "样本",
+   "src": "Example",
+   "tags": []
+  },
+  "loss": {
+   "zh": "损失",
+   "src": "loss",
+   "tags": []
+  },
+  "@@T0@@VII.@@T1@@ What an autograd engine really stores": {
+   "zh": "@@T0@@VII.@@T1@@ 自动微分引擎真正存储了什么",
+   "src": "<span class=\"num\">VII.</span> What an autograd engine really stores",
+   "tags": [
+    "<span class=\"num\">",
+    "</span>"
+   ]
+  },
+  "The finished story is smaller than the notation makes it seem. A node stores a value, a\n          set of parents, and a local backward rule. The forward pass builds the graph and caches\n          whatever the backward rule will need later. The backward pass starts from the scalar loss,\n          walks the graph in reverse topological order, and accumulates contributions whenever\n          multiple paths meet.": {
+   "zh": "完整的故事比那些记号看起来要小。一个节点存储一个值、\n          一组父节点以及一条局部反向规则。前向传播构建计算图，并缓存\n          反向规则之后所需的一切。反向传播从标量损失出发，\n          按逆拓扑序遍历计算图，并在多条路径汇合处累加贡献。",
+   "src": "The finished story is smaller than the notation makes it seem. A node stores a value, a\n          set of parents, and a local backward rule. The forward pass builds the graph and caches\n          whatever the backward rule will need later. The backward pass starts from the scalar loss,\n          walks the graph in reverse topological order, and accumulates contributions whenever\n          multiple paths meet.",
+   "tags": []
+  },
+  "1. Local beats global": {
+   "zh": "1. 局部优于全局",
+   "src": "1. Local beats global",
+   "tags": []
+  },
+  "Every node only needs its own tiny derivative law.": {
+   "zh": "每个节点只需知道它自己那条微小的求导法则。",
+   "src": "Every node only needs its own tiny derivative law.",
+   "tags": []
+  },
+  "The engine never differentiates the whole model symbolically. It composes many local facts.": {
+   "zh": "引擎从不符号化地对整个模型求导。它组合许多局部事实。",
+   "src": "The engine never differentiates the whole model symbolically. It composes many local facts.",
+   "tags": []
+  },
+  "2. Caching matters": {
+   "zh": "2. 缓存很重要",
+   "src": "2. Caching matters",
+   "tags": []
+  },
+  "Forward values are saved because backward rules need them.": {
+   "zh": "前向值之所以被保存，是因为反向规则需要它们。",
+   "src": "Forward values are saved because backward rules need them.",
+   "tags": []
+  },
+  "For @@T0@@\\log(a)@@T1@@ you need @@T2@@a@@T3@@; for @@T4@@1/a@@T5@@ you need @@T6@@a@@T7@@; for sigmoid you usually need the output.": {
+   "zh": "对于 @@T0@@\\log(a)@@T1@@ 你需要 @@T2@@a@@T3@@；对于 @@T4@@1/a@@T5@@ 你需要 @@T6@@a@@T7@@；对于 sigmoid，通常需要其输出。",
+   "src": "For <code>\\log(a)</code> you need <code>a</code>; for <code>1/a</code> you need <code>a</code>; for sigmoid you usually need the output.",
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "3. Modules are not cheating": {
+   "zh": "3. 模块化并非作弊",
+   "src": "3. Modules are not cheating",
+   "tags": []
+  },
+  "They are just larger nodes with richer internal backward rules.": {
+   "zh": "它们只不过是内部反向规则更丰富的更大节点。",
+   "src": "They are just larger nodes with richer internal backward rules.",
+   "tags": []
+  },
+  "This is how @@T0@@nn.Linear@@T1@@, @@T2@@sigmoid@@T3@@, and cross-entropy stay ergonomic while remaining differentiable.": {
+   "zh": "这正是 @@T0@@nn.Linear@@T1@@、@@T2@@sigmoid@@T3@@ 与交叉熵得以既易用又保持可微的方式。",
+   "src": "This is how <code>nn.Linear</code>, <code>sigmoid</code>, and cross-entropy stay ergonomic while remaining differentiable.",
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "4. Batches only add accumulation": {
+   "zh": "4. 批量只是增加了累加",
+   "src": "4. Batches only add accumulation",
+   "tags": []
+  },
+  "The same parameters receive many gradient messages before the update.": {
+   "zh": "在更新之前，相同的参数会收到多条梯度信息。",
+   "src": "The same parameters receive many gradient messages before the update.",
+   "tags": []
+  },
+  "The optimizer step is simple only because autograd already summed everything that depended on those parameters.": {
+   "zh": "优化器步骤之所以简单，只是因为自动微分已经把所有依赖于这些参数的量都求和了。",
+   "src": "The optimizer step is simple only because autograd already summed everything that depended on those parameters.",
+   "tags": []
+  },
+  "If this clicked, the next good exercise is to build the scalar engine yourself. Keep the\n          graph tiny, keep the rulebook short, and keep the backward pass honest.": {
+   "zh": "如果这一节让你理解了，那么下一个不错的练习就是自己动手实现标量引擎。\n          让计算图保持小巧，让规则手册保持简短，让反向传播保持诚实。",
+   "src": "If this clicked, the next good exercise is to build the scalar engine yourself. Keep the\n          graph tiny, keep the rulebook short, and keep the backward pass honest.",
+   "tags": []
+  },
+  "Scrollable forward and backward pass diagram": {
+   "zh": "可滚动的前向与反向传播图示",
+   "src": "Scrollable forward and backward pass diagram",
+   "tags": []
+  },
+  "Scrollable computation graph; the active nodes are kept in view as stages change": {
+   "zh": "可滚动的计算图；随着阶段变化，活动节点始终保持在视野内",
+   "src": "Scrollable computation graph; the active nodes are kept in view as stages change",
+   "tags": []
+  },
+  "Scrollable atomic or grouped autograd graph": {
+   "zh": "可滚动的原子或分组自动微分计算图",
+   "src": "Scrollable atomic or grouped autograd graph",
+   "tags": []
+  },
+  "Scrollable logistic curve and batch examples": {
+   "zh": "可滚动的 logistic 曲线与批量样本",
+   "src": "Scrollable logistic curve and batch examples",
+   "tags": []
+  },
+  "Per-example batch values": {
+   "zh": "逐样本的批量数值",
+   "src": "Per-example batch values",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "再看自动微分",
+  "tagline": "自动微分是什么、不是什么，以及梯度如何在计算图中流动",
+  "summary": "一篇关于自动微分的可视化讲解：先区分自动微分与有限差分、符号代数，再对一个计算图进行完整的前向与反向演示，最后展示模块化与 mini-batch 训练。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "在接触交互式计算图之前，先清晰比较有限差分、符号微分与自动微分。",
+   "观察单个标量计算图如何逐步揭示前向传播中的值与反向传播中的梯度。",
+   "让主图保持简洁，由单独的账本解释驱动当前步骤的精确“上游乘局部”规则。",
+   "在原子运算与框架式模块之间切换，看清 PyTorch 或 JAX 究竟隐藏了什么。",
+   "探索一个仅含三个样本的小批量，其中相同参数从多个样本获得梯度贡献。"
+  ],
+  "tags": [
+   "自动微分",
+   "反向传播",
+   "深度学习",
+   "交互式"
+  ]
+ },
+ "js": {
+  "The example arrives as @@T0@@x = [[[0]]]@@T1@@. The learnable parameters start at @@T2@@w = [[[1]]]@@T3@@ and @@T4@@b = [[[2]]]@@T5@@. No gradients exist yet because the loss has not been built.": {
+   "zh": "样本以 @@T0@@x = [[[0]]]@@T1@@ 的形式给出。可学习参数初始为 @@T2@@w = [[[1]]]@@T3@@ 与 @@T4@@b = [[[2]]]@@T5@@。因为损失尚未构建，所以还不存在任何梯度。",
+   "exprs": [
+    "${formatNumber(s.values.x)}",
+    "${formatNumber(s.values.w)}",
+    "${formatNumber(s.values.b)}"
+   ],
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ],
+   "src": "The example arrives as <code>x = ${formatNumber(s.values.x)}</code>. The learnable parameters start at <code>w = ${formatNumber(s.values.w)}</code> and <code>b = ${formatNumber(s.values.b)}</code>. No gradients exist yet because the loss has not been built."
+  },
+  "Multiplication creates @@T0@@wx = [[[0]]]@@T1@@. Later, when gradients return, this node will send @@T2@@x@@T3@@ back to @@T4@@w@@T5@@ and @@T6@@w@@T7@@ back to @@T8@@x@@T9@@.": {
+   "zh": "乘法运算生成 @@T0@@wx = [[[0]]]@@T1@@。稍后当梯度返回时，该节点会把 @@T2@@x@@T3@@ 发回 @@T4@@w@@T5@@，并把 @@T6@@w@@T7@@ 发回 @@T8@@x@@T9@@。",
+   "exprs": [
+    "${formatNumber(s.values.mul)}"
+   ],
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ],
+   "src": "Multiplication creates <code>wx = ${formatNumber(s.values.mul)}</code>. Later, when gradients return, this node will send <code>x</code> back to <code>w</code> and <code>w</code> back to <code>x</code>."
+  },
+  "The add node combines the weighted input and the bias to produce @@T0@@z = [[[0]]]@@T1@@. Addition is simple on the backward pass: it copies the upstream gradient to both parents.": {
+   "zh": "加法节点将加权输入与偏置结合，生成 @@T0@@z = [[[0]]]@@T1@@。加法在反向传播中很简单：它把上游梯度复制给两个父节点。",
+   "exprs": [
+    "${formatNumber(s.values.z)}"
+   ],
+   "tags": [
+    "<code>",
+    "</code>"
+   ],
+   "src": "The add node combines the weighted input and the bias to produce <code>z = ${formatNumber(s.values.z)}</code>. Addition is simple on the backward pass: it copies the upstream gradient to both parents."
+  },
+  "The graph now stores @@T0@@-z = [[[0]]]@@T1@@. This sign flip is small, but it matters later because it contributes a local derivative of @@T2@@-1@@T3@@.": {
+   "zh": "计算图现在存储 @@T0@@-z = [[[0]]]@@T1@@。这次取负看似微小，但之后很重要，因为它贡献了 @@T2@@-1@@T3@@ 的局部导数。",
+   "exprs": [
+    "${formatNumber(s.values.neg)}"
+   ],
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ],
+   "src": "The graph now stores <code>-z = ${formatNumber(s.values.neg)}</code>. This sign flip is small, but it matters later because it contributes a local derivative of <code>-1</code>."
+  },
+  "The exponential node stores @@T0@@e^{-z} = [[[0]]]@@T1@@. Because the derivative of @@T2@@e^a@@T3@@ is itself, the forward output is exactly what the backward rule will need.": {
+   "zh": "指数节点存储 @@T0@@e^{-z} = [[[0]]]@@T1@@。由于 @@T2@@e^a@@T3@@ 的导数就是它自身，前向输出正是反向规则所需要的。",
+   "exprs": [
+    "${formatNumber(s.values.exp)}"
+   ],
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ],
+   "src": "The exponential node stores <code>e^{-z} = ${formatNumber(s.values.exp)}</code>. Because the derivative of <code>e^a</code> is itself, the forward output is exactly what the backward rule will need."
+  },
+  "Adding @@T0@@1@@T1@@ produces @@T2@@d = [[[0]]]@@T3@@. The hidden constant is not visually important, so the diagram omits it, but the numeric state still reflects it.": {
+   "zh": "加上 @@T0@@1@@T1@@ 得到 @@T2@@d = [[[0]]]@@T3@@。这个隐含常数在视觉上并不重要，因此图中省略了它，但数值状态仍然体现了它。",
+   "exprs": [
+    "${formatNumber(s.values.denom)}"
+   ],
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ],
+   "src": "Adding <code>1</code> produces <code>d = ${formatNumber(s.values.denom)}</code>. The hidden constant is not visually important, so the diagram omits it, but the numeric state still reflects it."
+  },
+  "The sigmoid output is @@T0@@p = [[[0]]]@@T1@@. For this positive example, larger probabilities mean smaller loss.": {
+   "zh": "sigmoid 输出为 @@T0@@p = [[[0]]]@@T1@@。对这个正类样本而言，概率越大意味着损失越小。",
+   "exprs": [
+    "${formatNumber(s.values.p)}"
+   ],
+   "tags": [
+    "<code>",
+    "</code>"
+   ],
+   "src": "The sigmoid output is <code>p = ${formatNumber(s.values.p)}</code>. For this positive example, larger probabilities mean smaller loss."
+  },
+  "The graph stores @@T0@@\\\\log(p) = [[[0]]]@@T1@@. The log turns a probability into a quantity that grows sharply when the model is wrong.": {
+   "zh": "计算图存储 @@T0@@\\\\log(p) = [[[0]]]@@T1@@。对数把概率转换为一个当模型出错时会急剧增大的量。",
+   "exprs": [
+    "${formatNumber(s.values.logp)}"
+   ],
+   "tags": [
+    "<code>",
+    "</code>"
+   ],
+   "src": "The graph stores <code>\\\\log(p) = ${formatNumber(s.values.logp)}</code>. The log turns a probability into a quantity that grows sharply when the model is wrong."
+  },
+  "Negating the log produces @@T0@@L = [[[0]]]@@T1@@. Only now can the backward pass begin, because the engine has a scalar target to differentiate.": {
+   "zh": "对对数取负得到 @@T0@@L = [[[0]]]@@T1@@。只有到这时反向传播才能开始，因为引擎终于有了可供求导的标量目标。",
+   "exprs": [
+    "${formatNumber(s.values.L)}"
+   ],
+   "tags": [
+    "<code>",
+    "</code>"
+   ],
+   "src": "Negating the log produces <code>L = ${formatNumber(s.values.L)}</code>. Only now can the backward pass begin, because the engine has a scalar target to differentiate."
+  },
+  "Every reverse pass starts with @@T0@@\\\\partial L / \\\\partial L = 1@@T1@@. That seed says: if the loss changes by a little, it changes by exactly that much.": {
+   "zh": "每一次反向传播都以 @@T0@@\\\\partial L / \\\\partial L = 1@@T1@@ 起始。这个种子表明：若损失发生微小变化，它就恰好变化这么多。",
+   "exprs": [],
+   "tags": [
+    "<code>",
+    "</code>"
+   ],
+   "src": "Every reverse pass starts with <code>\\\\partial L / \\\\partial L = 1</code>. That seed says: if the loss changes by a little, it changes by exactly that much."
+  },
+  "Because @@T0@@L = -\\\\log(p)@@T1@@, the gradient at @@T2@@\\\\log p@@T3@@ becomes @@T4@@[[[0]]]@@T5@@. The structure is already visible: upstream gradient times local derivative.": {
+   "zh": "因为 @@T0@@L = -\\\\log(p)@@T1@@，所以 @@T2@@\\\\log p@@T3@@ 处的梯度变为 @@T4@@[[[0]]]@@T5@@。结构已经很清晰：上游梯度乘以局部导数。",
+   "exprs": [
+    "${formatNumber(s.grads.logp)}"
+   ],
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ],
+   "src": "Because <code>L = -\\\\log(p)</code>, the gradient at <code>\\\\log p</code> becomes <code>${formatNumber(s.grads.logp)}</code>. The structure is already visible: upstream gradient times local derivative."
+  },
+  "The local derivative of @@T0@@\\\\log(p)@@T1@@ is @@T2@@1/p@@T3@@, so the probability receives gradient @@T4@@[[[0]]]@@T5@@. Confident wrong probabilities get punished the most.": {
+   "zh": "@@T0@@\\\\log(p)@@T1@@ 的局部导数是 @@T2@@1/p@@T3@@，因此概率接收到的梯度为 @@T4@@[[[0]]]@@T5@@。越自信却越错误的概率受到的惩罚越大。",
+   "exprs": [
+    "${formatNumber(s.grads.p)}"
+   ],
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ],
+   "src": "The local derivative of <code>\\\\log(p)</code> is <code>1/p</code>, so the probability receives gradient <code>${formatNumber(s.grads.p)}</code>. Confident wrong probabilities get punished the most."
+  },
+  "The denominator inherits gradient @@T0@@[[[0]]]@@T1@@. This is the step where the reciprocal rule does its full job: negative sign, squared denominator.": {
+   "zh": "分母继承的梯度为 @@T0@@[[[0]]]@@T1@@。这一步正是倒数规则充分发挥作用之处：取负号、分母平方。",
+   "exprs": [
+    "${formatNumber(s.grads.denom)}"
+   ],
+   "tags": [
+    "<code>",
+    "</code>"
+   ],
+   "src": "The denominator inherits gradient <code>${formatNumber(s.grads.denom)}</code>. This is the step where the reciprocal rule does its full job: negative sign, squared denominator."
+  },
+  "Since the derivative of @@T0@@e^{-z}@@T1@@ is @@T2@@e^{-z}@@T3@@, the negated logit receives gradient @@T4@@[[[0]]]@@T5@@. This is why caching the forward output is so useful.": {
+   "zh": "由于 @@T0@@e^{-z}@@T1@@ 的导数是 @@T2@@e^{-z}@@T3@@，取负后的 logit 接收到的梯度为 @@T4@@[[[0]]]@@T5@@。这正是缓存前向输出如此有用的原因。",
+   "exprs": [
+    "${formatNumber(s.grads.neg)}"
+   ],
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ],
+   "src": "Since the derivative of <code>e^{-z}</code> is <code>e^{-z}</code>, the negated logit receives gradient <code>${formatNumber(s.grads.neg)}</code>. This is why caching the forward output is so useful."
+  },
+  "The gradient at the logit becomes @@T0@@[[[0]]]@@T1@@. For a positive example, this value equals @@T2@@p - 1@@T3@@, which is why the optimizer will push the logit upward when the probability is still below one.": {
+   "zh": "logit 处的梯度变为 @@T0@@[[[0]]]@@T1@@。对于正类样本，该值等于 @@T2@@p - 1@@T3@@，这正是当概率仍小于 1 时优化器会把 logit 往上推的原因。",
+   "exprs": [
+    "${formatNumber(s.grads.z)}"
+   ],
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ],
+   "src": "The gradient at the logit becomes <code>${formatNumber(s.grads.z)}</code>. For a positive example, this value equals <code>p - 1</code>, which is why the optimizer will push the logit upward when the probability is still below one."
+  },
+  "Both @@T0@@wx@@T1@@ and @@T2@@b@@T3@@ receive @@T4@@[[[0]]]@@T5@@. This is the cleanest rule in the table: addition simply forwards the upstream gradient unchanged.": {
+   "zh": "@@T0@@wx@@T1@@ 与 @@T2@@b@@T3@@ 都接收 @@T4@@[[[0]]]@@T5@@。这是规则表中最干净的一条：加法只是把上游梯度原样转发。",
+   "exprs": [
+    "${formatNumber(s.grads.z)}"
+   ],
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ],
+   "src": "Both <code>wx</code> and <code>b</code> receive <code>${formatNumber(s.grads.z)}</code>. This is the cleanest rule in the table: addition simply forwards the upstream gradient unchanged."
+  },
+  "Because the other parent acts as the local derivative, the weight receives @@T0@@[[[0]]]@@T1@@ and the input would receive @@T2@@[[[1]]]@@T3@@ if we needed it.": {
+   "zh": "因为另一个父节点充当局部导数，所以权重接收 @@T0@@[[[0]]]@@T1@@，而若我们需要输入端的梯度，它会接收 @@T2@@[[[1]]]@@T3@@。",
+   "exprs": [
+    "${formatNumber(s.grads.w)}",
+    "${formatNumber(s.grads.x)}"
+   ],
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ],
+   "src": "Because the other parent acts as the local derivative, the weight receives <code>${formatNumber(s.grads.w)}</code> and the input would receive <code>${formatNumber(s.grads.x)}</code> if we needed it."
+  },
+  "For this example, the optimizer sees @@T0@@dL/dw = [[[0]]]@@T1@@ and @@T2@@dL/db = [[[1]]]@@T3@@. In a batch, those messages would be accumulated across many examples before the update.": {
+   "zh": "对这个样本，优化器看到 @@T0@@dL/dw = [[[0]]]@@T1@@ 与 @@T2@@dL/db = [[[1]]]@@T3@@。在批量中，这些信息会在更新之前跨多个样本累加。",
+   "exprs": [
+    "${formatNumber(s.grads.w)}",
+    "${formatNumber(s.grads.b)}"
+   ],
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ],
+   "src": "For this example, the optimizer sees <code>dL/dw = ${formatNumber(s.grads.w)}</code> and <code>dL/db = ${formatNumber(s.grads.b)}</code>. In a batch, those messages would be accumulated across many examples before the update."
+  },
+  "\n    @@T0@@\n      @@T1@@\n        @@T2@@@@T3@@\n        @@T4@@@@T5@@\n      @@T6@@\n    @@T7@@\n    @@T8@@@@T9@@\n    @@T10@@Single positive example: x = [[[0]]], w = [[[1]]], b = [[[2]]]@@T11@@\n    [[[3]]]\n    [[[4]]]\n  ": {
+   "zh": "\n    @@T0@@\n      @@T1@@\n        @@T2@@@@T3@@\n        @@T4@@@@T5@@\n      @@T6@@\n    @@T7@@\n    @@T8@@@@T9@@\n    @@T10@@单个正类样本：x = [[[0]]]，w = [[[1]]]，b = [[[2]]]@@T11@@\n    [[[3]]]\n    [[[4]]]\n  ",
+   "exprs": [
+    "${formatNumber(graphSnapshot.values.x)}",
+    "${formatNumber(graphSnapshot.values.w)}",
+    "${formatNumber(graphSnapshot.values.b)}",
+    "${edgesMarkup}",
+    "${nodesMarkup}"
+   ],
+   "tags": [
+    "<defs>",
+    "<linearGradient id=\"graphWash\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"0%\">",
+    "<stop offset=\"0%\" stop-color=\"#f8fbff\">",
+    "</stop>",
+    "<stop offset=\"100%\" stop-color=\"#fff7f3\">",
+    "</stop>",
+    "</linearGradient>",
+    "</defs>",
+    "<rect x=\"18\" y=\"18\" width=\"1444\" height=\"624\" rx=\"30\" fill=\"url(#graphWash)\" stroke=\"#d7dde6\">",
+    "</rect>",
+    "<text x=\"46\" y=\"62\" class=\"node-sub\">",
+    "</text>"
+   ],
+   "src": "\n    <defs>\n      <linearGradient id=\"graphWash\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"0%\">\n        <stop offset=\"0%\" stop-color=\"#f8fbff\"></stop>\n        <stop offset=\"100%\" stop-color=\"#fff7f3\"></stop>\n      </linearGradient>\n    </defs>\n    <rect x=\"18\" y=\"18\" width=\"1444\" height=\"624\" rx=\"30\" fill=\"url(#graphWash)\" stroke=\"#d7dde6\"></rect>\n    <text x=\"46\" y=\"62\" class=\"node-sub\">Single positive example: x = ${formatNumber(graphSnapshot.values.x)}, w = ${formatNumber(graphSnapshot.values.w)}, b = ${formatNumber(graphSnapshot.values.b)}</text>\n    ${edgesMarkup}\n    ${nodesMarkup}\n  "
+  },
+  "\n    @@T0@@\n      @@T1@@@@T2@@Node@@T3@@@@T4@@role@@T5@@@@T6@@\n      @@T7@@@@T8@@Value@@T9@@@@T10@@cached@@T11@@@@T12@@\n      @@T13@@@@T14@@Gradient@@T15@@@@T16@@received@@T17@@@@T18@@\n    @@T19@@\n  ": {
+   "zh": "\n    @@T0@@\n      @@T1@@@@T2@@节点@@T3@@@@T4@@作用@@T5@@@@T6@@\n      @@T7@@@@T8@@值@@T9@@@@T10@@已缓存@@T11@@@@T12@@\n      @@T13@@@@T14@@梯度@@T15@@@@T16@@已接收@@T17@@@@T18@@\n    @@T19@@\n  ",
+   "exprs": [],
+   "tags": [
+    "<div class=\"ledger-row ledger-row--header\">",
+    "<div>",
+    "<strong>",
+    "</strong>",
+    "<span>",
+    "</span>",
+    "</div>",
+    "<div>",
+    "<strong>",
+    "</strong>",
+    "<span>",
+    "</span>",
+    "</div>",
+    "<div>",
+    "<strong>",
+    "</strong>",
+    "<span>",
+    "</span>",
+    "</div>",
+    "</div>"
+   ],
+   "src": "\n    <div class=\"ledger-row ledger-row--header\">\n      <div><strong>Node</strong><span>role</span></div>\n      <div><strong>Value</strong><span>cached</span></div>\n      <div><strong>Gradient</strong><span>received</span></div>\n    </div>\n  "
+  },
+  "\n    @@T0@@[[[0]]] nodes in context · active nodes first@@T1@@\n    @@T2@@\n      [[[1]]]\n      [[[2]]]\n    @@T3@@\n    @@T4@@\n      @@T5@@All [[[4]]] values and gradients@@T6@@\n      @@T7@@\n        [[[5]]]\n        [[[6]]]\n      @@T8@@\n    @@T9@@\n  ": {
+   "zh": "\n    @@T0@@上下文中共 [[[0]]] 个节点 · 活动节点优先@@T1@@\n    @@T2@@\n      [[[1]]]\n      [[[2]]]\n    @@T3@@\n    @@T4@@\n      @@T5@@全部 [[[4]]] 个值与梯度@@T6@@\n      @@T7@@\n        [[[5]]]\n        [[[6]]]\n      @@T8@@\n    @@T9@@\n  ",
+   "exprs": [
+    "${previewNodes.length}",
+    "${header}",
+    "${previewRows}",
+    "${disclosureWasOpen ? 'open' : ''}",
+    "${GRAPH_NODES.length}",
+    "${header}",
+    "${allRows}"
+   ],
+   "tags": [
+    "<p class=\"ledger-caption\">",
+    "</p>",
+    "<div class=\"ledger-preview\" aria-label=\"Nodes relevant to the current stage\">",
+    "</div>",
+    "<details class=\"ledger-disclosure\" [[[3]]]>",
+    "<summary>",
+    "</summary>",
+    "<div class=\"ledger-all\">",
+    "</div>",
+    "</details>"
+   ],
+   "src": "\n    <p class=\"ledger-caption\">${previewNodes.length} nodes in context · active nodes first</p>\n    <div class=\"ledger-preview\" aria-label=\"Nodes relevant to the current stage\">\n      ${header}\n      ${previewRows}\n    </div>\n    <details class=\"ledger-disclosure\" ${disclosureWasOpen ? 'open' : ''}>\n      <summary>All ${GRAPH_NODES.length} values and gradients</summary>\n      <div class=\"ledger-all\">\n        ${header}\n        ${allRows}\n      </div>\n    </details>\n  "
+  },
+  "autograd-stage-[[[0]]].json": {
+   "zh": "导出文件 autograd-stage-[[[0]]].json",
+   "exprs": [
+    "${stage}"
+   ],
+   "tags": [],
+   "src": "autograd-stage-${stage}.json"
+  },
+  "\n    @@T0@@@@T1@@\n    @@T2@@[[[0]]] • [[[1]]]@@T3@@\n    @@T4@@Dots: labels · Rings: predictions · Lines: errors@@T5@@\n    [[[2]]]\n    @@T6@@@@T7@@\n    [[[3]]]\n    @@T8@@@@T9@@\n    [[[5]]]\n    @@T10@@x@@T11@@\n  ": {
+   "zh": "\n    @@T0@@@@T1@@\n    @@T2@@[[[0]]] • [[[1]]]@@T3@@\n    @@T4@@圆点：标签 · 圆环：预测值 · 连线：误差@@T5@@\n    [[[2]]]\n    @@T6@@@@T7@@\n    [[[3]]]\n    @@T8@@@@T9@@\n    [[[5]]]\n    @@T10@@x@@T11@@\n  ",
+   "exprs": [
+    "${snapshot.dataset.label}",
+    "${paramsTag}",
+    "${guides}",
+    "${xTicks}",
+    "${curvePoints}",
+    "${examples}"
+   ],
+   "tags": [
+    "<rect x=\"18\" y=\"18\" width=\"724\" height=\"394\" rx=\"28\" fill=\"#fbfbfd\" stroke=\"#dae1e9\">",
+    "</rect>",
+    "<text x=\"42\" y=\"48\" class=\"node-sub batch-chart-title\">",
+    "</text>",
+    "<text x=\"42\" y=\"76\" class=\"node-sub batch-chart-note\">",
+    "</text>",
+    "<line x1=\"90\" y1=\"360\" x2=\"700\" y2=\"360\" stroke=\"#aeb8c2\" stroke-width=\"2\">",
+    "</line>",
+    "<path d=\"[[[4]]]\" fill=\"none\" stroke=\"#345ff6\" stroke-width=\"5\" stroke-linecap=\"round\">",
+    "</path>",
+    "<text x=\"676\" y=\"394\" class=\"node-sub batch-axis-label\">",
+    "</text>"
+   ],
+   "src": "\n    <rect x=\"18\" y=\"18\" width=\"724\" height=\"394\" rx=\"28\" fill=\"#fbfbfd\" stroke=\"#dae1e9\"></rect>\n    <text x=\"42\" y=\"48\" class=\"node-sub batch-chart-title\">${snapshot.dataset.label} • ${paramsTag}</text>\n    <text x=\"42\" y=\"76\" class=\"node-sub batch-chart-note\">Dots: labels · Rings: predictions · Lines: errors</text>\n    ${guides}\n    <line x1=\"90\" y1=\"360\" x2=\"700\" y2=\"360\" stroke=\"#aeb8c2\" stroke-width=\"2\"></line>\n    ${xTicks}\n    <path d=\"${curvePoints}\" fill=\"none\" stroke=\"#345ff6\" stroke-width=\"5\" stroke-linecap=\"round\"></path>\n    ${examples}\n    <text x=\"676\" y=\"394\" class=\"node-sub batch-axis-label\">x</text>\n  "
+  },
+  "[[[0]]] The current batch gradient wants to move @@T0@@w@@T1@@ [[[1]]] and @@T2@@b@@T3@@ [[[2]]]. After one step, the parameters would become @@T4@@w = [[[3]]]@@T5@@ and @@T6@@b = [[[4]]]@@T7@@.": {
+   "zh": "[[[0]]] 当前批量梯度希望把 @@T0@@w@@T1@@ 移动 [[[1]]]，把 @@T2@@b@@T3@@ 移动 [[[2]]]。经过一步之后，参数将变为 @@T4@@w = [[[3]]]@@T5@@ 与 @@T6@@b = [[[4]]]@@T7@@。",
+   "exprs": [
+    "${snapshot.dataset.description}",
+    "${directionW}",
+    "${directionB}",
+    "${formatNumber(snapshot.nextW, 2)}",
+    "${formatNumber(snapshot.nextB, 2)}"
+   ],
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ],
+   "src": "${snapshot.dataset.description} The current batch gradient wants to move <code>w</code> ${directionW} and <code>b</code> ${directionB}. After one step, the parameters would become <code>w = ${formatNumber(snapshot.nextW, 2)}</code> and <code>b = ${formatNumber(snapshot.nextB, 2)}</code>."
+  },
+  "One input becomes the scale factor for the other input\\'s gradient.": {
+   "zh": "一个输入的取值成为另一个输入梯度的缩放因子。",
+   "exprs": [],
+   "tags": [],
+   "src": "One input becomes the scale factor for the other input\\'s gradient."
+  },
+  "When two values are multiplied, each parent receives the upstream gradient scaled by the other parent. This is the most important rule for linear layers because weights and activations meet here.": {
+   "zh": "当两个值相乘时，每个父节点接收的上游梯度都会以另一个父节点为比例进行缩放。这是线性层最重要的规则，因为权重与激活值正是在此相遇。",
+   "exprs": [],
+   "tags": [],
+   "src": "When two values are multiplied, each parent receives the upstream gradient scaled by the other parent. This is the most important rule for linear layers because weights and activations meet here."
+  },
+  "Addition just copies the upstream gradient to every parent.": {
+   "zh": "加法只是把上游梯度复制给每个父节点。",
+   "exprs": [],
+   "tags": [],
+   "src": "Addition just copies the upstream gradient to every parent."
+  },
+  "An addition node does not scale anything. Each parent receives the same upstream message unchanged. This is where gradient accumulation becomes visible when many paths merge.": {
+   "zh": "加法节点不做任何缩放。每个父节点都原样接收相同的上游信息。当多条路径汇合时，梯度累加正是在这里变得可见。",
+   "exprs": [],
+   "tags": [],
+   "src": "An addition node does not scale anything. Each parent receives the same upstream message unchanged. This is where gradient accumulation becomes visible when many paths merge."
+  },
+  "The derivative of an exponential is the exponential itself.": {
+   "zh": "指数函数的导数就是它自身。",
+   "exprs": [],
+   "tags": [],
+   "src": "The derivative of an exponential is the exponential itself."
+  },
+  "This is why the forward pass caches outputs. Once you already know e^a, the backward rule is immediate: multiply the upstream gradient by that stored output.": {
+   "zh": "这正是前向传播会缓存输出的原因。一旦已知 e^a，反向规则便立即可得：把上游梯度乘以那个存储的输出。",
+   "exprs": [],
+   "tags": [],
+   "src": "This is why the forward pass caches outputs. Once you already know e^a, the backward rule is immediate: multiply the upstream gradient by that stored output."
+  },
+  "Reciprocals flip the sign and square the denominator.": {
+   "zh": "倒数会翻转符号并对分母取平方。",
+   "exprs": [],
+   "tags": [],
+   "src": "Reciprocals flip the sign and square the denominator."
+  },
+  "The sigmoid can be built from a reciprocal after creating a denominator. The sign flip here is one of the moments where learners often lose the thread, so it helps to isolate it.": {
+   "zh": "sigmoid 可以先构造分母，再通过倒数来实现。此处的符号翻转是学习者常常跟丢思路的环节之一，因此把它单独拎出来会有所帮助。",
+   "exprs": [],
+   "tags": [],
+   "src": "The sigmoid can be built from a reciprocal after creating a denominator. The sign flip here is one of the moments where learners often lose the thread, so it helps to isolate it."
+  },
+  "The log turns multiplication into addition and its gradient into a reciprocal.": {
+   "zh": "对数把乘法变为加法，并把它的梯度变为倒数。",
+   "exprs": [],
+   "tags": [],
+   "src": "The log turns multiplication into addition and its gradient into a reciprocal."
+  },
+  "Cross-entropy style losses end with a logarithm. Once the upstream gradient reaches the log node, the only local work left is multiplying by 1/a.": {
+   "zh": "交叉熵式损失以对数收尾。一旦上游梯度到达对数节点，剩下的局部工作就只有乘以 1/a。",
+   "exprs": [],
+   "tags": [],
+   "src": "Cross-entropy style losses end with a logarithm. Once the upstream gradient reaches the log node, the only local work left is multiplying by 1/a."
+  },
+  "Inputs are known before any work happens.": {
+   "zh": "在任何运算发生之前，输入是已知的。",
+   "exprs": [],
+   "tags": [],
+   "src": "Inputs are known before any work happens."
+  },
+  "The first operation forms the weighted input.": {
+   "zh": "第一个运算生成加权输入。",
+   "exprs": [],
+   "tags": [],
+   "src": "The first operation forms the weighted input."
+  },
+  "Add bias": {
+   "zh": "加上偏置",
+   "exprs": [],
+   "tags": [],
+   "src": "Add bias"
+  },
+  "Adding the bias produces the logit.": {
+   "zh": "加上偏置便得到 logit。",
+   "exprs": [],
+   "tags": [],
+   "src": "Adding the bias produces the logit."
+  },
+  "Sigmoid starts by flipping the sign of the logit.": {
+   "zh": "sigmoid 首先翻转 logit 的符号。",
+   "exprs": [],
+   "tags": [],
+   "src": "Sigmoid starts by flipping the sign of the logit."
+  },
+  "Exponentiation turns the negated logit into a positive scale.": {
+   "zh": "指数运算把取负后的 logit 变为一个正的缩放因子。",
+   "exprs": [],
+   "tags": [],
+   "src": "Exponentiation turns the negated logit into a positive scale."
+  },
+  "A denominator appears for the reciprocal step.": {
+   "zh": "为了倒数步骤，一个分母出现了。",
+   "exprs": [],
+   "tags": [],
+   "src": "A denominator appears for the reciprocal step."
+  },
+  "Sigmoid probability": {
+   "zh": "sigmoid 概率",
+   "exprs": [],
+   "tags": [],
+   "src": "Sigmoid probability"
+  },
+  "The reciprocal converts the denominator into a probability.": {
+   "zh": "倒数把分母转换为概率。",
+   "exprs": [],
+   "tags": [],
+   "src": "The reciprocal converts the denominator into a probability."
+  },
+  "The loss path takes a logarithm.": {
+   "zh": "损失路径进行对数运算。",
+   "exprs": [],
+   "tags": [],
+   "src": "The loss path takes a logarithm."
+  },
+  "The scalar loss is now ready.": {
+   "zh": "标量损失现在已就绪。",
+   "exprs": [],
+   "tags": [],
+   "src": "The scalar loss is now ready."
+  },
+  "Seed the loss": {
+   "zh": "为损失播种",
+   "exprs": [],
+   "tags": [],
+   "src": "Seed the loss"
+  },
+  "Backprop starts by seeding the loss with gradient 1.": {
+   "zh": "反向传播首先以梯度 1 为损失播种。",
+   "exprs": [],
+   "tags": [],
+   "src": "Backprop starts by seeding the loss with gradient 1."
+  },
+  "Back through the final negation": {
+   "zh": "穿过最后的取负",
+   "exprs": [],
+   "tags": [],
+   "src": "Back through the final negation"
+  },
+  "The final negate sends a clean gradient of -1 to log p.": {
+   "zh": "最后的取负把一个干净的梯度 -1 发送给 log p。",
+   "exprs": [],
+   "tags": [],
+   "src": "The final negate sends a clean gradient of -1 to log p."
+  },
+  "Back through the log": {
+   "zh": "穿过对数",
+   "exprs": [],
+   "tags": [],
+   "src": "Back through the log"
+  },
+  "The log converts the gradient into a reciprocal scale.": {
+   "zh": "对数把梯度转换为倒数比例。",
+   "exprs": [],
+   "tags": [],
+   "src": "The log converts the gradient into a reciprocal scale."
+  },
+  "Back through the reciprocal": {
+   "zh": "穿过倒数",
+   "exprs": [],
+   "tags": [],
+   "src": "Back through the reciprocal"
+  },
+  "The reciprocal flips the sign and squares the denominator.": {
+   "zh": "倒数翻转符号并对分母取平方。",
+   "exprs": [],
+   "tags": [],
+   "src": "The reciprocal flips the sign and squares the denominator."
+  },
+  "Back through the exponent": {
+   "zh": "穿过指数",
+   "exprs": [],
+   "tags": [],
+   "src": "Back through the exponent"
+  },
+  "Exponentiation scales the upstream message by its own output.": {
+   "zh": "指数运算用自身的输出缩放上游信息。",
+   "exprs": [],
+   "tags": [],
+   "src": "Exponentiation scales the upstream message by its own output."
+  },
+  "Undo the sign flip": {
+   "zh": "撤销符号翻转",
+   "exprs": [],
+   "tags": [],
+   "src": "Undo the sign flip"
+  },
+  "The negate node flips the sign once more.": {
+   "zh": "取负节点再一次翻转符号。",
+   "exprs": [],
+   "tags": [],
+   "src": "The negate node flips the sign once more."
+  },
+  "Split across add": {
+   "zh": "在加法处分流",
+   "exprs": [],
+   "tags": [],
+   "src": "Split across add"
+  },
+  "The add node copies the same message to both parents.": {
+   "zh": "加法节点把同一条信息复制给两个父节点。",
+   "exprs": [],
+   "tags": [],
+   "src": "The add node copies the same message to both parents."
+  },
+  "Back through multiply": {
+   "zh": "穿过乘法",
+   "exprs": [],
+   "tags": [],
+   "src": "Back through multiply"
+  },
+  "The multiply node turns the logit gradient into parameter gradients.": {
+   "zh": "乘法节点把 logit 梯度转换为参数梯度。",
+   "exprs": [],
+   "tags": [],
+   "src": "The multiply node turns the logit gradient into parameter gradients."
+  },
+  "Optimizer-ready gradients": {
+   "zh": "可供优化器使用的梯度",
+   "exprs": [],
+   "tags": [],
+   "src": "Optimizer-ready gradients"
+  },
+  "The backward pass ends with gradients on the leaves.": {
+   "zh": "反向传播结束时，梯度落在叶节点上。",
+   "exprs": [],
+   "tags": [],
+   "src": "The backward pass ends with gradients on the leaves."
+  },
+  "Atomic graph: every local derivative is explicit.": {
+   "zh": "原子计算图：每个局部导数都是显式的。",
+   "exprs": [],
+   "tags": [],
+   "src": "Atomic graph: every local derivative is explicit."
+  },
+  "This is ideal for learning the engine itself. Every node is tiny, every dependency is visible, and every backward rule is a one-line local fact.": {
+   "zh": "这对学习引擎本身而言是理想形式。每个节点都很小，每条依赖关系都可见，每条反向规则都是一行局部事实。",
+   "exprs": [],
+   "tags": [],
+   "src": "This is ideal for learning the engine itself. Every node is tiny, every dependency is visible, and every backward rule is a one-line local fact."
+  },
+  "Linear score is decomposed": {
+   "zh": "线性得分被分解",
+   "exprs": [],
+   "tags": [],
+   "src": "Linear score is decomposed"
+  },
+  "The weight-input multiply and the bias add appear as separate steps.": {
+   "zh": "权重与输入的乘法以及偏置加法以独立步骤出现。",
+   "exprs": [],
+   "tags": [],
+   "src": "The weight-input multiply and the bias add appear as separate steps."
+  },
+  "Sigmoid is not mysterious": {
+   "zh": "sigmoid 并不神秘",
+   "exprs": [],
+   "tags": [],
+   "src": "Sigmoid is not mysterious"
+  },
+  "It is just negate, exponent, add one, and reciprocal.": {
+   "zh": "它不过是取负、指数、加一与倒数。",
+   "exprs": [],
+   "tags": [],
+   "src": "It is just negate, exponent, add one, and reciprocal."
+  },
+  "The loss stays honest": {
+   "zh": "损失保持诚实",
+   "exprs": [],
+   "tags": [],
+   "src": "The loss stays honest"
+  },
+  "A log and a final negate complete the scalar objective.": {
+   "zh": "一次对数运算与一次最终取负构成完整的标量目标。",
+   "exprs": [],
+   "tags": [],
+   "src": "A log and a final negate complete the scalar objective."
+  },
+  "Framework blocks: the same math, fewer visible nodes.": {
+   "zh": "框架模块：相同的数学，更少的可见节点。",
+   "exprs": [],
+   "tags": [],
+   "src": "Framework blocks: the same math, fewer visible nodes."
+  },
+  "PyTorch, JAX, and friends do not delete the chain rule. They package many tiny operations behind larger interfaces, each of which still knows how to backpropagate.": {
+   "zh": "PyTorch、JAX 等同侪并没有删除链式法则。它们把许多微小运算打包在更大的接口之后，而这些接口中的每一个仍然懂得如何反向传播。",
+   "exprs": [],
+   "tags": [],
+   "src": "PyTorch, JAX, and friends do not delete the chain rule. They package many tiny operations behind larger interfaces, each of which still knows how to backpropagate."
+  },
+  "nn.Linear": {
+   "zh": "nn.Linear（线性层）",
+   "exprs": [],
+   "tags": [],
+   "src": "nn.Linear"
+  },
+  "Hides the multiply-and-add details while still producing a differentiable output.": {
+   "zh": "隐藏乘法与加法的细节，同时仍产生可微的输出。",
+   "exprs": [],
+   "tags": [],
+   "src": "Hides the multiply-and-add details while still producing a differentiable output."
+  },
+  "Encapsulates several scalar ops but can still return the correct gradient.": {
+   "zh": "封装了若干标量运算，但仍能返回正确的梯度。",
+   "exprs": [],
+   "tags": [],
+   "src": "Encapsulates several scalar ops but can still return the correct gradient."
+  },
+  "Cross-entropy style loss": {
+   "zh": "交叉熵式损失",
+   "exprs": [],
+   "tags": [],
+   "src": "Cross-entropy style loss"
+  },
+  "Acts like one clean block even though its backward rule may be optimized internally.": {
+   "zh": "尽管其反向规则内部可能经过优化，它表现得就像一个干净的模块。",
+   "exprs": [],
+   "tags": [],
+   "src": "Acts like one clean block even though its backward rule may be optimized internally."
+  },
+  "Cross-Entropy": {
+   "zh": "交叉熵",
+   "exprs": [],
+   "tags": [],
+   "src": "Cross-Entropy"
+  },
+  "Clean separation": {
+   "zh": "清晰的分离",
+   "exprs": [],
+   "tags": [],
+   "src": "Clean separation"
+  },
+  "Two negatives sit on the left and one positive sits on the right. The batch mainly asks for a steeper positive slope.": {
+   "zh": "左侧有两个负类样本，右侧有一个正类样本。该批次主要要求更陡的正向斜率。",
+   "exprs": [],
+   "tags": [],
+   "src": "Two negatives sit on the left and one positive sits on the right. The batch mainly asks for a steeper positive slope."
+  },
+  "Near the boundary": {
+   "zh": "靠近决策边界",
+   "exprs": [],
+   "tags": [],
+   "src": "Near the boundary"
+  },
+  "All three points live near the decision boundary, so the update has to move both the slope and the offset carefully.": {
+   "zh": "三个点都位于决策边界附近，因此更新必须谨慎地同时移动斜率与截距。",
+   "exprs": [],
+   "tags": [],
+   "src": "All three points live near the decision boundary, so the update has to move both the slope and the offset carefully."
+  },
+  "One disagreeing point": {
+   "zh": "一个不一致的点",
+   "exprs": [],
+   "tags": [],
+   "src": "One disagreeing point"
+  },
+  "An outlier pushes against the other two rows, which is exactly the kind of tension that makes gradient averaging feel real.": {
+   "zh": "一个离群点与其他两行相抵触，这正是让梯度平均变得真切可感的那类张力。",
+   "exprs": [],
+   "tags": [],
+   "src": "An outlier pushes against the other two rows, which is exactly the kind of tension that makes gradient averaging feel real."
+  },
+  "ledger-row ledger-row--header": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": "ledger-row ledger-row--header"
+  },
+  "Nodes relevant to the current stage": {
+   "zh": "与当前阶段相关的节点",
+   "exprs": [],
+   "tags": [],
+   "src": "Nodes relevant to the current stage"
+  },
+  "Auto play": {
+   "zh": "自动播放",
+   "exprs": [],
+   "tags": [],
+   "src": "Auto play"
+  },
+  "application/json": {
+   "zh": "application/json（JSON 数据类型）",
+   "exprs": [],
+   "tags": [],
+   "src": "application/json"
+  },
+  "module-list__item": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": "module-list__item"
+  },
+  "node-sub batch-axis-label": {
+   "zh": "node-sub batch-axis-label（坐标轴标签）",
+   "exprs": [],
+   "tags": [],
+   "src": "node-sub batch-axis-label"
+  },
+  "node-sub batch-point-label": {
+   "zh": "node-sub batch-point-label（数据点标签）",
+   "exprs": [],
+   "tags": [],
+   "src": "node-sub batch-point-label"
+  },
+  "node-sub batch-chart-title": {
+   "zh": "node-sub batch-chart-title（图表标题）",
+   "exprs": [],
+   "tags": [],
+   "src": "node-sub batch-chart-title"
+  },
+  "node-sub batch-chart-note": {
+   "zh": "node-sub batch-chart-note（图表注释）",
+   "exprs": [],
+   "tags": [],
+   "src": "node-sub batch-chart-note"
+  }
+ }
+}

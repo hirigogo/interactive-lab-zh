@@ -1,0 +1,337 @@
+{
+ "slug": "likelihood-to-loss",
+ "units": {
+  "From Likelihood to Loss": {
+   "zh": "从似然到损失",
+   "src": "From Likelihood to Loss",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Where do loss functions come from? Not from thin air. Assume your data's\n      residuals follow some noise distribution $p(r)$, then ask for the parameters\n      that make the data most likely. Maximizing likelihood is minimizing\n      $-\\log p(r)$ &mdash; and @@T0@@that@@T1@@ is your loss. Change the noise model,\n      change the loss. This page keeps three panels in sync so you can watch the\n      loss fall out of the density in real time.": {
+   "zh": "损失函数从何而来？并非凭空产生。假定你数据的残差服从某种噪声分布 $p(r)$，再去求解使数据最可能的参数。最大化似然即等价于最小化 $-\\log p(r)$——@@T0@@它@@T1@@就是你的损失。改变噪声模型，便改变了损失。本页让三个面板保持同步，使你能够实时观察损失如何从概率密度中导出。",
+   "src": "Where do loss functions come from? Not from thin air. Assume your data's\n      residuals follow some noise distribution $p(r)$, then ask for the parameters\n      that make the data most likely. Maximizing likelihood is minimizing\n      $-\\log p(r)$ &mdash; and <em>that</em> is your loss. Change the noise model,\n      change the loss. This page keeps three panels in sync so you can watch the\n      loss fall out of the density in real time.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~11 min@@T1@@\n      @@T2@@Deep Learning &middot; Loss Functions &middot; Maximum Likelihood@@T3@@": {
+   "zh": "@@T0@@约 11 分钟@@T1@@\n      @@T2@@深度学习 &middot; 损失函数 &middot; 最大似然@@T3@@",
+   "src": "<span>~11 min</span>\n      <span>Deep Learning &middot; Loss Functions &middot; Maximum Likelihood</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "The one identity that runs the whole show": {
+   "zh": "贯通全篇的那一个恒等式",
+   "src": "The one identity that runs the whole show",
+   "tags": []
+  },
+  "Fit a line $\\hat{y}_i = w\\,x_i + b$ to data. Each point has a residual\n      $r_i = y_i - \\hat{y}_i$. Now @@T0@@model@@T1@@ those residuals as random noise\n      drawn from a density $p(r)$. Assuming the points are independent, the\n      likelihood of the whole dataset is the product $\\prod_i p(r_i)$. Maximizing\n      it is the same as minimizing the negative log-likelihood:": {
+   "zh": "用一条直线 $\\hat{y}_i = w\\,x_i + b$ 拟合数据。每个点都有一个残差 $r_i = y_i - \\hat{y}_i$。现在将这些残差@@T0@@建模@@T1@@为从密度 $p(r)$ 中抽取的随机噪声。假定各点相互独立，则整个数据集的似然为乘积 $\\prod_i p(r_i)$。最大化它与最小化负对数似然是同一件事：",
+   "src": "Fit a line $\\hat{y}_i = w\\,x_i + b$ to data. Each point has a residual\n      $r_i = y_i - \\hat{y}_i$. Now <em>model</em> those residuals as random noise\n      drawn from a density $p(r)$. Assuming the points are independent, the\n      likelihood of the whole dataset is the product $\\prod_i p(r_i)$. Maximizing\n      it is the same as minimizing the negative log-likelihood:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "So the @@T0@@loss function is literally $-\\log p(r)$@@T1@@. Every choice\n      you have ever made &mdash; MSE, MAE, a Huber loss &mdash; is a bet about the\n      shape of the noise. Assume Gaussian noise and you have just derived squared\n      error. Assume Laplace noise and out pops absolute error. Let's see it.": {
+   "zh": "因此@@T0@@损失函数字面上就是 $-\\log p(r)$@@T1@@。你曾做出的每一个选择——MSE、MAE、Huber 损失——都是对噪声形状的一次下注。假定高斯噪声，你就刚刚推导出了平方误差。假定拉普拉斯噪声，绝对误差便随之而来。下面让我们亲眼看看。",
+   "src": "So the <strong>loss function is literally $-\\log p(r)$</strong>. Every choice\n      you have ever made &mdash; MSE, MAE, a Huber loss &mdash; is a bet about the\n      shape of the noise. Assume Gaussian noise and you have just derived squared\n      error. Assume Laplace noise and out pops absolute error. Let's see it.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The Lab": {
+   "zh": "实验区",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Density, loss, and fit &mdash; all at once": {
+   "zh": "密度、损失与拟合——尽在一屏",
+   "src": "Density, loss, and fit &mdash; all at once",
+   "tags": []
+  },
+  "Pick a noise model. The left panel draws its density $p(r)$; the right panel\n      draws the resulting loss $-\\log p(r)$. Below them is a small dataset with a\n      line you control. The colored dots on the density and loss curves are your\n      actual residuals; the vertical stubs on the data panel are the same residuals\n      down on the ground. The total loss is the sum of those per-point heights.": {
+   "zh": "选择一种噪声模型。左侧面板绘制其密度 $p(r)$；右侧面板绘制由此得到的损失 $-\\log p(r)$。它们下方是一个小型数据集以及一条由你控制的直线。密度曲线与损失曲线上的彩色圆点即你实际的残差；数据面板上的竖直短线则是落在地面上的同一批残差。总损失即这些逐点高度之和。",
+   "src": "Pick a noise model. The left panel draws its density $p(r)$; the right panel\n      draws the resulting loss $-\\log p(r)$. Below them is a small dataset with a\n      line you control. The colored dots on the density and loss curves are your\n      actual residuals; the vertical stubs on the data panel are the same residuals\n      down on the ground. The total loss is the sum of those per-point heights.",
+   "tags": []
+  },
+  "Gaussian &rarr; squared error": {
+   "zh": "高斯 &rarr; 平方误差",
+   "src": "Gaussian &rarr; squared error",
+   "tags": []
+  },
+  "Laplace &rarr; absolute error": {
+   "zh": "拉普拉斯 &rarr; 绝对误差",
+   "src": "Laplace &rarr; absolute error",
+   "tags": []
+  },
+  "Uniform &rarr; hard interval": {
+   "zh": "均匀 &rarr; 硬性区间",
+   "src": "Uniform &rarr; hard interval",
+   "tags": []
+  },
+  "Student-t &rarr; robust": {
+   "zh": "学生 t &rarr; 稳健",
+   "src": "Student-t &rarr; robust",
+   "tags": []
+  },
+  "Noise scale @@T0@@$\\sigma$ = @@T1@@1.00@@T2@@@@T3@@": {
+   "zh": "噪声尺度 @@T0@@$\\sigma$ = @@T1@@1.00@@T2@@@@T3@@",
+   "src": "Noise scale <span>$\\sigma$ = <span id=\"sigmaVal\">1.00</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"sigmaVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Line slope @@T0@@$w$ = @@T1@@0.60@@T2@@@@T3@@": {
+   "zh": "直线斜率 @@T0@@$w$ = @@T1@@0.60@@T2@@@@T3@@",
+   "src": "Line slope <span>$w$ = <span id=\"slopeVal\">0.60</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"slopeVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Line intercept @@T0@@$b$ = @@T1@@1.00@@T2@@@@T3@@": {
+   "zh": "直线截距 @@T0@@$b$ = @@T1@@1.00@@T2@@@@T3@@",
+   "src": "Line intercept <span>$b$ = <span id=\"interVal\">1.00</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"interVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Fit selected loss": {
+   "zh": "拟合所选损失",
+   "src": "Fit selected loss",
+   "tags": []
+  },
+  "Add one outlier": {
+   "zh": "添加一个离群点",
+   "src": "Add one outlier",
+   "tags": []
+  },
+  "Noise density $p(r)$. Dots mark each residual's likelihood.": {
+   "zh": "噪声密度 $p(r)$。圆点标记每个残差的似然。",
+   "src": "Noise density $p(r)$. Dots mark each residual's likelihood.",
+   "tags": []
+  },
+  "Per-residual loss $-\\log p(r)$. Dot height = that point's loss.": {
+   "zh": "逐残差损失 $-\\log p(r)$。圆点高度 = 该点的损失。",
+   "src": "Per-residual loss $-\\log p(r)$. Dot height = that point's loss.",
+   "tags": []
+  },
+  "Data with your fitted line. Each vertical stub is a residual, tinted by how much loss it contributes (green = cheap, red = expensive).": {
+   "zh": "附带你所拟合直线的数据。每根竖直短线都是一个残差，其着色反映它贡献的损失大小（绿色 = 代价低，红色 = 代价高）。",
+   "src": "Data with your fitted line. Each vertical stub is a residual, tinted by how much loss it contributes (green = cheap, red = expensive).",
+   "tags": []
+  },
+  "@@T0@@Total loss $\\sum_i -\\log p(r_i)$@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@总损失 $\\sum_i -\\log p(r_i)$@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Total loss $\\sum_i -\\log p(r_i)$</span>\n        <span class=\"stat-value\" id=\"totalLossVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"totalLossVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Worst single point@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@最差的单个点@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Worst single point</span>\n        <span class=\"stat-value\" id=\"worstVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"worstVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Loss grows like@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@损失增长如@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Loss grows like</span>\n        <span class=\"stat-value\" id=\"tailVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"tailVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Do this.@@T1@@ Turn on @@T2@@Add one outlier@@T3@@ with the Gaussian model, then hit\n      @@T4@@Fit selected loss@@T5@@. Watch the whole line tilt to chase the one bad point &mdash;\n      squared error pays $r^2$, so a far point dominates the sum. Now switch to Laplace or\n      Student-t and snap again (Laplace's fit is the median-like line). The robust losses barely flinch,\n      because their tails grow far more slowly.": {
+   "zh": "@@T0@@请试试。@@T1@@在高斯模型下开启@@T2@@添加一个离群点@@T3@@，然后点击 @@T4@@拟合所选损失@@T5@@。观察整条直线如何倾斜以追逐那一个坏点——平方误差付出 $r^2$ 的代价，因此远处的点会主导整个求和。现在切换到拉普拉斯或学生 t 并再次吸附拟合（拉普拉斯的拟合近似中位数直线）。稳健损失几乎纹丝不动，因为它们的尾部增长要慢得多。",
+   "src": "<strong>Do this.</strong> Turn on <em>Add one outlier</em> with the Gaussian model, then hit\n      <em>Fit selected loss</em>. Watch the whole line tilt to chase the one bad point &mdash;\n      squared error pays $r^2$, so a far point dominates the sum. Now switch to Laplace or\n      Student-t and snap again (Laplace's fit is the median-like line). The robust losses barely flinch,\n      because their tails grow far more slowly.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "收获",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Why the tails are the whole story": {
+   "zh": "为何尾部就是全部要害",
+   "src": "Why the tails are the whole story",
+   "tags": []
+  },
+  "Look only at the right-hand loss panel and how it behaves for a @@T0@@large@@T1@@ residual:": {
+   "zh": "只看右侧的损失面板，观察它在残差@@T0@@很大@@T1@@时的表现：",
+   "src": "Look only at the right-hand loss panel and how it behaves for a <em>large</em> residual:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Noise model": {
+   "zh": "噪声模型",
+   "src": "Noise model",
+   "tags": []
+  },
+  "Density $p(r)$": {
+   "zh": "密度 $p(r)$",
+   "src": "Density $p(r)$",
+   "tags": []
+  },
+  "Loss $-\\log p(r)$": {
+   "zh": "损失 $-\\log p(r)$",
+   "src": "Loss $-\\log p(r)$",
+   "tags": []
+  },
+  "Far-tail behavior": {
+   "zh": "远端尾部行为",
+   "src": "Far-tail behavior",
+   "tags": []
+  },
+  "Gaussian": {
+   "zh": "高斯",
+   "src": "Gaussian",
+   "tags": []
+  },
+  "squared error $\\;\\tfrac{r^2}{2\\sigma^2}$": {
+   "zh": "平方误差 $\\;\\tfrac{r^2}{2\\sigma^2}$",
+   "src": "squared error $\\;\\tfrac{r^2}{2\\sigma^2}$",
+   "tags": []
+  },
+  "grows like $r^2$ &mdash; outliers dominate": {
+   "zh": "按 $r^2$ 增长 &mdash; 离群点主导",
+   "src": "grows like $r^2$ &mdash; outliers dominate",
+   "tags": []
+  },
+  "Laplace": {
+   "zh": "拉普拉斯",
+   "src": "Laplace",
+   "tags": []
+  },
+  "absolute error $\\;|r|/b$": {
+   "zh": "绝对误差 $\\;|r|/b$",
+   "src": "absolute error $\\;|r|/b$",
+   "tags": []
+  },
+  "grows like $|r|$ &mdash; robust": {
+   "zh": "按 $|r|$ 增长 &mdash; 稳健",
+   "src": "grows like $|r|$ &mdash; robust",
+   "tags": []
+  },
+  "Uniform on $[-a,a]$": {
+   "zh": "在 $[-a,a]$ 上的均匀分布",
+   "src": "Uniform on $[-a,a]$",
+   "tags": []
+  },
+  "$\\tfrac{1}{2a}$ inside, $0$ outside": {
+   "zh": "区间内为 $\\tfrac{1}{2a}$，区间外为 $0$",
+   "src": "$\\tfrac{1}{2a}$ inside, $0$ outside",
+   "tags": []
+  },
+  "constant inside, $+\\infty$ outside": {
+   "zh": "区间内为常数，区间外为 $+\\infty$",
+   "src": "constant inside, $+\\infty$ outside",
+   "tags": []
+  },
+  "a hard wall &mdash; any point outside is forbidden": {
+   "zh": "一堵硬墙 &mdash; 任何落在区间外的点都被禁止",
+   "src": "a hard wall &mdash; any point outside is forbidden",
+   "tags": []
+  },
+  "Student-t ($\\nu=3$)": {
+   "zh": "学生 t（$\\nu=3$）",
+   "src": "Student-t ($\\nu=3$)",
+   "tags": []
+  },
+  "grows like $\\log r^2$ &mdash; very robust": {
+   "zh": "按 $\\log r^2$ 增长 &mdash; 极为稳健",
+   "src": "grows like $\\log r^2$ &mdash; very robust",
+   "tags": []
+  },
+  "That last column is the punchline. A loss that grows like $r^2$ lets a single far\n      point buy an enormous vote; a loss that grows like $|r|$ or $\\log r$ caps its influence.\n      &ldquo;Robust regression&rdquo; is nothing more than assuming a heavier-tailed noise model.": {
+   "zh": "最后一列才是点睛之笔。按 $r^2$ 增长的损失会让单个遥远的点获得极大的发言权；按 $|r|$ 或 $\\log r$ 增长的损失则封顶了它的影响力。所谓「稳健回归」，无非就是假定了一个尾部更厚的噪声模型。",
+   "src": "That last column is the punchline. A loss that grows like $r^2$ lets a single far\n      point buy an enormous vote; a loss that grows like $|r|$ or $\\log r$ caps its influence.\n      &ldquo;Robust regression&rdquo; is nothing more than assuming a heavier-tailed noise model.",
+   "tags": []
+  },
+  "@@T0@@Takeaway.@@T1@@ You do not choose a loss function &mdash; you choose a noise model,\n      and the loss is $-\\log p(r)$ whether you say so or not. MSE assumes Gaussian noise.\n      MAE assumes Laplace noise. If your data has outliers, that is your model telling you the\n      Gaussian tail is too thin.": {
+   "zh": "@@T0@@要点。@@T1@@你选择的并非损失函数——你选择的是噪声模型，而损失就是 $-\\log p(r)$，无论你承认与否。MSE 假定高斯噪声。MAE 假定拉普拉斯噪声。若你的数据存在离群点，那正是你的模型在告诉你：高斯的尾部太薄了。",
+   "src": "<strong>Takeaway.</strong> You do not choose a loss function &mdash; you choose a noise model,\n      and the loss is $-\\log p(r)$ whether you say so or not. MSE assumes Gaussian noise.\n      MAE assumes Laplace noise. If your data has outliers, that is your model telling you the\n      Gaussian tail is too thin.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 1: Why These Losses?": {
+   "zh": "ES 667 深度学习讲解系列之一 &middot; 第 1 讲：为何是这些损失？",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 1: Why These Losses?",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "从似然到损失",
+  "tagline": "每一个损失函数都是伪装起来的噪声模型——选定密度，读出损失",
+  "summary": "为你的残差选择一种噪声模型——高斯、拉普拉斯、均匀或学生 t——观察损失函数如何作为 -log p(r) 浮现出来。三个实时面板保持同步：噪声密度、逐残差损失曲线，以及在真实散点上的拟合直线。加入一个离群点，看清为何平方误差（高斯）会失效，而绝对误差（拉普拉斯）与学生 t 却泰然自若。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "在三个同步面板中，看恒等式 损失 = -log p(残差) 在四种噪声模型下生动呈现。",
+   "高斯噪声给出平方误差；拉普拉斯给出绝对误差；均匀给出硬性区间壁垒；学生 t 给出稳健的重尾损失。",
+   "切换单个离群点，观察最小二乘直线骤然偏移，而稳健拟合几乎不动。",
+   "拖动斜率与截距滑块，实时读出总损失作为逐点贡献之和的更新。",
+   "一劳永逸地理解 MSE 为何对离群点敏感、MAE 为何稳健——这完全取决于所假定噪声的尾部。"
+  ],
+  "tags": [
+   "损失函数",
+   "最大似然",
+   "稳健回归",
+   "深度学习",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

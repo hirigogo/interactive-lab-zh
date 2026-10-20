@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>逐步理解 BPE 分词器</title>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../shared/site.css" />
+    <style>
+      :root { --ink:#1f1f1e; --paper:#faf8f3; --paper-alt:#f0eee5; --rule:#c9c4b5; --muted:#6b6a65; --accent:#d97757; --accent-soft:#ead3c5; --sage:#7b9e89; --slate:#4a6670; --wine:#a8324b; }
+      body { font-family:"Source Serif 4",Georgia,serif; background:var(--paper); color:var(--ink); line-height:1.55; max-width:800px; margin:0 auto; padding:40px 24px 80px 24px; }
+      .kicker { font-family:"Manrope",sans-serif; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin:0 0 6px 0; }
+      h1 { font-size:44px; line-height:1.1; margin:0 0 16px 0; }
+      h2 { font-size:28px; line-height:1.2; margin:48px 0 14px 0; }
+      .abstract { font-size:18px; color:var(--muted); font-style:italic; margin:0 0 16px 0; }
+      .byline { font-family:"Manrope",sans-serif; font-size:13px; color:var(--muted); border-top:1px solid var(--rule); border-bottom:1px solid var(--rule); padding:12px 0; margin-bottom:36px; }
+      .byline span { margin-right:14px; }
+      a.back-link { font-family:"Manrope",sans-serif; font-size:13px; color:var(--accent); text-decoration:none; display:inline-block; margin-bottom:24px; }
+      p { margin:0 0 16px 0; }
+      code { font-family:"IBM Plex Mono",monospace; font-size:.9em; background:var(--paper-alt); padding:2px 6px; border-radius:3px; }
+      .figure { background:var(--paper-alt); border:1px solid var(--rule); border-radius:6px; padding:20px; margin:24px 0; }
+      textarea { width:100%; min-height:70px; font-family:"IBM Plex Mono",monospace; font-size:13px; padding:10px; border:1px solid var(--rule); background:var(--paper); border-radius:4px; box-sizing:border-box; color:var(--ink); }
+      .btn-row { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+      button { font-family:"Manrope",sans-serif; font-size:13px; padding:7px 14px; background:var(--accent); color:var(--paper); border:none; border-radius:4px; cursor:pointer; }
+      button:hover { background:var(--wine); }
+      button.ghost { background:var(--paper); color:var(--ink); border:1px solid var(--rule); }
+      button.ghost:hover { background:var(--accent-soft); border-color:var(--accent); color:var(--accent); }
+      .grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:14px; }
+      .grid-panel h4 { font-family:"Manrope",sans-serif; font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin:0 0 8px 0; }
+      .grid-panel { border:1px solid var(--rule); background:var(--paper); padding:12px; min-height:240px; border-radius:4px; }
+      .tokens { font-family:"IBM Plex Mono",monospace; font-size:13px; line-height:1.9; }
+      .tok { background:var(--paper-alt); padding:2px 6px; margin:0 2px 4px 0; display:inline-block; border:1px solid var(--rule); border-radius:3px; }
+      .tok.new { background:var(--accent-soft); border-color:var(--accent); color:var(--accent); font-weight:600; }
+      .merges { font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted); max-height:280px; overflow-y:auto; }
+      .merges li { margin-bottom:4px; list-style:none; }
+      .merges li .idx { color:var(--muted); margin-right:8px; }
+      .merges li .pair { color:var(--muted); }
+      .merges li .arrow { color:var(--accent); margin:0 6px; }
+      .merges li .token { color:var(--ink); font-weight:600; }
+      .stats { font-family:"IBM Plex Mono",monospace; font-size:13px; margin-top:10px; color:var(--muted); }
+      .stats b { color:var(--accent); }
+      .note { border-left:3px solid var(--accent); background:var(--accent-soft); padding:12px 16px; margin:20px 0; font-size:15px; }
+    </style>
+  </head>
+  <body>
+    <a class="back-link" href="../index.html">&larr; 讲解库</a>
+    <p class="kicker">交互式讲解</p>
+    <h1>逐步理解 BPE 分词器</h1>
+    <p class="abstract">
+      分词在出问题之前是不可见的。LLM 看到的不是字符——而是 BPE 学会切分出的那些子词。本页通过一次次合并来培育一个分词器，让你观察它如何把常见的相邻对粘连起来，最终得到像 "ization"、"tion" 或 " the" 这样的词元。
+    </p>
+    <div class="byline"><span>约 10 分钟</span><span>深度学习 · 分词 · LLM</span></div>
+
+    <p>
+      字节对编码（BPE）于 1994 年为数据压缩而发明。它于 2015 年进入自然语言处理领域（Sennrich 等），并成为 GPT-2（2019）及此后所有模型的标准分词器。该算法非常简洁：反复合并出现最频繁的相邻对，达到目标词表规模时停止。
+    </p>
+
+    <h2>实验场</h2>
+    <div class="figure">
+      <label style="font-family: 'Manrope', sans-serif; font-size: 13px; color: var(--muted); display: block; margin-bottom: 6px;">语料（可粘贴任意文本）：</label>
+      <textarea id="corpus">the quick brown fox jumps over the lazy dog. the running fox never stops running. the quick fox runs. dogs bark and foxes run.（示例英文语料）</textarea>
+      <div class="btn-row" style="margin-bottom:10px">
+        <button id="preset-default" class="ghost">默认语料</button>
+        <button id="preset-morph" class="ghost">形态学 · hug/hugged/hugging</button>
+        <button id="preset-rare" class="ghost">稀有词 · ZUGZUG</button>
+      </div>
+      <div class="btn-row">
+        <button id="init">初始化（字符级）</button>
+        <button id="merge">合并一步</button>
+        <button id="merge10" class="ghost">合并 10 次</button>
+        <button id="reset" class="ghost">重置</button>
+      </div>
+
+      <div class="grid">
+        <div class="grid-panel">
+          <h4>当前分词结果</h4>
+          <div id="tokens" class="tokens"></div>
+        </div>
+        <div class="grid-panel">
+          <h4>合并历史</h4>
+          <ul id="merges" class="merges"></ul>
+        </div>
+      </div>
+
+      <div class="stats">
+        词表规模：<b id="vocab-size">0</b> &nbsp;·&nbsp;
+        已应用合并数：<b id="n-merges">0</b> &nbsp;·&nbsp;
+        词元总数：<b id="n-tokens">0</b>
+      </div>
+    </div>
+
+    <p>
+      <strong>试试这个：</strong> 按下“初始化（字符级）”，再按“合并 10 次”。观察词表如何从字母成长为有意义的子词。注意分词器在没有任何语言学输入的情况下——仅凭计数——就发现了后缀（"ing"、"ed"）与常见功能词（"the"）。
+    </p>
+
+    <div class="note">
+      <strong>为什么这很重要。</strong> 每个 LLM 的词表在训练时就被冻结——GPT-2 有 50,257 个词元；Llama 有 32k 个。当你输入一个稀有词时，它会按学到的子词切分开来。这正是 LLM 把 "strawberry" 拼成 "straw" + "berry"、并偶尔数错其字母数的原因。
+    </p>
+
+    <h2>各模型的分词方式</h2>
+    <ul>
+      <li><strong>GPT-2, GPT-3</strong> —— 字节级 BPE，50,257 个词元。</li>
+      <li><strong>BERT</strong> —— WordPiece（BPE 的一种变体），30,522 个词元。</li>
+      <li><strong>Llama, Mistral</strong> —— SentencePiece + BPE，32k 个词元。</li>
+      <li><strong>Claude, GPT-4 / GPT-4o</strong> —— 专有方案，约 100k–200k 个词元。</li>
+      <li><strong>Gemini, Qwen</strong> —— 专有方案；为多语言与代码而调优的大词表。</li>
+    </ul>
+
+    <h2>三大分词器族</h2>
+    <ul>
+      <li><strong>BPE（Sennrich et&nbsp;al.，2015）。</strong> 从字符出发；反复合并出现最频繁的相邻对。对任意字符串输出唯一确定的词元序列。用于 GPT-2/3/4、Llama、Mistral。</li>
+      <li><strong>WordPiece（Schuster &amp; Nakajima，2012；BERT 中于 2018 年使用）。</strong> 与 BPE 类似，但合并准则为互信息 / 似然增益，而非原始频率。使<em>数据似然提升</em>最多的词元会被合并。在处理稀有词上略胜一筹。</li>
+      <li><strong>SentencePiece（Unigram 语言模型；Kudo，2018）。</strong> 把分词视为一个一元语言模型。从庞大的词表出发，迭代地移除对语料对数似然损害最小的词元，直至达到目标词表规模。它产生概率化分词（每段文本都有多个有效的词元序列，概率各不相同——这对子词正则化很有用）。</li>
+    </ul>
+
+    <h2>字节级 BPE——处理任意 Unicode</h2>
+    <p>
+      纯 BPE 分词器在遇到训练时从未见过的字符时会失效。GPT-2 用<em>字节级 BPE</em> 解决了这一问题：以字节（共 256 种可能）而非字符为操作单位，于是任何 Unicode 字符串都能分解为分词器所熟知的字节序列。代价是少量额外开销（西里尔字母 / 中日韩文字比拉丁字母多约 2 倍的词元），换来的是面对稀有文字或 emoji 时永不崩溃。
+    </p>
+
+    <h2>“strawberry 里有 3 个 r”现象</h2>
+    <p>
+      LLM 常常数错自己输出中的字母。原因在于分词："strawberry" 通常被切成 "straw" + "berry"（甚至只是一个词元！）。模型从未看到单独的 r；它看到的是子词词元，其中没有一个恰好是 "r"。要回答“strawberry 里有几个 r？”，模型必须<em>分解</em>自己的词元——而它做得并不完美，因为这种分解在训练中从未出现过。
+    </p>
+    <p>
+      同样的道理也解释了下述现象：对作为整体切分的数字进行运算时结果古怪、反转文本时的差一错误，以及无法逐字符拼出名字。2024 年之后的解决办法是更细粒度的数字分词（把数字拆成单个数字的词元），并在训练中混入字符级数据。
+    </p>
+
+    <h2>阅读清单</h2>
+    <ul>
+      <li><strong>Sennrich, Haddow, Birch (2015)</strong> —— <em>《Neural Machine Translation of Rare Words with Subword Units》</em>。把 BPE 引入自然语言处理的论文。</li>
+      <li><strong>Kudo (2018)</strong> —— <em>《Subword Regularization》</em>。Unigram 语言模型分词器。</li>
+      <li><strong>Kudo &amp; Richardson (2018)</strong> —— <em>《SentencePiece》</em>。随 Llama、T5 等一并发布的实现。</li>
+      <li><strong>Wu et&nbsp;al. (2016)</strong> —— <em>《Google's Neural Machine Translation System》</em>。生产环境中的 WordPiece。</li>
+      <li><strong>分词器实验场</strong> —— <code>tiktoken</code>（OpenAI）、<code>tokenizers</code>（HuggingFace）。</li>
+    </ul>
+
+    <script>
+      let tokens = [];           // current tokenization as array of arrays (word-level)
+      let mergeHistory = [];
+      let vocab = new Set();
+
+      function initFromCorpus() {
+        const corpus = document.getElementById("corpus").value.trim().toLowerCase();
+        const words = corpus.split(/\s+/);
+        tokens = words.map(w => w.split(""));
+        mergeHistory = [];
+        vocab = new Set(tokens.flat());
+        render();
+      }
+
+      function mostFrequentPair() {
+        const counts = {};
+        for (const word of tokens) {
+          for (let i = 0; i < word.length - 1; i++) {
+            const pair = word[i] + "|" + word[i + 1];
+            counts[pair] = (counts[pair] || 0) + 1;
+          }
+        }
+        let best = null, bestC = 0;
+        for (const p in counts) {
+          if (counts[p] > bestC) { bestC = counts[p]; best = p; }
+        }
+        return best ? { pair: best.split("|"), count: bestC } : null;
+      }
+
+      function applyMerge(pair) {
+        const [a, b] = pair;
+        const merged = a + b;
+        tokens = tokens.map(word => {
+          const out = [];
+          let i = 0;
+          while (i < word.length) {
+            if (i < word.length - 1 && word[i] === a && word[i + 1] === b) {
+              out.push(merged);
+              i += 2;
+            } else {
+              out.push(word[i]);
+              i += 1;
+            }
+          }
+          return out;
+        });
+        vocab.add(merged);
+        mergeHistory.push({ pair, merged, step: mergeHistory.length + 1 });
+      }
+
+      function mergeOne() {
+        const mp = mostFrequentPair();
+        if (!mp || mp.count < 2) return false;
+        applyMerge(mp.pair);
+        return true;
+      }
+
+      function render() {
+        // Tokens panel
+        const tokPanel = document.getElementById("tokens");
+        tokPanel.innerHTML = "";
+        tokens.slice(0, 14).forEach((word, wi) => {
+          const wordDiv = document.createElement("span");
+          word.forEach(t => {
+            const s = document.createElement("span");
+            s.className = "tok";
+            if (t.length > 1) s.classList.add("new");
+            s.textContent = t;
+            wordDiv.appendChild(s);
+          });
+          if (wi < 13) {
+            const sep = document.createElement("span");
+            sep.style.color = "#c9c4b5";
+            sep.textContent = " | ";
+            wordDiv.appendChild(sep);
+          }
+          tokPanel.appendChild(wordDiv);
+        });
+        if (tokens.length > 14) {
+          const more = document.createElement("span");
+          more.style.color = "var(--muted)";
+          more.style.fontStyle = "italic";
+          more.textContent = ` …+${tokens.length - 14} words`;
+          tokPanel.appendChild(more);
+        }
+
+        // 合并历史
+        const mergesPanel = document.getElementById("merges");
+        mergesPanel.innerHTML = "";
+        mergeHistory.slice().reverse().forEach(m => {
+          const li = document.createElement("li");
+          li.innerHTML = `<span class="idx">#${m.step}</span><span class="pair">(${m.pair[0]}, ${m.pair[1]})</span><span class="arrow">→</span><span class="token">${m.merged}</span>`;
+          mergesPanel.appendChild(li);
+        });
+
+        // Stats
+        document.getElementById("vocab-size").textContent = vocab.size;
+        document.getElementById("n-merges").textContent = mergeHistory.length;
+        document.getElementById("n-tokens").textContent = tokens.reduce((s, w) => s + w.length, 0);
+      }
+
+      document.getElementById("init").addEventListener("click", initFromCorpus);
+      document.getElementById("merge").addEventListener("click", () => { if (tokens.length === 0) initFromCorpus(); mergeOne(); render(); });
+      document.getElementById("merge10").addEventListener("click", () => {
+        if (tokens.length === 0) initFromCorpus();
+        for (let i = 0; i < 10; i++) if (!mergeOne()) break;
+        render();
+      });
+      document.getElementById("reset").addEventListener("click", () => { tokens = []; mergeHistory = []; vocab = new Set(); render(); });
+
+      const PRESETS = {
+        default: 'the quick brown fox jumps over the lazy dog. the running fox never stops running. the quick fox runs. dogs bark and foxes run.（示例英文语料）',
+        morph: 'hug hug hug hugged hugged hugging hugging bug bugged bugging dog dogged dogging',
+        rare: 'a fluffy cat sat on the mat. a fluffy cat sat. another fluffy cat sat. a ZUGZUG cat sat on the mat.'
+      };
+      const setPreset = key => {
+        document.getElementById('corpus').value = PRESETS[key];
+        tokens = []; mergeHistory = []; vocab = new Set();
+        initFromCorpus();
+      };
+      document.getElementById('preset-default').addEventListener('click', () => setPreset('default'));
+      document.getElementById('preset-morph').addEventListener('click', () => setPreset('morph'));
+      document.getElementById('preset-rare').addEventListener('click', () => setPreset('rare'));
+
+      initFromCorpus();
+    </script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

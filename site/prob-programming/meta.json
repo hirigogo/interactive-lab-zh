@@ -1,0 +1,26 @@
+{
+  "slug": "prob-programming",
+  "title": "概率编程实践",
+  "date": "2026-05-11",
+  "tagline": "PyMC / NumPyro / Stan 是同一个思想 —— 声明一个模型，交给推断引擎",
+  "summary": "用代码写一个贝叶斯模型；用 HMC 采样；检查 r-hat 与 ESS；与 VI 比较。一个实时的硬币偏置模型加一个二维回归，在你的浏览器中并排运行 NUTS 风格的 MCMC 与高斯 VI，配有轨迹图和你在 PyMC / NumPyro / Stan 中会看到的诊断信息。",
+  "readingTime": "20 min",
+  "difficulty": "中级",
+  "collection": "概率与统计推断",
+  "order": 36,
+  "status": "published",
+  "tags": [
+    "概率编程",
+    "HMC",
+    "VI",
+    "PyMC",
+    "NumPyro",
+    "交互式"
+  ],
+  "highlights": [
+    "PPL 配方：声明模型、选择推断方式（HMC / VI）、检查诊断信息。",
+    "实时的硬币偏置模型：HMC 轨迹 + 后验直方图 + 解析 Beta 后验。",
+    "二维贝叶斯回归：在小数据集上比较 HMC 与 VI 的拟合。",
+    "r-hat、ESS、发散转移、后验预测检验 —— 各自有何用途。"
+  ]
+}

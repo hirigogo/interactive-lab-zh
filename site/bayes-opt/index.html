@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>贝叶斯优化，循序渐进</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>贝叶斯优化，循序渐进</h1>
+        <p class="abstract">
+          一个实时的 一维高斯过程代理模型加上一个采集
+          函数，共同决定接下来在何处评估一个隐藏的昂贵
+          函数。点击以采集，观察置信带收窄，并在收敛图上
+          让四种采集策略同场竞速。
+        </p>
+        <div class="byline">
+          <span>约 20 分钟</span>
+          <span>概率 &middot; 优化 &middot; 实验设计</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>昂贵函数问题</h2>
+        <p>
+          为一个需要 8 小时训练的模型调超参数。在湿实验室
+          实验中选取下一个浓度。决定下一个空气质量
+          传感器部署在何处。你正在优化的函数 $f$ 是昂贵的、
+          黑箱的，而且可能带噪声。随机搜索会消耗大量
+          调用；网格搜索消耗更多。你希望每一次
+          评估都能<em>告诉你最多信息</em>。
+        </p>
+        <div class="callout callout--key">
+          <strong>一句口号。</strong>
+          用一个廉价的代理模型拟合你的观测；用它
+          <em>带不确定性</em>地进行预测；在预测改进量
+          最大之处查询下一个点。如此重复。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>两种基本成分</h2>
+        <ul class="explanation-list">
+          <li><strong>代理模型。</strong> 高斯过程在
+            每个点 $x$ 处给出后验均值 $\mu(x)$ 与标准
+            差 $\sigma(x)$。在 $\sigma$ 大之处，我们
+            尚不了解 $f$。在 $\sigma$ 小之处，代理模型
+            较为自信。这与
+            <a href="../bayesian-posterior/index.html#step-6">
+            贝叶斯后验游乐场中的贝叶斯线性回归</a>是同样的后验叙事，
+            只是用 RBF 核取代了显式的
+            特征基。</li>
+          <li><strong>采集函数。</strong> 一个建立在
+            $(\mu, \sigma)$ 之上的标量得分 $a(x)$，它说明「接下来
+            评估这个 $x$ 有多值得？」。不同的采集
+            函数在探索与利用之间有着不同的权衡。</li>
+        </ul>
+        <div class="math-block" id="math-bo"></div>
+        <p>
+          其中 $\Phi$ 与 $\phi$ 分别是标准正态分布的累积分布函数与概率密度函数，
+          对当前最优的 $f^*$，$z = (\mu(x) - f^* - \xi) / \sigma(x)$。
+          UCB 取置信上界；PI 取
+          出现任何改进的概率；EI 取
+          期望改进（通常是默认选择）。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>运行它</h2>
+        <p>
+          一个隐藏函数（只有在采集了若干点之后你才会看到真实曲线）。按
+          <em>采集下一个</em> 以在 $\arg\max a(x)$ 处评估
+          $f$。高斯过程的均值与 2σ 置信带随之更新；
+          下方的采集函数重新塑形；收敛图
+          在同一个隐藏函数上为全部四种采集策略记录得分。
+        </p>
+        <div class="train-controls">
+          <button class="action-btn" id="bo-step">采集下一个</button>
+          <button class="action-btn" id="bo-step5">采集 5 个</button>
+          <button class="action-btn action-btn--ghost" id="bo-reset">重置</button>
+          <label>当前采集函数
+            <select id="bo-acq">
+              <option value="ei" selected>EI（期望改进）</option>
+              <option value="ucb">UCB（置信上界）</option>
+              <option value="pi">PI（改进概率）</option>
+              <option value="ts">Thompson 采样</option>
+            </select>
+          </label>
+          <label>隐藏函数
+            <select id="bo-fn">
+              <option value="sine" selected>光滑（正弦 + 凸起）</option>
+              <option value="bimodal">双峰（两个峰）</option>
+              <option value="sawtooth">非光滑（锯齿）</option>
+            </select>
+          </label>
+          <span class="train-stat">查询次数 = <strong id="bo-n">3</strong></span>
+          <span class="train-stat">目前最优 = <strong id="bo-best">—</strong></span>
+        </div>
+        <div class="bo-grid">
+          <div class="bo-panel">
+            <div class="panel-label">隐藏函数 f 上的高斯过程代理（μ ± 2σ）</div>
+            <canvas id="bo-surrogate" width="880" height="280"></canvas>
+          </div>
+          <div class="bo-panel">
+            <div class="panel-label">采集函数 a(x)</div>
+            <canvas id="bo-acquisition" width="880" height="180"></canvas>
+          </div>
+          <div class="bo-panel">
+            <div class="panel-label">目前最优的收敛（4 种策略）</div>
+            <canvas id="bo-convergence" width="880" height="200"></canvas>
+          </div>
+        </div>
+        <div class="callout callout--think">
+          <strong>应当留意什么。</strong>
+          起初，EI 与 UCB 广泛探索（置信带处处都很宽）。
+          约 5 次采集之后，它们便聚焦到最优
+          邻域。PI 更常陷入停滞（它找到
+          近似最优便停止探索）。Thompson 采样是一个
+          出奇强大的基线，而且实现起来几乎不费吹灰之力：从后验中
+          抽取一个样本并取它的 arg-max。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>为何用贝叶斯优化而非网格搜索</h2>
+        <ul class="explanation-list">
+          <li><strong>样本效率。</strong> 对典型的超参数任务，BO 在
+            20-50 次评估内即可找到最优解，
+            而网格搜索需要 200-1000 次。成本上的
+            平衡点大约在单次评估成本 &gt; 30 秒之处。</li>
+          <li><strong>诚实的不确定性。</strong> 你不仅得到
+            最优解，还得到 $f$ <em>全部</em> 取值的后验。
+            当你想知道「在另一点上改进 5% 是否也可接受？」时，
+            这一点很有用。</li>
+          <li><strong>约束可以顺带处理。</strong> 若
+            评估存在某些不可行点的约束，
+            你可以用另一个高斯过程来建模约束
+            概率，并将采集函数乘以它。</li>
+          <li><strong>多保真度扩展。</strong> 当你
+            既有廉价但带噪的评估，又有昂贵但准确的
+            评估时（例如短时训练与完整训练），BO 可以
+            自动混合二者。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>真实 BO 中的陷阱</h2>
+        <ul class="explanation-list">
+          <li><strong>核函数的选择很重要。</strong> RBF 是光滑的；
+            Matérn 更粗糙；周期核能刻画循环。选择一个
+            与你函数实际结构相符的
+            核，否则 BO 会把评估浪费在错误
+            核所引入的假象上。</li>
+          <li><strong>高维会造成困难。</strong> 纯高斯过程 BO
+            在约 20 维以上便变得不可靠。TuRBO、
+            BoTorch 以及基于嵌入的 BO 提高了这一上限，但
+            仍然困难。</li>
+          <li><strong>类别型超参数。</strong> 需要
+            一个定义在类别 / 整数维度上的核；SMAC 与
+            树结构 Parzen 估计器在这方面比朴素高斯过程
+            处理得更好。</li>
+          <li><strong>噪声建模。</strong> 随机目标
+            （带随机初始化的训练损失）需要在高斯过程中
+            加入噪声项。否则代理模型会过拟合到一个带噪
+            点，而 BO 会一路追逐它。</li>
+          <li><strong>采集函数的最大化。</strong>
+            在 BO 内部你要最大化 $a(x)$。若 $a$ 非凸
+            （通常如此），应使用多起点优化；否则
+            你会落入采集函数的一个局部最优。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>贝叶斯优化适得其所的场合</h2>
+        <ul class="explanation-list">
+          <li><strong>昂贵模型的超参数调优。</strong>
+            任何每套配置训练耗时 &gt; 30 分钟的情形。
+            使用 BoTorch / Ax / Optuna 的 TPE。</li>
+          <li><strong>不确定性下的传感器 / 实验布点。</strong>
+            在一个场模型上最大化后验方差的
+            期望缩减量。</li>
+          <li><strong>湿实验室 / 硬件实验设计。</strong>
+            每个实验都是一次实时评估。BO 选择
+            下一个浓度 / 温度 / 剂量。</li>
+          <li><strong>分子与材料发现。</strong> 在化学 / 晶体的学习潜空间上做 BO。这是 2024 年的前沿&mdash;BOLT、ChemBO、AlphaFold-Design 等流程都在一个学习到的代理模型之上使用 BO 循环。</li>
+          <li><strong>有限预算下的主动学习。</strong> 选取
+            下一批最大化期望信息增益的点
+            &mdash;即名为 BALD 或 BOSS 的 BO 与主动学习混合方法。</li>
+        </ul>
+        <div class="callout callout--think">
+          <strong>最终要点。</strong>
+          只要单次评估昂贵到让你三思，贝叶斯优化便是首选。
+          它每一步都问一个简单的问题 &mdash;「我接下来能尝试的
+          最有信息量的选项是什么？」&mdash; 并用
+          贝叶斯游乐场那篇文章中相同的后验工具来回答它。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>采集函数深入剖析</h2>
+        <p>
+          四种最常用的采集函数，及其闭式解与权衡：
+        </p>
+        <div class="math-block" id="math-acq-ei"></div>
+        <div class="math-block" id="math-acq-ucb"></div>
+        <ul class="explanation-list">
+          <li><strong>期望改进（EI）。</strong> 有闭式解（见上），无超参数，探索较为均衡。当代理模型是高斯过程时为默认选择；在运行早期偏向利用，一旦最优点进入平台期便更具探索性。</li>
+          <li><strong>置信上界（UCB）。</strong> $\mu(x) + \beta \sigma(x)$。一个旋钮（$\beta$）控制利用与探索的权衡。可证明其遗憾上界为 $O(\sqrt{T \gamma_T})$（Srinivas 等人，2010）。当你需要确定性、可通过旋钮调节的行为时使用它。</li>
+          <li><strong>改进概率（PI）。</strong> $\Pr(f(x) &gt; f^* + \xi)$。易于计算但贪心；往往探索不足。多半只有历史意义。</li>
+          <li><strong>Thompson 采样。</strong> 抽取一次 $f \sim p(f|D)$，对它做优化，然后评估。天然可并行（每个并行工作进程各自抽取样本）。在批量 / 异步场景中表现强劲。</li>
+          <li><strong>知识梯度。</strong> 后验的一步前瞻期望价值。代价高昂，但对一步贝叶斯目标是最优的；这是 BoTorch 中的现代前沿。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-7">
+        <div class="step-badge">第 7 步</div>
+        <h2>批量与异步 BO</h2>
+        <p>
+          真实的 BO 循环很少一次只评估一个点&mdash;你有 $B$ 个并行工作进程（GPU、实验台、模拟器实例）。批量 BO 每轮选取 $B$ 个点。
+        </p>
+        <ul class="explanation-list">
+          <li><strong>q-期望改进（qEI）。</strong> 在 $B$ 个点上的联合 EI；闭式解不可行；通过从高斯过程后验抽样、以蒙特卡洛方法计算（Wilson 等人，2018）。这是 BoTorch 中的默认选择。</li>
+          <li><strong>幻觉批量（Kriging Believer）。</strong> 贪心地选取第一个点；假装你观测到了 $\mu(x)$；重新拟合；再选下一个；如此重复。代价低但非最优。</li>
+          <li><strong>Thompson 采样。</strong> 每个并行工作进程抽取自己的样本。可轻易并行化；遗憾上界有理论保证。</li>
+          <li><strong>异步 BO。</strong> 当工作进程在不同时刻返回时，你无法暂停；取而代之的是以在途点为条件（它们的后验均值便是对其未知结果的最佳猜测）。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-8">
+        <div class="step-badge">第 8 步</div>
+        <h2>阅读清单</h2>
+        <ul class="explanation-list">
+          <li><strong>Shahriari, Swersky, Wang, Adams, de Freitas (2016)</strong> &mdash; <em>Taking the Human out of the Loop: A Review of Bayesian Optimization.</em> 标准综述。</li>
+          <li><strong>Snoek, Larochelle, Adams (2012)</strong> &mdash; <em>Practical Bayesian Optimization of Machine Learning Algorithms.</em></li>
+          <li><strong>Srinivas, Krause, Kakade, Seeger (2010)</strong> &mdash; <em>Gaussian Process Optimization in the Bandit Setting.</em> 关于 UCB 遗憾界的那篇论文。</li>
+          <li><strong>Frazier (2018)</strong> &mdash; <em>A Tutorial on Bayesian Optimization.</em></li>
+          <li><strong>Eriksson 等人 (2019)</strong> &mdash; <em>TuRBO: Scalable Global Optimization via Local Bayesian Optimization.</em> 高维 BO 的置信域技巧。</li>
+          <li><strong>Garnett (2023)</strong> &mdash; <em>Bayesian Optimization</em> 教科书。草稿可在线免费获取；是权威的现代参考。</li>
+          <li><strong>BoTorch / Ax</strong> — 标准的现代程序库。Optuna 的 TPE 适用于廉价的类别型搜索。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

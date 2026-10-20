@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>等变网络实战</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>等变网络实战</h1>
+        <p class="abstract">
+          当旋转输入会使输出以同样的方式旋转时，我们称神经网络对该变换<em>等变</em>。对于卫星影像、分子、点云，以及任何没有特殊优越朝向的系统，这正是你所需要的，而大多数普通网络无法提供。
+        </p>
+        <div class="byline">
+          <span>约 16 分钟</span>
+          <span>归纳偏置 &middot; 对称性 &middot; CNN</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">步骤 1</div>
+        <h2>等变与不变</h2>
+        <div class="math-block" id="math-equiv"></div>
+        <p>
+          若把 $T_g$ 施加于输入所产生的效果，等同于对输出施加某个（可能不同的）变换，则称 $f$ 对变换 $T_g$ <strong>等变</strong>。<strong>不变</strong> 是输出完全不变的特殊情形。
+        </p>
+        <ul class="explanation-list">
+          <li><strong>平移等变。</strong> 把物体横向移动 &mdash;— 特征图也随之平移。标准 CNN 卷积免费为你提供了这种性质（在填充的边界考虑之外）。</li>
+          <li><strong>旋转等变。</strong> 把输入旋转 90° &mdash;— 特征图也旋转 90°。标准 CNN <em>并不具备</em> 这一性质；你需要 C4 群卷积（Cohen &amp; Welling，2016）。</li>
+          <li><strong>尺度等变。</strong> 放大 &mdash;— 特征随之缩放。大多通过金字塔来近似；真正的等变架构存在，但较为罕见。</li>
+          <li><strong>SE(3) 等变。</strong> 三维刚体对称性。对分子 / 点云至关重要（E(3)NN、SE(3)-Transformer）。</li>
+          <li><strong>置换等变。</strong> 集合与图。自注意力具有置换等变性；GNN 的聚合操作亦然。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">步骤 2</div>
+        <h2>为何普通 CNN 无法旋转</h2>
+        <p>
+          标准的 3×3 卷积滤波器是像素空间中一个固定的模式。旋转输入并不会旋转该滤波器；响应会剧烈抖动。三种经典补救办法：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>数据增强。</strong> 用随机旋转进行训练。代价低廉；对分类几乎有效；其响应近似不变但并非等变，而且模型仍须冗余地学习每一种旋转。</li>
+          <li><strong>群卷积（G-CNN）。</strong> 在每一层施加同一滤波器的 $k$ 个旋转副本；特征图因此多出一个「旋转」轴。Cohen &amp; Welling 2016；可证明具有等变性。</li>
+          <li><strong>可操纵 CNN。</strong> 使用在旋转下连续变换的滤波器（圆谐波的线性组合）。对连续的 $\mathrm{SO}(2)$ 群等变，而不仅限于离散群。</li>
+        </ul>
+        <div class="math-block" id="math-gcnn"></div>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">步骤 3</div>
+        <h2>实战：旋转输入，观察三种架构的响应</h2>
+        <p>
+          一个合成的飞机剪影输入被旋转了 θ。三个微小的网络各自输出一个特征向量。绘制 θ=0 处的特征与当前 θ 处特征之间的 L2 距离。完全不变的网络会给出一条恒为零的平直线；完全等变的网络会呈现出一条干净的轨道形状。普通 CNN 的响应则杂乱无章。
+        </p>
+        <div class="train-controls">
+          <label>旋转角 θ &nbsp;<span id="eq-theta-val">0°</span> <input type="range" id="eq-theta" min="0" max="360" step="2" value="0"></label>
+          <button class="action-btn action-btn--ghost" id="eq-newshape">更换形状</button>
+        </div>
+        <div class="eq-grid">
+          <div class="eq-panel">
+            <div class="panel-label">θ 处的输入</div>
+            <canvas id="eq-input" width="160" height="160"></canvas>
+          </div>
+          <div class="eq-panel">
+            <div class="panel-label">普通 CNN 的响应</div>
+            <canvas id="eq-vanilla" width="160" height="160"></canvas>
+          </div>
+          <div class="eq-panel">
+            <div class="panel-label">增强 CNN 的响应</div>
+            <canvas id="eq-aug" width="160" height="160"></canvas>
+          </div>
+          <div class="eq-panel">
+            <div class="panel-label">C4 群卷积的响应</div>
+            <canvas id="eq-c4" width="160" height="160"></canvas>
+          </div>
+        </div>
+        <div class="eq-grid">
+          <div class="eq-panel" style="grid-column: 1 / -1;">
+            <div class="panel-label">相对 θ=0 的特征距离，随 θ 扫描</div>
+            <canvas id="eq-curve" width="880" height="280"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">步骤 4</div>
+        <h2>何处使用何物</h2>
+        <ul class="explanation-list">
+          <li><strong>卫星 / 航拍影像。</strong> Sentinel 与 Landsat 瓦片没有规范的「上」方向；航拍 / 无人机影像随平台一起旋转。可用于骨干网络的有 C4 / C8 群卷积，或旋转增强 + 测试时对多个旋转取平均。</li>
+          <li><strong>分子与原子体系。</strong> 能量对刚性旋转不变；而力是等变的。在分子机器学习中可使用 E(3)NN、SE(3)-Transformer、MACE；AlphaFold-2 的不变点注意力也属于这一族。</li>
+          <li><strong>点云。</strong> 三维 LiDAR / 扫描数据需要 SE(3) 等变，才能实现尊重传感器安装方式的物体检测。</li>
+          <li><strong>集合与图。</strong> 置换等变是毫无商量余地的：GNN、Deep Sets、transformer（不含位置编码）都属于这一范畴。</li>
+          <li><strong>医学三维体数据。</strong> 患者体位被旋转的 CT / MRI / PET。旋转等变有助于小数据微调的泛化。</li>
+        </ul>
+        <div class="callout callout--key">
+          <strong>一句话口号。</strong>
+          等变性是伪装起来的数据效率。无法旋转的网络不得不分别学习每一种旋转；而等变网络把旋转视为一种对称性，将自身容量花在真正重要的部分上。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">步骤 5</div>
+        <h2>实践中的坑</h2>
+        <ul class="explanation-list">
+          <li><strong>离散群与连续群。</strong> C4（90°）与 C8（45°）易于实现；连续 SO(2) 则需要可操纵滤波器或谐波网络。</li>
+          <li><strong>代价。</strong> C4 群卷积的通道数是普通卷积的 4 倍；训练与推理代价也相应放大。现代硬件可以承受。</li>
+          <li><strong>与增强结合，而非取代它。</strong>
+            等变 ≠ 不做增强；你仍然需要裁剪、亮度、噪声。等变的那个轴只是把<em>一个</em>变异来源从桌上拿掉而已。</li>
+          <li><strong>不要对错误的东西施加等变。</strong> 如果你的任务<em>依赖</em> 朝向（文字识别、带「上」方向的场景理解），旋转等变就是错的。只在对称性真正存在之处使用它。</li>
+          <li><strong>库。</strong> <code>escnn</code> /
+            <code>e2cnn</code>（PyTorch）、<code>se3-transformer</code>（PyTorch）、<code>e3nn</code>（面向分子的 PyTorch）、在 JAX 中进行 SE(3) 等变工作的 <code>jaxon</code> / <code>JAX-MD</code>。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,317 @@
+{
+ "slug": "bpe-merges",
+ "units": {
+  "BPE Tokenizer Step by Step": {
+   "zh": "逐步理解 BPE 分词器",
+   "src": "BPE Tokenizer Step by Step",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Tokenization is invisible until it breaks. LLMs don't see characters — they see whatever subwords BPE learned to carve out. This page grows a tokenizer merge by merge, so you can watch it glue common pairs and end up with tokens like \"ization\", \"tion\", or \" the\".": {
+   "zh": "分词在出问题之前是不可见的。LLM 看到的不是字符——而是 BPE 学会切分出的那些子词。本页通过一次次合并来培育一个分词器，让你观察它如何把常见的相邻对粘连起来，最终得到像 \"ization\"、\"tion\" 或 \" the\" 这样的词元。",
+   "src": "Tokenization is invisible until it breaks. LLMs don't see characters — they see whatever subwords BPE learned to carve out. This page grows a tokenizer merge by merge, so you can watch it glue common pairs and end up with tokens like \"ization\", \"tion\", or \" the\".",
+   "tags": []
+  },
+  "@@T0@@~10 min@@T1@@@@T2@@Deep Learning · Tokenization · LLM@@T3@@": {
+   "zh": "@@T0@@约 10 分钟@@T1@@@@T2@@深度学习 · 分词 · LLM@@T3@@",
+   "src": "<span>~10 min</span><span>Deep Learning · Tokenization · LLM</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Byte-Pair Encoding was invented in 1994 for data compression. It showed up in NLP in 2015 (Sennrich et al.), and became the standard tokenizer for GPT-2 (2019) and everything after. The algorithm is tiny: repeatedly merge the most frequent adjacent pair, stop at target vocab size.": {
+   "zh": "字节对编码（BPE）于 1994 年为数据压缩而发明。它于 2015 年进入自然语言处理领域（Sennrich 等），并成为 GPT-2（2019）及此后所有模型的标准分词器。该算法非常简洁：反复合并出现最频繁的相邻对，达到目标词表规模时停止。",
+   "src": "Byte-Pair Encoding was invented in 1994 for data compression. It showed up in NLP in 2015 (Sennrich et al.), and became the standard tokenizer for GPT-2 (2019) and everything after. The algorithm is tiny: repeatedly merge the most frequent adjacent pair, stop at target vocab size.",
+   "tags": []
+  },
+  "The playground": {
+   "zh": "实验场",
+   "src": "The playground",
+   "tags": []
+  },
+  "Corpus (paste any text):": {
+   "zh": "语料（可粘贴任意文本）：",
+   "src": "Corpus (paste any text):",
+   "tags": []
+  },
+  "the quick brown fox jumps over the lazy dog. the running fox never stops running. the quick fox runs. dogs bark and foxes run.": {
+   "zh": "the quick brown fox jumps over the lazy dog. the running fox never stops running. the quick fox runs. dogs bark and foxes run.（示例英文语料）",
+   "src": "the quick brown fox jumps over the lazy dog. the running fox never stops running. the quick fox runs. dogs bark and foxes run.",
+   "tags": []
+  },
+  "Default corpus": {
+   "zh": "默认语料",
+   "src": "Default corpus",
+   "tags": []
+  },
+  "Morphology · hug/hugged/hugging": {
+   "zh": "形态学 · hug/hugged/hugging",
+   "src": "Morphology · hug/hugged/hugging",
+   "tags": []
+  },
+  "Rare word · ZUGZUG": {
+   "zh": "稀有词 · ZUGZUG",
+   "src": "Rare word · ZUGZUG",
+   "tags": []
+  },
+  "Initialize (chars)": {
+   "zh": "初始化（字符级）",
+   "src": "Initialize (chars)",
+   "tags": []
+  },
+  "Merge one step": {
+   "zh": "合并一步",
+   "src": "Merge one step",
+   "tags": []
+  },
+  "Merge 10": {
+   "zh": "合并 10 次",
+   "src": "Merge 10",
+   "tags": []
+  },
+  "Reset": {
+   "zh": "重置",
+   "src": "Reset",
+   "tags": []
+  },
+  "Current tokenization": {
+   "zh": "当前分词结果",
+   "src": "Current tokenization",
+   "tags": []
+  },
+  "Merge history": {
+   "zh": "合并历史",
+   "src": "Merge history",
+   "tags": []
+  },
+  "Vocab size: @@T0@@0@@T1@@ &nbsp;·&nbsp;\n        Merges applied: @@T2@@0@@T3@@ &nbsp;·&nbsp;\n        Total tokens: @@T4@@0@@T5@@": {
+   "zh": "词表规模：@@T0@@0@@T1@@ &nbsp;·&nbsp;\n        已应用合并数：@@T2@@0@@T3@@ &nbsp;·&nbsp;\n        词元总数：@@T4@@0@@T5@@",
+   "src": "Vocab size: <b id=\"vocab-size\">0</b> &nbsp;·&nbsp;\n        Merges applied: <b id=\"n-merges\">0</b> &nbsp;·&nbsp;\n        Total tokens: <b id=\"n-tokens\">0</b>",
+   "tags": [
+    "<b id=\"vocab-size\">",
+    "</b>",
+    "<b id=\"n-merges\">",
+    "</b>",
+    "<b id=\"n-tokens\">",
+    "</b>"
+   ]
+  },
+  "@@T0@@Try this:@@T1@@ Press \"Initialize (chars)\", then \"Merge 10\". Watch the vocabulary grow from letters into meaningful subwords. Notice how the tokenizer discovers suffixes (\"ing\", \"ed\") and common function words (\"the\") without any linguistic input — just counting.": {
+   "zh": "@@T0@@试试这个：@@T1@@ 按下“初始化（字符级）”，再按“合并 10 次”。观察词表如何从字母成长为有意义的子词。注意分词器在没有任何语言学输入的情况下——仅凭计数——就发现了后缀（\"ing\"、\"ed\"）与常见功能词（\"the\"）。",
+   "src": "<strong>Try this:</strong> Press \"Initialize (chars)\", then \"Merge 10\". Watch the vocabulary grow from letters into meaningful subwords. Notice how the tokenizer discovers suffixes (\"ing\", \"ed\") and common function words (\"the\") without any linguistic input — just counting.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Why this matters.@@T1@@ Every LLM's vocabulary is frozen at training time — GPT-2 has 50,257 tokens; Llama has 32k. When you type a rare word, it splits into whatever subwords were learned. This is why LLMs spell \"strawberry\" as \"straw\" + \"berry\" and sometimes miscount its letters.": {
+   "zh": "@@T0@@为什么这很重要。@@T1@@ 每个 LLM 的词表在训练时就被冻结——GPT-2 有 50,257 个词元；Llama 有 32k 个。当你输入一个稀有词时，它会按学到的子词切分开来。这正是 LLM 把 \"strawberry\" 拼成 \"straw\" + \"berry\"、并偶尔数错其字母数的原因。",
+   "src": "<strong>Why this matters.</strong> Every LLM's vocabulary is frozen at training time — GPT-2 has 50,257 tokens; Llama has 32k. When you type a rare word, it splits into whatever subwords were learned. This is why LLMs spell \"strawberry\" as \"straw\" + \"berry\" and sometimes miscount its letters.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Tokenization across models": {
+   "zh": "各模型的分词方式",
+   "src": "Tokenization across models",
+   "tags": []
+  },
+  "@@T0@@GPT-2, GPT-3@@T1@@ — byte-level BPE, 50,257 tokens.": {
+   "zh": "@@T0@@GPT-2, GPT-3@@T1@@ —— 字节级 BPE，50,257 个词元。",
+   "src": "<strong>GPT-2, GPT-3</strong> — byte-level BPE, 50,257 tokens.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@BERT@@T1@@ — WordPiece (a variant of BPE), 30,522 tokens.": {
+   "zh": "@@T0@@BERT@@T1@@ —— WordPiece（BPE 的一种变体），30,522 个词元。",
+   "src": "<strong>BERT</strong> — WordPiece (a variant of BPE), 30,522 tokens.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Llama, Mistral@@T1@@ — SentencePiece + BPE, 32k tokens.": {
+   "zh": "@@T0@@Llama, Mistral@@T1@@ —— SentencePiece + BPE，32k 个词元。",
+   "src": "<strong>Llama, Mistral</strong> — SentencePiece + BPE, 32k tokens.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Claude, GPT-4 / GPT-4o@@T1@@ — proprietary, ~100k–200k tokens.": {
+   "zh": "@@T0@@Claude, GPT-4 / GPT-4o@@T1@@ —— 专有方案，约 100k–200k 个词元。",
+   "src": "<strong>Claude, GPT-4 / GPT-4o</strong> — proprietary, ~100k–200k tokens.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Gemini, Qwen@@T1@@ — proprietary; large vocabularies tuned for multilingual + code.": {
+   "zh": "@@T0@@Gemini, Qwen@@T1@@ —— 专有方案；为多语言与代码而调优的大词表。",
+   "src": "<strong>Gemini, Qwen</strong> — proprietary; large vocabularies tuned for multilingual + code.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The three tokeniser families": {
+   "zh": "三大分词器族",
+   "src": "The three tokeniser families",
+   "tags": []
+  },
+  "@@T0@@BPE (Sennrich et&nbsp;al., 2015).@@T1@@ Start with characters; repeatedly merge the most frequent pair. Outputs a single deterministic token sequence for any string. Used in GPT-2/3/4, Llama, Mistral.": {
+   "zh": "@@T0@@BPE（Sennrich et&nbsp;al.，2015）。@@T1@@ 从字符出发；反复合并出现最频繁的相邻对。对任意字符串输出唯一确定的词元序列。用于 GPT-2/3/4、Llama、Mistral。",
+   "src": "<strong>BPE (Sennrich et&nbsp;al., 2015).</strong> Start with characters; repeatedly merge the most frequent pair. Outputs a single deterministic token sequence for any string. Used in GPT-2/3/4, Llama, Mistral.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@WordPiece (Schuster &amp; Nakajima, 2012; in BERT, 2018).@@T1@@ Similar to BPE but the merge criterion is mutual information / likelihood gain, not raw frequency. Tokens that @@T2@@increase the data likelihood@@T3@@ the most are merged. Marginally better at handling rare words.": {
+   "zh": "@@T0@@WordPiece（Schuster &amp; Nakajima，2012；BERT 中于 2018 年使用）。@@T1@@ 与 BPE 类似，但合并准则为互信息 / 似然增益，而非原始频率。使@@T2@@数据似然提升@@T3@@最多的词元会被合并。在处理稀有词上略胜一筹。",
+   "src": "<strong>WordPiece (Schuster &amp; Nakajima, 2012; in BERT, 2018).</strong> Similar to BPE but the merge criterion is mutual information / likelihood gain, not raw frequency. Tokens that <em>increase the data likelihood</em> the most are merged. Marginally better at handling rare words.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@SentencePiece (Unigram LM; Kudo, 2018).@@T1@@ Treats tokenisation as a unigram language model. Starts from a huge vocabulary, iteratively removes tokens that hurt the corpus log-likelihood the least, until the target vocab size is reached. Produces probabilistic tokenisation (each text has multiple valid token sequences with different probabilities — useful for subword regularisation).": {
+   "zh": "@@T0@@SentencePiece（Unigram 语言模型；Kudo，2018）。@@T1@@ 把分词视为一个一元语言模型。从庞大的词表出发，迭代地移除对语料对数似然损害最小的词元，直至达到目标词表规模。它产生概率化分词（每段文本都有多个有效的词元序列，概率各不相同——这对子词正则化很有用）。",
+   "src": "<strong>SentencePiece (Unigram LM; Kudo, 2018).</strong> Treats tokenisation as a unigram language model. Starts from a huge vocabulary, iteratively removes tokens that hurt the corpus log-likelihood the least, until the target vocab size is reached. Produces probabilistic tokenisation (each text has multiple valid token sequences with different probabilities — useful for subword regularisation).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Byte-level BPE — handling any Unicode": {
+   "zh": "字节级 BPE——处理任意 Unicode",
+   "src": "Byte-level BPE — handling any Unicode",
+   "tags": []
+  },
+  "A pure-BPE tokeniser breaks on text containing characters it never saw at training. GPT-2 solves this with @@T0@@byte-level BPE@@T1@@: operate on bytes (256 possible) instead of characters, so any Unicode string decomposes into a byte sequence the tokeniser knows. Adds a small overhead (Cyrillic / CJK get ~2× more tokens than Latin) in exchange for never crashing on rare scripts or emoji.": {
+   "zh": "纯 BPE 分词器在遇到训练时从未见过的字符时会失效。GPT-2 用@@T0@@字节级 BPE@@T1@@ 解决了这一问题：以字节（共 256 种可能）而非字符为操作单位，于是任何 Unicode 字符串都能分解为分词器所熟知的字节序列。代价是少量额外开销（西里尔字母 / 中日韩文字比拉丁字母多约 2 倍的词元），换来的是面对稀有文字或 emoji 时永不崩溃。",
+   "src": "A pure-BPE tokeniser breaks on text containing characters it never saw at training. GPT-2 solves this with <em>byte-level BPE</em>: operate on bytes (256 possible) instead of characters, so any Unicode string decomposes into a byte sequence the tokeniser knows. Adds a small overhead (Cyrillic / CJK get ~2× more tokens than Latin) in exchange for never crashing on rare scripts or emoji.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The 'strawberry has 3 r's' phenomenon": {
+   "zh": "“strawberry 里有 3 个 r”现象",
+   "src": "The 'strawberry has 3 r's' phenomenon",
+   "tags": []
+  },
+  "LLMs often miscount letters in their own output. The reason is tokenisation: \"strawberry\" is typically split into \"straw\" + \"berry\" (or just one token!). The model never sees individual r's; it sees subword tokens, none of which is \"r\". To answer \"how many r's in strawberry?\" the model has to @@T0@@decompose@@T1@@ its own tokens — which it does imperfectly because the decomposition never appeared during training.": {
+   "zh": "LLM 常常数错自己输出中的字母。原因在于分词：\"strawberry\" 通常被切成 \"straw\" + \"berry\"（甚至只是一个词元！）。模型从未看到单独的 r；它看到的是子词词元，其中没有一个恰好是 \"r\"。要回答“strawberry 里有几个 r？”，模型必须@@T0@@分解@@T1@@自己的词元——而它做得并不完美，因为这种分解在训练中从未出现过。",
+   "src": "LLMs often miscount letters in their own output. The reason is tokenisation: \"strawberry\" is typically split into \"straw\" + \"berry\" (or just one token!). The model never sees individual r's; it sees subword tokens, none of which is \"r\". To answer \"how many r's in strawberry?\" the model has to <em>decompose</em> its own tokens — which it does imperfectly because the decomposition never appeared during training.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The same explains: weird arithmetic on numbers tokenised as one piece, off-by-one errors on reversing text, and inability to spell out names character by character. The fix in 2024+ is finer-grained number tokenisation (single-digit tokens for numbers) plus character-level data mixed in during training.": {
+   "zh": "同样的道理也解释了下述现象：对作为整体切分的数字进行运算时结果古怪、反转文本时的差一错误，以及无法逐字符拼出名字。2024 年之后的解决办法是更细粒度的数字分词（把数字拆成单个数字的词元），并在训练中混入字符级数据。",
+   "src": "The same explains: weird arithmetic on numbers tokenised as one piece, off-by-one errors on reversing text, and inability to spell out names character by character. The fix in 2024+ is finer-grained number tokenisation (single-digit tokens for numbers) plus character-level data mixed in during training.",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "阅读清单",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Sennrich, Haddow, Birch (2015)@@T1@@ — @@T2@@Neural Machine Translation of Rare Words with Subword Units.@@T3@@ The paper that brought BPE to NLP.": {
+   "zh": "@@T0@@Sennrich, Haddow, Birch (2015)@@T1@@ —— @@T2@@《Neural Machine Translation of Rare Words with Subword Units》@@T3@@。把 BPE 引入自然语言处理的论文。",
+   "src": "<strong>Sennrich, Haddow, Birch (2015)</strong> — <em>Neural Machine Translation of Rare Words with Subword Units.</em> The paper that brought BPE to NLP.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Kudo (2018)@@T1@@ — @@T2@@Subword Regularization.@@T3@@ The Unigram LM tokeniser.": {
+   "zh": "@@T0@@Kudo (2018)@@T1@@ —— @@T2@@《Subword Regularization》@@T3@@。Unigram 语言模型分词器。",
+   "src": "<strong>Kudo (2018)</strong> — <em>Subword Regularization.</em> The Unigram LM tokeniser.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Kudo &amp; Richardson (2018)@@T1@@ — @@T2@@SentencePiece.@@T3@@ The implementation that ships with Llama, T5, etc.": {
+   "zh": "@@T0@@Kudo &amp; Richardson (2018)@@T1@@ —— @@T2@@《SentencePiece》@@T3@@。随 Llama、T5 等一并发布的实现。",
+   "src": "<strong>Kudo &amp; Richardson (2018)</strong> — <em>SentencePiece.</em> The implementation that ships with Llama, T5, etc.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Wu et&nbsp;al. (2016)@@T1@@ — @@T2@@Google's Neural Machine Translation System.@@T3@@ WordPiece in production.": {
+   "zh": "@@T0@@Wu et&nbsp;al. (2016)@@T1@@ —— @@T2@@《Google's Neural Machine Translation System》@@T3@@。生产环境中的 WordPiece。",
+   "src": "<strong>Wu et&nbsp;al. (2016)</strong> — <em>Google's Neural Machine Translation System.</em> WordPiece in production.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Tokenizer playground@@T1@@ — @@T2@@tiktoken@@T3@@ (OpenAI), @@T4@@tokenizers@@T5@@ (HuggingFace).": {
+   "zh": "@@T0@@分词器实验场@@T1@@ —— @@T2@@tiktoken@@T3@@（OpenAI）、@@T4@@tokenizers@@T5@@（HuggingFace）。",
+   "src": "<strong>Tokenizer playground</strong> — <code>tiktoken</code> (OpenAI), <code>tokenizers</code> (HuggingFace).",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "逐步理解 BPE 分词器",
+  "tagline": "观察一个分词器如何一次次合并、逐步扩充其词表",
+  "summary": "输入一段小语料，按下“合并”，观察出现最频繁的相邻对如何被粘连在一起。重复此过程，直到词表达到目标规模。GPT-2、Llama 与 Claude 构建分词器的方式正是如此——模型也正是这样得到了像 'ization'、'tion' 或 ' the' 这样的词元。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "输入任意英文语料，按下“合并”，实时观察最频繁的相邻对如何被粘连。",
+   "词表面板从字母 → 子词 → 完整单词逐步成长。",
+   "合并历史即一份日志——分词器学到的每条规则，按顺序排列。",
+   "尝试带有形态结构的语料（running、runner、runs）——观察它如何找出后缀。",
+   "大段说明性补充：为何 LLM 仍会拼错长单词。"
+  ],
+  "tags": [
+   "BPE",
+   "分词",
+   "LLM",
+   "自然语言处理",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>视觉语言模型：端到端全流程</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>视觉语言模型：端到端全流程</h1>
+        <p class="abstract">
+          现代 VLM 由三个彼此衔接的模块构成（视觉编码器、投影器、语言模型），并经历四个训练阶段（对比学习、图像奠基的语言建模、指令微调、偏好对齐）。一个实时运行的 mini-CLIP 使对比学习阶段具象可感；最后我们讨论真实 VLM 在热成像数据上陷入的定标陷阱。
+        </p>
+        <div class="byline">
+          <span>约 22 分钟</span>
+          <span>多模态 &middot; CLIP &middot; 指令微调</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>架构概览：三个模块</h2>
+        <p>
+          每一个现代 VLM &mdash;&mdash; LLaVA、Qwen-VL、Pixtral、GPT-4o、具备视觉能力的 Claude 3.5 &mdash;&mdash; 都具有相同的形态：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>视觉编码器。</strong> 通常为经 CLIP 或 DINOv2 预训练的 ViT。输入一幅图像，输出一串 patch 嵌入（例如对 224×224 的图像、patch 尺寸为 14 时，得到 256 个 1024 维的词元）。</li>
+          <li><strong>投影器。</strong> 一个规模较小的 MLP（有时为交叉注意力模块），将视觉嵌入映射到 LLM 的隐藏维度，并（通常）通过池化或 Q-Former 式的学习式查询来减少词元数量。</li>
+          <li><strong>语言模型。</strong> 一个预训练的 decoder 式 LLM（Llama、Qwen、Mistral、GPT-OSS）。它接收拼接在文本词元流之前的投影后图像词元，并以自回归方式生成输出。</li>
+        </ul>
+        <div class="bayes-figure">
+          <canvas id="arch-canvas" width="880" height="240"></canvas>
+          <figcaption>现代 VLM 整体结构。冻结与训练的部分随训练阶段而变 &mdash;&mdash; 参见第 2 步。</figcaption>
+        </div>
+        <div class="callout callout--key">
+          <strong>一句话概括。</strong>
+          所谓 VLM，就是一个被教会了阅读另一种「语言」&mdash;&mdash; patch 嵌入的语言 &mdash;&mdash; 的语言模型。神奇之处主要在编码器，智能之处主要在 LLM，而投影器则是位于二者之间、拥有 6000 万参数的翻译器。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>阶段 1 &mdash;&mdash; 对比式图文对齐（CLIP）</h2>
+        <p>
+          在组装 VLM 之前，视觉编码器通常需要与文本对齐。标准做法是对比学习：训练图像编码器 $f_I$ 与文本编码器 $f_T$，使相匹配的（图像，描述）对在余弦相似度上彼此接近，而不相匹配的对彼此远离。
+        </p>
+        <div class="math-block" id="math-clip"></div>
+        <p>
+          $\tau$ 是可学习的温度参数。该损失是对称的（图像到文本与文本到图像两个方向的交叉熵，再取平均）。在从网络抓取的 4 亿以上图文对上进行训练，可学得一套极为通用的视觉词汇 &mdash;&mdash; CLIP 无需在训练中见过任何带标签的 ImageNet 图像，即可在 ImageNet 上取得 76% top-1 的零样本分类精度。
+        </p>
+
+        <h3>实时运行的 mini-CLIP</h3>
+        <p>
+          下图给出 4 类玩具「图像」（彩色形状）与 4 条文本「描述」。一个微型图像编码器与一个微型文本编码器以 InfoNCE 损失联合训练。4×4 的相似度矩阵应将对角线元素（相匹配的对）拉向高值，并将非对角线元素压低。
+        </p>
+        <div class="train-controls">
+          <button class="action-btn" id="clip-toggle">开始训练</button>
+          <button class="action-btn action-btn--ghost" id="clip-reset">重新初始化</button>
+          <label>温度 τ &nbsp;<span id="clip-tau-val">0.25</span> <input type="range" id="clip-tau" min="0.05" max="1" step="0.01" value="0.25"></label>
+          <span class="train-stat">步数 <strong id="clip-step">0</strong></span>
+          <span class="train-stat">对比损失 <strong id="clip-loss">—</strong></span>
+        </div>
+        <div class="vlm-grid">
+          <div class="vlm-panel">
+            <div class="panel-label">玩具数据：4 类图像 × 4 条描述</div>
+            <canvas id="clip-data" width="380" height="380"></canvas>
+          </div>
+          <div class="vlm-panel">
+            <div class="panel-label">余弦相似度矩阵（图像 × 文本）</div>
+            <canvas id="clip-sim" width="380" height="380"></canvas>
+          </div>
+          <div class="vlm-panel">
+            <div class="panel-label">损失曲线</div>
+            <canvas id="clip-loss-canvas" width="380" height="380"></canvas>
+          </div>
+        </div>
+        <div class="callout callout--think">
+          <strong>观察要点。</strong>
+          在大约 50 步之内，相似度矩阵的对角线应开始比非对角线更亮。将 τ 调得极低（例如 0.05），训练会变得不稳定（梯度爆炸）；将 τ 调得极高（例如 1），损失则永远无法区分各对（在 $\log K$ 附近饱和）。真实 CLIP 使用的可学习 τ 初始化为 $0.07$。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-projector">
+        <div class="step-badge">第 1½ 步</div>
+        <h2>图像与语言的接口 &mdash;&mdash; 投影器的设计方案</h2>
+        <p>
+          一旦视觉编码器完成对齐，每个 patch 都成为约 1024 维的特征向量。对 224×224 的图像、patch 尺寸为 14 时，共得到 256 个这样的词元；而 LLM 可能希望它们处于 4096 维的隐藏空间中，且未必需要全部 256 个。投影器正是位于编码器与 LLM 之间、同时完成这两项任务的小型网络。实践中主流设计有四类：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>线性层 / 2 层 MLP（LLaVA-1.0、LLaVA-1.5）。</strong>
+            词元一一对应：每个 patch 嵌入映射为 LLM 空间中的一个图像词元。成本最低，效果却出奇地强；但图像词元数等于 patch 数，在高分辨率下会成为上下文长度的主要负担。</li>
+          <li><strong>Perceiver 重采样器 / Q-Former（Flamingo、BLIP-2）。</strong>
+            $K$ 个学习式查询词元对 patch 特征做交叉注意力；无论图像分辨率如何，输出恰好为 $K$ 个图像词元。可节省计算与上下文：约 32 个查询词元即可替代 576 个 patch 词元。代价是需要单独训练一个模块。</li>
+          <li><strong>在 LLM 内部使用交叉注意力（Flamingo、IDEFICS）。</strong>
+            在 LLM <em>内部</em> 插入专门的交叉注意力层，用于关注图像词元。如此，LLM「看见」图像，却无需为它消耗自注意力的预算。</li>
+          <li><strong>词元打包 + AnyRes / 动态分块
+            （LLaVA-NeXT、Qwen-VL-2.5、GPT-4o、Pixtral）。</strong>
+            将高分辨率图像切分为若干瓦片，每个瓦片是一幅子图像，其瓦片特征被拼接起来。如此，模型无需具备 1344 像素感知能力的编码器，也能处理 1344×1344 的图像。</li>
+        </ul>
+        <div class="math-block" id="math-resampler"></div>
+        <p>
+          这一选择会带来可度量的后果：
+        </p>
+        <div class="examples-table-wrap">
+          <table class="examples-table">
+            <thead><tr><th>设计方案</th><th>图像词元数</th><th>可训练参数量</th><th>优势</th><th>权衡</th></tr></thead>
+            <tbody>
+              <tr><td><strong>线性层 / MLP</strong></td><td>= patch 数（256–576）</td><td>~10M</td><td>最简单；保留空间信息</td><td>上下文开销大</td></tr>
+              <tr><td><strong>Q-Former / 重采样器</strong></td><td>32–64（固定）</td><td>~100M</td><td>开销恒定；需在单独阶段训练</td><td>有损压缩；需要自行预训练</td></tr>
+              <tr><td><strong>交叉注意力</strong></td><td>在 LLM 内部处理</td><td>~1B</td><td>交互最丰富；LLM 可见完整词元集合</td><td>需修改 LLM；训练代价高</td></tr>
+              <tr><td><strong>瓦片打包（AnyRes）</strong></td><td>k × 每瓦片词元数</td><td>~10M</td><td>高分辨率；OCR；图表</td><td>上下文庞大；需要位置编码技巧</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>阶段 2 &mdash;&mdash; 图像奠基的语言预训练</h2>
+        <p>
+          在编码器完成对齐之后，便可接入语言模型。投影器随机初始化；编码器与 LLM 则加载预训练权重。
+        </p>
+        <p>
+          训练数据为图文对。损失为描述文本上的标准下一词元交叉熵，并将图像词元作为前缀上下文。<strong>编码器与 LLM 均被冻结</strong>，仅训练投影器。此阶段成本低廉（6000 万参数），在少量 GPU 上即可运行，所得到的模型能够描述图像，但几乎无法遵循指令。
+        </p>
+        <div class="math-block" id="math-stage2"></div>
+        <div class="callout">
+          <strong>为何在此处冻结 LLM。</strong>
+          投影器初始为随机状态；若在此阶段让梯度流入 LLM，LLM 已有的语言能力会崩溃（灾难性遗忘）。阶段 2 的作用是先将投影器纳入 LLM 的隐藏状态分布之中。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>阶段 3 &mdash;&mdash; 指令微调</h2>
+        <p>
+          此时模型已能描述图像，却无法就图像回答问题或遵循指令。阶段 3 通过一份精心构建的三元组数据集
+          $(\text{image}, \text{instruction}, \text{response})$ 来解决这一问题。
+          例如：「数出这张照片中的人数。」「这支温度计上的读数是多少？」「编写 Python 代码，绘制出该图像中的图表。」
+        </p>
+        <p>
+          损失仅计算响应词元上的交叉熵（图像词元与指令词元被掩蔽）。投影器继续训练；LLM 此时<em>也</em>开始训练，
+          但学习率较低（最常见的实现方式是在 LLM 上叠加 LoRA）。
+        </p>
+        <div class="math-block" id="math-stage3"></div>
+        <div class="callout callout--warn">
+          <strong>规模带来的变化。</strong>
+          前沿 VLM（Gemini、GPT-4o、Claude）在万亿词元的规模上将阶段 1-3 融合在一起，编码器、投影器与 LLM 自训练早期即联合训练。上文所述的冻结式流程是学术预算下的 LLaVA 风格做法；对于实验室中构建的任何领域专用 VLM，它仍然是恰当的起点。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>阶段 4 &mdash;&mdash; 偏好对齐（RLHF / DPO）</h2>
+        <p>
+          经指令微调的模型仍会给出错误内容、含糊其辞，或做出无益的拒绝。阶段 4 收集「这个回答优于那个回答」的偏好对（来自人工或更强的模型），使模型与这些偏好对齐。
+        </p>
+        <ul class="explanation-list">
+          <li><strong>RLHF。</strong> 在偏好对上训练奖励模型；再用 PPO 微调 VLM，最大化奖励并减去相对 SFT 模型的 KL 惩罚。</li>
+          <li><strong>DPO（直接偏好优化）。</strong>
+            一种跳过奖励模型的闭式替代方案：直接优化隐式奖励。成本更低，效果往往相当。</li>
+          <li><strong>RLAIF。</strong> 使用更强的模型作为偏好标注者。这已成为中等规模开源 VLM 的主流做法。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-finetune">
+        <div class="step-badge">第 4½ 步</div>
+        <h2>微调 VLM &mdash;&mdash; 真正可行的方案</h2>
+        <p>
+          多数实验室并不从头 <em>训练</em> 一个 VLM，而是对现有模型进行微调。各选项构成一个成本与灵活性的阶梯：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>仅做提示工程。</strong> 无需成本；对基座模型已具备能力的零样本任务有效。</li>
+          <li><strong>检索增强（RAG）。</strong> 增加一个领域图像/描述的向量数据库；在推理时检索并前置拼接。无需训练；有助于长尾知识。</li>
+          <li><strong>在 LLM 上使用 LoRA（默认选择）。</strong> 在 LLM 的注意力与 MLP 权重上添加 $r$ 阶低秩增量。约占 LLM 参数的 1%；单卡 GPU 即可容纳。
+            常见目标模块：至少为 $\{\,W_q, W_v\,\}$；
+            若需更强的适配，则为 $\{\,W_q, W_k, W_v, W_o, W_{up}, W_{down}, W_{gate}\,\}$。</li>
+          <li><strong>对投影器 + LLM 做全量微调（不使用 LoRA）。</strong>
+            质量最佳，需多卡 GPU。当领域偏移较大时（医学影像、卫星图像、热成像）必须采用。</li>
+          <li><strong>全量编码器 + 投影器 + LLM。</strong> 当模态是全新的（深度、音频、点云）时需要如此。
+            成本：在 $\le$10 亿参数的基座上约需 500-2000 GPU 小时。</li>
+        </ul>
+        <div class="math-block" id="math-lora"></div>
+        <h3>实用方案（单卡 GPU 实验室微调）</h3>
+        <ul class="explanation-list">
+          <li><strong>主干模型。</strong> 以 Llama-3.2-Vision-11B 或 Qwen-VL-7B 作为冻结编码器的基座。二者均随附指令微调后的权重。</li>
+          <li><strong>适配器。</strong> 在每一层的 $\{W_q, W_k, W_v, W_o\}$ 上使用 LoRA 秩 $r = 16$；$\alpha = 32$；
+            dropout 为 $0.05$。</li>
+          <li><strong>数据。</strong> 5 万至 5 万条领域图像-指令-回答三元组。若你只有图像-标签对，可用更强的 VLM 合成指令。
+            混入 5–10% 的基础指令数据以防止灾难性遗忘。</li>
+          <li><strong>优化器。</strong> AdamW，LoRA 参数的学习率为 $1{\times}10^{-4}$，投影器的学习率为 $1{\times}10^{-5}$
+            （若未冻结）。采用余弦调度，预热占 3%，训练 1–3 个 epoch。</li>
+          <li><strong>评估。</strong> 使用与训练相同提示分布的留出验证集；跟踪 exact-match、自由文本的 BLEU/Rouge，
+            以及一个留出的幻觉探测集。</li>
+          <li><strong>需警惕的缺陷。</strong> 冻结的图像词元仍在消耗上下文预算；训练与评估之间的图像预处理不一致（隐形杀手）；
+            基座与你的提示之间的 tokenizer 模板漂移。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-eval">
+        <div class="step-badge">第 4¾ 步</div>
+        <h2>评估 &mdash;&mdash; 各基准实际衡量的内容</h2>
+        <p>
+          若不明确评估方式，受过训练的 VLM 所报出的数值毫无意义。2024-2026 年的标准评测如下：
+        </p>
+        <div class="examples-table-wrap">
+          <table class="examples-table">
+            <thead><tr><th>基准</th><th>考察内容</th><th>格式</th><th>注意事项</th></tr></thead>
+            <tbody>
+              <tr><td><strong>VQAv2 / GQA / OK-VQA</strong>（视觉问答）</td><td>开放式视觉问答</td><td>单词 / 短语</td><td>提示模板化；已饱和</td></tr>
+              <tr><td><strong>MMBench / MMVet</strong>（综合能力）</td><td>综合能力评测集</td><td>多选 + 自由文本</td><td>评估本身即为一次（评判）LLM 调用</td></tr>
+              <tr><td><strong>MMMU</strong>（多学科推理）</td><td>大学水平的多学科推理</td><td>多选</td><td>侧重图表理解</td></tr>
+              <tr><td><strong>POPE / HallusionBench</strong>（幻觉探测）</td><td>物体与场景上的幻觉</td><td>是/否，自由文本</td><td>存在极性偏差；需要均衡的「否」样本</td></tr>
+              <tr><td><strong>ChartQA / DocVQA</strong>（图表与文档）</td><td>图表与文档理解</td><td>数值 / 抽取式</td><td>依赖 OCR 读取；高分辨率瓦片打包有助益</td></tr>
+              <tr><td><strong>MathVista / MathVerse</strong>（视觉数学）</td><td>视觉数学</td><td>数值</td><td>数值上的定标；工具使用效果更佳</td></tr>
+              <tr><td><strong>MMMU-Pro / Reason-Bench</strong>（扰动鲁棒性）</td><td>图像扰动下的推理</td><td>多选</td><td>对裁剪 / 旋转 / 颜色变化的鲁棒性</td></tr>
+              <tr><td><strong>RefCOCO / GroundedVQA</strong>（视觉定位）</td><td>视觉定位（输出边界框）</td><td>坐标</td><td>坐标格式差异极大</td></tr>
+              <tr><td><strong>BLINK / Video-MME</strong>（纯视觉与视频）</td><td>纯视觉与视频任务</td><td>多选</td><td>视频模型继承不同的偏差</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          选取 2 个综合性基准（MMBench + MMMU）与 1 个幻觉探测集（POPE）作为实验室的常规指标；在每个 checkpoint 上都报告这三项结果。最常见的误导是「我们在 VQAv2 上超过了 GPT-4」&mdash;&mdash; VQAv2 自 2022 年起已饱和，如今几乎无人再在该基准上报告结果。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-retrieval">
+        <div class="step-badge">第 4⅞ 步</div>
+        <h2>图文检索 &mdash;&mdash; 实时展示 recall@K</h2>
+        <p>
+          经 CLIP 对齐的编码器还附带免费的检索能力：取一条文本查询，将其嵌入，再找出最接近的图像嵌入。
+          Recall@K 指真实图像出现在检索结果前 K 位的测试查询所占比例。可观察到第 1 步中的实时 mini-CLIP 给出其自身的检索矩阵。
+        </p>
+        <div class="vlm-grid">
+          <div class="vlm-panel" style="grid-column: 1 / 3;">
+            <div class="panel-label">图像 → 文本检索排序列表（实时）</div>
+            <div class="vlm-retrieval" id="ret-rank"></div>
+          </div>
+          <div class="vlm-panel">
+            <div class="panel-label">Recall@K 随训练步数的变化</div>
+            <canvas id="ret-canvas" width="380" height="380"></canvas>
+          </div>
+        </div>
+        <div class="callout">
+          <strong>良好检索的表现。</strong>
+          在四类玩具数据下，CLIP 演示应在约 80 步内达到 100% 的 recall@1。而规模化的真实 CLIP，在使用最大主干时于 Flickr30k 上的 recall@1 约为 75–80%。
+          这一差距说明，主要困难在于干扰项更多、概念分布更加长尾。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>热成像陷阱（以及基于工具使用的解决方案）</h2>
+        <p>
+          真实 VLM 在热成像上会惊人地失败。原因在于定标：热传感器输出的每个像素都是原始温度值，随后被映射为供人眼观看的色彩映射。
+          两幅对 VLM 而言外观完全相同（伪彩色调色板相同）的热图像，其绝对温度可能相差悬殊 &mdash;&mdash; 因为 VLM 只看到颜色，看不到元数据。
+        </p>
+        <p>
+          解决之道并非更大的 VLM，而是一个工具使用回路：
+        </p>
+        <ol class="explanation-list">
+          <li>VLM 查看图像。</li>
+          <li>VLM 发出一次工具调用：「请给出像素 (i, j) 处的温度。」</li>
+          <li>工具读取原始辐射度 TIFF，并返回以开尔文为单位的数值。</li>
+          <li>VLM 基于<em>数值</em>进行推理，而非基于颜色。</li>
+        </ol>
+        <p>
+          这正是 <strong>工具增强的热成像 VLM</strong> 以及热成像 VLM 基准评测背后的研究方向
+          &mdash;&mdash; 它具体地证明了：主流 VLM（GPT-4、Claude、Gemini）在那些工具增强的小模型可以成功的任务上反而失败。这一经验可推广：
+          任何「像素外观相同但含义不同」的模态（热成像、高光谱、深度、音频频谱图）都需要一个工具层。
+        </p>
+        <div class="callout callout--think">
+          <strong>最终要点。</strong>
+          VLM 是一个学会了阅读像素词元的语言模型。其训练流程已被充分理解；尚待解决的问题是对齐、数值上的幻觉，以及模态特有的定标。
+          在实践中，模态特有的定标正是大部分研究回报之所在。
+        </div>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Train small ReLU classifiers, inspect their signed hidden-unit contributions, and orbit the learned logit surface.">
+  <meta name="theme-color" content="#18242f">
+  <title>ReLU 分类实验场</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2318242f'/%3E%3Cpath d='M5 23 11 9l5 10 5-10 6 14' fill='none' stroke='%23f7f4ee' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="playground.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#experiment">跳到实验</a>
+  <header class="topbar">
+    <a class="back" href="../" aria-label="返回全部交互内容">全部交互内容</a>
+    <div class="brand-lockup"><p>深度学习 · 第 2 讲</p><h1>ReLU 分类实验场</h1></div>
+    <a class="companion-link" href="../relu-function-approximation/"><span>配套实验</span><strong>函数逼近&nbsp;→</strong></a>
+  </header>
+
+  <main class="app" id="experiment">
+    <header class="lab-intro">
+      <div><p class="kicker">数据 → ReLU 特征 → 得分</p><h2>看清你的分类器正在使用的是什么函数。</h2></div>
+      <p>改变证据、架构或初始化，然后考察带符号的 ReLU 贡献如何组装出 logit 曲面及其 <em>z = 0</em> 决策边界。</p>
+    </header>
+
+    <section class="lab-grid">
+      <aside class="controls" aria-label="实验控件">
+        <section class="control-section">
+          <div class="section-heading"><span>01</span><h2>数据集</h2></div>
+          <label class="field" for="datasetSelect"><span>展示给模型的证据</span>
+            <select id="datasetSelect">
+              <option value="xor4">XOR · 四个布尔角点</option><option value="xorField">XOR · 填充区域</option>
+              <option value="blobs">两个团块</option><option value="circles">同心圆</option>
+              <option value="moons">双月牙</option><option value="spirals">双螺旋</option><option value="custom">自定义点</option>
+            </select>
+          </label>
+          <p class="control-note" id="datasetNote">四个标签只约束了四个角点，并未约束它们之间的空间。</p>
+          <label class="field" for="dataSeedInput"><span>数据种子</span><span class="seed-row"><input id="dataSeedInput" type="number" min="1" max="9999" value="11" inputmode="numeric"><button type="button" class="icon-button" id="newDataSeedBtn" aria-label="使用下一个数据种子">+1</button></span></label>
+          <div class="custom-tools" id="customPointTools" hidden>
+            <div class="custom-tools-head"><span class="field-label">点击输入图以添加</span><output id="customCount">0 个点</output></div>
+            <div class="segmented" role="group" aria-label="下一个自定义点的类别">
+              <button type="button" class="segment is-active" data-point-class="0" aria-pressed="true"><i class="dot dot-zero"></i>类别 0</button>
+              <button type="button" class="segment" data-point-class="1" aria-pressed="false"><i class="diamond dot-one"></i>类别 1</button>
+            </div>
+            <div class="inline-actions"><button type="button" class="text-button" id="undoPointBtn">撤销上一个点</button><button type="button" class="text-button danger" id="clearPointsBtn">全部清除</button></div>
+            <p class="microcopy">空白就保持空白。更换种子绝不会替换你的点。</p>
+          </div>
+        </section>
+
+        <section class="control-section">
+          <div class="section-heading"><span>02</span><h2>模型</h2></div>
+          <label class="field" for="depthSelect"><span>架构</span><select id="depthSelect"><option value="0">线性 · 无隐藏层</option><option value="1" selected>1 个隐藏层</option><option value="2">2 个隐藏层</option></select></label>
+          <label class="field" for="widthRange"><span><span>隐藏层宽度</span><output id="widthOutput" for="widthRange">2</output></span><input id="widthRange" type="range" min="1" max="16" step="1" value="2" aria-describedby="widthNote"></label>
+          <p class="width-note" id="widthNote"><strong>加宽而不重置。</strong> 向右移动：新增的 ReLU 初始输出贡献为零，因此当前函数保持完全不变。向左移动：更窄的模型无法保持同一函数，故本实验会载入一个全新的带种子模型，训练重新开始。更大的容量扩展了网络所能表示的范围；而最终训练找到哪一个解，仍取决于一次优化过程。</p>
+          <label class="field" for="learningRateSelect"><span>学习率</span><select id="learningRateSelect"><option value="0.003">0.003</option><option value="0.01">0.01</option><option value="0.03" selected>0.03</option><option value="0.1">0.1</option></select></label>
+        </section>
+
+        <section class="control-section">
+          <div class="section-heading"><span>03</span><h2>初始化</h2></div>
+          <p class="control-note">固定数据与架构，只改变优化开始的位置。</p>
+          <label class="field" for="weightSeedInput"><span>权重种子</span><span class="seed-row"><input id="weightSeedInput" type="number" min="1" max="9999" value="11" inputmode="numeric"><button type="button" class="icon-button" id="newWeightSeedBtn" aria-label="使用下一个权重种子">+1</button></span></label>
+          <div class="preset-row">
+            <button type="button" class="preset-button recommended-button" id="recommendedSetupBtn"><span>推荐 · 可靠的训练起点</span><small id="recommendedSetupText">1 层 · 宽度 8 · 学习率 0.1 · 权重种子 23</small></button>
+            <button type="button" class="preset-button" id="randomInitBtn"><span>带种子 · 均衡的折线</span><small>保持架构；重置为分布良好的 ReLU</small></button>
+            <button type="button" class="preset-button" id="cornerProofBtn"><span>人工构造 · 2 个 ReLU</span><small>在四个 XOR 角点上精确成立</small></button>
+            <button type="button" class="preset-button" id="fieldProofBtn"><span>人工构造 · 4 个 ReLU</span><small>在整个填充 XOR 上精确成立</small></button>
+          </div>
+          <p class="preset-note"><strong>填充 XOR：</strong>「人工构造 · 4 个 ReLU」证明了容量所在。「推荐」则是从一个均衡的带种子起点出发的可靠训练路径。</p>
+        </section>
+
+        <section class="control-section train-section">
+          <div class="section-heading"><span>04</span><h2>优化</h2></div>
+          <div class="train-buttons"><button type="button" class="primary-button" id="runBtn" aria-pressed="false" aria-describedby="statusText objectiveNote" disabled>运行</button><button type="button" class="secondary-button" id="stepBtn" aria-describedby="statusText objectiveNote" disabled>单步</button><button type="button" class="secondary-button" id="resetBtn">重置权重</button></div>
+          <p class="status" id="statusText" role="status" aria-live="polite">已载入人工构造规则以供查看。训练前请选择「推荐」或「带种子」。</p>
+          <p class="objective-note" id="objectiveNote"><strong>训练最小化的是 BCE。</strong> 准确率采用 0.5 的阈值，因此即便 BCE 在改善，准确率也可能短暂下降。</p>
+        </section>
+      </aside>
+
+      <section class="workspace" aria-label="实验输出">
+        <div class="workspace-head">
+          <div><div class="title-meta"><p class="eyebrow">当前决策函数</p><span class="provenance-badge is-constructed" id="provenanceBadge">人工构造</span></div><h2 id="workspaceTitle">四个点无法确定四个区域</h2></div>
+          <div class="view-switch" role="group" aria-label="输入空间场"><button type="button" class="view-button" data-class-view="probability" aria-pressed="false">概率</button><button type="button" class="view-button is-active" data-class-view="logit" aria-pressed="true">logit</button><button type="button" class="view-button" data-class-view="class" aria-pressed="false">类别</button></div>
+        </div>
+
+        <div class="metric-row" aria-live="polite"><div class="metric"><span id="metric1Label">训练准确率</span><strong id="metric1Value">100%</strong></div><div class="metric"><span id="metric2Label">均衡场准确率</span><strong id="metric2Value">75%</strong></div><div class="metric"><span id="metric3Label">训练 BCE</span><strong id="metric3Value">0.31</strong></div><div class="metric"><span>梯度步数</span><strong id="stepsValue">0</strong></div></div>
+
+        <figure class="primary-visual">
+          <canvas id="mainCanvas" role="img" aria-label="叠加在当前模型场之上的训练数据。点击可移动联动探针；在自定义数据集下，点击可添加数据点。"></canvas>
+          <figcaption class="plot-caption"><div class="plot-legend"><span><i class="marker marker-zero"></i>类别 0</span><span><i class="marker marker-one"></i>类别 1</span><span><i class="boundary-swatch"></i>z = 0</span><span><i class="probe-swatch"></i>联动探针</span></div><span>形状与描边使数据在每一层场上都清晰可见。</span></figcaption>
+        </figure>
+
+        <div class="model-row">
+          <section class="network-panel" aria-labelledby="networkTitle"><div class="panel-head"><div><p class="eyebrow">架构</p><h3 id="networkTitle">两个输入 → 两个 ReLU → 一个得分</h3></div><span class="parameter-count" id="parameterCount">9 个参数</span></div><canvas id="networkCanvas" role="img" aria-label="当前网络架构"></canvas></section>
+          <section class="history-panel" aria-labelledby="historyTitle"><div class="panel-head"><div><p class="eyebrow">优化轨迹</p><h3 id="historyTitle">交叉熵随步数的变化</h3></div><span class="history-note">对数刻度</span></div><canvas id="historyCanvas" role="img" aria-label="训练损失历史"></canvas></section>
+        </div>
+
+        <div class="analysis-grid">
+          <section class="analysis-panel feature-panel" aria-labelledby="featureTitle">
+            <div class="panel-head"><div><p class="eyebrow">带符号的输出项</p><h3 id="featureTitle">相加构成 z(x₁, x₂) 的各项</h3></div><span class="shared-scale"><i></i>共享刻度 · 以零为中心</span></div>
+            <p class="panel-copy">每张图展示的是 <strong>vⱼhⱼ</strong>，而不仅仅是激活值。蓝色抬高类别 1 的得分，铁锈色则使其降低，折线标记出该 ReLU 开启的位置。</p>
+            <div class="feature-grid" id="featureGrid"></div>
+          </section>
+
+          <section class="analysis-panel surface-panel" aria-labelledby="surfaceTitle">
+            <div class="panel-head surface-head"><div><p class="eyebrow">原始 logit 曲面</p><h3 id="surfaceTitle">环绕观察学到的函数</h3></div><div class="surface-toolbar" role="group" aria-label="曲面相机预设"><button type="button" class="mini-button is-active" data-surface-view="iso" aria-pressed="true">等轴</button><button type="button" class="mini-button" data-surface-view="top" aria-pressed="false">俯视</button><button type="button" class="mini-button" data-surface-view="front" aria-pressed="false">正视</button><button type="button" class="mini-button reset-camera" id="surface重置Btn">重置</button></div></div>
+            <p class="surface-instruction" id="surfaceInstruction">拖动以环绕 · 滚轮以缩放 · 橙色平面即 z = 0</p>
+            <canvas id="surfaceCanvas" tabindex="0" role="img" aria-describedby="surfaceInstruction" aria-label="交互式三维 logit 曲面"></canvas>
+            <div class="probe-row"><label for="probeX">x₁ <input id="probeX" type="range" min="0" max="1" step="0.01" value="0.25"><output id="probeXOutput">0.25</output></label><label for="probeY">x₂ <input id="probeY" type="range" min="0" max="1" step="0.01" value="0.75"><output id="probeYOutput">0.75</output></label></div>
+            <p class="probe-readout" id="probeReadout">z = 0.50 · p = 0.62 · 类别 1</p>
+          </section>
+        </div>
+
+        <section class="lecture-prompts" aria-labelledby="promptsTitle"><div class="prompt-heading"><span>运行实验</span><h3 id="promptsTitle">只改变一项。先做出预测。</h3></div><div class="prompt-grid"><p><strong>证据</strong> 把四个 XOR 角点与填充场作比较。哪些未见过的区域会发生变化？</p><p><strong>容量</strong> 训练一个小模型，然后将其加宽。在优化真正利用新增 ReLU 之前，边界不应发生跳变。</p><p><strong>优化</strong> 固定数据与宽度。不同的种子会学到相同的曲面吗？</p></div></section>
+      </section>
+    </section>
+  </main>
+
+  <footer class="footer"><span>确定性数据 · 全批次梯度下降 · 计算全部在本页内完成</span><nav aria-label="相关材料"><a href="../relu-function-approximation/">继续学习 ReLU 函数逼近</a><a href="https://nipunbatra.github.io/dl-teaching/slides-pdf/L2.pdf">讲义幻灯片</a></nav></footer>
+
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

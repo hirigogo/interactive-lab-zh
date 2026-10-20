@@ -1,0 +1,291 @@
+{
+ "slug": "transformer-block",
+ "units": {
+  "Inside a Transformer Block": {
+   "zh": "深入一个 Transformer 模块",
+   "src": "Inside a Transformer Block",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "A transformer is a stack of identical blocks, and every block does the same six\n      little things to a running @@T0@@residual stream@@T1@@ of token vectors. Press\n      @@T2@@Step@@T3@@ to walk one block end to end: normalize, let attention\n      @@T4@@mix information between positions@@T5@@, add it back to the stream, normalize\n      again, let the feed-forward network @@T6@@transform each position on its own@@T7@@,\n      and add that back too.": {
+   "zh": "Transformer 是一叠彼此相同的模块，每个模块都对一条不断流动的词元向量@@T0@@残差流@@T1@@做同样的六件小事。按下 @@T2@@步进@@T3@@，从头到尾走过一个模块：归一化，让注意力@@T4@@在位置之间混合信息@@T5@@，把它加回残差流，再次归一化，让前馈网络@@T6@@各自独立地变换每一个位置@@T7@@，然后再把它也加回去。",
+   "src": "A transformer is a stack of identical blocks, and every block does the same six\n      little things to a running <em>residual stream</em> of token vectors. Press\n      <strong>Step</strong> to walk one block end to end: normalize, let attention\n      <em>mix information between positions</em>, add it back to the stream, normalize\n      again, let the feed-forward network <em>transform each position on its own</em>,\n      and add that back too.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~10 min@@T1@@\n      @@T2@@Deep Learning &middot; Transformers &middot; Self-Attention@@T3@@": {
+   "zh": "@@T0@@约 10 分钟@@T1@@\n      @@T2@@深度学习 &middot; Transformer &middot; 自注意力@@T3@@",
+   "src": "<span>~10 min</span>\n      <span>Deep Learning &middot; Transformers &middot; Self-Attention</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "One block, six moves, one stream": {
+   "zh": "一个模块，六个动作，一条流",
+   "src": "One block, six moves, one stream",
+   "tags": []
+  },
+  "Feed a short sequence of tokens in as rows of a matrix $X \\in \\mathbb{R}^{n\\times d}$\n      &mdash; $n$ positions, each a $d$-dimensional vector. A transformer block does not\n      replace $X$; it @@T0@@edits@@T1@@ it. Two sublayers each read the stream, compute a\n      correction, and @@T2@@add@@T3@@ that correction back. This is the residual\n      stream, and its two updates are:": {
+   "zh": "把一段较短的词元序列作为矩阵 $X \\in \\mathbb{R}^{n\\times d}$ 的各行输入 &mdash;— $n$ 个位置，每个位置是一个 $d$ 维向量。一个 Transformer 模块并不替换 $X$，而是@@T0@@编辑@@T1@@它。两个子层各自读取这条流、计算出一个修正量，再把这个修正量@@T2@@加@@T3@@回去。这就是残差流，而它的两次更新是：",
+   "src": "Feed a short sequence of tokens in as rows of a matrix $X \\in \\mathbb{R}^{n\\times d}$\n      &mdash; $n$ positions, each a $d$-dimensional vector. A transformer block does not\n      replace $X$; it <em>edits</em> it. Two sublayers each read the stream, compute a\n      correction, and <strong>add</strong> that correction back. This is the residual\n      stream, and its two updates are:",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Everything hinges on @@T0@@who talks to whom@@T1@@. Attention is the only place\n      information moves @@T2@@between@@T3@@ positions; the feed-forward network\n      touches each position @@T4@@independently@@T5@@. LayerNorm and the residual\n      adds are the plumbing that keeps this deep stack numerically calm. The widget\n      below takes four tokens through exactly one block, one move at a time.": {
+   "zh": "一切都取决于@@T0@@谁与谁交谈@@T1@@。注意力是信息@@T2@@在@@T3@@位置之间流动的唯一场所；前馈网络则@@T4@@独立地@@T5@@作用于每一个位置。LayerNorm 与残差加法则是让这叠得很深的网络在数值上保持平稳的管道工程。下方的小组件会带着四个词元精确地走过一个模块，一次一个动作。",
+   "src": "Everything hinges on <em>who talks to whom</em>. Attention is the only place\n      information moves <strong>between</strong> positions; the feed-forward network\n      touches each position <strong>independently</strong>. LayerNorm and the residual\n      adds are the plumbing that keeps this deep stack numerically calm. The widget\n      below takes four tokens through exactly one block, one move at a time.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The Lab": {
+   "zh": "实验",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Step the residual stream through one block": {
+   "zh": "让残差流逐步走过一个模块",
+   "src": "Step the residual stream through one block",
+   "tags": []
+  },
+  "The diagram is the wiring; the heatmaps are the actual numbers (fixed, seeded).\n      Warm cells are positive, blue cells negative, intensity is magnitude. Press\n      @@T0@@Step@@T1@@ to perform the next of the six moves &mdash; watch the\n      residual stream (bottom) change @@T2@@only@@T3@@ at the two &ldquo;+&rdquo; adds,\n      never during the branch computations.": {
+   "zh": "示意图展示的是接线关系；热力图则是实际的数值（固定，带种子）。暖色单元为正，蓝色单元为负，深浅表示幅度。按下 @@T0@@步进@@T1@@ 执行六步中的下一步 &mdash;— 观察残差流（底部）@@T2@@只在@@T3@@两处「+」加法处发生变化，而在分支计算过程中绝不改变。",
+   "src": "The diagram is the wiring; the heatmaps are the actual numbers (fixed, seeded).\n      Warm cells are positive, blue cells negative, intensity is magnitude. Press\n      <strong>Step</strong> to perform the next of the six moves &mdash; watch the\n      residual stream (bottom) change <em>only</em> at the two &ldquo;+&rdquo; adds,\n      never during the branch computations.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step &rarr;": {
+   "zh": "步进 &rarr;",
+   "src": "Step &rarr;",
+   "tags": []
+  },
+  "Run block": {
+   "zh": "运行整个模块",
+   "src": "Run block",
+   "tags": []
+  },
+  "Reset": {
+   "zh": "重置",
+   "src": "Reset",
+   "tags": []
+  },
+  "The residual stream (green when it updates) runs straight down; each sublayer branches off, is computed, and is added back at a &ldquo;+&rdquo;.": {
+   "zh": "残差流（更新时显示为绿色）笔直向下延伸；每个子层都从它分出一条支路，计算完成后在「+」处加回。",
+   "src": "The residual stream (green when it updates) runs straight down; each sublayer branches off, is computed, and is added back at a &ldquo;+&rdquo;.",
+   "tags": []
+  },
+  "@@T0@@Start@@T1@@\n          The four token vectors sit in the residual stream, untouched. Press\n          @@T2@@Step@@T3@@ to begin the block.": {
+   "zh": "@@T0@@开始@@T1@@\n          四个词元向量原封不动地停在残差流中。按下 @@T2@@步进@@T3@@ 开始运行该模块。",
+   "src": "<span class=\"se-title\">Start</span>\n          The four token vectors sit in the residual stream, untouched. Press\n          <strong>Step</strong> to begin the block.",
+   "tags": [
+    "<span class=\"se-title\">",
+    "</span>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Current move@@T1@@\n            @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@当前动作@@T1@@\n            @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Current move</span>\n            <span class=\"stat-value\" id=\"moveVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"moveVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Information flow@@T1@@\n            @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@信息流动@@T1@@\n            @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Information flow</span>\n            <span class=\"stat-value\" id=\"flowVal\" style=\"font-size:1.05rem;\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"flowVal\" style=\"font-size:1.05rem;\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Stream norm $\\lVert X\\rVert$@@T1@@\n            @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@流范数 $\\lVert X\\rVert$@@T1@@\n            @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Stream norm $\\lVert X\\rVert$</span>\n            <span class=\"stat-value\" id=\"normVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"normVal\">",
+    "</span>"
+   ]
+  },
+  "The current move, computed on a branch off the stream.": {
+   "zh": "当前动作，是在从残差流分出的支路上计算得到的。",
+   "src": "The current move, computed on a branch off the stream.",
+   "tags": []
+  },
+  "The residual stream $X$ (nx d). It changes @@T0@@only@@T1@@ at the two residual adds; LayerNorm, attention and the FFN all read it but write to a branch first.": {
+   "zh": "残差流 $X$（n× d）。它@@T0@@只在@@T1@@两处残差加法处发生变化；LayerNorm、注意力与 FFN 都读取它，但先写入支路。",
+   "src": "The residual stream $X$ (nx d). It changes <em>only</em> at the two residual adds; LayerNorm, attention and the FFN all read it but write to a branch first.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@@@T1@@@@T2@@negative@@T3@@\n      @@T4@@@@T5@@@@T6@@~zero@@T7@@\n      @@T8@@@@T9@@@@T10@@positive@@T11@@\n      @@T12@@tokens: @@T13@@The&nbsp;&middot;&nbsp;cat&nbsp;&middot;&nbsp;sat&nbsp;&middot;&nbsp;down@@T14@@@@T15@@": {
+   "zh": "@@T0@@@@T1@@@@T2@@负@@T3@@\n      @@T4@@@@T5@@@@T6@@约等于零@@T7@@\n      @@T8@@@@T9@@@@T10@@正@@T11@@\n      @@T12@@词元：@@T13@@The&nbsp;&middot;&nbsp;cat&nbsp;&middot;&nbsp;sat&nbsp;&middot;&nbsp;down@@T14@@@@T15@@",
+   "src": "<span><span class=\"sw\" style=\"background:#2c6fb7\"></span>negative</span>\n      <span><span class=\"sw\" style=\"background:#ffffff\"></span>~zero</span>\n      <span><span class=\"sw\" style=\"background:#d9622b\"></span>positive</span>\n      <span style=\"margin-left:auto;\">tokens: <b>The&nbsp;&middot;&nbsp;cat&nbsp;&middot;&nbsp;sat&nbsp;&middot;&nbsp;down</b></span>",
+   "tags": [
+    "<span>",
+    "<span class=\"sw\" style=\"background:#2c6fb7\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"sw\" style=\"background:#ffffff\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"sw\" style=\"background:#d9622b\">",
+    "</span>",
+    "</span>",
+    "<span style=\"margin-left:auto;\">",
+    "<b>",
+    "</b>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Watch the attention move.@@T1@@ At step 2 the $n\\times n$ weight matrix\n      lights up: row $i$ tells you how much position $i$ pulls from every position $j$.\n      The output for &ldquo;down&rdquo; is literally a blend $\\sum_j A_{ij}\\,v_j$ of all\n      four value vectors &mdash; that is information travelling @@T2@@between@@T3@@ tokens.\n      Nowhere else in the block does that happen.": {
+   "zh": "@@T0@@留意注意力的那一步。@@T1@@ 在第 2 步，$n\\times n$ 的权重矩阵亮起：第 $i$ 行告诉你位置 $i$ 从每一个位置 $j$ 汲取了多少信息。「down」的输出字面上就是全部四个值向量的混合 $\\sum_j A_{ij}\\,v_j$ &mdash;— 这正是信息@@T2@@在@@T3@@词元之间流动。模块中再无别处会发生这种事。",
+   "src": "<strong>Watch the attention move.</strong> At step 2 the $n\\times n$ weight matrix\n      lights up: row $i$ tells you how much position $i$ pulls from every position $j$.\n      The output for &ldquo;down&rdquo; is literally a blend $\\sum_j A_{ij}\\,v_j$ of all\n      four value vectors &mdash; that is information travelling <em>between</em> tokens.\n      Nowhere else in the block does that happen.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "收获",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Why this shape, and why it stacks": {
+   "zh": "为何是这个形状，又为何能够堆叠",
+   "src": "Why this shape, and why it stacks",
+   "tags": []
+  },
+  "A block is a careful division of labour. Attention decides @@T0@@what to read from\n      where@@T1@@; the FFN decides @@T2@@what to do with what each position now holds@@T3@@.\n      Separating &ldquo;move information&rdquo; from &ldquo;process information&rdquo; is\n      what lets the same block be stacked dozens of times.": {
+   "zh": "一个模块是一次精心设计的分工。注意力决定@@T0@@从何处读取什么@@T1@@；FFN 决定@@T2@@如何处置每个位置此刻所持有的内容@@T3@@。把「搬运信息」与「处理信息」彼此分开，正是同一个模块得以被堆叠数十次的原因。",
+   "src": "A block is a careful division of labour. Attention decides <em>what to read from\n      where</em>; the FFN decides <em>what to do with what each position now holds</em>.\n      Separating &ldquo;move information&rdquo; from &ldquo;process information&rdquo; is\n      what lets the same block be stacked dozens of times.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Attention mixes positions.@@T1@@ Every output row is a weighted average of value vectors from @@T2@@all@@T3@@ positions. This is the one and only channel for tokens to influence each other.": {
+   "zh": "@@T0@@注意力混合各个位置。@@T1@@ 每一输出行都是来自@@T2@@全部@@T3@@位置的值向量的加权平均。这是词元之间相互影响的唯一通道。",
+   "src": "<strong>Attention mixes positions.</strong> Every output row is a weighted average of value vectors from <em>all</em> positions. This is the one and only channel for tokens to influence each other.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@The FFN is position-wise.@@T1@@ The same little MLP is applied to each row on its own &mdash; no row ever sees another. It is where most of a transformer's parameters (and much of its stored knowledge) live.": {
+   "zh": "@@T0@@FFN 是逐位置作用的。@@T1@@ 同一个小型 MLP 被独立地施加于每一行 &mdash;— 任何一行都看不到另一行。Transformer 的大部分参数（以及它所存储的大量知识）正栖身于此。",
+   "src": "<strong>The FFN is position-wise.</strong> The same little MLP is applied to each row on its own &mdash; no row ever sees another. It is where most of a transformer's parameters (and much of its stored knowledge) live.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Residual + norm keep the stream stable.@@T1@@ Because each sublayer only @@T2@@adds@@T3@@ a correction, gradients get a clean highway straight back to the input, and LayerNorm keeps every row at a sane scale so 96-layer stacks still train.": {
+   "zh": "@@T0@@残差 + 归一化保持流的稳定。@@T1@@ 由于每个子层都只是@@T2@@加上@@T3@@一个修正量，梯度便获得一条直达输入的高速公路，而 LayerNorm 让每一行保持在合理的尺度上，因此 96 层的堆叠依然可以训练。",
+   "src": "<strong>Residual + norm keep the stream stable.</strong> Because each sublayer only <em>adds</em> a correction, gradients get a clean highway straight back to the input, and LayerNorm keeps every row at a sane scale so 96-layer stacks still train.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Pre-norm vs post-norm.@@T1@@ This widget shows the modern @@T2@@pre-norm@@T3@@\n      arrangement &mdash; LayerNorm sits @@T4@@inside@@T5@@ each branch, so the residual\n      stream itself is never normalized, only added to. That untouched highway is exactly\n      why very deep transformers (GPT, LLaMA) train stably where the original post-norm\n      design needed careful warm-up.": {
+   "zh": "@@T0@@前置归一化与后置归一化。@@T1@@ 本组件展示的是现代的@@T2@@前置归一化@@T3@@布局 &mdash;— LayerNorm 位于每条支路的@@T4@@内部@@T5@@，因此残差流本身从不被归一化，只被加法更新。正是这条未被触碰的高速公路，使得极深的 Transformer（GPT、LLaMA）能够稳定训练，而最初的 post-norm 设计则需要精心预热。",
+   "src": "<strong>Pre-norm vs post-norm.</strong> This widget shows the modern <em>pre-norm</em>\n      arrangement &mdash; LayerNorm sits <em>inside</em> each branch, so the residual\n      stream itself is never normalized, only added to. That untouched highway is exactly\n      why very deep transformers (GPT, LLaMA) train stably where the original post-norm\n      design needed careful warm-up.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 16: Transformers I &mdash; Self-Attention": {
+   "zh": "ES 667 深度学习讲解系列的一部分 &middot; 第 16 讲：Transformer I &mdash;— 自注意力",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 16: Transformers I &mdash; Self-Attention",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "深入一个 Transformer 模块",
+  "tagline": "让残差流一步步走过一个模块，看注意力如何混合各个位置，而 FFN 则各自独立地处理每个位置",
+  "summary": "Transformer 是一叠彼此相同的模块，每个模块都用六个小动作编辑一条不断流动的残差流。按下步进，从头到尾走过一个模块：LayerNorm、自注意力（其 n x n 权重矩阵在各个位置之间混合值向量）、一次残差加法、再次 LayerNorm、一个逐位置的前馈网络，最后再来一次残差加法。实时的模块示意图会高亮当前活跃的子层，而热力图则展示真实数值，使核心要点一目了然：注意力是信息在词元之间流动的唯一场所，FFN 各自独立地处理每一个词元，而残差流只在两处加法处发生变化。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "让一个 Transformer 模块走遍全部六个动作，看实时的模块示意图高亮当前活跃的子层。",
+   "观察 n x n 的注意力矩阵，以及每个输出行如何成为跨位置的值向量加权混合。",
+   "确认残差流只在两处「+」加法处发生变化——LayerNorm、注意力与 FFN 都先在支路上计算。",
+   "对比注意力（在位置之间混合信息）与前馈网络（独立变换每一个位置）。",
+   "领会为何残差连接加上前置归一化的 LayerNorm，才能让数十个这样的模块堆叠起来仍然可以训练。"
+  ],
+  "tags": [
+   "Transformer",
+   "自注意力",
+   "残差流",
+   "LayerNorm",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

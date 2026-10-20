@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>图搜索：逐层推进前沿</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>图搜索：逐层推进前沿</h1>
+        <p class="abstract">
+          BFS（广度优先搜索） 能在无权图上找到最短路径，却因盲目探索而浪费精力。Dijkstra（迪杰斯特拉） 能处理边权，却无视目标所在。A* 引入启发式函数便能径直抵达——前提是该启发式是可采纳的。在网格上绘制墙壁，观察四种搜索算法如何扩展各自的前沿，并看清每一种究竟在何处浪费了工作。
+        </p>
+        <div class="byline">
+          <span>约 16 分钟</span>
+          <span>数据结构 &middot; 图搜索 &middot; A*</span>
+        </div>
+      </header>
+
+      <section class="步进-section" id="prelude">
+        <div class="步进-badge">前言</div>
+        <h2>同一套脚手架，四种算法</h2>
+        <p>
+          四种经典的单源最短路径 / 可达性算法——BFS（广度优先搜索）、DFS（深度优先搜索）、Dijkstra（迪杰斯特拉）、A*——共用同一套脚手架。维护一个<em>前沿</em>，其中存放已发现但尚未最终确定的节点。取出一个，标记为已确定，将其邻居加入前沿。重复此过程，直至抵达目标（或前沿清空）。
+        </p>
+        <p>
+          它们之间的差异何在？<strong>在于支撑前沿的数据结构。</strong>
+        </p>
+        <ul class="explanation-list">
+          <li><strong>BFS（广度优先搜索）</strong>使用 FIFO 队列 → 先取出最浅的节点 → 在无权图上找到最短路径。</li>
+          <li><strong>DFS（深度优先搜索）</strong>使用 LIFO 栈 → 先取出最深的节点 → 找到<em>某条</em>路径而非最短路径，但内存占用少得多。</li>
+          <li><strong>Dijkstra（迪杰斯特拉）</strong>使用以当前路径代价为键的最小优先队列 → 取出离起点代价最低的节点 → 在边权非负的带权图上达到最优。</li>
+          <li><strong>A*</strong>使用以 $f(n) = g(n) + h(n)$ 为键的最小优先队列（当前代价加上到目标的启发式估计）→ 取出最有希望的节点 → 只要 $h$ 可采纳即为最优。</li>
+        </ul>
+        <p>
+          优先级顺序不同，行为便不同，底层循环却相同。
+        </p>
+      </section>
+
+      <section class="步进-section" id="步进-1">
+        <div class="步进-badge">第 1 步</div>
+        <h2>绘制、运行、观察</h2>
+        <p>
+          选择一种工具，点击单元格进行涂绘。墙壁（黑色）不可通行。泥地（棕色）可通行，但代价是普通步长的 5 倍——只有 Dijkstra（迪杰斯特拉） 与 A* 会在意这一点。可将绿色起点或红色目标拖至任意位置。然后按下 <em>运行</em>。
+        </p>
+        <div class="gs-controls">
+          <label>算法
+            <select id="gs-algo">
+              <option value="bfs">BFS（广度优先搜索）（无权最短路径）</option>
+              <option value="dfs">DFS（深度优先搜索）</option>
+              <option value="dijkstra" selected>Dijkstra（迪杰斯特拉）</option>
+              <option value="astar">A*（曼哈顿启发式）</option>
+              <option value="greedy">贪心最佳优先</option>
+            </select>
+          </label>
+          <label>速度
+            <select id="gs-速度">
+              <option value="80">慢</option>
+              <option value="20" selected>正常</option>
+              <option value="4">快</option>
+              <option value="0">即时</option>
+            </select>
+          </label>
+          <button class="btn" id="gs-运行">运行</button>
+          <button class="btn btn--ghost" id="gs-步进">步进</button>
+          <button class="btn btn--ghost" id="gs-clear-search">清除搜索</button>
+          <button class="btn btn--warn" id="gs-clear-墙壁s">清除墙壁</button>
+          <button class="btn btn--ghost" id="gs-maze">随机迷宫</button>
+        </div>
+        <div class="gs-controls">
+          <span style="font-family: var(--sans); font-size: 0.92rem;">涂绘：</span>
+          <div class="gs-tools" id="gs-tools">
+            <button class="tool-btn is-active" data-tool="墙壁">墙壁</button>
+            <button class="tool-btn" data-tool="mud">泥地（代价 5）</button>
+            <button class="tool-btn" data-tool="擦除">擦除</button>
+            <button class="tool-btn" data-tool="start">移动起点</button>
+            <button class="tool-btn" data-tool="goal">移动目标</button>
+          </div>
+        </div>
+        <div class="gs-legend">
+          <span><span class="gs-legend-sw" style="background: var(--cell-start);"></span>起点</span>
+          <span><span class="gs-legend-sw" style="background: var(--cell-goal);"></span>目标</span>
+          <span><span class="gs-legend-sw" style="background: var(--cell-墙壁);"></span>墙壁</span>
+          <span><span class="gs-legend-sw" style="background: var(--cell-mud);"></span>泥地（代价 5）</span>
+          <span><span class="gs-legend-sw" style="background: var(--cell-前沿);"></span>前沿</span>
+          <span><span class="gs-legend-sw" style="background: var(--cell-explored);"></span>已探索</span>
+          <span><span class="gs-legend-sw" style="background: var(--cell-path);"></span>路径</span>
+        </div>
+        <div class="gs-stage">
+          <canvas class="gs-canvas" id="gs-canvas"></canvas>
+        </div>
+        <div class="gs-status" id="gs-status">请绘制墙壁，然后按下运行。</div>
+        <p>
+          值得尝试的操作：
+        </p>
+        <ul class="explanation-list">
+          <li>清除墙壁，在同一空网格上运行 BFS（广度优先搜索） 与 A*。BFS（广度优先搜索） 会探索一个近似方形、半径等于到目标距离的区域。A* 则绘出一个指向目标的椭圆。最短路径相同，工作量却天差地别。</li>
+          <li>在起点与目标之间绘制一条长长的水平泥地带。运行 BFS（广度优先搜索）——它对每一步一视同仁，因此径直穿过。运行 Dijkstra（迪杰斯特拉）——它会绕行。</li>
+          <li>在目标周围绘制一道 C 形墙壁，使算法不得不回溯。运行贪心最佳优先；它会一头扎向目标，直到被挡住才意识到错误。A* 能够恢复；贪心则不能。</li>
+          <li>在空网格中运行 DFS（深度优先搜索）。它会产生一条极其漫长的路径，随后走到尽头便放弃。DFS（深度优先搜索） 不适用于最短路径问题，而这一演示使其显而易见。</li>
+        </ul>
+      </section>
+
+      <section class="步进-section" id="步进-2">
+        <div class="步进-badge">第 2 步</div>
+        <h2>BFS（广度优先搜索）——无权图的最短路径工具</h2>
+        <p>
+          从 FIFO 队列中取出。每次取出要么是目标（返回），要么将其未访问的邻居入队。由于队列是 FIFO 的，每个节点都在其<em>最浅</em>的发现深度被取出——即距起点的边数。
+        </p>
+        <div class="math-block" id="math-bfs"></div>
+        <p>
+          BFS（广度优先搜索） 在无权图（或边权一致的图）上是<em>最优</em>的，运行时间为 $O(V + E)$。一旦各边权重不同，它就<em>不再</em>最优：BFS（广度优先搜索） 将泥地单元格与空地单元格同等对待。这正是 Dijkstra（迪杰斯特拉） 所解决的问题。
+        </p>
+      </section>
+
+      <section class="步进-section" id="步进-3">
+        <div class="步进-badge">第 3 步</div>
+        <h2>DFS（深度优先搜索）——深度优先，因别的理由而有用</h2>
+        <p>
+          从 LIFO 栈而非队列中取出。你会尽可能深入，直至需要回溯。DFS（深度优先搜索） 对于最短路径是错误的算法——但下列场景中它却是正确的选择：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>拓扑排序。</strong>对 DAG 做后序 DFS（深度优先搜索） 可得到逆拓扑序。</li>
+          <li><strong>环检测。</strong>DFS（深度优先搜索） 期间出现回边即意味着存在环。</li>
+          <li><strong>连通分量。</strong>每次顶层 DFS（深度优先搜索） 调用勾勒出一个分量。</li>
+          <li><strong>内存。</strong>DFS（深度优先搜索） 使用 $O(\text{depth})$ 内存；BFS（广度优先搜索） 使用 $O(\text{前沿 width})$。在宽而浅的图上，DFS（深度优先搜索） 占优。</li>
+          <li><strong>割点 / 桥。</strong>Tarjan 算法通过单次 DFS（深度优先搜索） 遍历同时提取二者。</li>
+        </ul>
+        <p>
+          上方的网格演示做的是最短路径，这对 DFS（深度优先搜索） 而言是错误的差事——不妨一试，观察它找到的那条荒谬路径。
+        </p>
+      </section>
+
+      <section class="步进-section" id="步进-4">
+        <div class="步进-badge">第 4 步</div>
+        <h2>Dijkstra（迪杰斯特拉）——带优先队列的 BFS（广度优先搜索）</h2>
+        <p>
+          将 BFS（广度优先搜索） 的 FIFO 队列替换为以当前已知的最优起点代价为键的<em>最小优先队列</em>。取出代价最小的节点。第一次取出某节点时，你就得到了它的最终最短路径代价。通过<em>松弛</em>更新邻居：
+        </p>
+        <div class="math-block" id="math-dijkstra"></div>
+        <p>
+          使用二叉堆时（参见<a href="../trees/index.html">树</a>一文），Dijkstra（迪杰斯特拉） 运行时间为 $O((V + E) \log V)$。使用斐波那契堆时为 $O(V \log V + E)$，因为 <code>decrease-key</code> 操作摊还后变为 $O(1)$。
+        </p>
+        <div class="callout callout--warn">
+          <strong>仅限非负边。</strong>其正确性证明依赖于每条边都具有非负权重。若存在负权边，Dijkstra（迪杰斯特拉） 便不再安全；应改用 Bellman-Ford（贝尔曼-福特）（$O(VE)$）。若图为 DAG，还能做得更好：按拓扑序松弛，达到 $O(V + E)$。
+        </div>
+      </section>
+
+      <section class="步进-section" id="步进-5">
+        <div class="步进-badge">第 5 步</div>
+        <h2>A*——带提示的 Dijkstra（迪杰斯特拉）</h2>
+        <p>
+          Dijkstra（迪杰斯特拉） 对目标身处何方毫无概念。A* 修正了这一点：将优先级的键从「自起点起的代价」改为「<em>经由此节点</em>的估计总代价」：
+        </p>
+        <div class="math-block" id="math-astar"></div>
+        <p>
+          其中 $g(n)$ 为自起点到 $n$ 的实际代价，$h(n)$ 为从 $n$ 到目标的剩余代价的启发式估计。有三种情形：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>$h \equiv 0$。</strong>A* 恰好退化为 Dijkstra（迪杰斯特拉）。慢，但最优。</li>
+          <li><strong>$h$ 恰好等于真实的剩余代价。</strong>A* 只扩展最短路径上的节点。最优，且达到可能的最快速度。</li>
+          <li><strong>$h$ 介于两者之间。</strong>A* 大致扩展那些 $f$ 值不超过最优值的节点带。$h$ 越紧，带宽越窄。</li>
+        </ul>
+        <p>
+          为保证正确性，我们需要 $h$ 是<strong>可采纳</strong>的——它绝不能高估真实的剩余代价。在步长一致的四连通网格上，曼哈顿距离是可采纳的。在八连通（含对角）网格上，应使用切比雪夫距离或 octile 距离。欧氏距离在任何地方都可采纳，但在网格图上较为宽松。
+        </p>
+        <p>
+          为使 A* 从不重新扩展节点，我们还要求 $h$ 是<strong>一致的</strong>（又称单调）：对每条边 $(n, n')$ 都有 $h(n) \le c(n, n') + h(n')$。网格上大多数「显然」的启发式——曼哈顿、欧氏——都是一致的。
+        </p>
+      </section>
+
+      <section class="步进-section" id="步进-6">
+        <div class="步进-badge">第 6 步</div>
+        <h2>贪心最佳优先——前车之鉴</h2>
+        <p>
+          若<em>仅</em>按 $h(n)$ 排序优先级，而无视已付出的代价，会怎样？那就是<strong>贪心最佳优先搜索</strong>。它感觉像是丢掉了 $g$ 项的 A*，在简单地图上能极快地找到一条路径。但一旦贪心方向与目标之间横着一道墙，它便会一头扎进死胡同，再艰难地挣扎出来。
+        </p>
+        <p>
+          贪心最佳优先<em>并不</em>最优。它会产生某条路径，可能远非最短。适用于以下情形：(a) 你信任该启发式；(b) 你更看重速度而非最优性；(c) 路径不佳时你可以重新规划。除此之外：请用 A*。
+        </p>
+        <p>
+          用贪心最佳优先试试上方的 C 形墙陷阱；观察它如何撞上墙壁后才恢复。
+        </p>
+      </section>
+
+      <section class="步进-section" id="步进-7">
+        <div class="步进-badge">第 7 步</div>
+        <h2>速查表</h2>
+        <table class="gs-table">
+          <thead>
+            <tr><th>算法</th><th>前沿</th><th>带权？</th><th>最优？</th><th>时间复杂度</th><th>典型用途</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>BFS（广度优先搜索）</td><td>FIFO 队列</td><td>仅单位权重</td><td class="y">是（无权图）</td><td>$O(V+E)$</td><td>无权图上的最短路径、广度优先遍历</td></tr>
+            <tr><td>DFS（深度优先搜索）</td><td>LIFO 栈</td><td>任意（被忽略）</td><td>no</td><td>$O(V+E)$</td><td>拓扑排序、环检测、割点</td></tr>
+            <tr><td>Dijkstra（迪杰斯特拉）</td><td>以 $g$ 为键的最小堆</td><td>非负</td><td class="y">是</td><td>$O((V+E)\log V)$</td><td>带权最短路径；道路路由</td></tr>
+            <tr><td>Bellman-Ford（贝尔曼-福特）</td><td>将所有边松弛 $V$ 次</td><td>任意（含负权）</td><td class="y">是</td><td>$O(VE)$</td><td>含负权边的带权最短路径、货币套汇</td></tr>
+            <tr><td>A*</td><td>以 $g+h$ 为键的最小堆</td><td>非负</td><td class="y">是（$h$ 可采纳）</td><td>类似 Dijkstra（迪杰斯特拉） ×带宽度</td><td>游戏寻路、机器人导航、解谜</td></tr>
+            <tr><td>贪心最佳优先</td><td>以 $h$ 为键的最小堆</td><td>任意</td><td>no</td><td>类似 Dijkstra（迪杰斯特拉）</td><td>快速近似路由、任意时间复杂度 规划</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="步进-section" id="步进-8">
+        <div class="步进-badge">第 8 步</div>
+        <h2>易错之处</h2>
+        <ul class="explanation-list">
+          <li><strong>BFS（广度优先搜索） 是迭代加深的朋友，而非其替代。</strong>若你的图是无限的（或实际上无限），BFS（广度优先搜索） 将在完成之前就把前沿的内存耗尽。迭代加深 DFS（深度优先搜索）（IDDFS（深度优先搜索））保留了 DFS（深度优先搜索） 的 $O(\text{depth})$ 内存，同时仍能找到最短路径。</li>
+          <li><strong>A* 的重新扩展。</strong>若启发式可采纳但<em>不一致</em>，某节点可能以更优的 $g$ 被重新加入前沿。处理方法是检查弹出节点的 $g$ 是否与记录的最优值相符；若不符则跳过。</li>
+          <li><strong>A* 中的平局打破很重要。</strong>两个 $f$ 相等的节点可能以不同顺序被弹出，而该顺序会改变 A* 返回的路径。标准技巧：打破平局时优先选择较大的 $g$（更接近目标）。这往往能大幅缩小已探索集合。</li>
+          <li><strong>双向搜索。</strong>同时从起点<em>与</em>目标运行 BFS（广度优先搜索） / A*；当前沿相遇时停止。最好情况下将工作量开平方（分支因子为 $b$、深度为 $d$ 时，由 $O(b^d)$ 变为 $O(b^{d/2})$）。</li>
+          <li><strong>跳点搜索。</strong>在单位代价网格上，当没有值得关注的变化时，可以整段跳过单元格。在游戏地图上比 A* 提速一个数量级。</li>
+          <li><strong>D* 与 LPA*。</strong>当图发生变化（障碍出现、边被关闭）时，从零重新规划颇为浪费。D* Lite 复用上一次运行的信息；它是火星车路径规划器背后的经典算法。</li>
+        </ul>
+      </section>
+
+      <section class="步进-section" id="步进-9">
+        <div class="步进-badge">第 9 步</div>
+        <h2>推荐阅读</h2>
+        <ul class="explanation-list">
+          <li><strong>Dijkstra（迪杰斯特拉），1959</strong> &mdash; <em>A note on two problems in connexion with graphs.</em>两页篇幅。六十余年来始终是首选算法。</li>
+          <li><strong>Hart、Nilsson、Raphael，1968</strong> &mdash; <em>A Formal Basis for the Heuristic Determination of Minimum Cost Paths.</em>A* 的原始论文。</li>
+          <li><strong>Pearl，1984</strong> &mdash; <em>Heuristics: Intelligent Search Strategies for Computer Problem Solving.</em>关于可采纳性、一致性以及 A* 家族的权威论述。</li>
+          <li><strong>Koenig 与 Likhachev，2002</strong> &mdash; <em>D* Lite.</em>面向动态图的增量重规划。</li>
+          <li><strong>Harabor 与 Grastien，2011</strong> &mdash; <em>Online Graph P运行ing for Pathfinding on Grid Maps.</em>跳点搜索；在网格上无冗余工作地进行 A*。</li>
+          <li><strong>Sturtevant 的 Moving AI 仓库</strong> &mdash; 寻路研究的标准基准地图，包括 Baldur's Gate II 与 StarCraft 地图。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

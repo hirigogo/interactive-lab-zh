@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A classroom lab for constructing and training one-hidden-layer ReLU function approximators.">
+  <title>ReLU 函数实验室</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23232b32'/%3E%3Cpath d='M4 24h8l6-16 5 16h5' fill='none' stroke='%23fff' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="main.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#workspace">跳到实验输出</a>
+
+  <header class="topbar">
+    <a class="back-link" href="../" aria-label="返回全部交互式文章">全部交互式文章</a>
+    <div class="course-mark">
+      <span>深度学习 · 第二讲</span>
+      <strong>ReLU 函数实验室</strong>
+    </div>
+    <nav class="top-links" aria-label="相关课程材料">
+      <a href="../mlp-decision-boundary/">分类实验场</a>
+      <a href="https://nipunbatra.github.io/dl-teaching/slides-pdf/L2.pdf">课程讲义</a>
+    </nav>
+  </header>
+
+  <main class="app">
+    <section class="intro" aria-labelledby="pageTitle">
+      <div>
+        <p class="eyebrow">一维见证</p>
+        <h1 id="pageTitle">以 ReLU 折点为构件构造函数。</h1>
+        <p class="lead">构造一个由其结点所保证的插值函数，再从确定性的随机初值出发训练同类型的网络。请将存在性与优化这两个命题分开看待。</p>
+      </div>
+      <aside class="theorem-card" aria-label="通用逼近定理陈述">
+        <p class="theorem-label">定理的边界</p>
+        <p>对于紧致域上的连续函数 <i>f</i>，以及对任意 ε &gt; 0，总存在某个有限宽的含一个隐藏层的 ReLU 网络，使得</p>
+        <p class="theorem-math">sup<sub>x∈D</sub> |f(x) − ĝ(x)| &lt; ε。</p>
+        <p class="theorem-caveat">本实验展示一维的见证构造与优化器运行结果。其 401 点网格上的最大值并非精确上确界。</p>
+      </aside>
+    </section>
+
+    <nav class="lane-tabs" aria-label="逼近通道">
+      <button class="lane-tab is-active" type="button" data-lane="construct" aria-pressed="true">
+        <span class="lane-index">A</span>
+        <span><strong>构造</strong><small>固定结点 → 精确插值</small></span>
+      </button>
+      <button class="lane-tab" type="button" data-lane="train" aria-pressed="false">
+        <span class="lane-index">B</span>
+        <span><strong>训练</strong><small>随机权重 → 梯度步</small></span>
+      </button>
+    </nav>
+
+    <section class="lab-shell">
+      <aside class="controls" aria-label="实验控件">
+        <section class="control-group">
+          <div class="section-heading"><span>1</span><h2>选择目标函数</h2></div>
+          <label class="field" for="targetSelect">
+            <span>−1 ≤ x ≤ 1 上的连续函数</span>
+            <select id="targetSelect">
+              <option value="sine">正弦 · sin(πx)</option>
+              <option value="tent">帐篷函数</option>
+              <option value="twoBumps">双峰</option>
+              <option value="smoothStep">平滑阶跃</option>
+              <option value="custom">绘制目标函数</option>
+            </select>
+          </label>
+          <div class="draw-help" id="drawHelp" hidden>
+            <p>在主图内拖动以绘制连续的分段线性目标函数。</p>
+            <button class="text-button" id="resetTargetBtn" type="button">清除绘制</button>
+          </div>
+        </section>
+
+        <section class="control-group">
+          <div class="section-heading"><span>2</span><h2>设置容量</h2></div>
+          <label class="field range-field" for="complexityRange">
+            <span><span id="complexityLabel">内部折点</span><output id="complexityValue" for="complexityRange">5</output></span>
+            <input id="complexityRange" type="range" min="1" max="15" step="1" value="5">
+            <small id="complexityMeta">6 段 · 6 个 ReLU 单元 · 7 个结点</small>
+          </label>
+          <div class="preset-row construction-only" aria-label="折点数量预设">
+            <button type="button" data-hinges="2">2 个折点</button>
+            <button type="button" data-hinges="5">5 个折点</button>
+            <button type="button" data-hinges="15">15 个折点</button>
+          </div>
+          <details class="knot-editor construction-only">
+            <summary>精确结点位置</summary>
+            <div class="knot-inputs" id="knotInputList"></div>
+          </details>
+          <label class="field range-field" for="epsilonRange">
+            <span><span>容差 ε</span><output id="epsilonValue" for="epsilonRange">0.05</output></span>
+            <input id="epsilonRange" type="range" min="0.01" max="0.50" step="0.01" value="0.05">
+            <small>阴影带为 f(x) ± ε。</small>
+          </label>
+        </section>
+
+        <section class="control-group train-only" hidden>
+          <div class="section-heading"><span>3</span><h2>设置优化</h2></div>
+          <label class="field" for="learningRateSelect">
+            <span>学习率</span>
+            <select id="learningRateSelect">
+              <option value="0.003">0.003</option>
+              <option value="0.01" selected>0.01</option>
+              <option value="0.03">0.03</option>
+              <option value="0.1">0.1</option>
+            </select>
+          </label>
+          <label class="field" for="seedInput">
+            <span>初始化随机种子</span>
+            <span class="seed-row">
+              <input id="seedInput" type="number" min="1" max="9999" value="11" inputmode="numeric">
+              <button id="newSeedBtn" type="button" aria-label="使用下一个随机种子">+1</button>
+            </span>
+          </label>
+          <p class="helper">全批量梯度下降使用目标曲线上所示的 121 个固定样本。</p>
+        </section>
+
+        <section class="control-group action-group">
+          <div class="section-heading"><span id="actionIndex">3</span><h2>检视或训练</h2></div>
+          <div class="action-row">
+            <button class="primary-button" id="runBtn" type="button" aria-pressed="false" disabled>运行</button>
+            <button id="stepBtn" type="button" disabled>单步</button>
+            <button id="batchBtn" type="button" disabled>100 步</button>
+            <button id="resetBtn" type="button">重置</button>
+          </div>
+          <div class="provenance-row">
+            <span class="provenance-badge" id="provenanceBadge">构造所得 · 固定结点</span>
+          </div>
+          <p class="status" id="statusText" role="status" aria-live="polite">已载入固定结点插值函数。未使用优化器。</p>
+        </section>
+      </aside>
+
+      <section class="workspace" id="workspace" aria-label="实验输出">
+        <header class="workspace-head">
+          <div>
+            <p class="eyebrow" id="workspaceEyebrow">构造所得见证</p>
+            <h2 id="workspaceTitle">正弦 · 固定结点插值</h2>
+          </div>
+          <span class="tolerance-badge" id="toleranceBadge">网格间距 ≥ ε</span>
+        </header>
+
+        <div class="metric-strip" aria-live="polite">
+          <div class="metric"><span>训练样本 MSE</span><strong id="trainMseValue">—</strong><small id="trainMseNote">未训练</small></div>
+          <div class="metric"><span>稠密网格 MSE</span><strong id="denseMseValue">0.0000</strong><small>401 个评估点</small></div>
+          <div class="metric metric-key"><span>最大网格间距</span><strong id="maxGapValue">0.000</strong><small>401 个间距中的最大值</small></div>
+          <div class="metric"><span>梯度步数</span><strong id="stepsValue">0</strong><small id="parameterNote">19 个参数</small></div>
+        </div>
+
+        <section class="plot-panel main-plot-panel" aria-labelledby="mainPlotTitle">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">目标函数 + 模型</p>
+              <h3 id="mainPlotTitle">蓝色曲线能否始终落在 ε 带内？</h3>
+            </div>
+            <p class="model-formula" id="modelFormula">模型形式：ĝ(x) = c + Σ vⱼ ReLU(wⱼx + bⱼ)</p>
+          </div>
+          <canvas id="mainCanvas" role="img" tabindex="0" aria-describedby="plotInstruction" aria-label="目标函数与当前 ReLU 近似"></canvas>
+          <div class="legend" aria-label="主图图例">
+            <span><i class="line-key target-key"></i>目标 f(x)</span>
+            <span><i class="line-key model-key"></i>近似 ĝ(x)</span>
+            <span><i class="band-key"></i>f(x) ± ε</span>
+            <span class="construction-only"><i class="knot-key"></i>插值结点</span>
+            <span class="train-only" hidden><i class="sample-key"></i>训练样本</span>
+          </div>
+          <p class="plot-instruction" id="plotInstruction">左右拖动橙色内部结点；端点结点保持固定。</p>
+        </section>
+
+        <div class="analysis-grid">
+          <section class="plot-panel" aria-labelledby="residualTitle">
+            <div class="panel-head">
+              <div><p class="eyebrow">误差</p><h3 id="residualTitle">逐点间距 |f(x) − ĝ(x)|</h3></div>
+              <span class="compact-value" id="maxGapAt">x = 0.00 处取最大</span>
+            </div>
+            <canvas id="residualCanvas" role="img" aria-label="逐点绝对近似误差"></canvas>
+          </section>
+
+          <section class="model-panel" aria-labelledby="modelSummaryTitle">
+            <p class="eyebrow">模型约定</p>
+            <h3 id="modelSummaryTitle">一个输入 → 六个 ReLU → 一个输出</h3>
+            <dl class="model-facts">
+              <div><dt>来源</dt><dd id="sourceFact">固定结点</dd></div>
+              <div><dt>输出偏置 c</dt><dd id="biasFact">0.000</dd></div>
+              <div><dt>目标</dt><dd id="objectiveFact">无优化</dd></div>
+              <div><dt>评估</dt><dd>401 点网格</dd></div>
+            </dl>
+            <p class="boundary-note" id="boundaryNote">该构造对本目标函数与本宽度构成一个见证。它并不表明梯度下降能够发现同样的权重。</p>
+          </section>
+        </div>
+
+        <section class="contribution-panel" aria-labelledby="contributionTitle">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">带符号的折线函数</p>
+              <h3 id="contributionTitle">输出等于偏置加上下方每一项贡献。</h3>
+            </div>
+            <span class="shared-scale" id="sharedScale">共享纵向标度 ±1.00</span>
+          </div>
+          <p class="contribution-help">所有卡片使用相同的以零为中心的 y 轴标度。曲线幅值小即意味着贡献确实小。</p>
+          <div class="contribution-grid" id="contributionGrid"></div>
+        </section>
+
+        <section class="classroom-prompts" aria-labelledby="promptsTitle">
+          <div><p class="eyebrow">课堂使用建议</p><h3 id="promptsTitle">每次只改变一个因素，并先作出预测。</h3></div>
+          <ol>
+            <li><strong>容量：</strong> 增加折点，并预测最大间距将向何处移动。</li>
+            <li><strong>优化：</strong> 保持宽度固定，比较两个初始化随机种子。</li>
+            <li><strong>定理：</strong> 说明存在性所承诺的内容，再指出该优化器运行未能证明什么。</li>
+          </ol>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>ReLU 网络 · 确定性运行 · 全部计算均在页面内完成</span>
+    <a href="../mlp-decision-boundary/">继续学习决策边界 →</a>
+  </footer>
+
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

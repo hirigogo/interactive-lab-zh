@@ -1,0 +1,138 @@
+{
+ "slug": "cfg-scale-visualizer",
+ "units": {
+  "CFG Scale Visualizer": {
+   "zh": "CFG 尺度可视化",
+   "src": "CFG Scale Visualizer",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Classifier-Free Guidance Scale": {
+   "zh": "无分类器引导尺度",
+   "src": "Classifier-Free Guidance Scale",
+   "tags": []
+  },
+  "CFG linearly extrapolates between what the model would draw without the prompt and what it would draw with the prompt. Slide the weight w from 0 to 30 to see the generation stretch toward — and past — the target shape.": {
+   "zh": "CFG 在“无提示词时模型会绘制的内容”与“有提示词时模型会绘制的内容”之间作线性外推。将权重 w 从 0 滑至 30，观察生成结果如何朝目标形状拉伸 &mdash; 并越过它。",
+   "src": "CFG linearly extrapolates between what the model would draw without the prompt and what it would draw with the prompt. Slide the weight w from 0 to 30 to see the generation stretch toward — and past — the target shape.",
+   "tags": []
+  },
+  "@@T0@@~6 min@@T1@@@@T2@@Deep Learning · Diffusion · CFG@@T3@@": {
+   "zh": "@@T0@@约 6 分钟@@T1@@@@T2@@深度学习 · 扩散模型 · CFG@@T3@@",
+   "src": "<span>~6 min</span><span>Deep Learning · Diffusion · CFG</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "During training, the diffusion model sees conditional and unconditional examples (10% of prompts are dropped to \"\"). At inference, you can linearly extrapolate past the conditional direction: the further you go, the more aggressively the model commits to the prompt — until it overshoots and produces saturated, ringing artifacts.": {
+   "zh": "在训练期间，扩散模型会看到有条件与无条件的样本（10% 的提示词被丢弃，替换为 \"\"）。在推理时，你可以沿条件方向作线性外推：走得越远，模型越激进地遵从提示词 &mdash; 直到它过度前进，产生过饱和与振铃伪影。",
+   "src": "During training, the diffusion model sees conditional and unconditional examples (10% of prompts are dropped to \"\"). At inference, you can linearly extrapolate past the conditional direction: the further you go, the more aggressively the model commits to the prompt — until it overshoots and produces saturated, ringing artifacts.",
+   "tags": []
+  },
+  "The playground": {
+   "zh": "演练场",
+   "src": "The playground",
+   "tags": []
+  },
+  "Guidance w:": {
+   "zh": "引导权重 w：",
+   "src": "Guidance w:",
+   "tags": []
+  },
+  "@@T0@@Prompt adherence: @@T1@@–@@T2@@@@T3@@\n        @@T4@@Artifact level: @@T5@@–@@T6@@@@T7@@\n        @@T8@@Quality zone: @@T9@@–@@T10@@@@T11@@": {
+   "zh": "@@T0@@提示词贴合度：@@T1@@&ndash;@@T2@@@@T3@@\n        @@T4@@伪影程度：@@T5@@&ndash;@@T6@@@@T7@@\n        @@T8@@质量区间：@@T9@@&ndash;@@T10@@@@T11@@",
+   "src": "<span>Prompt adherence: <b id=\"adh\">–</b></span>\n        <span>Artifact level: <b id=\"art\">–</b></span>\n        <span>Quality zone: <b id=\"zone\">–</b></span>",
+   "tags": [
+    "<span>",
+    "<b id=\"adh\">",
+    "</b>",
+    "</span>",
+    "<span>",
+    "<b id=\"art\">",
+    "</b>",
+    "</span>",
+    "<span>",
+    "<b id=\"zone\">",
+    "</b>",
+    "</span>"
+   ]
+  },
+  "The sweet spot for Stable Diffusion is roughly w ∈ [5, 10]. Below 3 the model drifts off-prompt; above 15 you start seeing saturation (everything becomes a vivid stereotype) and \"ringing\" (high-frequency artifacts around edges).": {
+   "zh": "Stable Diffusion 的最佳区间约为 w ∈ [5, 10]。低于 3 时模型会偏离提示词；高于 15 时便开始出现过饱和（一切都变成鲜明的刻板印象）以及“振铃”（边缘附近的高频伪影）。",
+   "src": "The sweet spot for Stable Diffusion is roughly w ∈ [5, 10]. Below 3 the model drifts off-prompt; above 15 you start seeing saturation (everything becomes a vivid stereotype) and \"ringing\" (high-frequency artifacts around edges).",
+   "tags": []
+  },
+  "The formula": {
+   "zh": "公式",
+   "src": "The formula",
+   "tags": []
+  },
+  "ε_CFG = ε_θ(x_t, ∅) + w · (ε_θ(x_t, c) − ε_θ(x_t, ∅))": {
+   "zh": "ε_CFG = ε_θ(x_t, ∅) + w · (ε_θ(x_t, c) − ε_θ(x_t, ∅))",
+   "src": "ε_CFG = ε_θ(x_t, ∅) + w · (ε_θ(x_t, c) − ε_θ(x_t, ∅))",
+   "tags": []
+  },
+  "At w=0, you get pure unconditional noise prediction (prompt ignored). At w=1, you get the conditional prediction. Past w=1 you're @@T0@@extrapolating@@T1@@ — pushing further in the prompt direction than the model ever saw during training. The model's generalization past its training extrapolation limits is why artifacts appear.": {
+   "zh": "当 w=0 时，你得到纯粹的无条件噪声预测（提示词被忽略）。当 w=1 时，你得到条件预测。当 w>1 时，你正在 @@T0@@外推@@T1@@ &mdash; 沿提示词方向推进得比模型在训练中见到的更远。伪影之所以出现，正是因为模型将其泛化能力推到了训练时的外推极限之外。",
+   "src": "At w=0, you get pure unconditional noise prediction (prompt ignored). At w=1, you get the conditional prediction. Past w=1 you're <em>extrapolating</em> — pushing further in the prompt direction than the model ever saw during training. The model's generalization past its training extrapolation limits is why artifacts appear.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Training dropout": {
+   "zh": "训练时的 dropout",
+   "src": "Training dropout",
+   "tags": []
+  },
+  "CFG requires a small trick during training: randomly drop the prompt 10% of the time (replace with null/empty conditioning). This teaches the same model to do @@T0@@both@@T1@@ conditional and unconditional generation. At inference you run two forward passes per step — one with the prompt, one with the null — and extrapolate.": {
+   "zh": "CFG 在训练时需要一个小技巧：以 10% 的概率随机丢弃提示词（替换为空条件）。这使同一个模型同时学会 @@T0@@既@@T1@@ 能进行条件生成又能进行无条件生成。在推理时，每步运行两次前向传播 &mdash; 一次带提示词，一次为空 &mdash; 然后作外推。",
+   "src": "CFG requires a small trick during training: randomly drop the prompt 10% of the time (replace with null/empty conditioning). This teaches the same model to do <em>both</em> conditional and unconditional generation. At inference you run two forward passes per step — one with the prompt, one with the null — and extrapolate.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Cost · 2× inference. Benefit · you can dial any w you want at generation time without retraining. Every text-to-image system uses this (Stable Diffusion, Imagen, DALL-E 3, Midjourney).": {
+   "zh": "代价 · 推理开销为 2 倍。收益 · 你可以在生成时随意调节任意的 w，无需重新训练。所有文生图系统都使用它（Stable Diffusion、Imagen、DALL-E 3、Midjourney）。",
+   "src": "Cost · 2× inference. Benefit · you can dial any w you want at generation time without retraining. Every text-to-image system uses this (Stable Diffusion, Imagen, DALL-E 3, Midjourney).",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "无分类器引导尺度",
+  "tagline": "滑动引导权重 w，观察生成的形状朝提示词拉伸",
+  "summary": "无分类器引导在无条件预测与条件预测之间作外推。将权重 w 从 0（无引导，无条件）经 7（Stable Diffusion 默认值）滑至 30（引导过度，出现振铃）。观察生成的形状如何实实在在地朝目标拉伸 &mdash; 并在高 w 时崩坏。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "w = 0 · 纯无条件，提示词被忽略。",
+   "w = 1 · 弱条件，提示词贴合度模糊。",
+   "w = 7 · 2026 年 Stable Diffusion 的默认值。",
+   "w = 15+ · 引导过度，出现过饱和与振铃伪影。",
+   "外推公式实时展示；在噪声预测步骤中仅需一行代码。"
+  ],
+  "tags": [
+   "扩散模型",
+   "CFG",
+   "Stable Diffusion",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

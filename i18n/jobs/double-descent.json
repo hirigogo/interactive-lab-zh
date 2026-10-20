@@ -1,0 +1,497 @@
+{
+ "slug": "double-descent",
+ "units": {
+  "Double Descent, Made Concrete": {
+   "zh": "具体理解双下降现象",
+   "src": "Double Descent, Made Concrete",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Classical statistics says: more parameters than data points\n          should overfit catastrophically. Modern DL says: keep going\n          and the test error often gets @@T0@@better@@T1@@. Watch the\n          double-descent curve form live as you slide the model size\n          across the interpolation threshold.": {
+   "zh": "经典统计学说：参数比数据点还多会带来灾难性的过拟合。现代深度学习则说：继续增大，测试误差往往反而@@T0@@更小@@T1@@。拖动模型规模跨越插值阈值，实时观察双下降曲线的形成。",
+   "src": "Classical statistics says: more parameters than data points\n          should overfit catastrophically. Modern DL says: keep going\n          and the test error often gets <em>better</em>. Watch the\n          double-descent curve form live as you slide the model size\n          across the interpolation threshold.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~14 min@@T1@@\n          @@T2@@Generalization &middot; Random Features@@T3@@": {
+   "zh": "@@T0@@约 14 分钟@@T1@@\n          @@T2@@泛化 &middot; 随机特征@@T3@@",
+   "src": "<span>~14 min</span>\n          <span>Generalization &middot; Random Features</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "What you should see": {
+   "zh": "你应当看到的现象",
+   "src": "What you should see",
+   "tags": []
+  },
+  "@@T0@@Under-parameterised regime ($P &lt; N$).@@T1@@ Train\n            and test error both drop as you add parameters &mdash;\n            classical bias-variance.": {
+   "zh": "@@T0@@欠参数化区域（$P &lt; N$）。@@T1@@ 随着参数增加，训练误差与测试误差同时下降 &mdash; 即经典的偏差-方差关系。",
+   "src": "<strong>Under-parameterised regime ($P &lt; N$).</strong> Train\n            and test error both drop as you add parameters &mdash;\n            classical bias-variance.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Interpolation threshold ($P \\approx N$).@@T1@@\n            Train error hits zero; test error spikes. The model\n            @@T2@@just barely@@T3@@ fits the training data and pays for\n            it with wild oscillations.": {
+   "zh": "@@T0@@插值阈值（$P \\approx N$）。@@T1@@ 训练误差降为零；测试误差骤升。模型@@T2@@勉强@@T3@@拟合了训练数据，并为此付出剧烈振荡的代价。",
+   "src": "<strong>Interpolation threshold ($P \\approx N$).</strong>\n            Train error hits zero; test error spikes. The model\n            <em>just barely</em> fits the training data and pays for\n            it with wild oscillations.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Over-parameterised regime ($P \\gg N$).@@T1@@\n            Past the spike, test error @@T2@@descends again@@T3@@. This\n            is what modern DL has been quietly relying on.": {
+   "zh": "@@T0@@过参数化区域（$P \\gg N$）。@@T1@@ 越过尖峰之后，测试误差@@T2@@再次下降@@T3@@。这正是现代深度学习一直默默依赖的现象。",
+   "src": "<strong>Over-parameterised regime ($P \\gg N$).</strong>\n            Past the spike, test error <em>descends again</em>. This\n            is what modern DL has been quietly relying on.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The mechanism (Belkin et al., 2018; Hastie et al., 2019):\n          past the threshold, infinitely many weight vectors achieve\n          zero training error, and the optimiser picks the\n          @@T0@@minimum-$\\ell_2$-norm@@T1@@ one. Many of those are smooth,\n          and the implicit bias of gradient descent (and ridge as\n          $\\lambda \\to 0^+$) finds them.": {
+   "zh": "其机制如下（Belkin 等，2018；Hastie 等，2019）：越过阈值之后，有无限多个权重向量都能达到零训练误差，而优化器会选择@@T0@@ $\\ell_2$ 范数最小@@T1@@的那一个。其中许多解是平滑的，梯度下降的隐式偏置（以及 $\\lambda \\to 0^+$ 时的岭回归）会找到它们。",
+   "src": "The mechanism (Belkin et al., 2018; Hastie et al., 2019):\n          past the threshold, infinitely many weight vectors achieve\n          zero training error, and the optimiser picks the\n          <em>minimum-$\\ell_2$-norm</em> one. Many of those are smooth,\n          and the implicit bias of gradient descent (and ridge as\n          $\\lambda \\to 0^+$) finds them.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 1½": {
+   "zh": "第 1½ 步",
+   "src": "Step 1½",
+   "tags": []
+  },
+  "Why classical bias-variance predicted the wrong shape": {
+   "zh": "为何经典的偏差-方差理论预测出了错误的形状",
+   "src": "Why classical bias-variance predicted the wrong shape",
+   "tags": []
+  },
+  "The U-curve from any ML textbook decomposes test error as": {
+   "zh": "任何机器学习教科书中的 U 形曲线都将测试误差分解为",
+   "src": "The U-curve from any ML textbook decomposes test error as",
+   "tags": []
+  },
+  "Up to the threshold, variance dominates the rise. The\n          textbook stops here. @@T0@@What the textbook missed@@T1@@\n          is that past $P = N$, both bias @@T2@@and@@T3@@ variance can\n          drop because the model now has slack capacity: many feature\n          directions encode noise, and the minimum-norm solution\n          spreads its weights across them so each individual direction\n          carries less of the noise &mdash; the variance is averaged\n          down. Belkin et al. coined this the\n          \"@@T4@@modern interpolating regime@@T5@@\" in 2018.": {
+   "zh": "在达到阈值之前，方差主导了误差的上升。教科书在此止步。@@T0@@教科书中遗漏的是@@T1@@，越过 $P = N$ 之后，偏差@@T2@@与@@T3@@方差都可以下降，因为此时模型拥有了富余容量：许多特征方向所编码的只是噪声，而最小范数解会把权重分散到这些方向上，使每个单独方向承担的噪声更少 &mdash; 方差由此被平均化而降低。Belkin 等人在 2018 年将其命名为「@@T4@@现代插值区域@@T5@@」。",
+   "src": "Up to the threshold, variance dominates the rise. The\n          textbook stops here. <strong>What the textbook missed</strong>\n          is that past $P = N$, both bias <em>and</em> variance can\n          drop because the model now has slack capacity: many feature\n          directions encode noise, and the minimum-norm solution\n          spreads its weights across them so each individual direction\n          carries less of the noise &mdash; the variance is averaged\n          down. Belkin et al. coined this the\n          \"<strong>modern interpolating regime</strong>\" in 2018.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Live curve": {
+   "zh": "实时曲线",
+   "src": "Live curve",
+   "tags": []
+  },
+  "data points N &nbsp;@@T0@@40@@T1@@": {
+   "zh": "数据点 N &nbsp;@@T0@@40@@T1@@",
+   "src": "data points N &nbsp;<span id=\"dd-N-val\">40</span>",
+   "tags": [
+    "<span id=\"dd-N-val\">",
+    "</span>"
+   ]
+  },
+  "noise σ &nbsp;@@T0@@0.30@@T1@@": {
+   "zh": "噪声 σ &nbsp;@@T0@@0.30@@T1@@",
+   "src": "noise σ &nbsp;<span id=\"sw-sig-val\">0.30</span>",
+   "tags": [
+    "<span id=\"sw-sig-val\">",
+    "</span>"
+   ]
+  },
+  "ridge log₁₀λ &nbsp;@@T0@@−4.0@@T1@@": {
+   "zh": "岭回归 log₁₀λ &nbsp;@@T0@@−4.0@@T1@@",
+   "src": "ridge log₁₀λ &nbsp;<span id=\"dd-lam-val\">−4.0</span>",
+   "tags": [
+    "<span id=\"dd-lam-val\">",
+    "</span>"
+   ]
+  },
+  "Resample": {
+   "zh": "重新采样",
+   "src": "Resample",
+   "tags": []
+  },
+  "Test error vs feature count P. Vertical line marks the interpolation threshold P=N.": {
+   "zh": "测试误差随特征数 P 的变化。竖直直线标出插值阈值 P=N。",
+   "src": "Test error vs feature count P. Vertical line marks the interpolation threshold P=N.",
+   "tags": []
+  },
+  "Best-fit prediction at three model sizes (small / threshold / very large).": {
+   "zh": "三种模型规模（小 / 阈值处 / 极大）下的最佳拟合预测。",
+   "src": "Best-fit prediction at three model sizes (small / threshold / very large).",
+   "tags": []
+  },
+  "Step 2½": {
+   "zh": "第 2½ 步",
+   "src": "Step 2½",
+   "tags": []
+  },
+  "Why the spike happens, in three lines of algebra": {
+   "zh": "用三行代数说明尖峰为何出现",
+   "src": "Why the spike happens, in three lines of algebra",
+   "tags": []
+  },
+  "With random feature matrix $\\Phi \\in \\mathbb{R}^{N \\times P}$\n          and tiny ridge $\\lambda$, the prediction at a test point\n          is $\\hat y_* = \\phi(x_*)^\\top \\hat w$. As $P \\to N$, the\n          smallest singular value $\\sigma_{\\min}(\\Phi)$ approaches zero,\n          and the ridge inverse blows up:": {
+   "zh": "设随机特征矩阵为 $\\Phi \\in \\mathbb{R}^{N \\times P}$，岭回归系数 $\\lambda$ 很小，则测试点处的预测为 $\\hat y_* = \\phi(x_*)^\\top \\hat w$。当 $P \\to N$ 时，最小奇异值 $\\sigma_{\\min}(\\Phi)$ 趋于零，岭回归的逆随之爆炸：",
+   "src": "With random feature matrix $\\Phi \\in \\mathbb{R}^{N \\times P}$\n          and tiny ridge $\\lambda$, the prediction at a test point\n          is $\\hat y_* = \\phi(x_*)^\\top \\hat w$. As $P \\to N$, the\n          smallest singular value $\\sigma_{\\min}(\\Phi)$ approaches zero,\n          and the ridge inverse blows up:",
+   "tags": []
+  },
+  "Small $\\sigma_i$ correspond to feature directions that the\n          training data barely identifies. Without ridge, those\n          directions soak up huge weight to fit the noise — variance\n          explodes. The spike happens @@T0@@exactly@@T1@@ at $P = N$\n          because that's where $\\Phi$ becomes square and least-squares\n          is forced to interpolate. Beyond $P = N$, the system is\n          underdetermined; min-norm collapses those weights again.": {
+   "zh": "较小的 $\\sigma_i$ 对应训练数据几乎无法辨识的特征方向。若没有岭回归，这些方向会吸收巨大的权重去拟合噪声 — 方差随之爆炸。尖峰@@T0@@恰好@@T1@@出现在 $P = N$，因为此时 $\\Phi$ 变为方阵，最小二乘被迫进行插值。越过 $P = N$ 后，系统变为欠定；最小范数解会再次收缩这些权重。",
+   "src": "Small $\\sigma_i$ correspond to feature directions that the\n          training data barely identifies. Without ridge, those\n          directions soak up huge weight to fit the noise — variance\n          explodes. The spike happens <em>exactly</em> at $P = N$\n          because that's where $\\Phi$ becomes square and least-squares\n          is forced to interpolate. Beyond $P = N$, the system is\n          underdetermined; min-norm collapses those weights again.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Stronger ridge ($\\lambda \\uparrow$) flattens the\n          spike.@@T1@@ Slide ridge log₁₀λ up and watch the peak\n          shrink — that's the variance term being dampened. The cost:\n          slightly higher error far from the threshold.": {
+   "zh": "@@T0@@更强的岭回归（$\\lambda \\uparrow$）会削平尖峰。@@T1@@ 增大岭回归 log₁₀λ，观察峰值收缩 — 这正是方差项被抑制的表现。代价是：远离阈值处的误差会略微升高。",
+   "src": "<strong>Stronger ridge ($\\lambda \\uparrow$) flattens the\n          spike.</strong> Slide ridge log₁₀λ up and watch the peak\n          shrink — that's the variance term being dampened. The cost:\n          slightly higher error far from the threshold.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 2¾": {
+   "zh": "第 2¾ 步",
+   "src": "Step 2¾",
+   "tags": []
+  },
+  "Live: sample-wise double descent": {
+   "zh": "实时演示：样本维度的双下降",
+   "src": "Live: sample-wise double descent",
+   "tags": []
+  },
+  "Fix the model size $P$ above the original interpolation\n          threshold. Now sweep the training set size $N$ from small to\n          large. As $N$ approaches $P$ from below, the model is forced\n          out of the over-parameterised regime @@T0@@back through the\n          threshold@@T1@@. Test error can @@T2@@increase@@T3@@ with more\n          training data — exactly the opposite of what every intro ML\n          class teaches.": {
+   "zh": "将模型规模 $P$ 固定在高于原本插值阈值的位置。现在令训练集规模 $N$ 由小到大变化。当 $N$ 从下方趋近 $P$ 时，模型被迫离开过参数化区域、@@T0@@重新穿越阈值@@T1@@。测试误差可能随着训练数据增多而@@T2@@上升@@T3@@ — 与每一门机器学习入门课所教的恰好相反。",
+   "src": "Fix the model size $P$ above the original interpolation\n          threshold. Now sweep the training set size $N$ from small to\n          large. As $N$ approaches $P$ from below, the model is forced\n          out of the over-parameterised regime <em>back through the\n          threshold</em>. Test error can <em>increase</em> with more\n          training data — exactly the opposite of what every intro ML\n          class teaches.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "features P &nbsp;@@T0@@120@@T1@@": {
+   "zh": "特征数 P &nbsp;@@T0@@120@@T1@@",
+   "src": "features P &nbsp;<span id=\"sw-P-val\">120</span>",
+   "tags": [
+    "<span id=\"sw-P-val\">",
+    "</span>"
+   ]
+  },
+  "Test RMSE vs training-set size $N$ for fixed $P$. Vertical line marks $N = P$ — adding a sample @@T0@@across@@T1@@ that line can make the model worse.": {
+   "zh": "固定 $P$ 时测试 RMSE 随训练集规模 $N$ 的变化。竖直直线标出 $N = P$ — 增加一个@@T0@@跨越@@T1@@该线的样本可能反而使模型变差。",
+   "src": "Test RMSE vs training-set size $N$ for fixed $P$. Vertical line marks $N = P$ — adding a sample <em>across</em> that line can make the model worse.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Nakkiran et&nbsp;al. (2019, \"Deep Double Descent\") observed\n          this same shape in CIFAR ResNets when sweeping the training\n          set size with the model fixed. The remedy is more weight\n          decay or much more training data.": {
+   "zh": "Nakkiran 等（2019，“Deep Double Descent”）在固定模型、改变训练集规模时，于 CIFAR ResNet 上观察到了完全相同的形状。解决办法是加大权重衰减，或使用多得多的训练数据。",
+   "src": "Nakkiran et&nbsp;al. (2019, \"Deep Double Descent\") observed\n          this same shape in CIFAR ResNets when sweeping the training\n          set size with the model fixed. The remedy is more weight\n          decay or much more training data.",
+   "tags": []
+  },
+  "Step 2⅞": {
+   "zh": "第 2⅞ 步",
+   "src": "Step 2⅞",
+   "tags": []
+  },
+  "Epoch-wise double descent": {
+   "zh": "轮次维度的双下降",
+   "src": "Epoch-wise double descent",
+   "tags": []
+  },
+  "A third axis: hold $P$ and $N$ fixed, watch test error vs\n          training epoch. Long-running ResNet runs show test error\n          first drop, rise around the epoch where training loss\n          hits zero, then drop again. The mechanism is the same — the\n          network passes through an effective interpolation threshold\n          as its function class \"fills out\" during training.": {
+   "zh": "第三个维度：固定 $P$ 与 $N$，观察测试误差随训练轮次的变化。长时间训练的 ResNet 会呈现这样的现象：测试误差先下降，在训练损失降为零的那个轮次前后上升，随后再次下降。其机制相同 — 网络在训练过程中随着其函数类逐渐「填满」，会经历一个有效的插值阈值。",
+   "src": "A third axis: hold $P$ and $N$ fixed, watch test error vs\n          training epoch. Long-running ResNet runs show test error\n          first drop, rise around the epoch where training loss\n          hits zero, then drop again. The mechanism is the same — the\n          network passes through an effective interpolation threshold\n          as its function class \"fills out\" during training.",
+   "tags": []
+  },
+  "@@T0@@Three knobs, one phenomenon.@@T1@@\n          Model size, dataset size, and training duration are each\n          axes along which interpolation can be approached. Any of\n          them can produce a non-monotone test-error curve. The\n          uniting concept is \"@@T2@@effective complexity vs effective\n          data@@T3@@\" — when those balance, things get bad.": {
+   "zh": "@@T0@@三个旋钮，同一现象。@@T1@@\n          模型规模、数据集规模与训练时长各自都是一个可以逼近插值的维度。其中任何一个都能产生非单调的测试误差曲线。统一的概念是「@@T2@@有效复杂度与有效数据量之比@@T3@@」— 当二者相当时，情况就会变糟。",
+   "src": "<strong>Three knobs, one phenomenon.</strong>\n          Model size, dataset size, and training duration are each\n          axes along which interpolation can be approached. Any of\n          them can produce a non-monotone test-error curve. The\n          uniting concept is \"<em>effective complexity vs effective\n          data</em>\" — when those balance, things get bad.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "What it means in practice": {
+   "zh": "其实际意义",
+   "src": "What it means in practice",
+   "tags": []
+  },
+  "@@T0@@Don't be afraid of overparameterisation.@@T1@@\n            For deep nets, \"more capacity\" is usually safer than\n            \"less capacity\" provided you have a sane regulariser\n            (weight decay, dropout, early stopping).": {
+   "zh": "@@T0@@不要惧怕过参数化。@@T1@@\n            对深度网络而言，只要配有合理的正则化手段（权重衰减、dropout、早停），「容量更大」通常比「容量更小」更安全。",
+   "src": "<strong>Don't be afraid of overparameterisation.</strong>\n            For deep nets, \"more capacity\" is usually safer than\n            \"less capacity\" provided you have a sane regulariser\n            (weight decay, dropout, early stopping).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@The spike is real.@@T1@@ Training a\n            CIFAR ResNet at the exact interpolation threshold\n            consistently underperforms either smaller or much\n            larger nets at the same compute budget.": {
+   "zh": "@@T0@@尖峰确实存在。@@T1@@\n            在恰好处于插值阈值处训练 CIFAR ResNet，其表现始终不如在相同计算预算下更小或大得多的网络。",
+   "src": "<strong>The spike is real.</strong> Training a\n            CIFAR ResNet at the exact interpolation threshold\n            consistently underperforms either smaller or much\n            larger nets at the same compute budget.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Sample-wise double descent.@@T1@@\n            Adding training data can sometimes @@T2@@increase@@T3@@\n            test error if it pushes the model from\n            over-parameterised back to interpolating exactly. Real\n            phenomenon (Nakkiran et al., 2019).": {
+   "zh": "@@T0@@样本维度的双下降。@@T1@@\n            增加训练数据有时反而会@@T2@@提高@@T3@@测试误差，如果它把模型从过参数化重新推回到恰好插值的状态。这是真实存在的现象（Nakkiran 等，2019）。",
+   "src": "<strong>Sample-wise double descent.</strong>\n            Adding training data can sometimes <em>increase</em>\n            test error if it pushes the model from\n            over-parameterised back to interpolating exactly. Real\n            phenomenon (Nakkiran et al., 2019).",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          The U-curve is the wrong default mental model for modern\n          DL. Once you've seen the second descent in your browser,\n          you'll never expect \"bigger model = more overfitting\" the\n          same way again.": {
+   "zh": "@@T0@@最终结论。@@T1@@\n          U 形曲线并非现代深度学习正确的默认心智模型。一旦你在浏览器中亲眼见到第二次下降，你就再也不会以同样的方式相信「模型越大 = 过拟合越严重」了。",
+   "src": "<strong>Final takeaway.</strong>\n          The U-curve is the wrong default mental model for modern\n          DL. Once you've seen the second descent in your browser,\n          you'll never expect \"bigger model = more overfitting\" the\n          same way again.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Connection to the NTK and infinite width": {
+   "zh": "与 NTK 及无限宽度的联系",
+   "src": "Connection to the NTK and infinite width",
+   "tags": []
+  },
+  "The Neural Tangent Kernel limit (Jacot et&nbsp;al., 2018) says\n          that an infinitely-wide net trained with gradient descent and\n          vanishing learning rate behaves as a fixed kernel regressor.\n          The \"$P = N$\" spike is where that kernel's training-data Gram\n          matrix becomes ill-conditioned; the second descent corresponds\n          to the kernel ridgeless limit on an effectively\n          over-determined system.": {
+   "zh": "神经正切核极限（Jacot 等，2018）指出，一个无限宽的网络若以梯度下降并取趋于零的学习率训练，其行为等同于一个固定的核回归器。“$P = N$” 处的尖峰，正是该核在训练数据上的 Gram 矩阵条件数变差之处；第二次下降则对应于一个实际过定系统上的无岭核极限。",
+   "src": "The Neural Tangent Kernel limit (Jacot et&nbsp;al., 2018) says\n          that an infinitely-wide net trained with gradient descent and\n          vanishing learning rate behaves as a fixed kernel regressor.\n          The \"$P = N$\" spike is where that kernel's training-data Gram\n          matrix becomes ill-conditioned; the second descent corresponds\n          to the kernel ridgeless limit on an effectively\n          over-determined system.",
+   "tags": []
+  },
+  "This gives a clean explanation:": {
+   "zh": "这给出了一个清晰的解释：",
+   "src": "This gives a clean explanation:",
+   "tags": []
+  },
+  "Under the NTK, \"more parameters\" = more random features.": {
+   "zh": "在 NTK 框架下，「更多参数」= 更多随机特征。",
+   "src": "Under the NTK, \"more parameters\" = more random features.",
+   "tags": []
+  },
+  "The spike at $P = N$ is exactly the random-feature\n            ridge spike we just plotted.": {
+   "zh": "$P = N$ 处的尖峰，正是我们刚刚绘制的随机特征岭回归尖峰。",
+   "src": "The spike at $P = N$ is exactly the random-feature\n            ridge spike we just plotted.",
+   "tags": []
+  },
+  "Real neural nets @@T0@@also@@T1@@ learn features, so the\n            real shape is a mixture of this and a feature-learning\n            descent on top.": {
+   "zh": "真实的神经网络@@T0@@还会@@T1@@学习特征，因此真实的形状是上述现象与叠加其上的特征学习式下降的混合。",
+   "src": "Real neural nets <em>also</em> learn features, so the\n            real shape is a mixture of this and a feature-learning\n            descent on top.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Hastie, Montanari, Rosset &amp; Tibshirani (2019) give the\n          asymptotic risk formula for random-feature ridge regression\n          in closed form: the test risk peaks at exactly $P/N = 1$ for\n          $\\lambda \\to 0$ and decreases monotonically thereafter, with\n          the rate of descent governed by the spectrum of the feature\n          map.": {
+   "zh": "Hastie、Montanari、Rosset &amp; Tibshirani（2019）给出了随机特征岭回归渐近风险的闭式表达式：当 $\\lambda \\to 0$ 时，测试风险恰好在 $P/N = 1$ 处达到峰值，此后单调下降，下降速率由特征映射的谱决定。",
+   "src": "Hastie, Montanari, Rosset &amp; Tibshirani (2019) give the\n          asymptotic risk formula for random-feature ridge regression\n          in closed form: the test risk peaks at exactly $P/N = 1$ for\n          $\\lambda \\to 0$ and decreases monotonically thereafter, with\n          the rate of descent governed by the spectrum of the feature\n          map.",
+   "tags": []
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "How to avoid getting trapped at the spike": {
+   "zh": "如何避免被困在尖峰处",
+   "src": "How to avoid getting trapped at the spike",
+   "tags": []
+  },
+  "@@T0@@Weight decay (or any $\\ell_2$).@@T1@@ Almost\n            erases the spike. Cost: very mild test-error increase\n            away from threshold. Practically, this is the default.": {
+   "zh": "@@T0@@权重衰减（或任何 $\\ell_2$ 正则）。@@T1@@ 几乎能抹平尖峰。代价是：在远离阈值处测试误差有极轻微的上升。实践中这是默认做法。",
+   "src": "<strong>Weight decay (or any $\\ell_2$).</strong> Almost\n            erases the spike. Cost: very mild test-error increase\n            away from threshold. Practically, this is the default.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Don't size your model at $P \\approx N$.@@T1@@\n            If you're scaling a model deliberately, either stay clearly\n            under the threshold or clearly over it. The danger zone is\n            narrow but real.": {
+   "zh": "@@T0@@不要让模型规模停留在 $P \\approx N$。@@T1@@\n            如果你在有意扩展模型，要么明显低于阈值，要么明显高于它。危险区域狭窄，但确实存在。",
+   "src": "<strong>Don't size your model at $P \\approx N$.</strong>\n            If you're scaling a model deliberately, either stay clearly\n            under the threshold or clearly over it. The danger zone is\n            narrow but real.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Early stopping@@T1@@ reduces epoch-wise descent\n            by cutting training before the model reaches the\n            interpolating epoch. Less common in modern LLM pretraining\n            (which trains long); essential for small-data fine-tunes.": {
+   "zh": "@@T0@@早停@@T1@@ 通过让训练在模型达到插值轮次之前终止，来减轻轮次维度的双下降。在现代 LLM 预训练中较少使用（因其训练时间很长）；但对小数据微调而言不可或缺。",
+   "src": "<strong>Early stopping</strong> reduces epoch-wise descent\n            by cutting training before the model reaches the\n            interpolating epoch. Less common in modern LLM pretraining\n            (which trains long); essential for small-data fine-tunes.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Data augmentation@@T1@@ shifts the threshold by\n            inflating $N$. A solid practical fix that costs nothing in\n            architecture changes.": {
+   "zh": "@@T0@@数据增强@@T1@@ 通过抬高 $N$ 来移动阈值。这是一个可靠且无需改动架构的实用解法。",
+   "src": "<strong>Data augmentation</strong> shifts the threshold by\n            inflating $N$. A solid practical fix that costs nothing in\n            architecture changes.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Label noise warning.@@T1@@ Noisy labels make\n            the spike taller and wider. Clean labels first; everything\n            else helps less.": {
+   "zh": "@@T0@@标签噪声警示。@@T1@@ 含噪标签会使尖峰更高更宽。应先清理标签；其他手段的帮助都相对有限。",
+   "src": "<strong>Label noise warning.</strong> Noisy labels make\n            the spike taller and wider. Clean labels first; everything\n            else helps less.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "阅读清单",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Belkin, Hsu, Ma, Mandal (2018)@@T1@@ &mdash;\n            @@T2@@Reconciling modern machine-learning practice and the\n            classical bias–variance trade-off.@@T3@@ The paper that\n            named \"double descent\" and connected modern DL to classical\n            kernel theory.": {
+   "zh": "@@T0@@Belkin, Hsu, Ma, Mandal (2018)@@T1@@ &mdash;\n            @@T2@@Reconciling modern machine-learning practice and the\n            classical bias–variance trade-off。@@T3@@ 正是这篇论文命名了「双下降」，并将现代深度学习与经典核理论联系起来。",
+   "src": "<strong>Belkin, Hsu, Ma, Mandal (2018)</strong> &mdash;\n            <em>Reconciling modern machine-learning practice and the\n            classical bias–variance trade-off.</em> The paper that\n            named \"double descent\" and connected modern DL to classical\n            kernel theory.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Nakkiran, Kaplun, Bansal, Yang, Barak, Sutskever\n            (2019)@@T1@@ &mdash; @@T2@@Deep double descent: where\n            bigger models and more data hurt.@@T3@@ The empirical\n            survey on ResNets / Transformers; defined epoch-wise and\n            sample-wise variants.": {
+   "zh": "@@T0@@Nakkiran, Kaplun, Bansal, Yang, Barak, Sutskever\n            (2019)@@T1@@ &mdash; @@T2@@Deep double descent: where\n            bigger models and more data hurt。@@T3@@ 对 ResNet / Transformer 的实证研究；定义了轮次维度与样本维度的变体。",
+   "src": "<strong>Nakkiran, Kaplun, Bansal, Yang, Barak, Sutskever\n            (2019)</strong> &mdash; <em>Deep double descent: where\n            bigger models and more data hurt.</em> The empirical\n            survey on ResNets / Transformers; defined epoch-wise and\n            sample-wise variants.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Hastie, Montanari, Rosset, Tibshirani (2019)@@T1@@\n            &mdash; @@T2@@Surprises in high-dimensional ridgeless least\n            squares interpolation.@@T3@@ The clean theoretical paper for\n            random-feature ridge regression with proofs.": {
+   "zh": "@@T0@@Hastie, Montanari, Rosset, Tibshirani (2019)@@T1@@\n            &mdash; @@T2@@Surprises in high-dimensional ridgeless least\n            squares interpolation。@@T3@@ 关于随机特征岭回归的清晰理论论文，附有证明。",
+   "src": "<strong>Hastie, Montanari, Rosset, Tibshirani (2019)</strong>\n            &mdash; <em>Surprises in high-dimensional ridgeless least\n            squares interpolation.</em> The clean theoretical paper for\n            random-feature ridge regression with proofs.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Bartlett, Long, Lugosi, Tsigler (2020)@@T1@@\n            &mdash; @@T2@@Benign overfitting in linear regression.@@T3@@\n            Gives precise conditions on the covariance spectrum under\n            which interpolation generalises.": {
+   "zh": "@@T0@@Bartlett, Long, Lugosi, Tsigler (2020)@@T1@@\n            &mdash; @@T2@@Benign overfitting in linear regression。@@T3@@\n            给出了协方差谱上插值能够泛化的精确条件。",
+   "src": "<strong>Bartlett, Long, Lugosi, Tsigler (2020)</strong>\n            &mdash; <em>Benign overfitting in linear regression.</em>\n            Gives precise conditions on the covariance spectrum under\n            which interpolation generalises.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "具体理解双下降现象",
+  "tagline": "参数多于数据点本应导致过拟合，但有时反而泛化得更好。",
+  "summary": "在一维曲线上做随机特征岭回归，并把模型规模这个旋钮暴露出来。观察测试误差上升形成 U 形、在插值阈值附近达到峰值，随后随着模型继续增大而再次下降 — 这就是双下降现象，尽在你的浏览器中。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "带模型规模滑块的实时随机特征回归；测试误差绘制出双下降曲线。",
+   "滑动岭回归 λ 以抑制尖峰 — 过参数化区域对正则化十分敏感。",
+   "同一数据集、不同噪声水平；观察噪声如何改变尖峰的位置与高度。"
+  ],
+  "tags": [
+   "泛化",
+   "双下降",
+   "随机特征",
+   "交互式"
+  ]
+ },
+ "js": {
+  "test RMSE": {
+   "zh": "测试 RMSE",
+   "exprs": [],
+   "tags": [],
+   "src": "test RMSE"
+  },
+  "very large": {
+   "zh": "极大",
+   "exprs": [],
+   "tags": [],
+   "src": "very large"
+  },
+  "dd-N-val": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": "dd-N-val"
+  },
+  "training set size N →": {
+   "zh": "训练集规模 N →",
+   "exprs": [],
+   "tags": [],
+   "src": "training set size N →"
+  },
+  "sw-P-val": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": "sw-P-val"
+  }
+ }
+}

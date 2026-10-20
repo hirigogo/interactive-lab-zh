@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>动手实现共形预测</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>动手实现共形预测</h1>
+        <p class="abstract">
+          任选一个模型，留出一个校准集，计算残差，取其 (1−α) 分位数。由此得到的区间以至少 (1−α) 的概率包含真值。无需对分布作假设，也无需对模型作假设。实时回归演示证实了覆盖率；CQR 与 ACI 变体进一步把它推广到异方差数据与非可交换数据。
+        </p>
+        <div class="byline">
+          <span>约 18 分钟</span>
+          <span>概率 &middot; 不确定性量化 &middot; 校准</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>承诺</h2>
+        <p>
+          大多数不确定性方法给你的只是「一个看起来像不确定性的数字」，却不保证它真的是。共形预测给出的是一个有限样本、免分布假设、免模型假设的<em>覆盖率保证</em>：在可交换数据上，区间以至少 $1 - \alpha$ 的概率包含真值。取 $\alpha = 0.1$，即可得到 90% 的区间。
+        </p>
+        <div class="callout callout--key">
+          <strong>一句话口号。</strong>
+          继续信任你那个使用既有损失 / 训练配方 / 超参数的点预测器。只需留出一个校准集，取残差的一个分位数，保证便是你的了。无需重新训练，无需新模型。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">步骤 1</div>
+        <h2>分裂共形回归</h2>
+        <p>
+          最简单的变体。三个集合：训练集、校准集、测试集。在训练集上训练你偏爱的模型 $\hat f$。在校准集上计算非一致性得分 $s_i = |y_i - \hat f(x_i)|$。将它们排序。取第 $\lceil (1-\alpha)(n+1) \rceil / n$ 大的值作为 $\hat q$。对于任意新的 $x$，区间为 $[\hat f(x) - \hat q,\, \hat f(x) + \hat q]$。
+        </p>
+        <div class="math-block" id="math-conf"></div>
+        <p>
+          定理（Vovk、Gammerman、Shafer；2005）：若校准数据与测试数据可交换，则该区间具有至少 $1 - \alpha$ 的边缘覆盖率。无需对模型作假设；无需对 $y$ 的分布作假设；除一个分位数之外别无所需。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">步骤 2</div>
+        <h2>见证它生效</h2>
+        <p>
+          异方差一维回归：噪声随 $|x|$ 增大。我们在训练集上拟合一个多项式回归器，在校准集上做共形化，并在一个大型测试集上报告经验覆盖率。拖动 $\alpha$ 与校准集大小，观察覆盖率条如何跟随目标。
+        </p>
+        <div class="train-controls">
+          <button class="action-btn action-btn--ghost" id="cf-resample">重新采样数据</button>
+          <label>α (miscoverage) &nbsp;<span id="cf-alpha-val">0.10</span> <input type="range" id="cf-alpha" min="0.01" max="0.5" step="0.01" value="0.10"></label>
+          <label>校准集大小 &nbsp;<span id="cf-n-val">100</span> <input type="range" id="cf-n" min="20" max="400" step="10" value="100"></label>
+          <label>变体
+            <select id="cf-变体">
+              <option value="split" selected>分裂共形（固定宽度）</option>
+              <option value="cqr">CQR（自适应宽度）</option>
+            </select>
+          </label>
+          <span class="train-stat">目标覆盖率 <strong id="cf-target">90.0%</strong></span>
+          <span class="train-stat">经验覆盖率 <strong id="cf-emp">—</strong></span>
+        </div>
+        <div class="cf-figure">
+          <canvas id="cf-canvas" width="880" height="380"></canvas>
+          <figcaption>黑色点：数据。蓝色实线：预测器。青色带：共形区间。红点：落在带外的测试点（应占 α 的比例）。</figcaption>
+        </div>
+        <div class="cf-figure">
+          <canvas id="cov-canvas" width="880" height="120"></canvas>
+          <figcaption>多次重采样下的经验覆盖率（目标以虚线表示）。覆盖率应在无需任何模型假设的情况下跟随 1−α。</figcaption>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">步骤 3</div>
+        <h2>CQR —— 自适应宽度</h2>
+        <p>
+          分裂共形在处处都给出固定宽度的区间 &mdash;— 当噪声呈异方差时这是一种浪费。解决办法：在训练集上拟合两个分位数回归器 $\hat q_{\alpha/2}, \hat q_{1-\alpha/2}$；令校准得分为 $s_i = \max\{\hat q_{\alpha/2}(x_i) - y_i,\, y_i - \hat q_{1-\alpha/2}(x_i)\}$。取 $(1-\alpha)$ 分位数 $\hat q$。在 $x$ 处的区间为 $[\hat q_{\alpha/2}(x) - \hat q,\, \hat q_{1-\alpha/2}(x) + \hat q]$。
+        </p>
+        <p>
+          覆盖率保证不变，而宽度会随局部噪声自适应。在上方演示中切换 <em>CQR</em>，看这条带如何随数据「呼吸」。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">步骤 4</div>
+        <h2>时间序列与非可交换数据</h2>
+        <p>
+          可交换性假设在时间序列中被打破：今天的分布依赖于昨天。两种实用的补救办法：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>自适应共形推断（ACI；Gibbs &amp; Candès，2021）。</strong> 维护一个随近期未覆盖率而调整的运行值 $\alpha_t$：$\alpha_{t+1} = \alpha_t + \gamma\,(\alpha - \mathbb{1}\{y_t \notin C_t\})$。区间宽度随漂移而「呼吸」。</li>
+          <li><strong>EnbPI / 加权共形。</strong> 把对残差的均匀经验累积分布函数替换为一个对较旧数据点衰减的加权版本。以牺牲部分边缘覆盖率换取自适应性。</li>
+        </ul>
+        <p>
+          即便不在时间序列场景中，当部署时遭遇协变量偏移，共形预测也可能丧失覆盖率。Mondrian / 类别条件共形按特征划分校准集，使保证对每一组分别成立。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-aps">
+        <div class="step-badge">步骤 4½</div>
+        <h2>共形分类 —— 自适应预测集</h2>
+        <p>
+          对于分类，共形的输出不是一个区间 &mdash;— 而是一个类别标签的<strong>集合</strong>。自适应预测集（APS；Romano 等，2020）对 softmax 概率排序，从高到低逐类加入，直到累积概率超过一个经过校准的阈值 $\hat q$。覆盖率保证：真实类别以至少 $1 - \alpha$ 的概率落在该集合中。
+        </p>
+        <div class="math-block" id="math-aps"></div>
+        <p>
+          容易的点得到小集合（往往只有 1 个类别）；含糊的点得到更大的集合。平均集合大小是衡量信息量的自然指标。
+        </p>
+        <div class="train-controls">
+          <label>α（未覆盖率）&nbsp;<span id="aps-alpha-val">0.10</span> <input type="range" id="aps-alpha" min="0.01" max="0.5" step="0.01" value="0.10"></label>
+          <button class="action-btn action-btn--ghost" id="aps-resample">重新采样数据</button>
+          <span class="train-stat">目标覆盖率 <strong id="aps-target">90.0%</strong></span>
+          <span class="train-stat">经验覆盖率 <strong id="aps-emp">—</strong></span>
+          <span class="train-stat">平均集合大小 <strong id="aps-size">—</strong></span>
+        </div>
+        <div class="cf-figure">
+          <canvas id="aps-canvas" width="880" height="320"></canvas>
+          <figcaption>测试点集合以预测集大小进行颜色编码。容易区域：单元素集（最浅）。含糊的边界：2 类或 3 类的集合（较深）。拖动 α，观察集合如何收缩 / 扩张。</figcaption>
+        </div>
+        <div class="callout callout--key">
+          <strong>APS 的过人之处。</strong>
+          集合大小随难易程度自适应。一个轻易即可分类的点得到单元素集；一个含糊的点得到所有可能的类别；一个混乱至极的点则得到完整的标签集。无论底层分类器的质量如何，边缘覆盖率都保证为 $1-\alpha$。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">步骤 5</div>
+        <h2>共形预测适用的场景</h2>
+        <ul class="explanation-list">
+          <li><strong>已部署预测器的附加组件。</strong> 用分裂共形包裹任何现有模型：200 个校准点，一个分位数，即可上线 90% 区间。五行代码；无需重新训练。</li>
+          <li><strong>预测。</strong> 在 PatchTST 之上施加共形，可在任意预测步长上给出带覆盖率保证的区间预测——这比「我们用了贝叶斯神经网络」要强得多。</li>
+          <li><strong>带校准不确定性的回归。</strong> 心率 / 呼吸 / 血糖估计配上经过校准的区间，才能使安全性的论断站得住脚。</li>
+          <li><strong>LLM 幻觉控制。</strong> 共形语言建模（Quach 等，2024）给出具有边缘覆盖率的候选续写集合——把一个自由形式的生成器转变为一个经过校准的集合预测器。</li>
+          <li><strong>带拒识的多分类。</strong> APS / RAPS 变体产生共形集合（类别标签的子集）。当集合很大时，模型即在拒识；应转交人工处理。</li>
+        </ul>
+        <div class="callout callout--think">
+          <strong>最终要点。</strong>
+          共形预测是为任何已部署模型添加带保证的覆盖率区间的最廉价方式。它并不取代概率方法（贝叶斯、NP、GP），但它是包裹在这些方法之外的正确安全网——而且添加它的代价几乎为零。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-6">
+        <div class="step-badge">步骤 6</div>
+        <h2>边缘覆盖率定理及其细则</h2>
+        <p>
+          分裂共形的保证是精确的：对任意非一致性得分 $s$、可交换的校准集以及未覆盖率 $\alpha$，有
+        </p>
+        <div class="math-block" id="math-cov-thm"></div>
+        <p>
+          需要理解的三点微妙之处：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>是「边缘」而非「条件」。</strong> 保证是针对 $(X, Y)$ 的联合分布而言的，而非以 $X$ 为条件的。因此你在所有输入上平均得到 90% 的覆盖率，但并不在每一个子群上都得到 90% 的覆盖率。一个 90% 区间可能在困难输入上系统性地失准，而在容易输入上过度覆盖。</li>
+          <li><strong>随机性来自校准集。</strong> 给定一个固定的校准集，测试数据上的覆盖率是一个固定的数——可能高于也可能低于 $1 - \alpha$。定理所说的是：<em>在多次抽取校准集后取平均</em>，覆盖率才命中目标。</li>
+          <li><strong>可交换性是唯一的假设。</strong> 校准数据与测试数据必须来自同一分布（事实上要求略弱——它们作为一个整体集合必须是可交换的）。不对模型作假设，不假设高斯噪声，不要求平滑性。</li>
+        </ul>
+        <p>
+          实践中它何时会失效？
+        </p>
+        <ul class="explanation-list">
+          <li><strong>分布偏移。</strong> 可交换性被打破；覆盖率可能任意下降。如果你知道协变量偏移的权重，可使用<em>加权共形</em>（Tibshirani 等，2019）。</li>
+          <li><strong>对抗性输入。</strong> 这是同一个问题从另一个角度的体现——对手特意选择了与校准集不同的输入。共形预测对此毫无防御能力。</li>
+          <li><strong>时间漂移。</strong> 如果你的校准集来自昨天而测试集来自今天，在线共形（ACI；Gibbs &amp; Candès，2021）通过随时间调整阈值来维持覆盖率。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-7">
+        <div class="step-badge">步骤 7</div>
+        <h2>共形配方，逐步详解</h2>
+        <ol class="explanation-list">
+          <li><strong>划分。</strong> 留出一个大小为 $n$ 的校准集。典型的 $n = 500–2000$。$n$ 越大 → 区间越紧；二者关系为 $\sqrt{1/n}$。</li>
+          <li><strong>打分。</strong> 定义一个非一致性得分 $s(x, y)$。回归情形：$|y - \hat\mu(x)|$（朴素版）；$|y - \hat\mu(x)| / \hat\sigma(x)$（归一化版）；$\max(\hat q_\alpha(x) - y, y - \hat q_{1-\alpha}(x))$（CQR）。分类情形：$1 - \hat p_y(x)$（朴素版）；累积秩得分（APS / RAPS）。</li>
+          <li><strong>校准。</strong> 计算 $\hat q$ = $\{s(x_i, y_i)\}_{i=1}^n$ 的第 $\lceil (n+1)(1-\alpha) \rceil / n$ 分位数。</li>
+          <li><strong>预测。</strong> $\hat C(x_{\text{new}}) = \{y : s(x_{\text{new}}, y) \le \hat q\}$。</li>
+          <li><strong>评估。</strong> 在留出的测试集上检查：(a) 经验覆盖率 ≈ $1 - \alpha$；(b) 平均集合大小或区间宽度（信息量）；(c) 在重要子群上的条件覆盖率。</li>
+        </ol>
+        <div class="callout callout--key">
+          <strong>得分函数就是那个可调节的设计旋钮。</strong>
+          对任何得分而言，边缘覆盖率都是自动成立的。而<em>紧致</em>的区间则要求得分能随预测难度伸缩——这正是 CQR（用于回归）与 APS（用于分类）优于朴素的绝对残差 / 一减 softmax 得分的原因。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-8">
+        <div class="step-badge">步骤 8</div>
+        <h2>参考文献</h2>
+        <ul class="explanation-list">
+          <li><strong>Vovk、Gammerman、Shafer（2005）</strong> &mdash;— <em>Algorithmic Learning in a Random World.</em> 关于共形预测的奠基性著作。</li>
+          <li><strong>Lei、Sell、Rinaldo、Tibshirani、Wasserman（2018）</strong> &mdash;— <em>Distribution-Free Predictive Inference for Regression.</em> 分裂共形回归论文。</li>
+          <li><strong>Romano、Patterson、Candès（2019）</strong> &mdash;— <em>Conformalized Quantile Regression.</em></li>
+          <li><strong>Romano、Sesia、Candès（2020）</strong> &mdash;— <em>Classification with Valid and Adaptive Coverage (APS).</em></li>
+          <li><strong>Angelopoulos、Bates（2021）</strong> &mdash;— <em>A Gentle Introduction to Conformal Prediction and Distribution-Free Uncertainty Quantification.</em> 最易读的现代入门读物。</li>
+          <li><strong>Tibshirani 等（2019）</strong> &mdash;— <em>Conformal Prediction Under Covariate Shift.</em></li>
+          <li><strong>Gibbs &amp; Candès（2021）</strong> &mdash;— <em>Adaptive Conformal Inference.</em> 面向非平稳数据的在线共形方法。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

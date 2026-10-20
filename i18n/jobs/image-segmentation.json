@@ -1,0 +1,992 @@
+{
+ "slug": "image-segmentation",
+ "units": {
+  "Image Segmentation, with a Real Segmenter": {
+   "zh": "图像分割：使用真实的语义分割模型",
+   "src": "Image Segmentation, with a Real Segmenter",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Classification labels the image. Detection labels boxes.\n          Segmentation labels every @@T0@@pixel@@T1@@. This page runs a real\n          pretrained @@T2@@DeepLab&nbsp;v3+@@T3@@ segmenter on whatever\n          photo you hand it, then lets you paint your own mask and watch\n          mean-IoU and pixel accuracy tick up toward the model's output.": {
+   "zh": "分类为整幅图像打标签，检测为边界框打标签，而分割则为@@T0@@每一个像素@@T1@@打标签。本页在你提供的任意照片上运行一个真实的预训练 @@T2@@DeepLab&nbsp;v3+@@T3@@ 分割器，随后让你亲手绘制掩码，观察平均 IoU 与像素准确率如何逐步逼近模型的输出。",
+   "src": "Classification labels the image. Detection labels boxes.\n          Segmentation labels every <em>pixel</em>. This page runs a real\n          pretrained <strong>DeepLab&nbsp;v3+</strong> segmenter on whatever\n          photo you hand it, then lets you paint your own mask and watch\n          mean-IoU and pixel accuracy tick up toward the model's output.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@~15 min@@T1@@\n          @@T2@@Computer Vision &middot; TensorFlow.js &middot; Real Model@@T3@@": {
+   "zh": "@@T0@@约 15 分钟@@T1@@\n          @@T2@@计算机视觉 &middot; TensorFlow.js &middot; 真实模型@@T3@@",
+   "src": "<span>~15 min</span>\n          <span>Computer Vision &middot; TensorFlow.js &middot; Real Model</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "A real segmenter running in your browser": {
+   "zh": "在浏览器中运行的真实分割器",
+   "src": "A real segmenter running in your browser",
+   "tags": []
+  },
+  "The model below is\n          @@T0@@DeepLab&nbsp;v3+@@T1@@\n          (MobileNetV2 backbone) trained on the\n          @@T2@@Pascal VOC@@T3@@\n          benchmark's 21 classes (background + 20 foreground:\n          person, cat, dog, bicycle, car, chair, sofa, tv, &hellip;).\n          TensorFlow.js downloads it once (~10&nbsp;MB) and runs every\n          inference locally on your GPU.": {
+   "zh": "下方模型是 @@T0@@DeepLab&nbsp;v3+@@T1@@（MobileNetV2 骨干网络），在 @@T2@@Pascal VOC@@T3@@ 基准的 21 个类别上训练（背景 + 20 个前景类：人、猫、狗、自行车、汽车、椅子、沙发、电视……）。TensorFlow.js 会将其下载一次（约 10&nbsp;MB），随后每次推理都在你的 GPU 上本地执行。",
+   "src": "The model below is\n          <a href=\"https://arxiv.org/abs/1802.02611\" target=\"_blank\" rel=\"noopener noreferrer\">DeepLab&nbsp;v3+</a>\n          (MobileNetV2 backbone) trained on the\n          <a href=\"https://www.tensorflow.org/datasets/catalog/voc\" target=\"_blank\" rel=\"noopener noreferrer\">Pascal VOC</a>\n          benchmark's 21 classes (background + 20 foreground:\n          person, cat, dog, bicycle, car, chair, sofa, tv, &hellip;).\n          TensorFlow.js downloads it once (~10&nbsp;MB) and runs every\n          inference locally on your GPU.",
+   "tags": [
+    "<a href=\"https://arxiv.org/abs/1802.02611\" target=\"_blank\" rel=\"noopener noreferrer\">",
+    "</a>",
+    "<a href=\"https://www.tensorflow.org/datasets/catalog/voc\" target=\"_blank\" rel=\"noopener noreferrer\">",
+    "</a>"
+   ]
+  },
+  "Three flavours of segmentation to keep in mind:": {
+   "zh": "需要记住的三种分割形式：",
+   "src": "Three flavours of segmentation to keep in mind:",
+   "tags": []
+  },
+  "@@T0@@Semantic@@T1@@: per-pixel class. Two people merge into one \"person\" blob.": {
+   "zh": "@@T0@@语义分割@@T1@@：逐像素类别。两个人会合并为一个「人」的色块。",
+   "src": "<strong>Semantic</strong>: per-pixel class. Two people merge into one \"person\" blob.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Instance@@T1@@: per-pixel class @@T2@@and@@T3@@ instance ID. Two people get two masks.": {
+   "zh": "@@T0@@实例分割@@T1@@：逐像素的类别@@T2@@与@@T3@@实例 ID。两个人得到两个掩码。",
+   "src": "<strong>Instance</strong>: per-pixel class <em>and</em> instance ID. Two people get two masks.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Panoptic@@T1@@: the union&mdash;\"things\" (countable) get instance IDs, \"stuff\" (sky, road) just gets a class. DeepLab does semantic; Mask R-CNN / Mask2Former handle the others.": {
+   "zh": "@@T0@@全景分割@@T1@@：二者的并集——「可数物」（countable things）获得实例 ID，「背景质料」（stuff，如天空、道路）只获得类别。DeepLab 执行语义分割；Mask R-CNN / Mask2Former 处理其余两种。",
+   "src": "<strong>Panoptic</strong>: the union&mdash;\"things\" (countable) get instance IDs, \"stuff\" (sky, road) just gets a class. DeepLab does semantic; Mask R-CNN / Mask2Former handle the others.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Pick a photo\n          @@T0@@\n            @@T1@@@@T2@@@@T3@@Loading segmenter&hellip;@@T4@@\n          @@T5@@": {
+   "zh": "选择一张照片\n          @@T0@@\n            @@T1@@@@T2@@@@T3@@正在加载分割器&hellip;@@T4@@\n          @@T5@@",
+   "src": "Pick a photo\n          <span class=\"model-status is-loading\" id=\"model-status\">\n            <span class=\"dot\"></span><span id=\"model-status-text\">Loading segmenter&hellip;</span>\n          </span>",
+   "tags": [
+    "<span class=\"model-status is-loading\" id=\"model-status\">",
+    "<span class=\"dot\">",
+    "</span>",
+    "<span id=\"model-status-text\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Drop a photo here, or click to upload.@@T1@@\n            @@T2@@Runs locally. Pascal VOC classes work best.@@T3@@": {
+   "zh": "@@T0@@将照片拖放到此处，或点击上传。@@T1@@\n            @@T2@@本地运行。Pascal VOC 类别效果最佳。@@T3@@",
+   "src": "<strong>Drop a photo here, or click to upload.</strong>\n            <small>Runs locally. Pascal VOC classes work best.</small>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<small>",
+    "</small>"
+   ]
+  },
+  "Use webcam": {
+   "zh": "使用摄像头",
+   "src": "Use webcam",
+   "tags": []
+  },
+  "Six CC-licensed stock photos with Pascal VOC classes.": {
+   "zh": "六张包含 Pascal VOC 类别的 CC 授权素材照片。",
+   "src": "Six CC-licensed stock photos with Pascal VOC classes.",
+   "tags": []
+  },
+  "Loading&hellip; the segmentation overlay will appear here as soon\n            as the model and photo are ready.": {
+   "zh": "加载中&hellip; 一旦模型与照片就绪，分割叠加层就会在此处显示。",
+   "src": "Loading&hellip; the segmentation overlay will appear here as soon\n            as the model and photo are ready.",
+   "tags": []
+  },
+  "@@T0@@Model@@T1@@\n            @@T2@@DeepLab v3+@@T3@@": {
+   "zh": "@@T0@@模型@@T1@@\n            @@T2@@DeepLab v3+@@T3@@",
+   "src": "<span class=\"stat-label\">Model</span>\n            <span class=\"stat-value\" style=\"font-size: 0.92rem;\">DeepLab v3+</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" style=\"font-size: 0.92rem;\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Classes found@@T1@@\n            @@T2@@—@@T3@@": {
+   "zh": "@@T0@@发现的类别@@T1@@\n            @@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Classes found</span>\n            <span class=\"stat-value\" id=\"classes-found\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"classes-found\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Inference time@@T1@@\n            @@T2@@—@@T3@@": {
+   "zh": "@@T0@@推理时间@@T1@@\n            @@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Inference time</span>\n            <span class=\"stat-value\" id=\"inference-ms\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"inference-ms\">",
+    "</span>"
+   ]
+  },
+  "Classes detected in this image": {
+   "zh": "本图像中检测到的类别",
+   "src": "Classes detected in this image",
+   "tags": []
+  },
+  "Step 1": {
+   "zh": "步骤 1",
+   "src": "Step 1",
+   "tags": []
+  },
+  "A segmentation is a function from pixels to labels": {
+   "zh": "分割是一个从像素到标签的函数",
+   "src": "A segmentation is a function from pixels to labels",
+   "tags": []
+  },
+  "The model's output is a $W \\times H \\times C$ tensor of class\n          logits&mdash;one logit per pixel per class. Taking the argmax at\n          every pixel collapses it to a label map with one integer per pixel.\n          Below is the model's raw label map rendered as a colour overlay.\n          Every pixel has exactly one colour, because every pixel has exactly\n          one winner.": {
+   "zh": "模型的输出是一个 $W \\times H \\times C$ 的类别 logit 张量——每个像素对每个类别各有一个 logit。在每个像素上取 argmax，就能把它压缩成一张每个像素对应一个整数的标签图。下方是以颜色叠加层渲染的模型原始标签图。每个像素恰好只有一种颜色，因为每个像素恰好只有一个胜出类别。",
+   "src": "The model's output is a $W \\times H \\times C$ tensor of class\n          logits&mdash;one logit per pixel per class. Taking the argmax at\n          every pixel collapses it to a label map with one integer per pixel.\n          Below is the model's raw label map rendered as a colour overlay.\n          Every pixel has exactly one colour, because every pixel has exactly\n          one winner.",
+   "tags": []
+  },
+  "Toggle between the image and the model's semantic mask.": {
+   "zh": "在原图像与模型的语义掩码之间切换。",
+   "src": "Toggle between the image and the model's semantic mask.",
+   "tags": []
+  },
+  "Image": {
+   "zh": "原图",
+   "src": "Image",
+   "tags": []
+  },
+  "Image + mask": {
+   "zh": "原图 + 掩码",
+   "src": "Image + mask",
+   "tags": []
+  },
+  "Mask only": {
+   "zh": "仅掩码",
+   "src": "Mask only",
+   "tags": []
+  },
+  "Mask opacity @@T0@@@@T1@@0.55@@T2@@@@T3@@": {
+   "zh": "掩码不透明度 @@T0@@@@T1@@0.55@@T2@@@@T3@@",
+   "src": "Mask opacity <span><span id=\"alpha-val\">0.55</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"alpha-val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Hover pixel @@T0@@—@@T1@@": {
+   "zh": "悬停像素 @@T0@@—@@T1@@",
+   "src": "Hover pixel <span id=\"hover-info\">—</span>",
+   "tags": [
+    "<span id=\"hover-info\">",
+    "</span>"
+   ]
+  },
+  "Move the mouse over the image to see what class the model\n              assigned to that exact pixel.": {
+   "zh": "将鼠标移到图像上，查看模型为该确切像素分配了哪个类别。",
+   "src": "Move the mouse over the image to see what class the model\n              assigned to that exact pixel.",
+   "tags": []
+  },
+  "Step 2": {
+   "zh": "步骤 2",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Paint your own mask; grade it live": {
+   "zh": "亲手绘制掩码并实时评分",
+   "src": "Paint your own mask; grade it live",
+   "tags": []
+  },
+  "The canvas on the left is the image (the model's mask faintly\n          overlaid as a guide). The canvas on the right is your blank mask.\n          Pick a class, paint, and watch mean-IoU, pixel accuracy, and\n          per-class IoU update after every stroke&mdash;against the real\n          model output as ground truth.": {
+   "zh": "左侧画布是原图（以淡色叠加模型掩码作为参考）。右侧画布是空白的掩码。选择一个类别、涂抹，然后观察每一笔之后平均 IoU、像素准确率与逐类 IoU 的更新——以真实模型输出作为真值。",
+   "src": "The canvas on the left is the image (the model's mask faintly\n          overlaid as a guide). The canvas on the right is your blank mask.\n          Pick a class, paint, and watch mean-IoU, pixel accuracy, and\n          per-class IoU update after every stroke&mdash;against the real\n          model output as ground truth.",
+   "tags": []
+  },
+  "Image with model mask (guide).": {
+   "zh": "带模型掩码的图（参考）。",
+   "src": "Image with model mask (guide).",
+   "tags": []
+  },
+  "Your mask (paint here).": {
+   "zh": "你的掩码（在此涂抹）。",
+   "src": "Your mask (paint here).",
+   "tags": []
+  },
+  "Brush size @@T0@@@@T1@@14@@T2@@ px@@T3@@": {
+   "zh": "画笔大小 @@T0@@@@T1@@14@@T2@@ 像素@@T3@@",
+   "src": "Brush size <span><span id=\"brush-size-val\">14</span> px</span>",
+   "tags": [
+    "<span>",
+    "<span id=\"brush-size-val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Clear my mask": {
+   "zh": "清空我的掩码",
+   "src": "Clear my mask",
+   "tags": []
+  },
+  "Fill with model output": {
+   "zh": "用模型输出填充",
+   "src": "Fill with model output",
+   "tags": []
+  },
+  "@@T0@@Pixel accuracy@@T1@@\n            @@T2@@—@@T3@@": {
+   "zh": "@@T0@@像素准确率@@T1@@\n            @@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Pixel accuracy</span>\n            <span class=\"stat-value\" id=\"pixel-acc\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"pixel-acc\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Mean IoU@@T1@@\n            @@T2@@—@@T3@@": {
+   "zh": "@@T0@@平均 IoU@@T1@@\n            @@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Mean IoU</span>\n            <span class=\"stat-value\" id=\"mean-iou\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"mean-iou\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Pixels painted@@T1@@\n            @@T2@@0@@T3@@": {
+   "zh": "@@T0@@已涂抹像素@@T1@@\n            @@T2@@0@@T3@@",
+   "src": "<span class=\"stat-label\">Pixels painted</span>\n            <span class=\"stat-value\" id=\"pix-painted\">0</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"pix-painted\">",
+    "</span>"
+   ]
+  },
+  "Per-class IoU": {
+   "zh": "逐类 IoU",
+   "src": "Per-class IoU",
+   "tags": []
+  },
+  "Step 3": {
+   "zh": "步骤 3",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Region growing: the pre-neural baseline": {
+   "zh": "区域生长：神经网络之前的基线方法",
+   "src": "Region growing: the pre-neural baseline",
+   "tags": []
+  },
+  "Before CNNs, segmentation started from a seed pixel and grew\n          outward while neighbours stayed similar in colour. The rule is\n          four lines of code: BFS over 4-connected neighbours; include a\n          pixel if its RGB distance to the seed (or the running mean of the\n          region) is within a threshold $\\tau$.": {
+   "zh": "在 CNN 出现之前，分割从一颗种子像素出发，在邻域颜色保持相似时向外生长。其规则只需四行代码：在 4-邻接邻域上做 BFS；若某像素与种子（或该区域的滑动均值）的 RGB 距离在阈值 $\\tau$ 之内，就将其纳入。",
+   "src": "Before CNNs, segmentation started from a seed pixel and grew\n          outward while neighbours stayed similar in colour. The rule is\n          four lines of code: BFS over 4-connected neighbours; include a\n          pixel if its RGB distance to the seed (or the running mean of the\n          region) is within a threshold $\\tau$.",
+   "tags": []
+  },
+  "Compare its output to the neural network's on the same photo.": {
+   "zh": "把它的输出与神经网络在同一张照片上的输出作比较。",
+   "src": "Compare its output to the neural network's on the same photo.",
+   "tags": []
+  },
+  "Colour threshold @@T0@@&tau; = @@T1@@30@@T2@@@@T3@@": {
+   "zh": "颜色阈值 @@T0@@&tau; = @@T1@@30@@T2@@@@T3@@",
+   "src": "Colour threshold <span>&tau; = <span id=\"tau-val\">30</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"tau-val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Compare to @@T0@@seed pixel colour@@T1@@": {
+   "zh": "对照 @@T0@@种子像素颜色@@T1@@",
+   "src": "Compare to <span id=\"rg-mode-label\">seed pixel colour</span>",
+   "tags": [
+    "<span id=\"rg-mode-label\">",
+    "</span>"
+   ]
+  },
+  "Seed pixel": {
+   "zh": "种子像素",
+   "src": "Seed pixel",
+   "tags": []
+  },
+  "Running mean": {
+   "zh": "滑动均值",
+   "src": "Running mean",
+   "tags": []
+  },
+  "Click any pixel to drop a seed. Orange = included in the region.": {
+   "zh": "点击任意像素以放置种子。橙色 = 被纳入该区域。",
+   "src": "Click any pixel to drop a seed. Orange = included in the region.",
+   "tags": []
+  },
+  "@@T0@@Seed colour@@T1@@@@T2@@—@@T3@@": {
+   "zh": "@@T0@@种子颜色@@T1@@@@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Seed colour</span><span class=\"stat-value\" id=\"seed-color\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"seed-color\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Region pixels@@T1@@@@T2@@0@@T3@@": {
+   "zh": "@@T0@@区域像素数@@T1@@@@T2@@0@@T3@@",
+   "src": "<span class=\"stat-label\">Region pixels</span><span class=\"stat-value\" id=\"region-size\">0</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"region-size\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@IoU vs model@@T1@@@@T2@@—@@T3@@": {
+   "zh": "@@T0@@与模型的 IoU@@T1@@@@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">IoU vs model</span><span class=\"stat-value\" id=\"rg-iou\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"rg-iou\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@The pre-neural weakness.@@T1@@\n          Drop a seed on the sky, raise $\\tau$ slowly. At low $\\tau$, you\n          get a clean sky mask. At high $\\tau$, the region leaks into\n          buildings the moment their colour is similar enough. That's the\n          core problem: \"same colour\" is a fragile proxy for \"same object.\"\n          A neural net learned to ignore colour when it doesn't matter\n          (shaded vs sunlit grass is still grass) and to pay attention when\n          it does.": {
+   "zh": "@@T0@@神经网络之前的弱点。@@T1@@\n          在天空上放置一颗种子，缓慢调高 $\\tau$。当 $\\tau$ 较低时，你得到一块干净的天空掩码。当 $\\tau$ 较高时，一旦建筑物的颜色足够相近，区域就会渗漏进去。这正是核心问题所在：「颜色相同」只是「物体相同」的一个脆弱代理。神经网络学会了在颜色无关紧要时忽略它（阴影下的草与阳光下的草依旧都是草），而在颜色确实重要时才予以关注。",
+   "src": "<strong>The pre-neural weakness.</strong>\n          Drop a seed on the sky, raise $\\tau$ slowly. At low $\\tau$, you\n          get a clean sky mask. At high $\\tau$, the region leaks into\n          buildings the moment their colour is similar enough. That's the\n          core problem: \"same colour\" is a fragile proxy for \"same object.\"\n          A neural net learned to ignore colour when it doesn't matter\n          (shaded vs sunlit grass is still grass) and to pay attention when\n          it does.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 4": {
+   "zh": "步骤 4",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Architecture families that beat region growing": {
+   "zh": "优于区域生长的各类架构",
+   "src": "Architecture families that beat region growing",
+   "tags": []
+  },
+  "Family": {
+   "zh": "类别",
+   "src": "Family",
+   "tags": []
+  },
+  "Key move": {
+   "zh": "关键做法",
+   "src": "Key move",
+   "tags": []
+  },
+  "Representatives": {
+   "zh": "代表模型",
+   "src": "Representatives",
+   "tags": []
+  },
+  "Strength": {
+   "zh": "优势",
+   "src": "Strength",
+   "tags": []
+  },
+  "@@T0@@Encoder-decoder@@T1@@": {
+   "zh": "@@T0@@编码器-解码器@@T1@@",
+   "src": "<strong>Encoder-decoder</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "CNN downsamples to coarse features, then upsamples; skip connections glue fine detail back.": {
+   "zh": "CNN 先下采样得到粗糙特征，再上采样；跳跃连接把精细细节重新粘合回来。",
+   "src": "CNN downsamples to coarse features, then upsamples; skip connections glue fine detail back.",
+   "tags": []
+  },
+  "FCN, U-Net, SegNet": {
+   "zh": "FCN、U-Net、SegNet",
+   "src": "FCN, U-Net, SegNet",
+   "tags": []
+  },
+  "Clean medical-imaging masks; small, fast, interpretable.": {
+   "zh": "得到干净的医学影像掩码；模型小、速度快、可解释。",
+   "src": "Clean medical-imaging masks; small, fast, interpretable.",
+   "tags": []
+  },
+  "@@T0@@Dilated / multi-scale (this page)@@T1@@": {
+   "zh": "@@T0@@空洞卷积 / 多尺度（本页所用）@@T1@@",
+   "src": "<strong>Dilated / multi-scale (this page)</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Keep high resolution; grow receptive field with dilated conv + atrous spatial pyramid pooling.": {
+   "zh": "保持高分辨率；通过空洞卷积 + 空洞空间金字塔池化扩大感受野。",
+   "src": "Keep high resolution; grow receptive field with dilated conv + atrous spatial pyramid pooling.",
+   "tags": []
+  },
+  "DeepLab v1–v3+, PSPNet": {
+   "zh": "DeepLab v1–v3+、PSPNet",
+   "src": "DeepLab v1–v3+, PSPNet",
+   "tags": []
+  },
+  "Big receptive field without resolution loss; great on natural images.": {
+   "zh": "在无分辨率损失的前提下获得大感受野；在自然图像上表现优异。",
+   "src": "Big receptive field without resolution loss; great on natural images.",
+   "tags": []
+  },
+  "@@T0@@Mask-prediction / Transformer@@T1@@": {
+   "zh": "@@T0@@掩码预测 / Transformer@@T1@@",
+   "src": "<strong>Mask-prediction / Transformer</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Decoder queries emit (class, binary mask) pairs directly&mdash;no per-pixel argmax.": {
+   "zh": "解码器查询直接输出（类别，二值掩码）对——无需逐像素 argmax。",
+   "src": "Decoder queries emit (class, binary mask) pairs directly&mdash;no per-pixel argmax.",
+   "tags": []
+  },
+  "Mask R-CNN, MaskFormer, Mask2Former, SAM": {
+   "zh": "Mask R-CNN、MaskFormer、Mask2Former、SAM",
+   "src": "Mask R-CNN, MaskFormer, Mask2Former, SAM",
+   "tags": []
+  },
+  "Natively handles instance and panoptic; state of the art.": {
+   "zh": "原生支持实例分割与全景分割；代表了当前最优水平。",
+   "src": "Natively handles instance and panoptic; state of the art.",
+   "tags": []
+  },
+  "@@T0@@Why resolution vs receptive field is a real tension.@@T1@@\n          To identify a pixel as @@T2@@car@@T3@@ the model needs context from\n          many surrounding pixels (big receptive field, deep features). To\n          place that pixel @@T4@@right at the car's edge@@T5@@ the model needs\n          full input resolution. Every architecture above is one particular\n          truce: skip connections, dilation, mask queries. DeepLab (this\n          page) uses dilated convolutions + atrous spatial pyramid pooling.": {
+   "zh": "@@T0@@为何分辨率与感受野是一对真实的矛盾。@@T1@@\n          要把某个像素判定为 @@T2@@汽车@@T3@@，模型需要来自周围众多像素的上下文（大感受野、深层特征）。要把该像素@@T4@@恰好定位在汽车边缘@@T5@@上，模型又需要完整的输入分辨率。上述每一种架构都是一种特定的折衷方案：跳跃连接、空洞卷积、掩码查询。DeepLab（本页所用）采用的是空洞卷积 + 空洞空间金字塔池化。",
+   "src": "<strong>Why resolution vs receptive field is a real tension.</strong>\n          To identify a pixel as <em>car</em> the model needs context from\n          many surrounding pixels (big receptive field, deep features). To\n          place that pixel <em>right at the car's edge</em> the model needs\n          full input resolution. Every architecture above is one particular\n          truce: skip connections, dilation, mask queries. DeepLab (this\n          page) uses dilated convolutions + atrous spatial pyramid pooling.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 5": {
+   "zh": "步骤 5",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Why cross-entropy alone fails": {
+   "zh": "为何仅用交叉熵会失效",
+   "src": "Why cross-entropy alone fails",
+   "tags": []
+  },
+  "Per-pixel cross-entropy is the obvious loss, but on most real\n          images 80% of pixels are background. A model that always predicts\n          \"background\" gets 80% accuracy while being useless. Three losses\n          fix the imbalance:": {
+   "zh": "逐像素交叉熵是最直观的损失，但在大多数真实图像中，80% 的像素都是背景。一个始终预测「背景」的模型能拿到 80% 的准确率，却毫无用处。有三种损失可修正这种不平衡：",
+   "src": "Per-pixel cross-entropy is the obvious loss, but on most real\n          images 80% of pixels are background. A model that always predicts\n          \"background\" gets 80% accuracy while being useless. Three losses\n          fix the imbalance:",
+   "tags": []
+  },
+  "@@T0@@Dice loss@@T1@@ (Milletari et&nbsp;al., 2016): maximize\n            the soft Dice coefficient. Numerator and denominator shrink\n            together, so the model still gets signal on rare classes.": {
+   "zh": "@@T0@@Dice 损失@@T1@@（Milletari 等，2016）：最大化软 Dice 系数。分子与分母同步缩小，因此模型在稀有类别上仍能获得信号。",
+   "src": "<strong>Dice loss</strong> (Milletari et&nbsp;al., 2016): maximize\n            the soft Dice coefficient. Numerator and denominator shrink\n            together, so the model still gets signal on rare classes.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@IoU / Lovász@@T1@@: directly optimize the metric\n            you care about. Lovász makes it differentiable.": {
+   "zh": "@@T0@@IoU / Lovász@@T1@@：直接优化你真正关心的指标。Lovász 使之可微。",
+   "src": "<strong>IoU / Lovász</strong>: directly optimize the metric\n            you care about. Lovász makes it differentiable.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Focal@@T1@@ (Lin et&nbsp;al., 2017): cross-entropy\n            re-weighted so easy pixels contribute less. Mostly a detection\n            trick, but widely borrowed for segmentation too.": {
+   "zh": "@@T0@@Focal@@T1@@（Lin 等，2017）：对交叉熵重新赋权，使容易的像素贡献更少。这主要是一种检测技巧，但也被广泛借用到分割任务中。",
+   "src": "<strong>Focal</strong> (Lin et&nbsp;al., 2017): cross-entropy\n            re-weighted so easy pixels contribute less. Mostly a detection\n            trick, but widely borrowed for segmentation too.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 6": {
+   "zh": "步骤 6",
+   "src": "Step 6",
+   "tags": []
+  },
+  "The big number": {
+   "zh": "那个大数字",
+   "src": "The big number",
+   "tags": []
+  },
+  "A segmentation prediction is one decision per pixel. Scale matters:\n          even a small photo has hundreds of thousands of them.": {
+   "zh": "一次分割预测就是逐像素的一次判定。规模至关重要：即便是一张很小的照片，也有数十万个像素。",
+   "src": "A segmentation prediction is one decision per pixel. Scale matters:\n          even a small photo has hundreds of thousands of them.",
+   "tags": []
+  },
+  "Per-pixel predictions for this photo": {
+   "zh": "本照片的逐像素预测数量",
+   "src": "Per-pixel predictions for this photo",
+   "tags": []
+  },
+  "Every one has to get a class. A 99% accurate model still gets\n            thousands of pixels wrong&mdash;which usually shows up as jagged\n            boundaries and missed thin structures.": {
+   "zh": "每一个像素都必须得到一个类别。一个 99% 准确率的模型仍会在数千个像素上出错——这通常表现为锯齿状的边界以及被漏掉的细长结构。",
+   "src": "Every one has to get a class. A 99% accurate model still gets\n            thousands of pixels wrong&mdash;which usually shows up as jagged\n            boundaries and missed thin structures.",
+   "tags": []
+  },
+  "Step 7": {
+   "zh": "步骤 7",
+   "src": "Step 7",
+   "tags": []
+  },
+  "Four things that still trip people up": {
+   "zh": "仍然容易让人栽跟头的四件事",
+   "src": "Four things that still trip people up",
+   "tags": []
+  },
+  "@@T0@@Myth@@T1@@": {
+   "zh": "@@T0@@误区@@T1@@",
+   "src": "<span class=\"misconception-icon\">Myth</span>",
+   "tags": [
+    "<span class=\"misconception-icon\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@\"Pixel accuracy tells you if the model is good.\"@@T1@@@@T2@@\n              On a sky-heavy photo, the background-predicting trivial model\n              wins. Report mean IoU alongside pixel accuracy, always.": {
+   "zh": "@@T0@@「像素准确率就能说明模型是否优秀。」@@T1@@@@T2@@\n              在一张以天空为主的照片上，那个总是预测背景的平凡模型反而获胜。务必在报告像素准确率的同时报告平均 IoU。",
+   "src": "<strong>\"Pixel accuracy tells you if the model is good.\"</strong><br />\n              On a sky-heavy photo, the background-predicting trivial model\n              wins. Report mean IoU alongside pixel accuracy, always.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@\"A mask that's a superset is safe.\"@@T1@@@@T2@@\n              A mask that covers the truth plus extra has IoU =\n              truth / mask, which shrinks as the mask grows. Tight wins;\n              sprawl is penalised.": {
+   "zh": "@@T0@@「掩码只要覆盖得更多就更安全。」@@T1@@@@T2@@\n              一个覆盖了真值同时又多出部分的掩码，其 IoU = 真值 / 掩码，会随掩码增大而缩小。紧致者胜出；漫溢扩张者受到惩罚。",
+   "src": "<strong>\"A mask that's a superset is safe.\"</strong><br />\n              A mask that covers the truth plus extra has IoU =\n              truth / mask, which shrinks as the mask grows. Tight wins;\n              sprawl is penalised.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@\"Segmentation is classification, done more.\"@@T1@@@@T2@@\n              Per-pixel argmax would give flickery, isolated wrong pixels.\n              Real architectures inject @@T3@@structural@@T4@@ priors: skip\n              connections, dilated context, CRFs, decoder queries.": {
+   "zh": "@@T0@@「分割不过是做更多的分类而已。」@@T1@@@@T2@@\n              逐像素 argmax 会产生闪烁的、孤立的错误像素。真实架构会注入@@T3@@结构性@@T4@@先验：跳跃连接、空洞上下文、CRF、解码器查询。",
+   "src": "<strong>\"Segmentation is classification, done more.\"</strong><br />\n              Per-pixel argmax would give flickery, isolated wrong pixels.\n              Real architectures inject <em>structural</em> priors: skip\n              connections, dilated context, CRFs, decoder queries.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@\"IoU 0.9 looks perfect.\"@@T1@@@@T2@@\n              It can still miss a 10-pixel telephone wire threading across\n              the image&mdash;maybe the one pixel your autopilot needs.\n              Qualitative failure review is not optional.": {
+   "zh": "@@T0@@「IoU 0.9 看上去完美无缺。」@@T1@@@@T2@@\n              它仍可能漏掉一根横贯图像的 10 像素电话线——也许那正是你的自动驾驶系统所需的那一个像素。定性的失败案例复核不是可选项。",
+   "src": "<strong>\"IoU 0.9 looks perfect.\"</strong><br />\n              It can still miss a 10-pixel telephone wire threading across\n              the image&mdash;maybe the one pixel your autopilot needs.\n              Qualitative failure review is not optional.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          A segmenter is a function from pixels to labels. You've now\n          watched a real DeepLab do this live on your photo, painted a\n          competing mask yourself, graded it against the model, and seen a\n          pre-neural region-grower succeed and fail in exactly the ways that\n          motivated modern architectures. Everything newer (Mask R-CNN,\n          SAM, SegFormer) is the same task with bigger networks and\n          smarter decoders.": {
+   "zh": "@@T0@@最终要点。@@T1@@\n          分割器是一个从像素到标签的函数。你如今已亲眼看到真实的 DeepLab 在你的照片上实时完成这一过程，亲手绘制了一个与之竞争的掩码，对照模型为其评分，并看到神经网络之前的区域生长方法以那些恰恰催生了现代架构的方式成功与失败。所有更新的方法（Mask R-CNN、SAM、SegFormer）都是同一任务，只是网络更大、解码器更聪明。",
+   "src": "<strong>Final takeaway.</strong>\n          A segmenter is a function from pixels to labels. You've now\n          watched a real DeepLab do this live on your photo, painted a\n          competing mask yourself, graded it against the model, and seen a\n          pre-neural region-grower succeed and fail in exactly the ways that\n          motivated modern architectures. Everything newer (Mask R-CNN,\n          SAM, SegFormer) is the same task with bigger networks and\n          smarter decoders.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 8": {
+   "zh": "步骤 8",
+   "src": "Step 8",
+   "tags": []
+  },
+  "The three flavours of segmentation": {
+   "zh": "三种分割形式",
+   "src": "The three flavours of segmentation",
+   "tags": []
+  },
+  "@@T0@@Semantic segmentation.@@T1@@ Each pixel gets a @@T2@@class@@T3@@. Two cars next to each other are one \"car\" blob. The standard task this article focuses on. Datasets: ADE20K, Cityscapes (19 classes), PASCAL VOC.": {
+   "zh": "@@T0@@语义分割。@@T1@@ 每个像素获得一个@@T2@@类别@@T3@@。相邻的两辆车会成为一个「汽车」色块。这是本文重点讨论的标准任务。数据集：ADE20K、Cityscapes（19 类）、PASCAL VOC。",
+   "src": "<strong>Semantic segmentation.</strong> Each pixel gets a <em>class</em>. Two cars next to each other are one \"car\" blob. The standard task this article focuses on. Datasets: ADE20K, Cityscapes (19 classes), PASCAL VOC.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Instance segmentation.@@T1@@ Each pixel gets a class @@T2@@and@@T3@@ an instance ID. The two cars become car-1 and car-2. Mask R-CNN is the classical approach: detect bounding boxes, segment within each. Datasets: COCO, LVIS.": {
+   "zh": "@@T0@@实例分割。@@T1@@ 每个像素获得一个类别@@T2@@以及@@T3@@一个实例 ID。两辆车分别成为 car-1 与 car-2。Mask R-CNN 是经典做法：先检测边界框，再在每个框内进行分割。数据集：COCO、LVIS。",
+   "src": "<strong>Instance segmentation.</strong> Each pixel gets a class <em>and</em> an instance ID. The two cars become car-1 and car-2. Mask R-CNN is the classical approach: detect bounding boxes, segment within each. Datasets: COCO, LVIS.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Panoptic segmentation.@@T1@@ Combines both — \"things\" (countable: cars, people) get instance IDs; \"stuff\" (uncountable: sky, road) gets a class only. The COCO-Panoptic and Cityscapes-Panoptic datasets unified the field around this around 2018.": {
+   "zh": "@@T0@@全景分割。@@T1@@ 将二者结合起来——「可数物」（如汽车、人）获得实例 ID；「背景质料」（不可数，如天空、道路）只获得类别。COCO-Panoptic 与 Cityscapes-Panoptic 数据集在 2018 年前后围绕这一范式统一了整个领域。",
+   "src": "<strong>Panoptic segmentation.</strong> Combines both — \"things\" (countable: cars, people) get instance IDs; \"stuff\" (uncountable: sky, road) gets a class only. The COCO-Panoptic and Cityscapes-Panoptic datasets unified the field around this around 2018.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The 2021+ trend has been to unify all three under a single transformer-decoder architecture: Mask2Former, Mask DINO, OneFormer. One model, one set of weights, all three tasks.": {
+   "zh": "2021 年以来的趋势是把三者统一到单一 Transformer-解码器架构之下：Mask2Former、Mask DINO、OneFormer。一个模型、一套权重，完成全部三种任务。",
+   "src": "The 2021+ trend has been to unify all three under a single transformer-decoder architecture: Mask2Former, Mask DINO, OneFormer. One model, one set of weights, all three tasks.",
+   "tags": []
+  },
+  "Step 9": {
+   "zh": "步骤 9",
+   "src": "Step 9",
+   "tags": []
+  },
+  "SAM — the foundation model for segmentation": {
+   "zh": "SAM —— 分割领域的基础模型",
+   "src": "SAM — the foundation model for segmentation",
+   "tags": []
+  },
+  "Segment Anything (Kirillov et&nbsp;al., 2023; SAM-2, 2024) is the segmentation analogue of GPT-3 for text: pretrain a huge model on a billion masks, then have it segment anything from a prompt (point, box, or text). Architecture: ViT image encoder + small prompt encoder + lightweight mask decoder. Output: zero-shot, high-quality masks at interactive latency.": {
+   "zh": "Segment Anything（Kirillov 等，2023；SAM-2，2024）之于分割，正如 GPT-3 之于文本：在一个十亿掩码上预训练一个巨型模型，随后让它根据提示（点、框或文本）分割任意对象。架构：ViT 图像编码器 + 小型提示编码器 + 轻量掩码解码器。输出：零样本、高质量掩码，且延迟达到交互级。",
+   "src": "Segment Anything (Kirillov et&nbsp;al., 2023; SAM-2, 2024) is the segmentation analogue of GPT-3 for text: pretrain a huge model on a billion masks, then have it segment anything from a prompt (point, box, or text). Architecture: ViT image encoder + small prompt encoder + lightweight mask decoder. Output: zero-shot, high-quality masks at interactive latency.",
+   "tags": []
+  },
+  "@@T0@@Strengths.@@T1@@ Zero-shot on novel objects; interactive (click a point and get a mask); production-ready in 2024.": {
+   "zh": "@@T0@@优势。@@T1@@ 对新奇对象具备零样本能力；可交互（点击一个点即可得到掩码）；到 2024 年已可用于生产环境。",
+   "src": "<strong>Strengths.</strong> Zero-shot on novel objects; interactive (click a point and get a mask); production-ready in 2024.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Weaknesses.@@T1@@ No class labels (SAM segments, doesn't classify); fine-grained boundaries on small objects still imperfect; needs a separate classifier on top for semantic labels.": {
+   "zh": "@@T0@@不足。@@T1@@ 没有类别标签（SAM 只做分割，不做分类）；小物体上的细粒度边界仍不完美；若需要语义标签，还需在其上叠加一个独立的分类器。",
+   "src": "<strong>Weaknesses.</strong> No class labels (SAM segments, doesn't classify); fine-grained boundaries on small objects still imperfect; needs a separate classifier on top for semantic labels.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@SAM-2 (2024).@@T1@@ Adds video support — propagate masks across frames with memory.": {
+   "zh": "@@T0@@SAM-2（2024）。@@T1@@ 增加视频支持——借助记忆在帧间传播掩码。",
+   "src": "<strong>SAM-2 (2024).</strong> Adds video support — propagate masks across frames with memory.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The right mental model: SAM is the high-recall \"find every object\" tool; you compose it with a classifier (CLIP, Grounding-DINO) for \"find every object of class X\" pipelines.": {
+   "zh": "正确的心智模型是：SAM 是高召回率的「找出每一个物体」工具；你把它与分类器（CLIP、Grounding-DINO）组合，即可构成「找出类别 X 的每一个物体」的流水线。",
+   "src": "The right mental model: SAM is the high-recall \"find every object\" tool; you compose it with a classifier (CLIP, Grounding-DINO) for \"find every object of class X\" pipelines.",
+   "tags": []
+  },
+  "Step 10": {
+   "zh": "步骤 10",
+   "src": "Step 10",
+   "tags": []
+  },
+  "Loss functions for segmentation": {
+   "zh": "分割的损失函数",
+   "src": "Loss functions for segmentation",
+   "tags": []
+  },
+  "@@T0@@Pixel-wise cross-entropy.@@T1@@ The default. Fast, well-understood, works well when classes are roughly balanced.": {
+   "zh": "@@T0@@逐像素交叉熵。@@T1@@ 默认选择。速度快、易于理解，在各类别大致均衡时表现良好。",
+   "src": "<strong>Pixel-wise cross-entropy.</strong> The default. Fast, well-understood, works well when classes are roughly balanced.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Weighted cross-entropy.@@T1@@ Reweight rare classes. Important for medical segmentation where the lesion might be 1% of pixels.": {
+   "zh": "@@T0@@加权交叉熵。@@T1@@ 对稀有类别重新赋权。对于病灶可能仅占 1% 像素的医学分割尤为重要。",
+   "src": "<strong>Weighted cross-entropy.</strong> Reweight rare classes. Important for medical segmentation where the lesion might be 1% of pixels.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Dice loss.@@T1@@ $1 - 2|A \\cap B| / (|A| + |B|)$. Directly optimises overlap; very effective for imbalanced classes. Most medical segmentation papers use Dice or Dice + CE.": {
+   "zh": "@@T0@@Dice 损失。@@T1@@ $1 - 2|A \\cap B| / (|A| + |B|)$。直接优化重叠程度；对类别不平衡极为有效。大多数医学分割论文使用 Dice 或 Dice + CE。",
+   "src": "<strong>Dice loss.</strong> $1 - 2|A \\cap B| / (|A| + |B|)$. Directly optimises overlap; very effective for imbalanced classes. Most medical segmentation papers use Dice or Dice + CE.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Focal loss.@@T1@@ Down-weights easy examples ($(1-p_t)^\\gamma$ factor). Helps when many easy negatives dominate gradient.": {
+   "zh": "@@T0@@Focal 损失。@@T1@@ 降低容易样例的权重（$(1-p_t)^\\gamma$ 因子）。当大量容易的负样本主导梯度时很有帮助。",
+   "src": "<strong>Focal loss.</strong> Down-weights easy examples ($(1-p_t)^\\gamma$ factor). Helps when many easy negatives dominate gradient.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Boundary loss.@@T1@@ Penalises errors near class boundaries more — encourages sharp, accurate edges.": {
+   "zh": "@@T0@@边界损失。@@T1@@ 对类别边界附近的错误施加更重的惩罚——促使边缘锐利而准确。",
+   "src": "<strong>Boundary loss.</strong> Penalises errors near class boundaries more — encourages sharp, accurate edges.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Cross-entropy + Dice combo.@@T1@@ Most practical recipes blend the two. CE for stable gradients, Dice for overlap optimisation.": {
+   "zh": "@@T0@@交叉熵 + Dice 组合。@@T1@@ 大多数实用配方把二者混合使用。CE 提供稳定梯度，Dice 负责重叠优化。",
+   "src": "<strong>Cross-entropy + Dice combo.</strong> Most practical recipes blend the two. CE for stable gradients, Dice for overlap optimisation.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 11": {
+   "zh": "步骤 11",
+   "src": "Step 11",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "参考文献",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Long, Shelhamer, Darrell (2015)@@T1@@ — @@T2@@Fully Convolutional Networks for Semantic Segmentation.@@T3@@ The paper that defined the field.": {
+   "zh": "@@T0@@Long、Shelhamer、Darrell（2015）@@T1@@ —— @@T2@@Fully Convolutional Networks for Semantic Segmentation.@@T3@@ 奠定该领域的论文。",
+   "src": "<strong>Long, Shelhamer, Darrell (2015)</strong> — <em>Fully Convolutional Networks for Semantic Segmentation.</em> The paper that defined the field.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Ronneberger, Fischer, Brox (2015)@@T1@@ — @@T2@@U-Net.@@T3@@ See the dedicated @@T4@@U-Net article@@T5@@.": {
+   "zh": "@@T0@@Ronneberger、Fischer、Brox（2015）@@T1@@ —— @@T2@@U-Net.@@T3@@ 参见专门的 @@T4@@U-Net 文章@@T5@@。",
+   "src": "<strong>Ronneberger, Fischer, Brox (2015)</strong> — <em>U-Net.</em> See the dedicated <a href=\"../unet/index.html\">U-Net article</a>.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<a href=\"../unet/index.html\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@Chen et&nbsp;al. (2017)@@T1@@ — @@T2@@DeepLab.@@T3@@ Atrous / dilated convolutions for high-resolution features.": {
+   "zh": "@@T0@@Chen 等（2017）@@T1@@ —— @@T2@@DeepLab.@@T3@@ 用空洞／膨胀卷积获得高分辨率特征。",
+   "src": "<strong>Chen et&nbsp;al. (2017)</strong> — <em>DeepLab.</em> Atrous / dilated convolutions for high-resolution features.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@He et&nbsp;al. (2017)@@T1@@ — @@T2@@Mask R-CNN.@@T3@@ Instance segmentation gold standard.": {
+   "zh": "@@T0@@He 等（2017）@@T1@@ —— @@T2@@Mask R-CNN.@@T3@@ 实例分割的黄金标准。",
+   "src": "<strong>He et&nbsp;al. (2017)</strong> — <em>Mask R-CNN.</em> Instance segmentation gold standard.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Cheng, Schwing, Kirillov (2022)@@T1@@ — @@T2@@Mask2Former.@@T3@@ The unifying transformer architecture.": {
+   "zh": "@@T0@@Cheng、Schwing、Kirillov（2022）@@T1@@ —— @@T2@@Mask2Former.@@T3@@ 统一化的 Transformer 架构。",
+   "src": "<strong>Cheng, Schwing, Kirillov (2022)</strong> — <em>Mask2Former.</em> The unifying transformer architecture.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Kirillov et&nbsp;al. (2023)@@T1@@ — @@T2@@Segment Anything.@@T3@@": {
+   "zh": "@@T0@@Kirillov 等（2023）@@T1@@ —— @@T2@@Segment Anything.@@T3@@",
+   "src": "<strong>Kirillov et&nbsp;al. (2023)</strong> — <em>Segment Anything.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Ravi et&nbsp;al. (2024)@@T1@@ — @@T2@@SAM 2.@@T3@@ Video extension.": {
+   "zh": "@@T0@@Ravi 等（2024）@@T1@@ —— @@T2@@SAM 2.@@T3@@ 视频扩展。",
+   "src": "<strong>Ravi et&nbsp;al. (2024)</strong> — <em>SAM 2.</em> Video extension.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "图像分割：使用真实的语义分割模型",
+  "tagline": "上传一张照片，运行真实的 DeepLab 模型，并用它为自己的掩码评分",
+  "summary": "一个预训练的 DeepLab v3+（Pascal VOC，21 类）在你提供的任意照片上于浏览器中实时运行。亲手绘制掩码，观察平均 IoU 与逐类 IoU 相对真实模型输出的变化——或运行经典的区域生长方法，看它在何处失效。",
+  "difficulty": "中级",
+  "collection": "计算机视觉",
+  "highlights": [
+   "通过 TensorFlow.js 在浏览器内加载真实的 DeepLab v3+（Pascal VOC）——在真实照片上生成真实的语义掩码。",
+   "亲手绘制掩码，观察平均 IoU、像素准确率与逐类 IoU 逐步逼近真实模型的输出。",
+   "BFS 区域生长作为神经网络之前的基线供你对比：调节颜色阈值，看它成功或渗漏。",
+   "可上传任意 JPEG/PNG、抓取摄像头画面，或从六张素材照片中任选一张。"
+  ],
+  "tags": [
+   "分割",
+   "DeepLab",
+   "语义分割",
+   "TensorFlow.js",
+   "计算机视觉",
+   "交互式"
+  ]
+ },
+ "js": {
+  "Failed to load [[[0]]]": {
+   "zh": "加载失败：[[[0]]]",
+   "exprs": [
+    "${url}"
+   ],
+   "tags": [],
+   "src": "Failed to load ${url}"
+  },
+  "[[[0]]] — DeepLab output drawn over it.": {
+   "zh": "[[[0]]] —— 其上叠加绘制的 DeepLab 输出。",
+   "exprs": [
+    "${s.label}"
+   ],
+   "tags": [],
+   "src": "${s.label} — DeepLab output drawn over it."
+  },
+  "Could not load “[[[0]]]”. Drop a photo into the upload area above.": {
+   "zh": "无法加载「[[[0]]]」。请把照片拖入上方的上传区域。",
+   "exprs": [
+    "${s.label}"
+   ],
+   "tags": [],
+   "src": "Could not load “${s.label}”. Drop a photo into the upload area above."
+  },
+  "Person in scene": {
+   "zh": "场景中的人物",
+   "exprs": [],
+   "tags": [],
+   "src": "Person in scene"
+  },
+  "Bicycle / urban": {
+   "zh": "自行车 / 城市",
+   "exprs": [],
+   "tags": [],
+   "src": "Bicycle / urban"
+  },
+  "Living room": {
+   "zh": "客厅",
+   "exprs": [],
+   "tags": [],
+   "src": "Living room"
+  },
+  "Horse / field": {
+   "zh": "马 / 田野",
+   "exprs": [],
+   "tags": [],
+   "src": "Horse / field"
+  },
+  "Segmenter ready": {
+   "zh": "分割器就绪",
+   "exprs": [],
+   "tags": [],
+   "src": "Segmenter ready"
+  },
+  "DeepLab load failed:": {
+   "zh": "DeepLab 加载失败：",
+   "exprs": [],
+   "tags": [],
+   "src": "DeepLab load failed:"
+  },
+  "Model failed to load — check network": {
+   "zh": "模型加载失败——请检查网络",
+   "exprs": [],
+   "tags": [],
+   "src": "Model failed to load — check network"
+  },
+  "— trying next fallback": {
+   "zh": "——正在尝试下一个备选",
+   "exprs": [],
+   "tags": [],
+   "src": "— trying next fallback"
+  },
+  "All sample URLs failed": {
+   "zh": "所有示例 URL 均失败",
+   "exprs": [],
+   "tags": [],
+   "src": "All sample URLs failed"
+  },
+  "Sample load failed:": {
+   "zh": "示例加载失败：",
+   "exprs": [],
+   "tags": [],
+   "src": "Sample load failed:"
+  },
+  " is-active": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": " is-active"
+  },
+  "seed pixel colour": {
+   "zh": "种子像素颜色",
+   "exprs": [],
+   "tags": [],
+   "src": "seed pixel colour"
+  },
+  "running mean colour": {
+   "zh": "滑动均值颜色",
+   "exprs": [],
+   "tags": [],
+   "src": "running mean colour"
+  },
+  "Webcam access failed: ": {
+   "zh": "摄像头访问失败：",
+   "exprs": [],
+   "tags": [],
+   "src": "Webcam access failed: "
+  }
+ }
+}

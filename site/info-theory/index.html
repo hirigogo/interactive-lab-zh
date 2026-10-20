@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>手算机器学习中的信息论</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>手算机器学习中的信息论</h1>
+        <p class="abstract">
+          拖动一个类别分布，观察其随尖锐化而下降的熵。将模型置于数据之旁，看交叉熵如何分解为熵 + KL。在用一个高斯分布拟合双峰目标时切换前向与反向 KL。从二维散点构造互信息。每一个量都在你拖动时实时重算。
+        </p>
+        <div class="byline">
+          <span>约 20 分钟</span>
+          <span>概率论 &middot; 信息论 &middot; 机器学习</span>
+        </div>
+      </header>
+
+      <!-- ─── 前言 ─── -->
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>为何机器学习中的每一种损失都可追溯到对数</h2>
+        <p>
+          分类中的交叉熵损失、VAE 中的 KL 散度、对比学习中的 InfoNCE，以及“信息瓶颈”。这些中的每一个都不过是同一小批量量重新组合的产物。一旦你对惊奇度、熵与 KL 建立起直觉，整套现代机器学习工具箱读起来便如同同一种语言。
+        </p>
+        <p>
+          五个量，六个交互模块。每一个都实时重算。
+        </p>
+        <div class="callout callout--key">
+          <strong>用一句口号概括全文。</strong>
+          <em>惊奇度是对数；熵是其平均；交叉熵引入模型；KL 度量其差距；互信息度量依赖程度。</em> 其余皆为管道。
+        </div>
+      </section>
+
+      <!-- ─── 第 1 步 ─── -->
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>以比特度量惊奇度</h2>
+        <p>
+          概率为 $p$ 的结果所携带的信息量为 $-\log p$。稀有 = 令人惊奇 = 比特数多。
+        </p>
+        <div class="math-block" id="math-info"></div>
+        <p>
+          $p=0.5$ 的抛硬币结果携带 1 比特。遇到一个 $p=0.001$ 的事件则携带约 10 比特 &mdash; 信息量是抛硬币的十倍。对数的底只是确定了单位（以 2 为底 = 比特，以 $e$ 为底 = 纳特）；本文使用比特。
+        </p>
+        <div class="info-figure">
+          <canvas id="info-canvas" width="880" height="240"></canvas>
+          <figcaption>−log₂ p，p 取值于 0 到 1。曲线在不可能处趋于 ∞，在必然处趋于 0。</figcaption>
+        </div>
+      </section>
+
+      <!-- ─── 第 2 步 ─── -->
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>熵 = 期望惊奇度</h2>
+        <p>
+          熵是从 $P$ 中抽取每个结果平均所需的信息量：
+        </p>
+        <div class="math-block" id="math-entropy"></div>
+        <p>
+          拖动下方的柱条以改变 $P$。当 $P$ 为均匀分布（不确定性最大）时熵最大，而当 $P$ 将全部质量集中于一个结果时熵降为 0。
+        </p>
+        <div class="info-figure">
+          <canvas id="entropy-canvas" width="880" height="320"></canvas>
+          <figcaption>上下拖动柱条顶端。右侧数字给出以比特为单位的 H(P) 以及 log₂(K)（均匀分布时的最大值）。</figcaption>
+        </div>
+        <div class="train-controls">
+          <button class="action-btn action-btn--ghost" id="ent-uniform">均匀分布</button>
+          <button class="action-btn action-btn--ghost" id="ent-onehot">独热分布</button>
+          <button class="action-btn action-btn--ghost" id="ent-randomize">随机化</button>
+        </div>
+      </section>
+
+      <!-- ─── 第 3 步 ─── -->
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>交叉熵 = 熵 + KL</h2>
+        <p>
+          现在有两个分布：$P$（真实分布）与 $Q$（你的模型）。交叉熵即使用 $Q$ 对来自 $P$ 的样本进行编码时所付出的平均惊奇度：
+        </p>
+        <div class="math-block" id="math-ce"></div>
+        <p>
+          该分解使几何图景一目了然：交叉熵等于熵（仅由 $P$ 决定、不可约减的代价）加上 KL 散度（因使用错误模型而浪费的代价）。在分类中最小化交叉熵，恰恰就是在最小化 KL，因为 $H(P)$ 与你的权重无关。
+        </p>
+        <div class="info-figure">
+          <canvas id="ce-canvas" width="880" height="320"></canvas>
+          <figcaption>拖动橙色的 Q 柱条。蓝色为固定的 P。右侧的分段柱条将 H(P, Q) 分解为 H(P)（蓝色）加上 KL(P‖Q)（橙色）。</figcaption>
+        </div>
+        <div class="train-controls">
+          <button class="action-btn action-btn--ghost" id="ce-match">令 Q = P</button>
+          <button class="action-btn action-btn--ghost" id="ce-uniform">令 Q = 均匀分布</button>
+          <button class="action-btn action-btn--ghost" id="ce-randomize">随机化 Q</button>
+        </div>
+      </section>
+
+      <!-- ─── 第 4 步 ─── -->
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>前向与反向 KL —— 损失函数的性格</h2>
+        <p>
+          KL 是非对称的。$\mathrm{KL}(P\|Q)$ 与 $\mathrm{KL}(Q\|P)$ 是不同的数，且奖励不同的行为：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>前向 $\mathrm{KL}(P\|Q)$ &mdash; 覆盖众数。</strong>
+            若 $Q$ 在 $P$ 有质量之处给出近零的质量，则加以惩罚。拟合出的 $Q$ 会铺展开以覆盖 $P$ 的所有众数。这正是你在最大似然中所最小化的损失。</li>
+          <li><strong>反向 $\mathrm{KL}(Q\|P)$ &mdash; 追逐众数。</strong>
+            若 $Q$ 在 $P$ 没有质量之处给出质量，则加以惩罚。拟合出的 $Q$ 会坍缩到单个众数上。这正是变分推断（贝叶斯演示中的第 5 步）所优化的目标。</li>
+        </ul>
+        <p>
+          下方：一个固定的双峰分布 $P$。我们以 $Q = \mathcal{N}(\mu,
+          \sigma)$ 的参数为变量，对前向或反向 KL 作数值最小化。请切换。
+        </p>
+        <div class="train-controls">
+          <button class="action-btn" id="kl-forward">前向 KL(P‖Q)</button>
+          <button class="action-btn action-btn--ghost" id="kl-reverse">反向 KL(Q‖P)</button>
+          <span class="train-stat">μ = <strong id="kl-mu">—</strong></span>
+          <span class="train-stat">σ = <strong id="kl-sigma">—</strong></span>
+          <span class="train-stat">KL = <strong id="kl-val">—</strong> 纳特</span>
+        </div>
+        <div class="info-figure">
+          <canvas id="kl-canvas" width="880" height="320"></canvas>
+          <figcaption>青色实线：目标分布 P。橙色虚线：最小化所选 KL 的最优高斯分布 Q。前向会横跨各众数铺展开，反向则挑选其一并驻留。</figcaption>
+        </div>
+      </section>
+
+      <!-- ─── 第 5 步 ─── -->
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>互信息 —— 知道 X 能在多大程度上告诉你 Y</h2>
+        <p>
+          对以 $p(x, y)$ 联合分布的两个变量，互信息是联合分布与乘积分布之间的 KL：
+        </p>
+        <div class="math-block" id="math-mi"></div>
+        <p>
+          等价地，$I(X; Y) = H(Y) - H(Y \mid X)$ &mdash; 即得知 $X$ 后关于 $Y$ 的不确定性的下降量。$I = 0$ 当且仅当 $X \perp Y$。
+        </p>
+        <div class="control-row" style="grid-template-columns: 1fr 1fr;">
+          <div class="control-block">
+            <label>相关系数 ρ &nbsp;<span id="mi-rho-val">0.7</span> <input type="range" id="mi-rho" min="-1" max="1" step="0.05" value="0.7"></label>
+          </div>
+          <div class="control-block">
+            <label>噪声尺度 &nbsp;<span id="mi-n-val">0.3</span> <input type="range" id="mi-n" min="0.05" max="2" step="0.05" value="0.3"></label>
+          </div>
+        </div>
+        <div class="info-figure">
+          <canvas id="mi-canvas" width="880" height="380"></canvas>
+          <figcaption>左：二维散点。右：通过直方图分箱计算的经验 I(X; Y)，以及高斯分布的解析解 I = −½ log(1 − ρ²)。</figcaption>
+        </div>
+      </section>
+
+      <!-- ─── 第 6 步 ─── -->
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>InfoNCE —— 一个你真正在优化的互信息下界</h2>
+        <p>
+          在高维情形下互信息难以直接估计。对比式的 InfoNCE 损失是一个可处理的下界：
+        </p>
+        <div class="math-block" id="math-infonce"></div>
+        <p>
+          其中 $f$ 为学习得到的相似度函数。对每个正样本配 $K$ 个对比样本，该下界形如 $\mathrm{MI} \ge \log K - \mathrm{InfoNCE}$。这正是每一种现代自监督方案（SimCLR、CLIP、对比式句子编码器）本质上都在悄悄做互信息最大化的原因。
+        </p>
+        <div class="control-row" style="grid-template-columns: 1fr 1fr;">
+          <div class="control-block">
+            <label>每个正样本的负样本数 K &nbsp;<span id="nce-K-val">16</span> <input type="range" id="nce-K" min="1" max="128" step="1" value="16"></label>
+          </div>
+          <div class="control-block">
+            <label>信号强度 &nbsp;<span id="nce-s-val">2.0</span> <input type="range" id="nce-s" min="0.1" max="6" step="0.1" value="2"></label>
+          </div>
+        </div>
+        <div class="info-figure">
+          <canvas id="nce-canvas" width="880" height="280"></canvas>
+          <figcaption>随 K 与信号强度变化，InfoNCE 下界与解析互信息的对比。该下界在 log K 处饱和。</figcaption>
+        </div>
+      </section>
+
+      <!-- ─── 第 7 步 ─── -->
+      <section class="step-section" id="step-7">
+        <div class="step-badge">第 7 步</div>
+        <h2>五个值得纠正的误区</h2>
+        <div class="misconception-grid">
+          <div class="misconception-card">
+            <span class="misconception-icon">误区</span>
+            <p><strong>“KL 是一种距离。”</strong><br />
+              它并不对称，也不满足三角不等式。它是一种散度。若你想要真正的度量，请使用 Jensen-Shannon 距离：$\sqrt{\mathrm{JSD}}$。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">误区</span>
+            <p><strong>“交叉熵与 KL 是同一个损失。”</strong><br />
+              仅当 $H(P)$ 关于你的参数为常数时二者才相同 &mdash; 这对硬标签成立（独热 $P$ 的 $H = 0$），但对软标签或标签平滑则不成立，因为此时熵会变化。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">误区</span>
+            <p><strong>“前向 KL 总是正确的损失。”</strong><br />
+              最大似然式的方法最小化前向 KL，而前向 KL 是覆盖众数的。若真实的 $P$ 是多峰的、而你的模型族 $Q$ 是单峰的，你便会在各众数之间取平均 &mdash; 请选择与你目标相匹配的损失。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">误区</span>
+            <p><strong>“互信息难以估计。”</strong><br />
+              在约 6 维以上，几乎所有神经互信息估计器都是有偏且高方差的。InfoNCE / MINE / CLUB 给出的是宽松的下界，而非忠实的取值。请把论文中的互信息数字当作示意性的参考。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">误区</span>
+            <p><strong>“信息瓶颈能解释泛化。”</strong><br />
+              最初的信息瓶颈叙事固然优美，但其经验支持存在争议（Saxe 等 2018）。它作为<em>设计原则</em> 颇有价值；但并非已被证实的机制。</p>
+          </div>
+        </div>
+        <div class="callout callout--think">
+          <strong>最终要点。</strong>
+          五个量 &mdash; 惊奇度、熵、交叉熵、KL、互信息 &mdash; 构成了你在现代机器学习中会遇到的一切损失的底层基础。一旦你能在头脑中由其中任一量算出其余各量，分类、VAE、对比学习与贝叶斯推断便都开始显得像是同一份配方。
+        </div>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

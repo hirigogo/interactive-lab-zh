@@ -1,0 +1,275 @@
+{
+ "slug": "vae-latent-explorer",
+ "units": {
+  "VAE Latent-Space Explorer": {
+   "zh": "VAE 潜空间探索器",
+   "src": "VAE Latent-Space Explorer",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "The β knob in a VAE trades reconstruction for latent structure. At β=0 you have a vanilla autoencoder — great reconstruction, chaotic latent space. At β=10 you have a strong VAE — clean unit-Gaussian latent, but samples get blurry. Drag the slider and see it.": {
+   "zh": "VAE 中的 β 旋钮在重建质量与潜空间结构之间进行权衡。当 β=0 时，你得到的是一个普通自编码器 &mdash;— 重建效果好，但潜空间杂乱无章。当 β=10 时，你得到的是一个强 VAE &mdash;— 潜空间是干净的单位高斯分布，但样本会变得模糊。拖动滑块即可亲眼看到这一点。",
+   "src": "The β knob in a VAE trades reconstruction for latent structure. At β=0 you have a vanilla autoencoder — great reconstruction, chaotic latent space. At β=10 you have a strong VAE — clean unit-Gaussian latent, but samples get blurry. Drag the slider and see it.",
+   "tags": []
+  },
+  "@@T0@@~8 min@@T1@@@@T2@@Deep Learning · VAE · Generative@@T3@@": {
+   "zh": "@@T0@@约 8 分钟@@T1@@@@T2@@深度学习 · VAE · 生成模型@@T3@@",
+   "src": "<span>~8 min</span><span>Deep Learning · VAE · Generative</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "A VAE's loss has two terms: reconstruction (how well can I decode this back?) and a KL divergence pulling the latent distribution q(z|x) toward the standard normal prior. The β-VAE (Higgins 2017) simply weights the KL term: @@T0@@L = recon + β · KL@@T1@@. Slide β to see what it does.": {
+   "zh": "VAE 的损失包含两项：重建项（我能把这东西解码回多少？）与一个把潜分布 q(z|x) 拉向标准正态先验的 KL 散度。β-VAE（Higgins 2017）只是对 KL 项加权：@@T0@@L = recon + β · KL@@T1@@。拖动 β 以观察其作用。",
+   "src": "A VAE's loss has two terms: reconstruction (how well can I decode this back?) and a KL divergence pulling the latent distribution q(z|x) toward the standard normal prior. The β-VAE (Higgins 2017) simply weights the KL term: <code>L = recon + β · KL</code>. Slide β to see what it does.",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "The playground": {
+   "zh": "实验场",
+   "src": "The playground",
+   "tags": []
+  },
+  "β (KL weight):": {
+   "zh": "β（KL 权重）：",
+   "src": "β (KL weight):",
+   "tags": []
+  },
+  "@@T0@@Avg latent norm ∥z∥: @@T1@@–@@T2@@@@T3@@\n        @@T4@@Latent spread (std): @@T5@@–@@T6@@@@T7@@\n        @@T8@@Recon error: @@T9@@–@@T10@@@@T11@@": {
+   "zh": "@@T0@@平均潜变量范数 ∥z∥：@@T1@@–@@T2@@@@T3@@\n        @@T4@@潜变量散布（标准差）：@@T5@@–@@T6@@@@T7@@\n        @@T8@@重建误差：@@T9@@–@@T10@@@@T11@@",
+   "src": "<span>Avg latent norm ∥z∥: <b id=\"norm\">–</b></span>\n        <span>Latent spread (std): <b id=\"spread\">–</b></span>\n        <span>Recon error: <b id=\"recon\">–</b></span>",
+   "tags": [
+    "<span>",
+    "<b id=\"norm\">",
+    "</b>",
+    "</span>",
+    "<span>",
+    "<b id=\"spread\">",
+    "</b>",
+    "</span>",
+    "<span>",
+    "<b id=\"recon\">",
+    "</b>",
+    "</span>"
+   ]
+  },
+  "@@T0@@What's happening:@@T1@@ at β=0 the latent points cluster in a few tight clumps — one per class. At β=1 the clumps become blobs of width 1, roughly tiling a unit circle. At β=10 everything collapses to the origin (posterior collapse) — the model stops using the latent.": {
+   "zh": "@@T0@@发生了什么：@@T1@@ 当 β=0 时，潜变量点聚成几个紧密的团块 &mdash;— 每个类别一团。当 β=1 时，这些团块变成宽度为 1 的斑块，大致铺满一个单位圆。当 β=10 时，一切都坍缩到原点（后验坍缩）&mdash;— 模型不再使用潜变量。",
+   "src": "<strong>What's happening:</strong> at β=0 the latent points cluster in a few tight clumps — one per class. At β=1 the clumps become blobs of width 1, roughly tiling a unit circle. At β=10 everything collapses to the origin (posterior collapse) — the model stops using the latent.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Tradeoff rule.@@T1@@ β=1 is the original VAE. β≈4 was found by Higgins 2017 to produce \"disentangled\" latents where each dimension controls one factor. β>6 usually collapses. Always look at samples, not just latent plots.": {
+   "zh": "@@T0@@权衡法则。@@T1@@ β=1 即原始 VAE。Higgins 2017 发现 β≈4 能产生「解耦」的潜变量，即每个维度控制一个因子。β>6 通常会坍缩。务必查看样本，而不只是潜变量分布图。",
+   "src": "<strong>Tradeoff rule.</strong> β=1 is the original VAE. β≈4 was found by Higgins 2017 to produce \"disentangled\" latents where each dimension controls one factor. β>6 usually collapses. Always look at samples, not just latent plots.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The reparameterization trick": {
+   "zh": "重参数化技巧",
+   "src": "The reparameterization trick",
+   "tags": []
+  },
+  "The encoder outputs μ and σ (per input). We sample ε from a fixed noise distribution and compute z deterministically. The noise is in ε, which has no parameters, so gradients flow through μ and σ fine. This is the trick that makes VAE training work.": {
+   "zh": "编码器（对每个输入）输出 μ 与 σ。我们从一个固定的噪声分布中采样 ε，并确定性地计算 z。噪声全部落在没有参数的 ε 中，因此梯度可以顺畅地流过 μ 与 σ。正是这个技巧使 VAE 的训练得以奏效。",
+   "src": "The encoder outputs μ and σ (per input). We sample ε from a fixed noise distribution and compute z deterministically. The noise is in ε, which has no parameters, so gradients flow through μ and σ fine. This is the trick that makes VAE training work.",
+   "tags": []
+  },
+  "The ELBO": {
+   "zh": "ELBO",
+   "src": "The ELBO",
+   "tags": []
+  },
+  "log p(x) ≥ E_{q(z|x)}[log p(x|z)] &nbsp;−&nbsp; KL(q(z|x) ∥ p(z))": {
+   "zh": "log p(x) ≥ E_{q(z|x)}[log p(x|z)] &nbsp;−&nbsp; KL(q(z|x) ∥ p(z))　（ELBO 不等式）",
+   "src": "log p(x) ≥ E_{q(z|x)}[log p(x|z)] &nbsp;−&nbsp; KL(q(z|x) ∥ p(z))",
+   "tags": []
+  },
+  "The ELBO is a lower bound on the log-marginal likelihood. We can't compute log p(x) directly (intractable marginal), but we CAN compute and maximize its lower bound. That's what VAE training does.": {
+   "zh": "ELBO 是对数边缘似然的一个下界。我们无法直接计算 log p(x)（边缘分布难以处理），但我们可以计算并最大化它的下界。这正是 VAE 训练所做的事。",
+   "src": "The ELBO is a lower bound on the log-marginal likelihood. We can't compute log p(x) directly (intractable marginal), but we CAN compute and maximize its lower bound. That's what VAE training does.",
+   "tags": []
+  },
+  "ELBO, derived step by step": {
+   "zh": "ELBO 的逐步推导",
+   "src": "ELBO, derived step by step",
+   "tags": []
+  },
+  "We want $\\log p(x)$ but it's intractable. Introduce an approximate posterior $q_\\phi(z\\mid x)$ (the encoder) and use the fact that for any $q$:": {
+   "zh": "我们想要 $\\log p(x)$，但它难以处理。引入一个近似后验 $q_\\phi(z\\mid x)$（即编码器），并利用对任意 $q$ 都成立的事实：",
+   "src": "We want $\\log p(x)$ but it's intractable. Introduce an approximate posterior $q_\\phi(z\\mid x)$ (the encoder) and use the fact that for any $q$:",
+   "tags": []
+  },
+  "log p(x) = E_{q_φ(z|x)} [ log p(x, z) − log q_φ(z|x) ]  +  KL( q_φ(z|x) ∥ p(z|x) )": {
+   "zh": "log p(x) = E_{q_φ(z|x)} [ log p(x, z) − log q_φ(z|x) ]  +  KL( q_φ(z|x) ∥ p(z|x) )　（分解式）",
+   "src": "log p(x) = E_{q_φ(z|x)} [ log p(x, z) − log q_φ(z|x) ]  +  KL( q_φ(z|x) ∥ p(z|x) )",
+   "tags": []
+  },
+  "The KL term on the right is $\\ge 0$, so dropping it gives a @@T0@@lower bound@@T1@@ — the ELBO. Rearranging:": {
+   "zh": "右端的 KL 项 $\\ge 0$，因此把它丢弃就得到一个@@T0@@下界@@T1@@ &mdash;— 即 ELBO。整理可得：",
+   "src": "The KL term on the right is $\\ge 0$, so dropping it gives a <em>lower bound</em> — the ELBO. Rearranging:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "ELBO(x) = E_{q_φ(z|x)} [ log p_θ(x|z) ]  −  KL( q_φ(z|x) ∥ p(z) )": {
+   "zh": "ELBO(x) = E_{q_φ(z|x)} [ log p_θ(x|z) ]  −  KL( q_φ(z|x) ∥ p(z) )　（两项之和）",
+   "src": "ELBO(x) = E_{q_φ(z|x)} [ log p_θ(x|z) ]  −  KL( q_φ(z|x) ∥ p(z) )",
+   "tags": []
+  },
+  "Two terms with intuitive readings: the first wants $z$ to @@T0@@reconstruct@@T1@@ $x$ (the decoder loss); the second wants $z$'s posterior to @@T2@@match the prior@@T3@@. Maximising ELBO trades off both.": {
+   "zh": "两项各有直观含义：第一项要求 $z$ 能够@@T0@@重建@@T1@@ $x$（即解码器损失）；第二项要求 $z$ 的后验@@T2@@匹配先验@@T3@@。最大化 ELBO 即在二者之间权衡。",
+   "src": "Two terms with intuitive readings: the first wants $z$ to <em>reconstruct</em> $x$ (the decoder loss); the second wants $z$'s posterior to <em>match the prior</em>. Maximising ELBO trades off both.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The reparameterisation trick · why VAEs train": {
+   "zh": "重参数化技巧 · VAE 为何能训练",
+   "src": "The reparameterisation trick · why VAEs train",
+   "tags": []
+  },
+  "Sampling $z \\sim \\mathcal{N}(\\mu_\\phi(x), \\sigma_\\phi^2(x))$ doesn't have a gradient with respect to $\\mu_\\phi, \\sigma_\\phi$. Reparameterise:": {
+   "zh": "从 $z \\sim \\mathcal{N}(\\mu_\\phi(x), \\sigma_\\phi^2(x))$ 中采样，对 $\\mu_\\phi, \\sigma_\\phi$ 而言并没有梯度。于是重参数化：",
+   "src": "Sampling $z \\sim \\mathcal{N}(\\mu_\\phi(x), \\sigma_\\phi^2(x))$ doesn't have a gradient with respect to $\\mu_\\phi, \\sigma_\\phi$. Reparameterise:",
+   "tags": []
+  },
+  "Now the sampling step is just an elementwise multiply and add; $\\mu_\\phi, \\sigma_\\phi$ receive gradients. Kingma &amp; Welling 2014 — the trick that made VAEs trainable end-to-end.": {
+   "zh": "现在采样步骤只是一个逐元素的乘加运算；$\\mu_\\phi, \\sigma_\\phi$ 因而能够接收到梯度。Kingma &amp; Welling 2014 &mdash;— 正是这个技巧使 VAE 得以端到端训练。",
+   "src": "Now the sampling step is just an elementwise multiply and add; $\\mu_\\phi, \\sigma_\\phi$ receive gradients. Kingma &amp; Welling 2014 — the trick that made VAEs trainable end-to-end.",
+   "tags": []
+  },
+  "Posterior collapse · and three fixes": {
+   "zh": "后验坍缩 · 及三种补救办法",
+   "src": "Posterior collapse · and three fixes",
+   "tags": []
+  },
+  "A common failure: the encoder outputs $q_\\phi(z\\mid x) \\approx p(z)$ for every $x$, and the decoder learns to ignore $z$. The KL term is zero; reconstruction is mediocre but stable; the latent is useless. Symptoms: low KL, blurry samples, samples that don't depend on $z$.": {
+   "zh": "一种常见的失效：对于每一个 $x$，编码器都输出 $q_\\phi(z\\mid x) \\approx p(z)$，而解码器学会了忽略 $z$。KL 项为零；重建质量平平却很稳定；潜变量毫无用处。症状：KL 很低、样本模糊、样本不依赖于 $z$。",
+   "src": "A common failure: the encoder outputs $q_\\phi(z\\mid x) \\approx p(z)$ for every $x$, and the decoder learns to ignore $z$. The KL term is zero; reconstruction is mediocre but stable; the latent is useless. Symptoms: low KL, blurry samples, samples that don't depend on $z$.",
+   "tags": []
+  },
+  "@@T0@@β-VAE.@@T1@@ Weight the KL term by $\\beta &lt; 1$ (or $\\beta &gt; 1$ for disentanglement, Higgins et al. 2017). KL warm-up is the simpler practical fix.": {
+   "zh": "@@T0@@β-VAE。@@T1@@ 用 $\\beta &lt; 1$ 对 KL 项加权（若追求解耦则用 $\\beta &gt; 1$，Higgins 等，2017）。KL 预热是更简单的实用修正。",
+   "src": "<strong>β-VAE.</strong> Weight the KL term by $\\beta &lt; 1$ (or $\\beta &gt; 1$ for disentanglement, Higgins et al. 2017). KL warm-up is the simpler practical fix.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Free bits.@@T1@@ Apply KL term only when above a threshold per latent dim (Kingma et al., 2016). Stops dims that @@T2@@could@@T3@@ be informative from collapsing.": {
+   "zh": "@@T0@@Free bits。@@T1@@ 仅当每个潜变量维度的 KL 超过某一阈值时才施加 KL 项（Kingma 等，2016）。可防止那些@@T2@@本来可能@@T3@@携带信息的维度坍缩。",
+   "src": "<strong>Free bits.</strong> Apply KL term only when above a threshold per latent dim (Kingma et al., 2016). Stops dims that <em>could</em> be informative from collapsing.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Stronger decoder family.@@T1@@ Use PixelCNN / autoregressive decoder so the latent has somewhere useful to live. Or stronger prior (VQ-VAE 2017, Vamp-prior).": {
+   "zh": "@@T0@@更强的解码器族。@@T1@@ 使用 PixelCNN / 自回归解码器，让潜变量有处可去、有所作为。或者采用更强的先验（VQ-VAE 2017、Vamp-prior）。",
+   "src": "<strong>Stronger decoder family.</strong> Use PixelCNN / autoregressive decoder so the latent has somewhere useful to live. Or stronger prior (VQ-VAE 2017, Vamp-prior).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "VAE family in 2026": {
+   "zh": "2026 年的 VAE 家族",
+   "src": "VAE family in 2026",
+   "tags": []
+  },
+  "@@T0@@VQ-VAE@@T1@@. Discrete latent via vector-quantised codebook. Standard image tokeniser; powers most discrete-token image / audio models.": {
+   "zh": "@@T0@@VQ-VAE@@T1@@。通过向量量化码本得到离散潜变量。标准的图像分词器；为大多数离散词元的图像 / 音频模型提供动力。",
+   "src": "<strong>VQ-VAE</strong>. Discrete latent via vector-quantised codebook. Standard image tokeniser; powers most discrete-token image / audio models.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@NVAE / VDM@@T1@@. Hierarchical VAEs that match diffusion quality on smaller scales.": {
+   "zh": "@@T0@@NVAE / VDM@@T1@@。在较小规模上可与扩散模型质量相当的层次化 VAE。",
+   "src": "<strong>NVAE / VDM</strong>. Hierarchical VAEs that match diffusion quality on smaller scales.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Latent-Diffusion VAE@@T1@@. The tiny VAE inside Stable Diffusion (KL-f8): pixels → 4-channel latent at $1/8$ resolution. Trained once, frozen.": {
+   "zh": "@@T0@@潜空间扩散 VAE@@T1@@。Stable Diffusion 内部那个微小的 VAE（KL-f8）：像素 → $1/8$ 分辨率下的 4 通道潜变量。训练一次，随即冻结。",
+   "src": "<strong>Latent-Diffusion VAE</strong>. The tiny VAE inside Stable Diffusion (KL-f8): pixels → 4-channel latent at $1/8$ resolution. Trained once, frozen.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Conditional VAEs@@T1@@. $q_\\phi(z\\mid x, c)$ for class-conditional generation; or for tabular / time-series with structured context.": {
+   "zh": "@@T0@@条件 VAE@@T1@@。用于类别条件生成的 $q_\\phi(z\\mid x, c)$；或用于带结构化上下文的表格 / 时间序列数据。",
+   "src": "<strong>Conditional VAEs</strong>. $q_\\phi(z\\mid x, c)$ for class-conditional generation; or for tabular / time-series with structured context.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Companion: @@T0@@diffusion@@T1@@ · @@T2@@Bayesian posterior@@T3@@ · @@T4@@info theory (KL refresher)@@T5@@.": {
+   "zh": "配套阅读：@@T0@@扩散模型@@T1@@ · @@T2@@贝叶斯后验@@T3@@ · @@T4@@信息论（KL 复习）@@T5@@。",
+   "src": "Companion: <a href=\"../diffusion-denoise/index.html\">diffusion</a> · <a href=\"../bayesian-posterior/index.html\">Bayesian posterior</a> · <a href=\"../info-theory/index.html\">info theory (KL refresher)</a>.",
+   "tags": [
+    "<a href=\"../diffusion-denoise/index.html\">",
+    "</a>",
+    "<a href=\"../bayesian-posterior/index.html\">",
+    "</a>",
+    "<a href=\"../info-theory/index.html\">",
+    "</a>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "VAE 潜空间探索器",
+  "tagline": "看 KL 惩罚项如何把一个杂乱的二维潜空间理顺",
+  "summary": "把 KL 权重 β 从 0（普通自编码器）拖动到 10（强 VAE）。观察一个玩具数据集的二维潜空间如何从散乱的团块坍缩成一个干净的单位高斯圆盘——并观察随着先验收紧，重建质量如何做出让步。这正是 β-VAE 的那个旋钮，实时可见。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "β 滑块从 0（普通 AE）经 1（VAE）到 10（β-VAE）。",
+   "左侧面板：编码后的潜变量分布；右侧：重建结果。",
+   "观察随着 β 增大，潜变量散点如何收紧成一个单位正态分布。",
+   "权衡清晰可见：β 越高 → 潜空间越干净，但样本越模糊。",
+   "小提示：β=4 是获得「解耦」表示的最佳点（Higgins 2017）。"
+  ],
+  "tags": [
+   "VAE",
+   "潜空间",
+   "重参数化",
+   "生成模型",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

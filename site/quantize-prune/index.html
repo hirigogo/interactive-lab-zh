@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>量化与剪枝：并排对比</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>量化与剪枝：并排对比</h1>
+        <p class="abstract">
+          缩小模型的两种途径。量化降低每个权重的位宽；
+          剪枝则将权重直接置零。同时滑动二者，
+          观察精度如何保持，又如何在可预期的
+          阈值处崩塌。
+        </p>
+        <div class="byline">
+          <span>约 18 分钟</span>
+          <span>模型压缩 &middot; 边缘机器学习</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>模型压缩的方案清单</h2>
+        <ul class="explanation-list">
+          <li><strong>量化。</strong> 用更少的位（16、8、4、2、1）
+            替代 32 位浮点数。模型缩小 2 至 32 倍；推理更快；
+            精度则视情况而定。两种方案：
+            <em>训练后量化（PTQ）</em> 在训练之后施加
+            （代价低，有时有损）；
+            <em>量化感知训练（QAT）</em> 在训练过程中模拟
+            舍入（可挽回大部分损失）。</li>
+          <li><strong>剪枝。</strong> 将幅值低于某个阈值的
+            权重置零并移除。两种类型：
+            <em>非结构化</em>（稀疏位置随机，需要稀疏
+            核才能真正加速）与 <em>结构化</em>
+            （整块地丢弃通道 / 头 / 模块，与标准核
+            配合良好）。</li>
+          <li><strong>知识蒸馏</strong>（另见
+            <a href="../knowledge-distillation/index.html">专文</a>）
+            训练一个小的学生模型去模仿大的教师模型。
+            与前两者互补。</li>
+          <li><strong>低秩 / LoRA 分解。</strong> 将
+            $W$ 替换为 $BA$，其中 $\mathrm{rank}(BA) \ll \mathrm{rank}(W)$。
+            适用于非满秩的权重矩阵。</li>
+          <li><strong>混合精度。</strong> 大多数层用 int8；
+            少数敏感层用 FP16。这是 2026 年的生产默认做法。</li>
+        </ul>
+        <div class="math-block" id="math-quant"></div>
+      </section>
+
+      <section class="step-section" id="step-1a">
+        <div class="step-badge">第 1½ 步</div>
+        <h2>量化：你真正需要的数学</h2>
+        <p>
+          最简单的方案 &mdash; 仿射（非对称）均匀量化
+          &mdash; 将浮点张量 $x \in [x_{\min}, x_{\max}]$ 映射为
+          $b$ 位整数：
+        </p>
+        <div class="math-block" id="math-affine"></div>
+        <p>
+          其中 $s$ 为缩放因子，$z$ 为零点。反量化：
+          $\hat x = s \cdot (q - z)$。每个元素的往返误差
+          均匀分布于 $[-s/2, s/2]$，方差为 $s^2 /
+          12$。位宽减半意味着 $\log_2(\text{level})$ 减半 &mdash;
+          因此每减少一位可节省 $\sim$1 倍内存，并增加 $\sim$6 dB 的
+          量化噪声。
+        </p>
+        <p>
+          两个实际选择，其重要性超出其表面所述：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>对称 vs 非对称。</strong> 对称量化强制
+            $z = 0$，故 $\hat x = sq$ &mdash; 每次乘法可省去一次减法，
+            代价是当 $x$ 单侧分布时（如 ReLU 激活）
+            浪费一半的取值范围。多数权重量化器是
+            对称的；许多激活量化器则是非对称的。</li>
+          <li><strong>逐张量 vs 逐通道。</strong> 逐张量对整个权重矩阵
+            使用同一个 $s$；逐通道则为每个输出通道使用一个
+            $s_c$。逐通道在推理时不增加额外代价
+            （缩放因子可并入偏置），对于跨通道动态范围较大的
+            矩阵而言不可或缺。2024 年以来已是各处的默认做法。</li>
+          <li><strong>离群值。</strong> 单个 100 倍于常态的权重
+            就会拉大取值范围，压垮其余所有
+            权重的分辨率。逐通道量化对权重隐藏了这一问题；
+            而 <em>激活</em> 的离群值（大语言模型中某个很大的
+            注意力头）正是 SmoothQuant 存在的原因。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>实时演示：滑动位宽与稀疏度</h2>
+        <p>
+          一个已在三分类二维数据集上训练好的含两个隐藏层的 MLP。
+          基础权重已训练至收敛；我们在推理时施加
+          量化（PTQ）与幅值剪枝，
+          并报告准确率。
+        </p>
+        <div class="train-controls">
+          <label>量化位宽 &nbsp;<span id="qp-bits-val">8</span> <input type="range" id="qp-bits" min="1" max="16" step="1" value="8"></label>
+          <label>剪枝比例 &nbsp;<span id="qp-prune-val">0.00</span> <input type="range" id="qp-prune" min="0" max="0.99" step="0.01" value="0"></label>
+          <label>方案
+            <select id="qp-方案">
+              <option value="ptq" selected>PTQ（训练后）</option>
+              <option value="qat">QAT（重训练期间模拟）</option>
+            </select>
+          </label>
+          <button class="action-btn action-btn--ghost" id="qp-newdata">新数据</button>
+          <span class="train-stat">大小 <strong id="qp-size">—</strong></span>
+          <span class="train-stat">准确率 <strong id="qp-acc">—</strong></span>
+        </div>
+        <div class="qp-grid">
+          <div class="qp-panel">
+            <div class="panel-label">原始 FP32 模型</div>
+            <canvas id="qp-orig" width="380" height="380"></canvas>
+          </div>
+          <div class="qp-panel">
+            <div class="panel-label">压缩后的模型</div>
+            <canvas id="qp-comp" width="380" height="380"></canvas>
+          </div>
+          <div class="qp-panel">
+            <div class="panel-label">大小-精度曲线</div>
+            <canvas id="qp-curve" width="380" height="380"></canvas>
+          </div>
+        </div>
+        <div class="qp-grid">
+          <div class="qp-panel" style="grid-column: 1 / -1;">
+            <div class="panel-label">权重分布（FP32 → 量化网格；被剪枝 → 0）</div>
+            <canvas id="qp-hist" width="880" height="200"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>你应当了解的阈值</h2>
+        <ul class="explanation-list">
+          <li><strong>int8 配合 PTQ。</strong> 现代 CNN 与小型大语言模型
+            的精度损失 &lt; 1%。代价低。是默认的首选尝试。</li>
+          <li><strong>int8 配合 QAT。</strong> 可挽回剩余的
+            &lt; 0.5% 损失；有时甚至 <em>优于</em> FP32，因为
+            量化噪声起到了正则化的作用。</li>
+          <li><strong>int4（PTQ）。</strong> 在多数 CNN 上下滑 1&ndash;3%；
+            若不借助 GPTQ / AWQ / SmoothQuant 等
+            技巧，在大语言模型上损失显著。激活离群值是主要问题。</li>
+          <li><strong>int4（QAT 或 GPTQ 式）。</strong> 2026 年大多数
+            大语言模型在生产中以 int4 运行，困惑度
+            上升约 0.5%。</li>
+          <li><strong>int2 / 二值。</strong> 质量大幅下降。用于
+            专用硬件（NPU、ASIC），在这些场景中
+            体积上的收益值得付出精度上的代价。</li>
+          <li><strong>幅值剪枝，非结构化，50%。</strong>
+            多数网络可容忍约 50% 的稀疏度而精度损失可忽略。
+            超过约 80% 后决策边界开始崩塌。</li>
+          <li><strong>结构化剪枝（整头 / 整通道）。</strong>
+            限制更严；约 25&ndash;35% 后质量开始下滑，但在
+            通用硬件上能带来真正的加速。</li>
+          <li><strong>混合精度（FP16 / FP8）。</strong> 现代
+            训练与推理的默认做法。NVIDIA H100 / B200 用 FP8；
+            Apple Silicon 用 FP16；Tensor Core 需要 FP16 或 BF16。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-3a">
+        <div class="step-badge">第 3½ 步</div>
+        <h2>GPTQ、AWQ、SmoothQuant &mdash; 大语言模型量化一族</h2>
+        <p>
+          对 700 亿参数的大语言模型以 int4 朴素运行 PTQ 会彻底摧毁精度。有三种技术可挽回其中大部分；它们都是训练后方法，都以校准为驱动（使用数百条无标注提示词），并且都已内置在流行的运行时中。
+        </p>
+        <ul class="explanation-list">
+          <li><strong>GPTQ</strong>（Frantar 等人，2022）。逐列量化权重矩阵，
+            并通过 Hessian 更新将残差误差传播到其余（仍为浮点的）列中。
+            其思路与最优脑量化（OBQ）相近。可在单张 GPU 上于数小时内
+            将 700 亿参数模型量化为 int4；int4 下的困惑度接近 FP16。</li>
+          <li><strong>AWQ</strong>（Lin 等人，2023）。在量化 <em>之前</em> 先对权重与激活进行缩放，
+            使最“显著”的权重（即那些与大数值激活相互作用的权重）获得更高的分辨率。
+            比 GPTQ 更廉价；对于 int4 大语言模型常能与之持平或更优。</li>
+          <li><strong>SmoothQuant</strong>（Xiao 等人，2022）。将量化的难度
+            从激活迁移到权重 &mdash; 权重乘以 $s$，激活除以 $s$，
+            计算等价，但量化表现大为改善。它是
+            针对激活离群值所致失效的修复方案。</li>
+          <li><strong>K/V 缓存量化。</strong> 除权重之外，KV 缓存在长上下文下
+            占据大语言模型显存的主要部分。INT8 K/V 缓存现已成为
+            vLLM、llama.cpp 的默认做法；FP8 K/V 自 2025 年起开始出现。</li>
+        </ul>
+        <div class="callout callout--key">
+          <strong>2026 年的大语言模型量化方案。</strong>
+          用于推理：<em>权重经 AWQ 或 GPTQ 量化为 int4，激活经 SmoothQuant 量化为 int8，K/V 缓存为 int8</em>。总计：相对于 fp16 显存减少约 4 倍，而在多数 7B&ndash;70B 对话模型上困惑度损失 &lt; 1%。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>彩票假说 &mdash; 剪枝带来的意外</h2>
+        <p>
+          Frankle &amp; Carbin（2019）表明，在一个稠密的
+          随机初始化网络中，存在一个小的子网络
+          （即“中奖彩票”），当它从 <em>相同的</em> 初始权重
+          开始训练时，其精度可与稠密网络持平甚至更优。
+          其做法如下：
+        </p>
+        <ol class="explanation-list">
+          <li>训练稠密网络。保存初始权重。</li>
+          <li>按幅值剪枝（例如剪去最小的 80%）。</li>
+          <li>将存活的权重重置为其初始值。</li>
+          <li>重新训练。通常能达到与稠密网络
+            相同的精度。</li>
+          <li>（可迭代；“迭代幅值剪枝”能找出更小的
+            中奖彩票。）</li>
+        </ol>
+        <div class="callout callout--key">
+          <strong>它告诉了我们什么。</strong>
+          训练好的网络中大多数权重并未被使用；剪枝
+          找出其中有用的子集。<em>初始化</em> 至关重要
+          &mdash; 随机初始化加剪枝会失败；匹配的初始化加
+          剪枝则能成功。这是关于 SGD 隐式偏置的一条线索，
+          主流理论至今尚未完全解释清楚。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>部署小模型的实用技术栈</h2>
+        <ol class="explanation-list">
+          <li><strong>从大做起。</strong> 训练你的数据所能支撑的
+            最大模型；之后再压缩。</li>
+          <li><strong>蒸馏到更小的架构。</strong>
+            参见 <a href="../knowledge-distillation/index.html">知识蒸馏一文</a>；
+            模仿教师模型 softmax 输出的较小学生模型，
+            往往胜过同等规模但从零训练的模型。</li>
+          <li><strong>施加结构化剪枝</strong> 以在通用硬件上
+            获得真正的加速。剪去 25&ndash;35% 而无质量损失。</li>
+          <li><strong>以 int8 的 QAT</strong> 作为生产目标。
+            在校准过的测试集上验证（参见
+            <a href="../calibration/index.html">校准</a>）。</li>
+          <li><strong>可选：对大语言模型使用
+            GPTQ / AWQ 的 int4</strong>，适用于显存成为瓶颈的场景。</li>
+          <li><strong>性能剖析 + 迭代。</strong> 几乎所有“模型
+            太慢”的抱怨实际上都是数据流水线 / I/O
+            问题，而非模型本身。务必先做性能剖析。</li>
+          <li><strong>部署运行时：</strong> ONNX Runtime、
+            TensorRT-LLM、llama.cpp、MLC-LLM、Core ML、TFLite。各自
+            都附带自己的量化工具，也各有自己的
+            生产陷阱。</li>
+        </ol>
+      </section>
+
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>能真正加速硬件的结构化稀疏</h2>
+        <p>
+          非结构化 90% 稀疏在 GPU 上很少能加速推理 &mdash; 稠密的矩阵乘法核仍会在这些零上运行。有两种硬件真正喜欢的模式：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>2:4 稀疏。</strong> NVIDIA Ampere 及之后的架构支持
+            硬件加速的 2:4 结构化稀疏：每 4 个连续权重中
+            至多有 2 个非零。在微调后无精度损失的前提下，
+            有效稀疏度为 50%，加速约 2 倍。现已成为生产推理的默认做法。</li>
+          <li><strong>块 / N:M 稀疏。</strong> 更大的零块与 tensor core 的分块尺寸相契合。块稀疏注意力、块稀疏 MLP 正是 2024&ndash;2026 年间 MoE 与稀疏注意力 Transformer（Mixtral、Llama 4）获得廉价前向传播的方式。</li>
+          <li><strong>头 / 通道剪枝。</strong> 整块地丢弃注意力头或前馈通道。加速直接但粒度更粗；工具：HuggingFace <code>optimum</code>、<code>nn_pruning</code>。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-7">
+        <div class="step-badge">第 7 步</div>
+        <h2>参考文献</h2>
+        <ul class="explanation-list">
+          <li><strong>Jacob 等人（2018）</strong> &mdash; <em>Quantization and training of neural networks for efficient integer-arithmetic-only inference.</em> 定义了现代 int8 量化的谷歌论文。</li>
+          <li><strong>Frantar, Ashkboos, Hoefler, Alistarh（2022）</strong> &mdash; <em>GPTQ: Accurate post-training quantization for generative pre-trained transformers.</em></li>
+          <li><strong>Lin 等人（2023）</strong> &mdash; <em>AWQ: Activation-aware Weight Quantization.</em></li>
+          <li><strong>Xiao 等人（2022）</strong> &mdash; <em>SmoothQuant.</em></li>
+          <li><strong>Frankle &amp; Carbin（2019）</strong> &mdash; <em>The Lottery Ticket Hypothesis.</em></li>
+          <li><strong>Han, Mao, Dally（2016）</strong> &mdash; <em>Deep Compression.</em> 将剪枝、量化与 Huffman 编码相结合的论文。</li>
+          <li><strong>Mishra, Latorre, Pool, Stosic, Stosic, Venkatesh, Yu, Micikevicius（2021）</strong> &mdash; 关于 2:4 硬件稀疏的论文。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

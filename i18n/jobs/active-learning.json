@@ -1,0 +1,464 @@
+{
+ "slug": "active-learning",
+ "units": {
+  "Active Learning, Picked Live": {
+   "zh": "主动学习：实时挑选样本",
+   "src": "Active Learning, Picked Live",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Pool-based active learning on a 2-D classification problem.\n          Pick an acquisition function, step the loop, and watch the\n          decision boundary tighten where the queries land. Race four\n          strategies against each other on the same dataset and same\n          starting label budget.": {
+   "zh": "在一个二维分类问题上进行基于池的主动学习。选择一个采集函数，逐步推进循环，观察决策边界如何在查询落点处收紧。让四种策略在同一数据集与相同起始标注预算下相互竞速。",
+   "src": "Pool-based active learning on a 2-D classification problem.\n          Pick an acquisition function, step the loop, and watch the\n          decision boundary tighten where the queries land. Race four\n          strategies against each other on the same dataset and same\n          starting label budget.",
+   "tags": []
+  },
+  "@@T0@@~16 min@@T1@@\n          @@T2@@Active Learning &middot; Acquisition &middot; Label Efficiency@@T3@@": {
+   "zh": "@@T0@@约 16 分钟@@T1@@\n          @@T2@@主动学习 &middot; 采集函数 &middot; 标注效率@@T3@@",
+   "src": "<span>~16 min</span>\n          <span>Active Learning &middot; Acquisition &middot; Label Efficiency</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "The labelling-budget problem": {
+   "zh": "标注预算问题",
+   "src": "The labelling-budget problem",
+   "tags": []
+  },
+  "You can label 1000 satellite tiles, or 1000 thermal frames,\n          or 1000 sleep epochs &mdash; @@T0@@but no more@@T1@@. Which 1000\n          do you spend the budget on? Picking randomly is the\n          baseline; picking the points the current model finds most\n          confusing usually beats it by a lot. That's active learning.": {
+   "zh": "你可以标注 1000 个卫星瓦片，或 1000 张热成像帧，或 1000 个睡眠时段 &mdash;&mdash; @@T0@@但不能更多@@T1@@。这 1000 个名额该花在哪里？随机挑选是基线做法；而挑选当前模型觉得最费解的点，通常能显著胜出。这就是主动学习。",
+   "src": "You can label 1000 satellite tiles, or 1000 thermal frames,\n          or 1000 sleep epochs &mdash; <em>but no more</em>. Which 1000\n          do you spend the budget on? Picking randomly is the\n          baseline; picking the points the current model finds most\n          confusing usually beats it by a lot. That's active learning.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@The slogan.@@T1@@ Don't show the model points it\n          already knows the answer to. Spend labelling budget on\n          the boundary it's most uncertain about.": {
+   "zh": "@@T0@@一句话概括。@@T1@@ 不要给模型看它已经知道答案的点。把标注预算花在它最不确定的边界上。",
+   "src": "<strong>The slogan.</strong> Don't show the model points it\n          already knows the answer to. Spend labelling budget on\n          the boundary it's most uncertain about.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "The four acquisition functions you'll meet": {
+   "zh": "你将会遇到的四种采集函数",
+   "src": "The four acquisition functions you'll meet",
+   "tags": []
+  },
+  "@@T0@@Random.@@T1@@ Pick a pool point uniformly.\n            The honest baseline.": {
+   "zh": "@@T0@@随机。@@T1@@ 从池中均匀地选取一个点。这是诚实的基线。",
+   "src": "<strong>Random.</strong> Pick a pool point uniformly.\n            The honest baseline.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Uncertainty (least-confidence).@@T1@@ Pick\n            the point where $\\max_c p(y=c\\mid x)$ is smallest. The\n            model is \"least sure\" here.": {
+   "zh": "@@T0@@不确定性（最低置信度）。@@T1@@ 选取 $\\max_c p(y=c\\mid x)$ 最小的点。模型在此处「最没把握」。",
+   "src": "<strong>Uncertainty (least-confidence).</strong> Pick\n            the point where $\\max_c p(y=c\\mid x)$ is smallest. The\n            model is \"least sure\" here.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Margin.@@T1@@ Pick the point where the gap\n            between top-1 and top-2 class probabilities is smallest.\n            Useful when uncertainty doesn't separate hard cases from\n            easy near-tie cases.": {
+   "zh": "@@T0@@间隔（margin）。@@T1@@ 选取最高与次高类别概率之间差距最小的点。当不确定性无法区分「真正困难的情形」与「容易的接近平局情形」时，此法尤为有用。",
+   "src": "<strong>Margin.</strong> Pick the point where the gap\n            between top-1 and top-2 class probabilities is smallest.\n            Useful when uncertainty doesn't separate hard cases from\n            easy near-tie cases.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@BALD / committee disagreement.@@T1@@ Train a\n            small ensemble (or use Monte-Carlo dropout); pick the\n            point where the committee disagrees the most.\n            Approximates Bayesian information gain.": {
+   "zh": "@@T0@@BALD / 委员会分歧。@@T1@@ 训练一个小型集成（或使用 Monte-Carlo dropout）；选取委员会分歧最大的点。它近似于贝叶斯信息增益。",
+   "src": "<strong>BALD / committee disagreement.</strong> Train a\n            small ensemble (or use Monte-Carlo dropout); pick the\n            point where the committee disagrees the most.\n            Approximates Bayesian information gain.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Run the loop on a real pool": {
+   "zh": "在真实样本池上运行循环",
+   "src": "Run the loop on a real pool",
+   "tags": []
+  },
+  "We seeded a 2-D classification problem (3 colour-coded\n          classes, with overlap). 5 labels start the model; click\n          @@T0@@Acquire@@T1@@ to add one more. Watch the decision boundary\n          tighten exactly where the chosen acquisition pulls a label\n          from. The legend keeps four scoreboards in sync &mdash; same\n          starting set, same logistic-regression-with-RBF-features\n          model, four strategies racing on accuracy.": {
+   "zh": "我们构造了一个二维分类问题（3 个以颜色区分的类别，彼此有重叠）。模型以 5 个标注起步；点击 @@T0@@采集@@T1@@ 即可再增加一个。观察决策边界恰好在所选采集函数取得标注之处收紧。图例同步维护四个计分板 &mdash;&mdash; 相同的起始集合、相同的「逻辑回归 + RBF 特征」模型，四种策略在准确率上竞速。",
+   "src": "We seeded a 2-D classification problem (3 colour-coded\n          classes, with overlap). 5 labels start the model; click\n          <em>Acquire</em> to add one more. Watch the decision boundary\n          tighten exactly where the chosen acquisition pulls a label\n          from. The legend keeps four scoreboards in sync &mdash; same\n          starting set, same logistic-regression-with-RBF-features\n          model, four strategies racing on accuracy.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Acquire 1": {
+   "zh": "采集 1 个",
+   "src": "Acquire 1",
+   "tags": []
+  },
+  "Acquire 5": {
+   "zh": "采集 5 个",
+   "src": "Acquire 5",
+   "tags": []
+  },
+  "Reset all": {
+   "zh": "全部重置",
+   "src": "Reset all",
+   "tags": []
+  },
+  "active strategy": {
+   "zh": "当前策略",
+   "src": "active strategy",
+   "tags": []
+  },
+  "Random": {
+   "zh": "随机",
+   "src": "Random",
+   "tags": []
+  },
+  "Uncertainty": {
+   "zh": "不确定性",
+   "src": "Uncertainty",
+   "tags": []
+  },
+  "Margin": {
+   "zh": "间隔",
+   "src": "Margin",
+   "tags": []
+  },
+  "Committee disagreement": {
+   "zh": "委员会分歧",
+   "src": "Committee disagreement",
+   "tags": []
+  },
+  "@@T0@@labels = @@T1@@5@@T2@@ / 200@@T3@@\n          @@T4@@test acc @@T5@@—@@T6@@@@T7@@": {
+   "zh": "@@T0@@标注数 = @@T1@@5@@T2@@ / 200@@T3@@\n          @@T4@@测试准确率 @@T5@@—@@T6@@@@T7@@",
+   "src": "<span class=\"train-stat\">labels = <strong id=\"al-budget\">5</strong> / 200</span>\n          <span class=\"train-stat\">test acc <strong id=\"al-acc\">—</strong></span>",
+   "tags": [
+    "<span class=\"train-stat\">",
+    "<strong id=\"al-budget\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"al-acc\">",
+    "</strong>",
+    "</span>"
+   ]
+  },
+  "Pool + chosen strategy boundary": {
+   "zh": "样本池与所选策略的决策边界",
+   "src": "Pool + chosen strategy boundary",
+   "tags": []
+  },
+  "Acquisition score map": {
+   "zh": "采集分数图",
+   "src": "Acquisition score map",
+   "tags": []
+  },
+  "Accuracy vs labels (4 strategies)": {
+   "zh": "准确率随标注数的变化（4 种策略）",
+   "src": "Accuracy vs labels (4 strategies)",
+   "tags": []
+  },
+  "@@T0@@What to watch for.@@T1@@\n          The acquisition score map (middle) is a heat-map of how\n          informative each pool point is right now. @@T2@@Random@@T3@@\n          ignores it; @@T4@@uncertainty@@T5@@ picks the brightest spot;\n          @@T6@@margin@@T7@@ picks where two classes nearly tie;\n          @@T8@@committee@@T9@@ picks where ensemble members disagree\n          (this often catches the most useful boundary points first).\n          Run 25 acquisitions on each strategy and read off the gap on\n          the right.": {
+   "zh": "@@T0@@观察要点。@@T1@@\n          中间的采集分数图是一张热力图，表示此刻每个池中点有多大的信息量。@@T2@@随机@@T3@@\n          完全无视它；@@T4@@不确定性@@T5@@ 选取最亮之处；\n          @@T6@@间隔@@T7@@ 选取两个类别几近平局之处；\n          @@T8@@委员会@@T9@@ 选取集成成员意见相左之处\n          （这往往能最先捕捉到最有用的边界点）。对每种策略各运行 25 次采集，然后读出右侧的差距。",
+   "src": "<strong>What to watch for.</strong>\n          The acquisition score map (middle) is a heat-map of how\n          informative each pool point is right now. <em>Random</em>\n          ignores it; <em>uncertainty</em> picks the brightest spot;\n          <em>margin</em> picks where two classes nearly tie;\n          <em>committee</em> picks where ensemble members disagree\n          (this often catches the most useful boundary points first).\n          Run 25 acquisitions on each strategy and read off the gap on\n          the right.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "The traps real labelling budgets fall into": {
+   "zh": "真实标注预算容易陷入的陷阱",
+   "src": "The traps real labelling budgets fall into",
+   "tags": []
+  },
+  "@@T0@@Cold start.@@T1@@ With $\\le 5$ labels every\n            strategy is mostly random &mdash; the model is too\n            uninformed to identify \"useful\" points. Always begin with\n            a small random seed.": {
+   "zh": "@@T0@@冷启动。@@T1@@ 当标注数 $\\le 5$ 时，各种策略基本上都等同于随机 &mdash;&mdash; 模型所获信息太少，无法识别「有用」的点。始终应以一小组随机种子标注起步。",
+   "src": "<strong>Cold start.</strong> With $\\le 5$ labels every\n            strategy is mostly random &mdash; the model is too\n            uninformed to identify \"useful\" points. Always begin with\n            a small random seed.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Redundant queries.@@T1@@ Pure uncertainty\n            sampling tends to repeatedly pick neighbours of the same\n            ambiguous region. Add a diversity term (k-medoids on the\n            top-$k$, or BatchBALD) to spread queries out.": {
+   "zh": "@@T0@@冗余查询。@@T1@@ 纯粹的不确定性采样往往反复选取同一模糊区域中的邻近点。应加入多样性项（对前 $k$ 个点做 k-medoids，或使用 BatchBALD）以使查询分散开。",
+   "src": "<strong>Redundant queries.</strong> Pure uncertainty\n            sampling tends to repeatedly pick neighbours of the same\n            ambiguous region. Add a diversity term (k-medoids on the\n            top-$k$, or BatchBALD) to spread queries out.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Bias against rare classes.@@T1@@ If a class\n            has very few examples in the pool, uncertainty will\n            ignore it. Use class-balanced sampling or weight rare\n            classes in the acquisition.": {
+   "zh": "@@T0@@对稀有类别的偏向性忽视。@@T1@@ 若某个类别在池中样本极少，不确定性采样会忽略它。应使用类别均衡的采样，或在采集函数中为稀有类别加权。",
+   "src": "<strong>Bias against rare classes.</strong> If a class\n            has very few examples in the pool, uncertainty will\n            ignore it. Use class-balanced sampling or weight rare\n            classes in the acquisition.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Acquisition mismatch.@@T1@@ The model class\n            you use for active learning must be the model class you\n            train on labels. Acquiring with logistic regression\n            then training a neural net is a fast way to leave\n            label-efficiency on the table.": {
+   "zh": "@@T0@@采集与模型不匹配。@@T1@@ 你用于主动学习的模型类别，必须与你在标注上训练的模型类别一致。用逻辑回归做采集、再去训练神经网络，会很快把标注效率白白浪费掉。",
+   "src": "<strong>Acquisition mismatch.</strong> The model class\n            you use for active learning must be the model class you\n            train on labels. Acquiring with logistic regression\n            then training a neural net is a fast way to leave\n            label-efficiency on the table.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Reproducibility.@@T1@@ Random seeds matter\n            enormously in AL; report results as a curve over multiple\n            seeds, not single runs. (See practice-side recommendation\n            on multi-seed reporting.)": {
+   "zh": "@@T0@@可复现性。@@T1@@ 随机种子在主动学习中影响极大；应把结果报告为跨多个种子的曲线，而非单次运行。（参见实践建议中关于多种子报告的部分。）",
+   "src": "<strong>Reproducibility.</strong> Random seeds matter\n            enormously in AL; report results as a curve over multiple\n            seeds, not single runs. (See practice-side recommendation\n            on multi-seed reporting.)",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Where active learning is the right tool": {
+   "zh": "主动学习适用的场景",
+   "src": "Where active learning is the right tool",
+   "tags": []
+  },
+  "@@T0@@Sensor / measurement placement.@@T1@@ Pick the next location/sensor/probe by maximum predictive uncertainty under your current field model. Classical Bayesian experimental design — see the BO article for the related expected-improvement framing.": {
+   "zh": "@@T0@@传感器 / 测量点布置。@@T1@@ 在你当前场模型下，按最大预测不确定性来选取下一个位置/传感器/探针。这是经典的贝叶斯实验设计 &mdash;&mdash; 相关「期望改进」框架参见贝叶斯优化一文。",
+   "src": "<strong>Sensor / measurement placement.</strong> Pick the next location/sensor/probe by maximum predictive uncertainty under your current field model. Classical Bayesian experimental design — see the BO article for the related expected-improvement framing.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Image / video annotation.@@T1@@ Frame-level annotation is expensive; AL targets frames where the current model is least confident. Standard for medical imaging, autonomous driving datasets, surveillance video labelling.": {
+   "zh": "@@T0@@图像 / 视频标注。@@T1@@ 帧级标注成本高昂；主动学习瞄准当前模型最没有把握的帧。这在医学影像、自动驾驶数据集、监控视频标注中已是标准做法。",
+   "src": "<strong>Image / video annotation.</strong> Frame-level annotation is expensive; AL targets frames where the current model is least confident. Standard for medical imaging, autonomous driving datasets, surveillance video labelling.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Satellite tile selection.@@T1@@ Out of millions of unlabelled tiles, AL surfaces the few hundred that the detector is least sure about, multiplying labelling efficiency.": {
+   "zh": "@@T0@@卫星瓦片筛选。@@T1@@ 在数百万个未标注瓦片中，主动学习挑出检测器最没把握的那几百个，从而成倍提升标注效率。",
+   "src": "<strong>Satellite tile selection.</strong> Out of millions of unlabelled tiles, AL surfaces the few hundred that the detector is least sure about, multiplying labelling efficiency.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@NLP fine-tuning.@@T1@@ Choose which texts a human annotator should label next; particularly valuable for span / entity annotation where each item is slow.": {
+   "zh": "@@T0@@NLP 微调。@@T1@@ 决定让人类标注者接下来标注哪些文本；对于每个样本都很耗时的片段 / 实体标注尤其有价值。",
+   "src": "<strong>NLP fine-tuning.</strong> Choose which texts a human annotator should label next; particularly valuable for span / entity annotation where each item is slow.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Drug discovery.@@T1@@ Pick which molecules to assay next — a wet-lab experiment costs hundreds of dollars per data point, AL is essential.": {
+   "zh": "@@T0@@药物发现。@@T1@@ 决定接下来测定哪些分子 &mdash;&mdash; 湿实验每个数据点耗资数百美元，此时主动学习不可或缺。",
+   "src": "<strong>Drug discovery.</strong> Pick which molecules to assay next — a wet-lab experiment costs hundreds of dollars per data point, AL is essential.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          Active learning is one of the cheapest ways to multiply\n          labelling budget. It costs only a model retrain per\n          query and a small bit of book-keeping. For any annotation pipeline with a finite budget, it should be the default rather than the optional add-on.": {
+   "zh": "@@T0@@最终要点。@@T1@@\n          主动学习是成倍放大标注预算最廉价的方式之一。它每次查询只需重训一次模型，外加少量记账工作。对于任何预算有限的标注流程，它都应成为默认做法，而非可有可无的附加项。",
+   "src": "<strong>Final takeaway.</strong>\n          Active learning is one of the cheapest ways to multiply\n          labelling budget. It costs only a model retrain per\n          query and a small bit of book-keeping. For any annotation pipeline with a finite budget, it should be the default rather than the optional add-on.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Why active learning often fails in deep learning": {
+   "zh": "为何主动学习在深度学习中常常失效",
+   "src": "Why active learning often fails in deep learning",
+   "tags": []
+  },
+  "The literature is full of \"active learning works\" papers and the production lore is full of \"AL didn't beat random sampling for us\". Both are right; the reconciling observation comes from a 2021–22 wave of careful empirical work (Munjal et&nbsp;al., 2022; Lüth et&nbsp;al., 2024):": {
+   "zh": "文献中充斥着「主动学习有效」的论文，而生产实践的经验谈中则充斥着「主动学习在我们这里没能胜过随机采样」。二者都没错；调和这一矛盾的观点来自 2021–2022 年一批细致的实证工作（Munjal 等，2022；Lüth 等，2024）：",
+   "src": "The literature is full of \"active learning works\" papers and the production lore is full of \"AL didn't beat random sampling for us\". Both are right; the reconciling observation comes from a 2021–22 wave of careful empirical work (Munjal et&nbsp;al., 2022; Lüth et&nbsp;al., 2024):",
+   "tags": []
+  },
+  "@@T0@@Random is a strong baseline.@@T1@@ When your pool is i.i.d. with the test set and your model is well-tuned, random sampling is hard to beat. Most reported AL wins disappear under careful seed averaging.": {
+   "zh": "@@T0@@随机是比较强的基线。@@T1@@ 当你的样本池与测试集同分布（i.i.d.）且模型调校良好时，随机采样很难被超越。多数被报告的主动学习「胜绩」在严谨的多随机种子平均之下都会消失。",
+   "src": "<strong>Random is a strong baseline.</strong> When your pool is i.i.d. with the test set and your model is well-tuned, random sampling is hard to beat. Most reported AL wins disappear under careful seed averaging.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@The model matters more than the acquisition.@@T1@@ Switching from logistic regression to a calibrated deep net often moves accuracy more than swapping between BALD and entropy.": {
+   "zh": "@@T0@@模型比采集函数更重要。@@T1@@ 从逻辑回归换成经过定标的深度网络，对准确率的影响往往大于在 BALD 与熵之间切换。",
+   "src": "<strong>The model matters more than the acquisition.</strong> Switching from logistic regression to a calibrated deep net often moves accuracy more than swapping between BALD and entropy.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Class imbalance is where AL wins.@@T1@@ When some classes are 100× rarer, random sampling under-represents them; uncertainty-based AL (especially with class-aware acquisition) recovers them faster.": {
+   "zh": "@@T0@@类别不平衡正是主动学习的用武之地。@@T1@@ 当某些类别稀有到 100 倍时，随机采样对其代表性不足；基于不确定性的主动学习（尤其是配合类别感知的采集函数）能更快地覆盖它们。",
+   "src": "<strong>Class imbalance is where AL wins.</strong> When some classes are 100× rarer, random sampling under-represents them; uncertainty-based AL (especially with class-aware acquisition) recovers them faster.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Bad calibration kills AL.@@T1@@ Acquisition functions read confidences. If your model is wildly miscalibrated (see the @@T2@@calibration article@@T3@@), the acquisition function reads garbage.": {
+   "zh": "@@T0@@糟糕的定标会毁掉主动学习。@@T1@@ 采集函数读取的是置信度。若你的模型严重失准（参见@@T2@@定标一文@@T3@@），那么采集函数读到的便是垃圾。",
+   "src": "<strong>Bad calibration kills AL.</strong> Acquisition functions read confidences. If your model is wildly miscalibrated (see the <a href=\"../calibration/index.html\">calibration article</a>), the acquisition function reads garbage.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<a href=\"../calibration/index.html\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@Batch-mode AL is hard.@@T1@@ Single-query AL is well-studied; batch-mode (acquire $B$ samples per round to keep GPUs busy) has been an open problem until BatchBALD (Kirsch et&nbsp;al., 2019) and CORESET-based methods. Use these for any practical pipeline that retrains in batches.": {
+   "zh": "@@T0@@批量模式的主动学习很难。@@T1@@ 单查询主动学习已有充分研究；而批量模式（每轮采集 $B$ 个样本以让 GPU 保持忙碌）在 BatchBALD（Kirsch 等，2019）与基于 CORESET 的方法出现之前一直是个开放问题。任何以批为单位重训的实用流程都应采用这些方法。",
+   "src": "<strong>Batch-mode AL is hard.</strong> Single-query AL is well-studied; batch-mode (acquire $B$ samples per round to keep GPUs busy) has been an open problem until BatchBALD (Kirsch et&nbsp;al., 2019) and CORESET-based methods. Use these for any practical pipeline that retrains in batches.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "参考文献",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Settles (2009)@@T1@@ &mdash; @@T2@@Active Learning Literature Survey.@@T3@@ The historical reference.": {
+   "zh": "@@T0@@Settles（2009）@@T1@@ &mdash;&mdash; @@T2@@Active Learning Literature Survey.@@T3@@ 历史性综述。",
+   "src": "<strong>Settles (2009)</strong> &mdash; <em>Active Learning Literature Survey.</em> The historical reference.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Gal, Islam, Ghahramani (2017)@@T1@@ &mdash; @@T2@@Deep Bayesian Active Learning with Image Data.@@T3@@ The BALD-with-MC-dropout paper.": {
+   "zh": "@@T0@@Gal、Islam、Ghahramani（2017）@@T1@@ &mdash;&mdash; @@T2@@Deep Bayesian Active Learning with Image Data.@@T3@@ 结合 MC-dropout 的 BALD 论文。",
+   "src": "<strong>Gal, Islam, Ghahramani (2017)</strong> &mdash; <em>Deep Bayesian Active Learning with Image Data.</em> The BALD-with-MC-dropout paper.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Sener &amp; Savarese (2018)@@T1@@ &mdash; @@T2@@Active Learning for Convolutional Neural Networks: A Core-Set Approach.@@T3@@ The diversity-first paper.": {
+   "zh": "@@T0@@Sener 与 Savarese（2018）@@T1@@ &mdash;&mdash; @@T2@@Active Learning for Convolutional Neural Networks: A Core-Set Approach.@@T3@@ 以多样性为先的论文。",
+   "src": "<strong>Sener &amp; Savarese (2018)</strong> &mdash; <em>Active Learning for Convolutional Neural Networks: A Core-Set Approach.</em> The diversity-first paper.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Kirsch, van Amersfoort, Gal (2019)@@T1@@ &mdash; @@T2@@BatchBALD.@@T3@@ The batch-mode BALD paper.": {
+   "zh": "@@T0@@Kirsch、van Amersfoort、Gal（2019）@@T1@@ &mdash;&mdash; @@T2@@BatchBALD.@@T3@@ 批量模式 BALD 的论文。",
+   "src": "<strong>Kirsch, van Amersfoort, Gal (2019)</strong> &mdash; <em>BatchBALD.</em> The batch-mode BALD paper.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Munjal et&nbsp;al. (2022)@@T1@@ &mdash; @@T2@@Towards Robust and Reproducible Active Learning Using Neural Networks.@@T3@@": {
+   "zh": "@@T0@@Munjal 等（2022）@@T1@@ &mdash;&mdash; @@T2@@Towards Robust and Reproducible Active Learning Using Neural Networks.@@T3@@",
+   "src": "<strong>Munjal et&nbsp;al. (2022)</strong> &mdash; <em>Towards Robust and Reproducible Active Learning Using Neural Networks.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Lüth, Bungert, Klein, Maier-Hein (2024)@@T1@@ &mdash; @@T2@@Navigating the Pitfalls of Active Learning Evaluation.@@T3@@": {
+   "zh": "@@T0@@Lüth、Bungert、Klein、Maier-Hein（2024）@@T1@@ &mdash;&mdash; @@T2@@Navigating the Pitfalls of Active Learning Evaluation.@@T3@@",
+   "src": "<strong>Lüth, Bungert, Klein, Maier-Hein (2024)</strong> &mdash; <em>Navigating the Pitfalls of Active Learning Evaluation.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "主动学习：实时挑选样本",
+  "tagline": "把标注预算花在模型本就觉得费解的点上",
+  "summary": "在一个二维分类问题上，逐步点击推进基于池的主动学习循环。观察随机采样、不确定性采样、间隔采样与 BALD 式委员会查询在相同标注数量下竞相取得更高准确率。每次查询后决策边界都会更新，准确率-标注数曲线则持续计分。",
+  "difficulty": "中级",
+  "collection": "概率与统计推断",
+  "highlights": [
+   "在二维数据集上的实时基于池主动学习循环；选择采集函数并逐次推进循环。",
+   "四种采集函数并排对比（随机 / 不确定性 / 间隔 / 委员会分歧）。",
+   "每次查询后决策边界画布都会更新，让你看到边界在查询落点处收紧。",
+   "准确率-标注数图在同一坐标轴上追踪四种策略 &mdash;&mdash; 直观感受标注效率。"
+  ],
+  "tags": [
+   "主动学习",
+   "采集函数",
+   "标注效率",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

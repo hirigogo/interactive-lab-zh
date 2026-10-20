@@ -1,0 +1,713 @@
+{
+ "slug": "moon-phases",
+ "units": {
+  "Why the Moon Changes Shape": {
+   "zh": "月亮为什么会改变形状",
+   "src": "Why the Moon Changes Shape",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Space for curious kids": {
+   "zh": "写给好奇的小朋友的天文课",
+   "src": "Space for curious kids",
+   "tags": []
+  },
+  "Why does the Moon change shape?": {
+   "zh": "月亮为什么会改变形状？",
+   "src": "Why does the Moon change shape?",
+   "tags": []
+  },
+  "The Moon is always a round ball. What changes is the part of the Moon's sunlit side\n              that we can see from Earth. Drag the Moon, watch the light move, and learn the phase names.": {
+   "zh": "月亮始终是一个圆球。发生变化的是：从地球上能看到的、月亮被太阳照亮的那一部分。拖动月亮，观察光线如何变化，并认识各个相位的名称。",
+   "src": "The Moon is always a round ball. What changes is the part of the Moon's sunlit side\n              that we can see from Earth. Drag the Moon, watch the light move, and learn the phase names.",
+   "tags": []
+  },
+  "@@T0@@The Sun lights it@@T1@@\n                @@T2@@The Moon does not glow by itself.@@T3@@": {
+   "zh": "@@T0@@太阳照亮它@@T1@@\n                @@T2@@月亮自己不会发光。@@T3@@",
+   "src": "<strong>The Sun lights it</strong>\n                <span>The Moon does not glow by itself.</span>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Half is always lit@@T1@@\n                @@T2@@The bright half always faces the Sun.@@T3@@": {
+   "zh": "@@T0@@总有一半被照亮@@T1@@\n                @@T2@@明亮的那一半始终朝向太阳。@@T3@@",
+   "src": "<strong>Half is always lit</strong>\n                <span>The bright half always faces the Sun.</span>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@We see an angle@@T1@@\n                @@T2@@Different positions show us different amounts of light.@@T3@@": {
+   "zh": "@@T0@@我们看到的是一个角度@@T1@@\n                @@T2@@位置不同，我们看到的受光部分多少也不同。@@T3@@",
+   "src": "<strong>We see an angle</strong>\n                <span>Different positions show us different amounts of light.</span>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Start exploring@@T1@@\n              @@T2@@Try the Moon game@@T3@@": {
+   "zh": "@@T0@@开始探索@@T1@@\n              @@T2@@试试月亮小游戏@@T3@@",
+   "src": "<a class=\"primary-link\" href=\"#explore\">Start exploring</a>\n              <a class=\"ghost-link\" href=\"#game\">Try the Moon game</a>",
+   "tags": [
+    "<a class=\"primary-link\" href=\"#explore\">",
+    "</a>",
+    "<a class=\"ghost-link\" href=\"#game\">",
+    "</a>"
+   ]
+  },
+  "Full Moon": {
+   "zh": "满月",
+   "src": "Full Moon",
+   "tags": []
+  },
+  "A full Moon happens when the Moon is on the far side of Earth, so we see almost all of its lit half.": {
+   "zh": "当地球位于月亮与太阳之间、月亮处在地球的远侧时，我们就几乎能看到它被照亮的全部，这就是满月。",
+   "src": "A full Moon happens when the Moon is on the far side of Earth, so we see almost all of its lit half.",
+   "tags": []
+  },
+  "Section 1": {
+   "zh": "第 1 节",
+   "src": "Section 1",
+   "tags": []
+  },
+  "Move the Moon around Earth": {
+   "zh": "让月亮绕着地球转",
+   "src": "Move the Moon around Earth",
+   "tags": []
+  },
+  "This is the big idea: the Moon goes around Earth, the Sun lights one side, and our view changes.": {
+   "zh": "这就是最核心的想法：月亮绕着地球转，太阳只照亮它的一面，而我们的视角在不断改变。",
+   "src": "This is the big idea: the Moon goes around Earth, the Sun lights one side, and our view changes.",
+   "tags": []
+  },
+  "How to use this picture": {
+   "zh": "如何使用这幅图",
+   "src": "How to use this picture",
+   "tags": []
+  },
+  "Drag the small Moon around its path.": {
+   "zh": "沿着轨道拖动那个小月亮。",
+   "src": "Drag the small Moon around its path.",
+   "tags": []
+  },
+  "Watch the big Moon on the right.": {
+   "zh": "观察右侧的大月亮。",
+   "src": "Watch the big Moon on the right.",
+   "tags": []
+  },
+  "Notice which side is bright and how much of it you can see.": {
+   "zh": "留意哪一侧是亮的，以及你能看到其中多少。",
+   "src": "Notice which side is bright and how much of it you can see.",
+   "tags": []
+  },
+  "The Sun is on the left. Earth is in the middle. The Moon goes around Earth in about a month.": {
+   "zh": "太阳在左边，地球在中间。月亮大约用一个月的时间绕地球一圈。",
+   "src": "The Sun is on the left. Earth is in the middle. The Moon goes around Earth in about a month.",
+   "tags": []
+  },
+  "Play": {
+   "zh": "播放",
+   "src": "Play",
+   "tags": []
+  },
+  "@@T0@@Moon position@@T1@@": {
+   "zh": "@@T0@@月亮位置@@T1@@",
+   "src": "<span>Moon position</span>",
+   "tags": [
+    "<span>",
+    "</span>"
+   ]
+  },
+  "About day 15 of 29.5": {
+   "zh": "约为 29.5 天中的第 15 天",
+   "src": "About day 15 of 29.5",
+   "tags": []
+  },
+  "Sun, Earth, and Moon from above": {
+   "zh": "俯视下的太阳、地球与月亮",
+   "src": "Sun, Earth, and Moon from above",
+   "tags": []
+  },
+  "Drag the Moon around its circle. The sunlight always comes from the left.": {
+   "zh": "拖动月亮沿圆圈运动。阳光始终从左边照来。",
+   "src": "Drag the Moon around its circle. The sunlight always comes from the left.",
+   "tags": []
+  },
+  "What you see from Earth": {
+   "zh": "从地球上看到的景象",
+   "src": "What you see from Earth",
+   "tags": []
+  },
+  "Waning starts after this": {
+   "zh": "此后开始转入亏相",
+   "src": "Waning starts after this",
+   "tags": []
+  },
+  "The whole face looks bright because the lit half is facing us.": {
+   "zh": "整个盘面看起来都是亮的，因为被照亮的那一半正对着我们。",
+   "src": "The whole face looks bright because the lit half is facing us.",
+   "tags": []
+  },
+  "Bright part we can see: 100%": {
+   "zh": "我们能看到的明亮部分：100%",
+   "src": "Bright part we can see: 100%",
+   "tags": []
+  },
+  "Section 2": {
+   "zh": "第 2 节",
+   "src": "Section 2",
+   "tags": []
+  },
+  "Meet the 8 main Moon phases": {
+   "zh": "认识 8 个主要月相",
+   "src": "Meet the 8 main Moon phases",
+   "tags": []
+  },
+  "Click any phase card to jump there in the explorer.": {
+   "zh": "点击任意一张相位卡片，即可在探索器中跳转到该位置。",
+   "src": "Click any phase card to jump there in the explorer.",
+   "tags": []
+  },
+  "@@T0@@New Moon@@T1@@\n            @@T2@@We mostly see the dark side.@@T3@@": {
+   "zh": "@@T0@@新月@@T1@@\n            @@T2@@我们几乎只看到黑暗的一面。@@T3@@",
+   "src": "<strong>New Moon</strong>\n            <span>We mostly see the dark side.</span>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Waxing Crescent@@T1@@\n            @@T2@@A slim bright smile starts to grow.@@T3@@": {
+   "zh": "@@T0@@娥眉月@@T1@@\n            @@T2@@一道细细的明亮「微笑」开始变大。@@T3@@",
+   "src": "<strong>Waxing Crescent</strong>\n            <span>A slim bright smile starts to grow.</span>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@First Quarter@@T1@@\n            @@T2@@Half looks bright. The Moon is a quarter of the way around.@@T3@@": {
+   "zh": "@@T0@@上弦月@@T1@@\n            @@T2@@看起来有一半是亮的。此时月亮走完了轨道的四分之一。@@T3@@",
+   "src": "<strong>First Quarter</strong>\n            <span>Half looks bright. The Moon is a quarter of the way around.</span>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Waxing Gibbous@@T1@@\n            @@T2@@More than half is bright and still growing.@@T3@@": {
+   "zh": "@@T0@@盈凸月@@T1@@\n            @@T2@@超过一半是亮的，并且仍在变大。@@T3@@",
+   "src": "<strong>Waxing Gibbous</strong>\n            <span>More than half is bright and still growing.</span>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Full Moon@@T1@@\n            @@T2@@The bright side faces us almost completely.@@T3@@": {
+   "zh": "@@T0@@满月@@T1@@\n            @@T2@@明亮的一面几乎完全朝向我们。@@T3@@",
+   "src": "<strong>Full Moon</strong>\n            <span>The bright side faces us almost completely.</span>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Waning Gibbous@@T1@@\n            @@T2@@More than half is bright, but now it is shrinking.@@T3@@": {
+   "zh": "@@T0@@亏凸月@@T1@@\n            @@T2@@超过一半是亮的，但此刻正在缩小。@@T3@@",
+   "src": "<strong>Waning Gibbous</strong>\n            <span>More than half is bright, but now it is shrinking.</span>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Last Quarter@@T1@@\n            @@T2@@Half looks bright again, this time on the other side.@@T3@@": {
+   "zh": "@@T0@@下弦月@@T1@@\n            @@T2@@又有一半看起来是亮的，这一次出现在另一侧。@@T3@@",
+   "src": "<strong>Last Quarter</strong>\n            <span>Half looks bright again, this time on the other side.</span>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Waning Crescent@@T1@@\n            @@T2@@A tiny bright piece is left before new Moon.@@T3@@": {
+   "zh": "@@T0@@残月@@T1@@\n            @@T2@@回到新月之前，只剩下一小块明亮的部分。@@T3@@",
+   "src": "<strong>Waning Crescent</strong>\n            <span>A tiny bright piece is left before new Moon.</span>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Section 3": {
+   "zh": "第 3 节",
+   "src": "Section 3",
+   "tags": []
+  },
+  "Waxing means growing. Waning means shrinking.": {
+   "zh": "盈表示变大，亏表示变小。",
+   "src": "Waxing means growing. Waning means shrinking.",
+   "tags": []
+  },
+  "These are the two words that make the whole cycle easier to remember.": {
+   "zh": "正是这两个词，让整个循环变得更容易记住。",
+   "src": "These are the two words that make the whole cycle easier to remember.",
+   "tags": []
+  },
+  "Waxing": {
+   "zh": "盈",
+   "src": "Waxing",
+   "tags": []
+  },
+  "The bright part is getting bigger night after night.": {
+   "zh": "明亮的区域一夜比一夜更大。",
+   "src": "The bright part is getting bigger night after night.",
+   "tags": []
+  },
+  "New Moon → Crescent → First Quarter → Gibbous → Full Moon": {
+   "zh": "新月 → 娥眉月 → 上弦月 → 盈凸月 → 满月",
+   "src": "New Moon → Crescent → First Quarter → Gibbous → Full Moon",
+   "tags": []
+  },
+  "Waning": {
+   "zh": "亏",
+   "src": "Waning",
+   "tags": []
+  },
+  "The bright part is getting smaller night after night.": {
+   "zh": "明亮的区域一夜比一夜更小。",
+   "src": "The bright part is getting smaller night after night.",
+   "tags": []
+  },
+  "Full Moon → Gibbous → Last Quarter → Crescent → New Moon": {
+   "zh": "满月 → 亏凸月 → 下弦月 → 残月 → 新月",
+   "src": "Full Moon → Gibbous → Last Quarter → Crescent → New Moon",
+   "tags": []
+  },
+  "Quarter does not mean tiny": {
+   "zh": "「弦」并不意味着很小",
+   "src": "Quarter does not mean tiny",
+   "tags": []
+  },
+  "A quarter Moon looks like half a circle. The word @@T0@@quarter@@T1@@ means the Moon is a quarter of the way around Earth.": {
+   "zh": "弦月看起来像半个圆。@@T0@@quarter@@T1@@（四分之一）一词指的是月亮走完了绕地球轨道的四分之一。",
+   "src": "A quarter Moon looks like half a circle. The word <strong>quarter</strong> means the Moon is a quarter of the way around Earth.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Section 4": {
+   "zh": "第 4 节",
+   "src": "Section 4",
+   "tags": []
+  },
+  "Moon phases are not Earth's shadow": {
+   "zh": "月相并不是地球的影子造成的",
+   "src": "Moon phases are not Earth's shadow",
+   "tags": []
+  },
+  "A common mix-up is thinking phases happen because Earth blocks the Sun. Usually it does not.": {
+   "zh": "一个常见的误会是：以为月相的出现是因为地球挡住了太阳的光。通常并非如此。",
+   "src": "A common mix-up is thinking phases happen because Earth blocks the Sun. Usually it does not.",
+   "tags": []
+  },
+  "Ordinary phase": {
+   "zh": "普通月相",
+   "src": "Ordinary phase",
+   "tags": []
+  },
+  "Lunar eclipse": {
+   "zh": "月食",
+   "src": "Lunar eclipse",
+   "tags": []
+  },
+  "On most nights, the Moon is a little above or below Earth's shadow, so the phase comes only from sunlight and our viewing angle.": {
+   "zh": "在大多数夜晚，月亮都位于地球影子的略上方或略下方，因此月相只由阳光和我们的视角决定。",
+   "src": "On most nights, the Moon is a little above or below Earth's shadow, so the phase comes only from sunlight and our viewing angle.",
+   "tags": []
+  },
+  "Earth's shadow matters during a lunar eclipse, not during the ordinary monthly phase cycle.": {
+   "zh": "地球的影子只在月食时才起作用，在寻常的每月月相循环中并不起作用。",
+   "src": "Earth's shadow matters during a lunar eclipse, not during the ordinary monthly phase cycle.",
+   "tags": []
+  },
+  "Section 5": {
+   "zh": "第 5 节",
+   "src": "Section 5",
+   "tags": []
+  },
+  "Moon phase game": {
+   "zh": "月相小游戏",
+   "src": "Moon phase game",
+   "tags": []
+  },
+  "Look at the Moon. Can you pick its name?": {
+   "zh": "看看这个月亮，你能说出它的名字吗？",
+   "src": "Look at the Moon. Can you pick its name?",
+   "tags": []
+  },
+  "Score: 0": {
+   "zh": "得分：0",
+   "src": "Score: 0",
+   "tags": []
+  },
+  "What phase is this?": {
+   "zh": "这是什么月相？",
+   "src": "What phase is this?",
+   "tags": []
+  },
+  "Pick an answer to check.": {
+   "zh": "选择一个答案来核对。",
+   "src": "Pick an answer to check.",
+   "tags": []
+  },
+  "Next question": {
+   "zh": "下一题",
+   "src": "Next question",
+   "tags": []
+  },
+  "Remember this": {
+   "zh": "记住这些",
+   "src": "Remember this",
+   "tags": []
+  },
+  "Three takeaways": {
+   "zh": "三个要点",
+   "src": "Three takeaways",
+   "tags": []
+  },
+  "@@T0@@The Moon stays round.@@T1@@\n            @@T2@@It is the sunlight and our viewing angle that change.@@T3@@": {
+   "zh": "@@T0@@月亮始终是圆的。@@T1@@\n            @@T2@@发生变化的是阳光和我们的视角。@@T3@@",
+   "src": "<strong>The Moon stays round.</strong>\n            <span>It is the sunlight and our viewing angle that change.</span>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Half is always lit by the Sun.@@T1@@\n            @@T2@@We just cannot always see all of that lit half.@@T3@@": {
+   "zh": "@@T0@@总有一半被太阳照亮。@@T1@@\n            @@T2@@只是我们并不总能看全那被照亮的一半。@@T3@@",
+   "src": "<strong>Half is always lit by the Sun.</strong>\n            <span>We just cannot always see all of that lit half.</span>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Waxing grows. Waning shrinks.@@T1@@\n            @@T2@@That one pair of words helps you follow the whole cycle.@@T3@@": {
+   "zh": "@@T0@@盈则长大，亏则缩小。@@T1@@\n            @@T2@@这一对词能帮助你跟上整个循环。@@T3@@",
+   "src": "<strong>Waxing grows. Waning shrinks.</strong>\n            <span>That one pair of words helps you follow the whole cycle.</span>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Hero moon illustration": {
+   "zh": "顶部月亮插图",
+   "src": "Hero moon illustration",
+   "tags": []
+  },
+  "Orbit view of the Sun, Earth, and Moon": {
+   "zh": "太阳、地球与月亮的轨道视图",
+   "src": "Orbit view of the Sun, Earth, and Moon",
+   "tags": []
+  },
+  "View of the Moon from Earth": {
+   "zh": "从地球看到的月亮",
+   "src": "View of the Moon from Earth",
+   "tags": []
+  },
+  "Choose shadow demo": {
+   "zh": "选择影子演示",
+   "src": "Choose shadow demo",
+   "tags": []
+  },
+  "Phase versus eclipse comparison": {
+   "zh": "月相与月食对比",
+   "src": "Phase versus eclipse comparison",
+   "tags": []
+  },
+  "Quiz moon phase": {
+   "zh": "测验用月亮相位",
+   "src": "Quiz moon phase",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "月亮为什么会改变形状",
+  "tagline": "一份生动直观的指南：新月、娥眉月、弦月与满月",
+  "summary": "一篇适合小朋友的交互式讲解：拖动月亮绕地球运动，观察阳光的变化，认识八个月相名称，并用一个简单的月亮小游戏来检验自己。",
+  "difficulty": "6 岁以上",
+  "collection": "天文",
+  "highlights": [
+   "拖动月亮绕地球运动，实时观察明亮区域的变化。",
+   "用大而易点的相位卡片认识八个主要月相。",
+   "用浅显的语言弄清「盈」与「亏」的区别。",
+   "厘清普通月相与地球影子之间常见的误会。",
+   "最后用一个亲切的小测验，让孩子说出看到的月相名称。"
+  ],
+  "tags": [
+   "天文",
+   "月亮",
+   "太空",
+   "交互式",
+   "儿童"
+  ]
+ },
+ "js": {
+  "Yes! This is the [[[0]]]. [[[1]]].": {
+   "zh": "对啦！这就是[[[0]]]。[[[1]]]",
+   "exprs": [
+    "${question.answer.name}",
+    "${question.answer.short}"
+   ],
+   "tags": [],
+   "src": "Yes! This is the ${question.answer.name}. ${question.answer.short}."
+  },
+  "Not this time. This is the [[[0]]]. [[[1]]].": {
+   "zh": "这次不对哦。这是[[[0]]]。[[[1]]]",
+   "exprs": [
+    "${question.answer.name}",
+    "${question.answer.short}"
+   ],
+   "tags": [],
+   "src": "Not this time. This is the ${question.answer.name}. ${question.answer.short}."
+  },
+  "About day [[[0]]] of 29.5": {
+   "zh": "约为 29.5 天中的第 [[[0]]] 天",
+   "exprs": [
+    "${getDayNumber(state.angleDeg).toFixed(1)}"
+   ],
+   "tags": [],
+   "src": "About day ${getDayNumber(state.angleDeg).toFixed(1)} of 29.5"
+  },
+  "Bright part we can see: [[[0]]]": {
+   "zh": "我们能看到的明亮部分：[[[0]]]",
+   "exprs": [
+    "${formatPercent(illumination)}"
+   ],
+   "tags": [],
+   "src": "Bright part we can see: ${formatPercent(illumination)}"
+  },
+  "New Moon": {
+   "zh": "新月",
+   "exprs": [],
+   "tags": [],
+   "src": "New Moon"
+  },
+  "Almost all dark": {
+   "zh": "几乎全是暗的",
+   "exprs": [],
+   "tags": [],
+   "src": "Almost all dark"
+  },
+  "The Moon is between Earth and the Sun, so the bright half is facing away from us.": {
+   "zh": "月亮位于地球与太阳之间，因此被照亮的那一半背对着我们。",
+   "exprs": [],
+   "tags": [],
+   "src": "The Moon is between Earth and the Sun, so the bright half is facing away from us."
+  },
+  "Waxing Crescent": {
+   "zh": "娥眉月",
+   "exprs": [],
+   "tags": [],
+   "src": "Waxing Crescent"
+  },
+  "A thin bright smile is growing": {
+   "zh": "一道细细的明亮「微笑」正在长大",
+   "exprs": [],
+   "tags": [],
+   "src": "A thin bright smile is growing"
+  },
+  "We can see a small bright crescent. Waxing means the bright part is growing.": {
+   "zh": "我们能看到一小弯明亮的月牙。盈表示明亮的区域正在变大。",
+   "exprs": [],
+   "tags": [],
+   "src": "We can see a small bright crescent. Waxing means the bright part is growing."
+  },
+  "First Quarter": {
+   "zh": "上弦月",
+   "exprs": [],
+   "tags": [],
+   "src": "First Quarter"
+  },
+  "Half looks bright": {
+   "zh": "看起来有一半是亮的",
+   "exprs": [],
+   "tags": [],
+   "src": "Half looks bright"
+  },
+  "Half the Moon looks bright. Quarter means the Moon is one quarter of the way around Earth.": {
+   "zh": "月亮看起来有一半是亮的。弦表示月亮走完了绕地球轨道的四分之一。",
+   "exprs": [],
+   "tags": [],
+   "src": "Half the Moon looks bright. Quarter means the Moon is one quarter of the way around Earth."
+  },
+  "Waxing Gibbous": {
+   "zh": "盈凸月",
+   "exprs": [],
+   "tags": [],
+   "src": "Waxing Gibbous"
+  },
+  "Almost full and still growing": {
+   "zh": "几乎全满，并且仍在变大",
+   "exprs": [],
+   "tags": [],
+   "src": "Almost full and still growing"
+  },
+  "More than half is bright, and each night the bright part is still getting bigger.": {
+   "zh": "超过一半是亮的，而且每一夜明亮的区域都还在继续变大。",
+   "exprs": [],
+   "tags": [],
+   "src": "More than half is bright, and each night the bright part is still getting bigger."
+  },
+  "Full Moon": {
+   "zh": "满月",
+   "exprs": [],
+   "tags": [],
+   "src": "Full Moon"
+  },
+  "The whole face looks bright": {
+   "zh": "整个盘面看起来都是亮的",
+   "exprs": [],
+   "tags": [],
+   "src": "The whole face looks bright"
+  },
+  "The lit half is facing us, so the Moon looks almost fully bright.": {
+   "zh": "被照亮的那一半正对着我们，所以月亮看起来几乎通体明亮。",
+   "exprs": [],
+   "tags": [],
+   "src": "The lit half is facing us, so the Moon looks almost fully bright."
+  },
+  "Waning Gibbous": {
+   "zh": "亏凸月",
+   "exprs": [],
+   "tags": [],
+   "src": "Waning Gibbous"
+  },
+  "Still big, but shrinking": {
+   "zh": "依然很大，但正在缩小",
+   "exprs": [],
+   "tags": [],
+   "src": "Still big, but shrinking"
+  },
+  "More than half is bright, but now the bright part is getting smaller.": {
+   "zh": "超过一半是亮的，但此刻明亮的区域正在变小。",
+   "exprs": [],
+   "tags": [],
+   "src": "More than half is bright, but now the bright part is getting smaller."
+  },
+  "Last Quarter": {
+   "zh": "下弦月",
+   "exprs": [],
+   "tags": [],
+   "src": "Last Quarter"
+  },
+  "Half looks bright again": {
+   "zh": "又有一半看起来是亮的",
+   "exprs": [],
+   "tags": [],
+   "src": "Half looks bright again"
+  },
+  "Half the Moon looks bright again, but this time the other side is lit.": {
+   "zh": "月亮又有一半看起来是亮的，但这一次照亮的是另一侧。",
+   "exprs": [],
+   "tags": [],
+   "src": "Half the Moon looks bright again, but this time the other side is lit."
+  },
+  "Waning Crescent": {
+   "zh": "残月",
+   "exprs": [],
+   "tags": [],
+   "src": "Waning Crescent"
+  },
+  "A tiny bright piece is left": {
+   "zh": "只剩下小小的一块亮光",
+   "exprs": [],
+   "tags": [],
+   "src": "A tiny bright piece is left"
+  },
+  "Only a thin crescent is bright before the Moon returns to new Moon.": {
+   "zh": "在月亮回到新月之前，只有一弯细细的月牙是亮的。",
+   "exprs": [],
+   "tags": [],
+   "src": "Only a thin crescent is bright before the Moon returns to new Moon."
+  },
+  "New Moon: waxing begins next": {
+   "zh": "新月：接下来开始转入盈相",
+   "exprs": [],
+   "tags": [],
+   "src": "New Moon: waxing begins next"
+  },
+  "Full Moon: waning begins next": {
+   "zh": "满月：接下来开始转入亏相",
+   "exprs": [],
+   "tags": [],
+   "src": "Full Moon: waning begins next"
+  },
+  "Waxing: the bright part grows": {
+   "zh": "盈：明亮的区域变大",
+   "exprs": [],
+   "tags": [],
+   "src": "Waxing: the bright part grows"
+  },
+  "Waning: the bright part shrinks": {
+   "zh": "亏：明亮的区域变小",
+   "exprs": [],
+   "tags": [],
+   "src": "Waning: the bright part shrinks"
+  },
+  "Earth shadow": {
+   "zh": "地球的影子",
+   "exprs": [],
+   "tags": [],
+   "src": "Earth shadow"
+  },
+  "Pick an answer to check.": {
+   "zh": "选择一个答案来核对。",
+   "exprs": [],
+   "tags": [],
+   "src": "Pick an answer to check."
+  },
+  "On most nights, the Moon is a little above or below Earth\\'s shadow, so the phase comes only from sunlight and our viewing angle.": {
+   "zh": "在大多数夜晚，月亮都位于地球影子的略上方或略下方，因此月相只由阳光和我们的视角决定。",
+   "exprs": [],
+   "tags": [],
+   "src": "On most nights, the Moon is a little above or below Earth\\'s shadow, so the phase comes only from sunlight and our viewing angle."
+  },
+  "A lunar eclipse is special. Earth lines up with the Sun and Moon, so Earth\\'s shadow really does fall on the Moon.": {
+   "zh": "月食则很特别。当地球与太阳、月亮排成一条直线时，地球的影子就真的落在了月亮上。",
+   "exprs": [],
+   "tags": [],
+   "src": "A lunar eclipse is special. Earth lines up with the Sun and Moon, so Earth\\'s shadow really does fall on the Moon."
+  }
+ }
+}

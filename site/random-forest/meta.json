@@ -1,0 +1,25 @@
+{
+  "slug": "random-forest",
+  "title": "随机森林：逐棵树地理解",
+  "date": "2026-05-11",
+  "tagline": "Bagging + 随机特征采样——为何由弱树组成的森林能胜过单棵强树",
+  "summary": "在一个二维分类问题上，观察树如何一棵棵加入森林；决策边界逐渐平滑，袋外误差逐步收敛，特征重要性柱状图趋于稳定。把纯 bagging、RF（= bagging + 随机特征）与 Extra-Trees 并排比较；调整 n_estimators 与 max_features，实时观看偏置-方差权衡的展开。",
+  "readingTime": "16 min",
+  "difficulty": "入门",
+  "collection": "经典机器学习",
+  "order": 32,
+  "status": "published",
+  "tags": [
+    "随机森林",
+    "Bagging",
+    "OOB",
+    "集成方法",
+    "交互式"
+  ],
+  "highlights": [
+    "点击“添加树”，逐棵树地观察森林决策边界如何变平滑。",
+    "随树加入实时追踪 OOB 误差；它收敛到无需另设留出集即可获得的测试误差。",
+    "在同一数据集上并排比较纯 bagging、RF 与 Extra-Trees。",
+    "特征重要性柱状图 + 偏依赖面板，使“为何做出这一预测”有了诚实的答案。"
+  ]
+}

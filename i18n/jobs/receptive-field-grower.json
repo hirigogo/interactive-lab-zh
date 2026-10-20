@@ -1,0 +1,162 @@
+{
+ "slug": "receptive-field-grower",
+ "units": {
+  "Receptive Field Grower": {
+   "zh": "感受野增长实验",
+   "src": "Receptive Field Grower",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "A single 3×3 conv sees 9 pixels. Stack three, and a deep feature sees a 7×7 region. Stack with stride 2, and depth reaches the corners of the image. Drag the depth slider to watch it grow.": {
+   "zh": "单个 3×3 卷积只看到 9 个像素。堆叠三层之后，一个深层特征便能看到一个 7×7 的区域。若以步长 2 堆叠，其深度便可触及图像的各个角落。拖动深度滑块，观察它的增长。",
+   "src": "A single 3×3 conv sees 9 pixels. Stack three, and a deep feature sees a 7×7 region. Stack with stride 2, and depth reaches the corners of the image. Drag the depth slider to watch it grow.",
+   "tags": []
+  },
+  "@@T0@@~7 min@@T1@@@@T2@@Deep Learning · CNN · Receptive Field@@T3@@": {
+   "zh": "@@T0@@约 7 分钟@@T1@@@@T2@@深度学习 · CNN · 感受野@@T3@@",
+   "src": "<span>~7 min</span><span>Deep Learning · CNN · Receptive Field</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Convolution is local by design. That's the whole point — it encodes a prior that nearby pixels matter together. But a single 3×3 kernel can only see 9 pixels. So how does a CNN ever recognize a whole dog?": {
+   "zh": "卷积在设计中就是局部的。这正是其要义所在 &mdash;&mdash; 它编码了「邻近像素需一并考虑」这一先验。但单个 3×3 卷积核只能看到 9 个像素。那么，CNN 究竟如何识别出一整只狗？",
+   "src": "Convolution is local by design. That's the whole point — it encodes a prior that nearby pixels matter together. But a single 3×3 kernel can only see 9 pixels. So how does a CNN ever recognize a whole dog?",
+   "tags": []
+  },
+  "The answer is that @@T0@@receptive field@@T1@@ grows with depth. Each layer's neuron sees a patch of the previous layer's output, which was itself built from a patch of the layer before that. After a few layers, a single activation depends on a large region of the input.": {
+   "zh": "答案在于@@T0@@感受野@@T1@@随深度增长。每一层的神经元看到的是上一层输出的一个局部区域，而该输出本身又由更前一层的局部区域构建而来。经过若干层之后，单个激活值便依赖于输入中很大的一片区域。",
+   "src": "The answer is that <em>receptive field</em> grows with depth. Each layer's neuron sees a patch of the previous layer's output, which was itself built from a patch of the layer before that. After a few layers, a single activation depends on a large region of the input.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The playground": {
+   "zh": "实验场",
+   "src": "The playground",
+   "tags": []
+  },
+  "Depth:": {
+   "zh": "深度：",
+   "src": "Depth:",
+   "tags": []
+  },
+  "Kernel size:": {
+   "zh": "卷积核尺寸：",
+   "src": "Kernel size:",
+   "tags": []
+  },
+  "Stride:": {
+   "zh": "步长：",
+   "src": "Stride:",
+   "tags": []
+  },
+  "@@T0@@RF size: @@T1@@7@@T2@@@@T3@@\n        @@T4@@Equivalent single kernel: @@T5@@7×7@@T6@@@@T7@@\n        @@T8@@Stacked params (C→C): @@T9@@27 C²@@T10@@@@T11@@\n        @@T12@@Single-kernel params: @@T13@@49 C²@@T14@@@@T15@@": {
+   "zh": "@@T0@@感受野尺寸：@@T1@@7@@T2@@@@T3@@\n        @@T4@@等效单核尺寸：@@T5@@7×7@@T6@@@@T7@@\n        @@T8@@堆叠参数量（C→C）：@@T9@@27 C²@@T10@@@@T11@@\n        @@T12@@单核参数量：@@T13@@49 C²@@T14@@@@T15@@",
+   "src": "<span>RF size: <b id=\"rf-size\">7</b></span>\n        <span>Equivalent single kernel: <b id=\"rf-equiv\">7×7</b></span>\n        <span>Stacked params (C→C): <b id=\"params-stacked\">27 C²</b></span>\n        <span>Single-kernel params: <b id=\"params-single\">49 C²</b></span>",
+   "tags": [
+    "<span>",
+    "<b id=\"rf-size\">",
+    "</b>",
+    "</span>",
+    "<span>",
+    "<b id=\"rf-equiv\">",
+    "</b>",
+    "</span>",
+    "<span>",
+    "<b id=\"params-stacked\">",
+    "</b>",
+    "</span>",
+    "<span>",
+    "<b id=\"params-single\">",
+    "</b>",
+    "</span>"
+   ]
+  },
+  "The formula is simple: each stride-1 conv of kernel size K adds (K−1) to the receptive field. Stride-2 convs @@T0@@multiply@@T1@@ the growth rate. Dilated convs add gaps, expanding RF without any extra params.": {
+   "zh": "公式很简单：每个核尺寸为 K、步长为 1 的卷积都会给感受野增加 (K−1)。步长为 2 的卷积会@@T0@@成倍提升@@T1@@增长速度。空洞卷积引入间隔，无需任何额外参数即可扩大感受野。",
+   "src": "The formula is simple: each stride-1 conv of kernel size K adds (K−1) to the receptive field. Stride-2 convs <em>multiply</em> the growth rate. Dilated convs add gaps, expanding RF without any extra params.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Why stack 3×3 instead of one 7×7?": {
+   "zh": "为何堆叠 3×3，而非使用单个 7×7？",
+   "src": "Why stack 3×3 instead of one 7×7?",
+   "tags": []
+  },
+  "Three stacked 3×3 convolutions and a single 7×7 conv have the same receptive field. But stacked 3×3 wins on two fronts:": {
+   "zh": "三个堆叠的 3×3 卷积与单个 7×7 卷积具有相同的感受野。但堆叠的 3×3 在两个方面胜出：",
+   "src": "Three stacked 3×3 convolutions and a single 7×7 conv have the same receptive field. But stacked 3×3 wins on two fronts:",
+   "tags": []
+  },
+  "@@T0@@Parameters@@T1@@ — 3 × (3·3·C²) = 27C² &lt; 49C² = 7·7·C².": {
+   "zh": "@@T0@@参数量@@T1@@ &mdash;&mdash; 3 × (3·3·C²) = 27C² &lt; 49C² = 7·7·C²。",
+   "src": "<strong>Parameters</strong> — 3 × (3·3·C²) = 27C² &lt; 49C² = 7·7·C².",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Non-linearities@@T1@@ — three ReLUs between stacks vs one after the 7×7. A more expressive function class for fewer parameters.": {
+   "zh": "@@T0@@非线性@@T1@@ &mdash;&mdash; 堆叠层之间有三次 ReLU，而 7×7 之后仅有一次。以更少的参数获得表达力更强的函数类。",
+   "src": "<strong>Non-linearities</strong> — three ReLUs between stacks vs one after the 7×7. A more expressive function class for fewer parameters.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "This is the VGG insight (Simonyan &amp; Zisserman 2014). It became the default for every CNN architecture from 2014 onward.": {
+   "zh": "这就是 VGG 的洞见（Simonyan 与 Zisserman，2014）。自 2014 年起，它成为每一个 CNN 架构的默认做法。",
+   "src": "This is the VGG insight (Simonyan &amp; Zisserman 2014). It became the default for every CNN architecture from 2014 onward.",
+   "tags": []
+  },
+  "@@T0@@The twist.@@T1@@ Theoretical RF grows linearly. Effective RF (Luo et al. 2016) is a center-weighted Gaussian — pixels near the centre contribute far more than edge pixels. This is why attention (L12) caught on: it has truly uniform global RF from layer 1.": {
+   "zh": "@@T0@@转折之处。@@T1@@ 理论感受野是线性增长的。而有效感受野（Luo 等，2016）则呈中心加权的高斯形态 &mdash;&mdash; 靠近中心的像素贡献远大于边缘像素。这正是注意力机制（第 12 讲）得以流行的原因：它从第 1 层起便具有真正均匀的全局感受野。",
+   "src": "<strong>The twist.</strong> Theoretical RF grows linearly. Effective RF (Luo et al. 2016) is a center-weighted Gaussian — pixels near the centre contribute far more than edge pixels. This is why attention (L12) caught on: it has truly uniform global RF from layer 1.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "感受野增长实验",
+  "tagline": "堆叠卷积，观察深层特征的影响范围如何扩散",
+  "summary": "卷积是局部的 &mdash;&mdash; 单个 3×3 卷积核只能看到 9 个像素。但只要将它们堆叠起来，感受野便会急剧扩张。拖动深度滑块，在同核堆叠与混合核堆叠之间切换，看清究竟有哪些输入像素会影响某个深层特征。VGG「堆叠 3×3 卷积」的洞见由此变得一目了然。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "从一个 3×3 卷积开始 &mdash;&mdash; 感受野宽度为 3 个像素。",
+   "堆叠三个 3×3 卷积 &mdash;&mdash; 感受野增长到 7×7，而参数却少于单个 7×7。",
+   "对比步长 1、步长 2 与空洞卷积 &mdash;&mdash; 深度相同，感受野增长却大相径庭。",
+   "实时查看参数数量计算：3×(3·3·C²) = 27C² 与 1×(7·7·C²) = 49C² 的对比。",
+   "预览有效感受野 &mdash;&mdash; 实际呈现的中心加权高斯形态。"
+  ],
+  "tags": [
+   "CNN",
+   "感受野",
+   "VGG",
+   "深度学习",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

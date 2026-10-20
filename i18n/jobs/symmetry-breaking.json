@@ -1,0 +1,621 @@
+{
+ "slug": "symmetry-breaking",
+ "units": {
+  "Symmetry Breaking Lab": {
+   "zh": "对称性破缺实验室",
+   "src": "Symmetry Breaking Lab",
+   "tags": []
+  },
+  "@@T0@@Skip to experiment output@@T1@@": {
+   "zh": "@@T0@@跳至实验输出@@T1@@",
+   "src": "<a class=\"skip-link\" href=\"#workspace\">Skip to experiment output</a>",
+   "tags": [
+    "<a class=\"skip-link\" href=\"#workspace\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@All interactives@@T1@@": {
+   "zh": "@@T0@@全部交互式文章@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\" aria-label=\"Back to all interactives\">All interactives</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\" aria-label=\"Back to all interactives\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@Deep Learning · Lecture 6@@T1@@\n      @@T2@@Symmetry Breaking Lab@@T3@@": {
+   "zh": "@@T0@@深度学习 · 第 6 讲@@T1@@\n      @@T2@@对称性破缺实验室@@T3@@",
+   "src": "<span>Deep Learning · Lecture 6</span>\n      <strong>Symmetry Breaking Lab</strong>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Gradient explorer@@T1@@\n      @@T2@@Lecture slides@@T3@@": {
+   "zh": "@@T0@@梯度探索器@@T1@@\n      @@T2@@讲义幻灯片@@T3@@",
+   "src": "<a href=\"../vanishing-gradients/\">Gradient explorer</a>\n      <a href=\"https://nipunbatra.github.io/dl-teaching/slides-pdf/L6.pdf\">Lecture slides</a>",
+   "tags": [
+    "<a href=\"../vanishing-gradients/\">",
+    "</a>",
+    "<a href=\"https://nipunbatra.github.io/dl-teaching/slides-pdf/L6.pdf\">",
+    "</a>"
+   ]
+  },
+  "WIDTH ON PAPER ≠ WIDTH IN USE": {
+   "zh": "纸面上的宽度 ≠ 实际使用的宽度",
+   "src": "WIDTH ON PAPER ≠ WIDTH IN USE",
+   "tags": []
+  },
+  "Four neurons can behave like one.": {
+   "zh": "四个神经元可以表现得像一个。",
+   "src": "Four neurons can behave like one.",
+   "tags": []
+  },
+  "Train the same 2 → 4 ReLU → 1 network on balanced XOR. Change only how its four hidden neurons begin, then watch their decision hinges and measured feature rank.": {
+   "zh": "在均衡 XOR 上训练同一个 2 → 4 ReLU → 1 网络。只改变其四个隐藏神经元的起始方式，然后观察它们的决策折线与测得的特征秩。",
+   "src": "Train the same 2 → 4 ReLU → 1 network on balanced XOR. Change only how its four hidden neurons begin, then watch their decision hinges and measured feature rank.",
+   "tags": []
+  },
+  "The invariant": {
+   "zh": "不变量",
+   "src": "The invariant",
+   "tags": []
+  },
+  "If two neurons have equal @@T0@@w@@T1@@, @@T2@@b@@T3@@, and @@T4@@v@@T5@@, they receive equal full-batch gradients. Gradient descent keeps them equal on the next step.": {
+   "zh": "若两个神经元具有相同的 @@T0@@w@@T1@@、@@T2@@b@@T3@@ 与 @@T4@@v@@T5@@，则它们收到相同的全批量梯度。梯度下降会在下一步中使它们保持相同。",
+   "src": "If two neurons have equal <i>w</i>, <i>b</i>, and <i>v</i>, they receive equal full-batch gradients. Gradient descent keeps them equal on the next step.",
+   "tags": [
+    "<i>",
+    "</i>",
+    "<i>",
+    "</i>",
+    "<i>",
+    "</i>"
+   ]
+  },
+  "Choose initialization": {
+   "zh": "选择初始化方式",
+   "src": "Choose initialization",
+   "tags": []
+  },
+  "@@T0@@Identical@@T1@@@@T2@@four exact copies@@T3@@": {
+   "zh": "@@T0@@完全相同@@T1@@@@T2@@四份精确副本@@T3@@",
+   "src": "<strong>Identical</strong><small>four exact copies</small>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<small>",
+    "</small>"
+   ]
+  },
+  "@@T0@@Slightly perturbed@@T1@@@@T2@@copies + small offsets@@T3@@": {
+   "zh": "@@T0@@轻微扰动@@T1@@@@T2@@副本 + 小偏移@@T3@@",
+   "src": "<strong>Slightly perturbed</strong><small>copies + small offsets</small>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<small>",
+    "</small>"
+   ]
+  },
+  "@@T0@@Independent@@T1@@@@T2@@deterministic seed 12@@T3@@": {
+   "zh": "@@T0@@相互独立@@T1@@@@T2@@确定性随机种子 12@@T3@@",
+   "src": "<strong>Independent</strong><small>deterministic seed 12</small>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<small>",
+    "</small>"
+   ]
+  },
+  "All four parameter slots contain the same numbers. They are separate arrays, not shared weights.": {
+   "zh": "全部四个参数槽包含相同的数值。它们是各自独立的数组，而非共享权重。",
+   "src": "All four parameter slots contain the same numbers. They are separate arrays, not shared weights.",
+   "tags": []
+  },
+  "Apply gradient descent": {
+   "zh": "应用梯度下降",
+   "src": "Apply gradient descent",
+   "tags": []
+  },
+  "Run": {
+   "zh": "运行",
+   "src": "Run",
+   "tags": []
+  },
+  "One step": {
+   "zh": "单步",
+   "src": "One step",
+   "tags": []
+  },
+  "Reset": {
+   "zh": "重置",
+   "src": "Reset",
+   "tags": []
+  },
+  "Step": {
+   "zh": "步数",
+   "src": "Step",
+   "tags": []
+  },
+  "Learning rate": {
+   "zh": "学习率",
+   "src": "Learning rate",
+   "tags": []
+  },
+  "Update": {
+   "zh": "更新方式",
+   "src": "Update",
+   "tags": []
+  },
+  "full batch": {
+   "zh": "全批量",
+   "src": "full batch",
+   "tags": []
+  },
+  "Identical initialization loaded. Predict what can change after one step.": {
+   "zh": "已载入完全相同的初始化。预测一步之后什么会发生变化。",
+   "src": "Identical initialization loaded. Predict what can change after one step.",
+   "tags": []
+  },
+  "Prediction to test": {
+   "zh": "待检验的预测",
+   "src": "Prediction to test",
+   "tags": []
+  },
+  "Exact copies remain exact copies. The model has @@T0@@nominal width 4@@T1@@, but only @@T2@@effective width 1@@T3@@.": {
+   "zh": "精确副本仍是精确副本。该模型具有 @@T0@@名义宽度 4@@T1@@，但实际只有 @@T2@@有效宽度 1@@T3@@。",
+   "src": "Exact copies remain exact copies. The model has <strong>nominal width 4</strong>, but only <strong>effective width 1</strong>.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "IDENTICAL INITIALIZATION": {
+   "zh": "完全相同的初始化",
+   "src": "IDENTICAL INITIALIZATION",
+   "tags": []
+  },
+  "Can four overlaid hinges solve XOR?": {
+   "zh": "四条重叠的折线能解 XOR 吗？",
+   "src": "Can four overlaid hinges solve XOR?",
+   "tags": []
+  },
+  "@@T0@@100 fixed points · 25 per quadrant@@T1@@": {
+   "zh": "@@T0@@100 个固定点 · 每个象限 25 个@@T1@@",
+   "src": "<span class=\"dataset-badge\">100 fixed points · 25 per quadrant</span>",
+   "tags": [
+    "<span class=\"dataset-badge\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Binary cross-entropy@@T1@@@@T2@@—@@T3@@@@T4@@mean over 100 points@@T5@@": {
+   "zh": "@@T0@@二元交叉熵@@T1@@@@T2@@—@@T3@@@@T4@@100 个点的均值@@T5@@",
+   "src": "<span>Binary cross-entropy</span><strong id=\"lossValue\">—</strong><small>mean over 100 points</small>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong id=\"lossValue\">",
+    "</strong>",
+    "<small>",
+    "</small>"
+   ]
+  },
+  "@@T0@@Accuracy@@T1@@@@T2@@—@@T3@@@@T4@@balanced XOR@@T5@@": {
+   "zh": "@@T0@@准确率@@T1@@@@T2@@—@@T3@@@@T4@@均衡 XOR@@T5@@",
+   "src": "<span>Accuracy</span><strong id=\"accuracyValue\">—</strong><small id=\"accuracyNote\">balanced XOR</small>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong id=\"accuracyValue\">",
+    "</strong>",
+    "<small id=\"accuracyNote\">",
+    "</small>"
+   ]
+  },
+  "@@T0@@Max neuron separation@@T1@@@@T2@@—@@T3@@@@T4@@max ‖(w,b)@@T5@@i@@T6@@ − (w,b)@@T7@@j@@T8@@‖@@T9@@": {
+   "zh": "@@T0@@神经元最大间距@@T1@@@@T2@@—@@T3@@@@T4@@max ‖(w,b)@@T5@@i@@T6@@ − (w,b)@@T7@@j@@T8@@‖@@T9@@",
+   "src": "<span>Max neuron separation</span><strong id=\"spreadValue\">—</strong><small>max ‖(w,b)<sub>i</sub> − (w,b)<sub>j</sub>‖</small>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong id=\"spreadValue\">",
+    "</strong>",
+    "<small>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "</small>"
+   ]
+  },
+  "@@T0@@Hidden feature rank@@T1@@@@T2@@—@@T3@@@@T4@@rank of the 100 × 4 activation matrix@@T5@@": {
+   "zh": "@@T0@@隐藏特征秩@@T1@@@@T2@@—@@T3@@@@T4@@100 × 4 激活矩阵的秩@@T5@@",
+   "src": "<span>Hidden feature rank</span><strong id=\"rankValue\">—</strong><small>rank of the 100 × 4 activation matrix</small>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong id=\"rankValue\">",
+    "</strong>",
+    "<small>",
+    "</small>"
+   ]
+  },
+  "MODEL OUTPUT": {
+   "zh": "模型输出",
+   "src": "MODEL OUTPUT",
+   "tags": []
+  },
+  "Decision surface": {
+   "zh": "决策曲面",
+   "src": "Decision surface",
+   "tags": []
+  },
+  "Your browser does not support the decision-surface canvas.": {
+   "zh": "你的浏览器不支持决策曲面画布。",
+   "src": "Your browser does not support the decision-surface canvas.",
+   "tags": []
+  },
+  "@@T0@@@@T1@@@@T2@@class 0@@T3@@\n              @@T4@@@@T5@@@@T6@@class 1@@T7@@\n              @@T8@@@@T9@@@@T10@@training point@@T11@@": {
+   "zh": "@@T0@@@@T1@@@@T2@@类别 0@@T3@@\n              @@T4@@@@T5@@@@T6@@类别 1@@T7@@\n              @@T8@@@@T9@@@@T10@@训练点@@T11@@",
+   "src": "<span><i class=\"swatch class-zero\"></i>class 0</span>\n              <span><i class=\"swatch class-one\"></i>class 1</span>\n              <span><i class=\"point-key\"></i>training point</span>",
+   "tags": [
+    "<span>",
+    "<i class=\"swatch class-zero\">",
+    "</i>",
+    "</span>",
+    "<span>",
+    "<i class=\"swatch class-one\">",
+    "</i>",
+    "</span>",
+    "<span>",
+    "<i class=\"point-key\">",
+    "</i>",
+    "</span>"
+   ]
+  },
+  "Background colour is the model probability. The outlined points are the balanced training set.": {
+   "zh": "背景颜色表示模型概率。带轮廓的点是均衡训练集。",
+   "src": "Background colour is the model probability. The outlined points are the balanced training set.",
+   "tags": []
+  },
+  "HIDDEN LAYER": {
+   "zh": "隐藏层",
+   "src": "HIDDEN LAYER",
+   "tags": []
+  },
+  "Four ReLU hinges and active directions": {
+   "zh": "四条 ReLU 折线与激活方向",
+   "src": "Four ReLU hinges and active directions",
+   "tags": []
+  },
+  "Your browser does not support the hidden-hinge canvas.": {
+   "zh": "你的浏览器不支持隐藏折线画布。",
+   "src": "Your browser does not support the hidden-hinge canvas.",
+   "tags": []
+  },
+  "Each line is w@@T0@@j@@T1@@@@T2@@T@@T3@@x + b@@T4@@j@@T5@@ = 0. Its arrow points toward the half-plane where that ReLU is active.": {
+   "zh": "每条直线为 w@@T0@@j@@T1@@@@T2@@T@@T3@@x + b@@T4@@j@@T5@@ = 0。其箭头指向该 ReLU 处于激活状态的半平面。",
+   "src": "Each line is w<sub>j</sub><sup>T</sup>x + b<sub>j</sub> = 0. Its arrow points toward the half-plane where that ReLU is active.",
+   "tags": [
+    "<sub>",
+    "</sub>",
+    "<sup>",
+    "</sup>",
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "WHAT THE METRICS MEAN": {
+   "zh": "这些指标的含义",
+   "src": "WHAT THE METRICS MEAN",
+   "tags": []
+  },
+  "The problem is lost representational capacity.": {
+   "zh": "问题在于表征能力的丧失。",
+   "src": "The problem is lost representational capacity.",
+   "tags": []
+  },
+  "Identical": {
+   "zh": "完全相同",
+   "src": "Identical",
+   "tags": []
+  },
+  "All four activations are the same column. Rank stays 1 and separation stays 0, so the output is only a scaled copy of one ReLU feature. On this XOR set it typically settles near 75%: one quadrant remains wrong.": {
+   "zh": "全部四个激活都是同一列。秩始终为 1，间距始终为 0，因此输出仅是一个 ReLU 特征的缩放副本。在这个 XOR 集合上，它通常稳定在 75% 附近：有一个象限始终错误。",
+   "src": "All four activations are the same column. Rank stays 1 and separation stays 0, so the output is only a scaled copy of one ReLU feature. On this XOR set it typically settles near 75%: one quadrant remains wrong.",
+   "tags": []
+  },
+  "Slightly perturbed": {
+   "zh": "轻微扰动",
+   "src": "Slightly perturbed",
+   "tags": []
+  },
+  "The equality constraint is gone. The coloured hinges can separate and the feature rank rises above 1. Breaking symmetry is necessary; it does not guarantee that this particular start will find the best XOR solution.": {
+   "zh": "相等约束消失了。彩色的折线得以分开，特征秩升到 1 以上。打破对称性是必要的；但它并不保证这个特定的起点一定能找到最优的 XOR 解。",
+   "src": "The equality constraint is gone. The coloured hinges can separate and the feature rank rises above 1. Breaking symmetry is necessary; it does not guarantee that this particular start will find the best XOR solution.",
+   "tags": []
+  },
+  "Independent": {
+   "zh": "相互独立",
+   "src": "Independent",
+   "tags": []
+  },
+  "Distinct starting directions let gradient descent combine multiple half-planes. With the fixed seed here, all four alternating XOR regions are learned and the measured accuracy reaches 100%.": {
+   "zh": "各不相同的起始方向使梯度下降能够组合多个半平面。在此处的固定种子下，四个交替的 XOR 区域都被学到，测得的准确率达到 100%。",
+   "src": "Distinct starting directions let gradient descent combine multiple half-planes. With the fixed seed here, all four alternating XOR regions are learned and the measured accuracy reaches 100%.",
+   "tags": []
+  },
+  "@@T0@@2 → 4 ReLU → 1 logit · deterministic full-batch gradient descent · computation stays in this page@@T1@@\n    @@T2@@Continue with signal propagation →@@T3@@": {
+   "zh": "@@T0@@2 → 4 ReLU → 1 logit · 确定性全批量梯度下降 · 计算全部留在本页内@@T1@@\n    @@T2@@继续了解信号传播 →@@T3@@",
+   "src": "<span>2 → 4 ReLU → 1 logit · deterministic full-batch gradient descent · computation stays in this page</span>\n    <a href=\"../vanishing-gradients/\">Continue with signal propagation →</a>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<a href=\"../vanishing-gradients/\">",
+    "</a>"
+   ]
+  },
+  "Back to all interactives": {
+   "zh": "返回全部交互式文章",
+   "src": "Back to all interactives",
+   "tags": []
+  },
+  "Related course material": {
+   "zh": "相关课程材料",
+   "src": "Related course material",
+   "tags": []
+  },
+  "Symmetry argument": {
+   "zh": "对称性论证",
+   "src": "Symmetry argument",
+   "tags": []
+  },
+  "Experiment controls": {
+   "zh": "实验控件",
+   "src": "Experiment controls",
+   "tags": []
+  },
+  "Hidden-neuron initialization": {
+   "zh": "隐藏神经元初始化",
+   "src": "Hidden-neuron initialization",
+   "tags": []
+  },
+  "Experiment output": {
+   "zh": "实验输出",
+   "src": "Experiment output",
+   "tags": []
+  },
+  "Current XOR decision surface and fixed training points": {
+   "zh": "当前的 XOR 决策曲面与固定训练点",
+   "src": "Current XOR decision surface and fixed training points",
+   "tags": []
+  },
+  "Decision surface legend": {
+   "zh": "决策曲面图例",
+   "src": "Decision surface legend",
+   "tags": []
+  },
+  "Current hidden ReLU hinge lines and active directions": {
+   "zh": "当前隐藏层 ReLU 折线与激活方向",
+   "src": "Current hidden ReLU hinge lines and active directions",
+   "tags": []
+  },
+  "Hidden neuron parameters": {
+   "zh": "隐藏神经元参数",
+   "src": "Hidden neuron parameters",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "对称性破缺实验室",
+  "tagline": "看清为何宽度为四的隐藏层可能仍是一个有效宽度为一的模型",
+  "summary": "一个确定性的均衡 XOR 实验，用于比较完全相同、轻微扰动与相互独立的隐藏神经元初始化。观察精确的梯度下降如何保持相等性，检查四条 ReLU 折线，并追踪 BCE、准确率、参数间距与隐藏特征秩。",
+  "difficulty": "入门",
+  "collection": "深度学习",
+  "highlights": [
+   "从完全相同、轻微扰动或相互独立的参数出发，训练同一个 2 → 4 ReLU → 1 架构。",
+   "相互独立的参数数组验证了相等性之所以持续，是因为梯度相同，而非权重共享。",
+   "决策曲面与折线画布将隐藏特征秩与模型能够表征的 XOR 区域联系起来。",
+   "实时的 BCE、准确率、神经元间距与激活矩阵秩，揭示名义宽度与有效宽度之别。"
+  ],
+  "tags": [
+   "初始化",
+   "对称性破缺",
+   "ReLU",
+   "XOR",
+   "梯度下降",
+   "交互式"
+  ]
+ },
+ "js": {
+  "After [[[0]]] steps, separation is still exactly zero and accuracy is [[[1]]]%. Width four is still effective width one.": {
+   "zh": "经过 [[[0]]] 步后，间距仍然恰好为零，准确率为 [[[1]]]%。宽度四依然是有效宽度一。",
+   "exprs": [
+    "${state.steps}",
+    "${Math.round(metrics.accuracy * 100)}"
+   ],
+   "tags": [],
+   "src": "After ${state.steps} steps, separation is still exactly zero and accuracy is ${Math.round(metrics.accuracy * 100)}%. Width four is still effective width one."
+  },
+  "Step [[[0]]]: equal parameters received equal gradients, so all four hidden neurons remain identical.": {
+   "zh": "第 [[[0]]] 步：相等的参数收到了相等的梯度，因此四个隐藏神经元保持完全相同。",
+   "exprs": [
+    "${state.steps}"
+   ],
+   "tags": [],
+   "src": "Step ${state.steps}: equal parameters received equal gradients, so all four hidden neurons remain identical."
+  },
+  "Step [[[0]]]: the equality constraint is broken; measured separation is [[[1]]] and feature rank is [[[2]]].": {
+   "zh": "第 [[[0]]] 步：相等约束被打破；测得的间距为 [[[1]]]，特征秩为 [[[2]]]。",
+   "exprs": [
+    "${state.steps}",
+    "${formatSeparation(metrics.separation)}",
+    "${metrics.featureRank}"
+   ],
+   "tags": [],
+   "src": "Step ${state.steps}: the equality constraint is broken; measured separation is ${formatSeparation(metrics.separation)} and feature rank is ${metrics.featureRank}."
+  },
+  "Step [[[0]]]: the independent features now classify all 100 XOR points correctly.": {
+   "zh": "第 [[[0]]] 步：这些相互独立的特征现在能正确分类全部 100 个 XOR 点。",
+   "exprs": [
+    "${state.steps}"
+   ],
+   "tags": [],
+   "src": "Step ${state.steps}: the independent features now classify all 100 XOR points correctly."
+  },
+  "Step [[[0]]]: distinct hinges are moving under the same full-batch gradient descent rule.": {
+   "zh": "第 [[[0]]] 步：各不相同的折线正按同一条全批量梯度下降规则移动。",
+   "exprs": [
+    "${state.steps}"
+   ],
+   "tags": [],
+   "src": "Step ${state.steps}: distinct hinges are moving under the same full-batch gradient descent rule."
+  },
+  "step [[[0]]] · [[[1]]]% correct": {
+   "zh": "第 [[[0]]] 步 · [[[1]]]% 正确",
+   "exprs": [
+    "${state.steps.toLocaleString('en-US')}",
+    "${(metrics.accuracy * 100).toFixed(0)}"
+   ],
+   "tags": [],
+   "src": "step ${state.steps.toLocaleString('en-US')} · ${(metrics.accuracy * 100).toFixed(0)}% correct"
+  },
+  "[[[0]]] direction[[[1]]] · rank [[[2]]]": {
+   "zh": "[[[0]]] 个方向[[[1]]] · 秩 [[[2]]]",
+   "exprs": [
+    "${metrics.distinctDirections}",
+    "${metrics.distinctDirections === 1 ? '' : 's'}",
+    "${metrics.featureRank}"
+   ],
+   "tags": [],
+   "src": "${metrics.distinctDirections} direction${metrics.distinctDirections === 1 ? '' : 's'} · rank ${metrics.featureRank}"
+  },
+  "Running from step [[[0]]]…": {
+   "zh": "从第 [[[0]]] 步开始运行……",
+   "exprs": [
+    "${state.steps.toLocaleString('en-US')}"
+   ],
+   "tags": [],
+   "src": "Running from step ${state.steps.toLocaleString('en-US')}…"
+  },
+  "XOR decision surface after [[[0]]] gradient steps; [[[1]]] percent accuracy in [[[2]]] mode.": {
+   "zh": "经过 [[[0]]] 步梯度更新后的 XOR 决策曲面；在 [[[2]]] 模式下准确率为 [[[1]]]%。",
+   "exprs": [
+    "${state.steps}",
+    "${Math.round(metrics.accuracy * 100)}",
+    "${state.mode}"
+   ],
+   "tags": [],
+   "src": "XOR decision surface after ${state.steps} gradient steps; ${Math.round(metrics.accuracy * 100)} percent accuracy in ${state.mode} mode."
+  },
+  "Four hidden ReLU hinge lines with [[[0]]] distinct active directions and feature rank [[[1]]].": {
+   "zh": "四条隐藏层 ReLU 折线，具有 [[[0]]] 个不同的激活方向，特征秩为 [[[1]]]。",
+   "exprs": [
+    "${metrics.distinctDirections}",
+    "${metrics.featureRank}"
+   ],
+   "tags": [],
+   "src": "Four hidden ReLU hinge lines with ${metrics.distinctDirections} distinct active directions and feature rank ${metrics.featureRank}."
+  },
+  "IDENTICAL INITIALIZATION": {
+   "zh": "完全相同的初始化",
+   "exprs": [],
+   "tags": [],
+   "src": "IDENTICAL INITIALIZATION"
+  },
+  "Can four overlaid hinges solve XOR?": {
+   "zh": "四条重叠的折线能解 XOR 吗？",
+   "exprs": [],
+   "tags": [],
+   "src": "Can four overlaid hinges solve XOR?"
+  },
+  "All four parameter slots contain the same numbers. They are separate arrays, not shared weights.": {
+   "zh": "全部四个参数槽包含相同的数值。它们是各自独立的数组，而非共享权重。",
+   "exprs": [],
+   "tags": [],
+   "src": "All four parameter slots contain the same numbers. They are separate arrays, not shared weights."
+  },
+  "SLIGHTLY PERTURBED INITIALIZATION": {
+   "zh": "轻微扰动的初始化",
+   "exprs": [],
+   "tags": [],
+   "src": "SLIGHTLY PERTURBED INITIALIZATION"
+  },
+  "Do small offsets release the four features?": {
+   "zh": "小偏移能释放这四个特征吗？",
+   "exprs": [],
+   "tags": [],
+   "src": "Do small offsets release the four features?"
+  },
+  "Each neuron starts near the identical baseline, with a small deterministic offset in its own parameters.": {
+   "zh": "每个神经元都从完全相同基线附近出发，在其自身参数上带有一个小的确定性偏移。",
+   "exprs": [],
+   "tags": [],
+   "src": "Each neuron starts near the identical baseline, with a small deterministic offset in its own parameters."
+  },
+  "INDEPENDENT INITIALIZATION": {
+   "zh": "相互独立的初始化",
+   "exprs": [],
+   "tags": [],
+   "src": "INDEPENDENT INITIALIZATION"
+  },
+  "Can distinct directions cover all four XOR regions?": {
+   "zh": "各不相同的方向能覆盖全部四个 XOR 区域吗？",
+   "exprs": [],
+   "tags": [],
+   "src": "Can distinct directions cover all four XOR regions?"
+  },
+  "A fixed pseudo-random seed gives every neuron an independent incoming row, bias, and outgoing coefficient.": {
+   "zh": "一个固定的伪随机种子为每个神经元赋予独立的输入行、偏置与输出系数。",
+   "exprs": [],
+   "tags": [],
+   "src": "A fixed pseudo-random seed gives every neuron an independent incoming row, bias, and outgoing coefficient."
+  },
+  "Identical initialization loaded. Predict what can change after one step.": {
+   "zh": "已载入完全相同的初始化。预测一步之后什么会发生变化。",
+   "exprs": [],
+   "tags": [],
+   "src": "Identical initialization loaded. Predict what can change after one step."
+  },
+  "near the 3-of-4 ceiling": {
+   "zh": "接近四分之三的上限",
+   "exprs": [],
+   "tags": [],
+   "src": "near the 3-of-4 ceiling"
+  },
+  "balanced XOR": {
+   "zh": "均衡 XOR",
+   "exprs": [],
+   "tags": [],
+   "src": "balanced XOR"
+  },
+  "4 exact overlaps": {
+   "zh": "4 处完全重叠",
+   "exprs": [],
+   "tags": [],
+   "src": "4 exact overlaps"
+  },
+  "All four hidden ReLU hinge lines and active-direction arrows overlap exactly.": {
+   "zh": "全部四条隐藏层 ReLU 折线与激活方向箭头都完全重叠。",
+   "exprs": [],
+   "tags": [],
+   "src": "All four hidden ReLU hinge lines and active-direction arrows overlap exactly."
+  },
+  "Small deterministic offsets loaded. The four hinges no longer coincide exactly.": {
+   "zh": "已载入小的确定性偏移。四条折线不再完全重合。",
+   "exprs": [],
+   "tags": [],
+   "src": "Small deterministic offsets loaded. The four hinges no longer coincide exactly."
+  },
+  "Independent seed 12 loaded. Run gradient descent and watch the four XOR regions.": {
+   "zh": "已载入独立种子 12。运行梯度下降，观察四个 XOR 区域。",
+   "exprs": [],
+   "tags": [],
+   "src": "Independent seed 12 loaded. Run gradient descent and watch the four XOR regions."
+  }
+ }
+}

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CFG 尺度可视化</title>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../shared/site.css" />
+    <style>
+      :root { --ink:#1f1f1e; --paper:#faf8f3; --paper-alt:#f0eee5; --rule:#c9c4b5; --muted:#6b6a65; --accent:#d97757; --accent-soft:#ead3c5; --sage:#7b9e89; --slate:#4a6670; --wine:#a8324b; }
+      body { font-family:"Source Serif 4",Georgia,serif; background:var(--paper); color:var(--ink); line-height:1.55; max-width:800px; margin:0 auto; padding:40px 24px 80px 24px; }
+      .kicker { font-family:"Manrope",sans-serif; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin:0 0 6px 0; }
+      h1 { font-size:44px; line-height:1.1; margin:0 0 16px 0; }
+      h2 { font-size:28px; line-height:1.2; margin:48px 0 14px 0; }
+      .abstract { font-size:18px; color:var(--muted); font-style:italic; margin:0 0 16px 0; }
+      .byline { font-family:"Manrope",sans-serif; font-size:13px; color:var(--muted); border-top:1px solid var(--rule); border-bottom:1px solid var(--rule); padding:12px 0; margin-bottom:36px; }
+      .byline span { margin-right:14px; }
+      a.back-link { font-family:"Manrope",sans-serif; font-size:13px; color:var(--accent); text-decoration:none; display:inline-block; margin-bottom:24px; }
+      p { margin:0 0 16px 0; }
+      code { font-family:"IBM Plex Mono",monospace; font-size:.9em; background:var(--paper-alt); padding:2px 6px; border-radius:3px; }
+      .figure { background:var(--paper-alt); border:1px solid var(--rule); border-radius:6px; padding:20px; margin:24px 0; }
+      .controls { display:flex; flex-wrap:wrap; gap:18px; align-items:center; margin-bottom:16px; font-family:"Manrope",sans-serif; font-size:14px; }
+      .controls label { display:flex; align-items:center; gap:8px; }
+      input[type="range"] { width:280px; accent-color:var(--accent); }
+      svg { display:block; margin:0 auto; }
+      .stats { font-family:"IBM Plex Mono",monospace; font-size:13px; margin-top:12px; display:flex; gap:24px; flex-wrap:wrap; color:var(--muted); }
+      .stats span b { color:var(--accent); }
+    </style>
+  </head>
+  <body>
+    <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+    <p class="kicker">交互式讲解</p>
+    <h1>无分类器引导尺度</h1>
+    <p class="abstract">
+      CFG 在“无提示词时模型会绘制的内容”与“有提示词时模型会绘制的内容”之间作线性外推。将权重 w 从 0 滑至 30，观察生成结果如何朝目标形状拉伸 &mdash; 并越过它。
+    </p>
+    <div class="byline"><span>约 6 分钟</span><span>深度学习 · 扩散模型 · CFG</span></div>
+
+    <p>
+      在训练期间，扩散模型会看到有条件与无条件的样本（10% 的提示词被丢弃，替换为 ""）。在推理时，你可以沿条件方向作线性外推：走得越远，模型越激进地遵从提示词 &mdash; 直到它过度前进，产生过饱和与振铃伪影。
+    </p>
+
+    <h2>演练场</h2>
+    <div class="figure">
+      <div class="controls">
+        <label>引导权重 w： <input type="range" id="w" min="0" max="30" step="0.5" value="7" /><span id="w-val" style="font-family:'IBM Plex Mono',monospace; min-width:40px;">7.0</span></label>
+      </div>
+      <svg id="plot" width="720" height="340" viewBox="0 0 720 340"></svg>
+      <div class="stats">
+        <span>提示词贴合度：<b id="adh">&ndash;</b></span>
+        <span>伪影程度：<b id="art">&ndash;</b></span>
+        <span>质量区间：<b id="zone">&ndash;</b></span>
+      </div>
+    </div>
+
+    <p>
+      Stable Diffusion 的最佳区间约为 w ∈ [5, 10]。低于 3 时模型会偏离提示词；高于 15 时便开始出现过饱和（一切都变成鲜明的刻板印象）以及“振铃”（边缘附近的高频伪影）。
+    </p>
+
+    <h2>公式</h2>
+    <p style="text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 16px; margin: 24px 0;">
+      ε_CFG = ε_θ(x_t, ∅) + w · (ε_θ(x_t, c) − ε_θ(x_t, ∅))
+    </p>
+    <p>
+      当 w=0 时，你得到纯粹的无条件噪声预测（提示词被忽略）。当 w=1 时，你得到条件预测。当 w>1 时，你正在 <em>外推</em> &mdash; 沿提示词方向推进得比模型在训练中见到的更远。伪影之所以出现，正是因为模型将其泛化能力推到了训练时的外推极限之外。
+    </p>
+
+    <h2>训练时的 dropout</h2>
+    <p>
+      CFG 在训练时需要一个小技巧：以 10% 的概率随机丢弃提示词（替换为空条件）。这使同一个模型同时学会 <em>既</em> 能进行条件生成又能进行无条件生成。在推理时，每步运行两次前向传播 &mdash; 一次带提示词，一次为空 &mdash; 然后作外推。
+    </p>
+    <p>
+      代价 · 推理开销为 2 倍。收益 · 你可以在生成时随意调节任意的 w，无需重新训练。所有文生图系统都使用它（Stable Diffusion、Imagen、DALL-E 3、Midjourney）。
+    </p><script>
+      const svg = document.getElementById("plot");
+      const NS = "http://www.w3.org/2000/svg";
+      let w = 7;
+
+      function draw() {
+        svg.innerHTML = "";
+        const W = 680, H = 320, CX = 360, CY = 170;
+
+        // Background
+        const bg = document.createElementNS(NS, "rect");
+        bg.setAttribute("x", 0); bg.setAttribute("y", 0);
+        bg.setAttribute("width", W); bg.setAttribute("height", H);
+        bg.setAttribute("fill", "#f0eee5");
+        bg.setAttribute("stroke", "#c9c4b5");
+        svg.appendChild(bg);
+
+        // Factor based on w: how prompt-faithful / artifact-heavy
+        const adherence = Math.min(1, w / 5);   // peaks at w=5
+        const artifacts = Math.max(0, (w - 12) / 18);  // starts at w=12
+
+        // Draw a cat face that stretches toward "astronaut catness" with w
+        const catFillOpacity = 0.2 + 0.7 * adherence;
+        const detailOpacity = adherence;
+        const saturation = Math.min(1, 0.4 + w / 20);
+
+        // Cat body (warm color saturation)
+        const catColor = artifacts > 0.3 ? "#a8324b" : "#d97757";
+        const catEllipse = document.createElementNS(NS, "ellipse");
+        catEllipse.setAttribute("cx", CX);
+        catEllipse.setAttribute("cy", CY - 10);
+        catEllipse.setAttribute("rx", 90 + adherence * 10);
+        catEllipse.setAttribute("ry", 70 + adherence * 5);
+        catEllipse.setAttribute("fill", catColor);
+        catEllipse.setAttribute("fill-opacity", catFillOpacity);
+        svg.appendChild(catEllipse);
+
+        // Ears
+        if (adherence > 0.2) {
+          const earL = document.createElementNS(NS, "path");
+          earL.setAttribute("d", `M ${CX - 60} ${CY - 55} L ${CX - 70} ${CY - 90} L ${CX - 40} ${CY - 55} Z`);
+          earL.setAttribute("fill", "#a8324b");
+          earL.setAttribute("fill-opacity", detailOpacity);
+          svg.appendChild(earL);
+
+          const earR = document.createElementNS(NS, "path");
+          earR.setAttribute("d", `M ${CX + 60} ${CY - 55} L ${CX + 70} ${CY - 90} L ${CX + 40} ${CY - 55} Z`);
+          earR.setAttribute("fill", "#a8324b");
+          earR.setAttribute("fill-opacity", detailOpacity);
+          svg.appendChild(earR);
+        }
+
+        // Eyes
+        if (adherence > 0.3) {
+          [[-28, -18], [28, -18]].forEach(([dx, dy]) => {
+            const eye = document.createElementNS(NS, "circle");
+            eye.setAttribute("cx", CX + dx);
+            eye.setAttribute("cy", CY + dy);
+            eye.setAttribute("r", 5 + adherence * 2);
+            eye.setAttribute("fill", "#1f1f1e");
+            eye.setAttribute("fill-opacity", detailOpacity);
+            svg.appendChild(eye);
+          });
+        }
+
+        // Helmet (for astronaut vibe)
+        if (adherence > 0.5) {
+          const helmet = document.createElementNS(NS, "circle");
+          helmet.setAttribute("cx", CX);
+          helmet.setAttribute("cy", CY - 10);
+          helmet.setAttribute("r", 110);
+          helmet.setAttribute("fill", "none");
+          helmet.setAttribute("stroke", "#4a6670");
+          helmet.setAttribute("stroke-width", 1.5);
+          helmet.setAttribute("stroke-opacity", 0.3 + adherence * 0.4);
+          svg.appendChild(helmet);
+        }
+
+        // Ringing artifacts at high w
+        if (artifacts > 0) {
+          for (let r = 0; r < Math.floor(artifacts * 6); r++) {
+            const ring = document.createElementNS(NS, "ellipse");
+            ring.setAttribute("cx", CX);
+            ring.setAttribute("cy", CY - 10);
+            ring.setAttribute("rx", 110 + r * 12);
+            ring.setAttribute("ry", 85 + r * 8);
+            ring.setAttribute("fill", "none");
+            ring.setAttribute("stroke", "#a8324b");
+            ring.setAttribute("stroke-width", 1);
+            ring.setAttribute("stroke-opacity", 0.3 * artifacts);
+            svg.appendChild(ring);
+          }
+        }
+
+        // Label
+        const label = document.createElementNS(NS, "text");
+        label.setAttribute("x", CX); label.setAttribute("y", 30);
+        label.setAttribute("text-anchor", "middle");
+        label.setAttribute("fill", "#6b6a65");
+        label.setAttribute("font-family", "Manrope, sans-serif");
+        label.setAttribute("font-size", "12");
+        label.textContent = `prompt: "a cat astronaut"  ·  w = ${w.toFixed(1)}`;
+        svg.appendChild(label);
+
+        // Stats
+        const adhPct = Math.min(100, adherence * 100).toFixed(0);
+        const artPct = Math.min(100, artifacts * 100).toFixed(0);
+        let zone;
+        if (w < 2) zone = "too weak · ignore prompt";
+        else if (w < 12) zone = "sweet spot";
+        else if (w < 20) zone = "getting heavy";
+        else zone = "over-guided · artifacts";
+
+        document.getElementById("adh").textContent = adhPct + "%";
+        document.getElementById("art").textContent = artPct + "%";
+        document.getElementById("zone").textContent = zone;
+      }
+
+      document.getElementById("w").addEventListener("input", (e) => {
+        w = parseFloat(e.target.value);
+        document.getElementById("w-val").textContent = w.toFixed(1);
+        draw();
+      });
+
+      draw();
+    </script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,579 @@
+{
+ "slug": "decision-trees",
+ "units": {
+  "Decision Trees, Live": {
+   "zh": "决策树，实时演示",
+   "src": "Decision Trees, Live",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Click to drop training points; a CART decision tree grows\n          axis-aligned splits live. Adjust depth, split criterion,\n          minimum leaf size; watch the boundary go from too-simple to\n          overfit-to-points. Then compare to logistic regression and\n          a 25-tree random forest on the same dataset.": {
+   "zh": "点击以放置训练点；一棵 CART 决策树实时生长出与坐标轴对齐的划分。调整深度、划分准则、叶节点最小样本数；观察决策边界如何从过于简单变为对样本点过拟合。随后在同一数据集上与逻辑回归及 25 棵树的随机森林作比较。",
+   "src": "Click to drop training points; a CART decision tree grows\n          axis-aligned splits live. Adjust depth, split criterion,\n          minimum leaf size; watch the boundary go from too-simple to\n          overfit-to-points. Then compare to logistic regression and\n          a 25-tree random forest on the same dataset.",
+   "tags": []
+  },
+  "@@T0@@~16 min@@T1@@\n          @@T2@@Classical ML &middot; CART &middot; Random Forest@@T3@@": {
+   "zh": "@@T0@@约 16 分钟@@T1@@\n          @@T2@@经典机器学习 &middot; CART &middot; 随机森林@@T3@@",
+   "src": "<span>~16 min</span>\n          <span>Classical ML &middot; CART &middot; Random Forest</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Why trees are the boring-and-good default": {
+   "zh": "为何决策树是乏味却可靠的默认选择",
+   "src": "Why trees are the boring-and-good default",
+   "tags": []
+  },
+  "For tabular data — financial features, sensor logs, survey\n          responses, anything that arrives as columns in a CSV — a\n          decision tree (or its ensembles) is almost always either the\n          right answer or the right baseline. They handle missing values,\n          mixed continuous + categorical features, and arbitrary\n          monotone transformations of any feature, without\n          normalisation. Their inductive bias is \"constant predictions\n          on axis-aligned regions,\" which lines up surprisingly well\n          with how human-curated features actually carry information.": {
+   "zh": "对于表格数据——金融特征、传感器日志、问卷回答，凡是以 CSV 列的形式呈现的一切——决策树（或其集成）几乎总是要么正确答案，要么正确的基线。它们能处理缺失值、连续与类别混合的特征，以及任意特征的单调变换，且无需归一化。它们的归纳偏置是“在与坐标轴对齐的区域上给出常数预测”，这与人工整理的特征实际承载信息的方式出乎意料地契合。",
+   "src": "For tabular data — financial features, sensor logs, survey\n          responses, anything that arrives as columns in a CSV — a\n          decision tree (or its ensembles) is almost always either the\n          right answer or the right baseline. They handle missing values,\n          mixed continuous + categorical features, and arbitrary\n          monotone transformations of any feature, without\n          normalisation. Their inductive bias is \"constant predictions\n          on axis-aligned regions,\" which lines up surprisingly well\n          with how human-curated features actually carry information.",
+   "tags": []
+  },
+  "The catch: a @@T0@@single@@T1@@ tree is too greedy and too\n          jagged. The fix — bagging (random forests) and boosting\n          (XGBoost) — is what makes the family dominate tabular\n          competitions. This article focuses on the single-tree\n          mechanism so the ensemble methods make sense.": {
+   "zh": "问题在于：@@T0@@单棵@@T1@@树过于贪婪、也过于参差不齐。解决方案——bagging（随机森林）与 boosting（XGBoost）——正是这一家族得以主宰表格数据竞赛的原因。本文聚焦于单棵树的机制，以便理解集成方法。",
+   "src": "The catch: a <em>single</em> tree is too greedy and too\n          jagged. The fix — bagging (random forests) and boosting\n          (XGBoost) — is what makes the family dominate tabular\n          competitions. This article focuses on the single-tree\n          mechanism so the ensemble methods make sense.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "The greedy split rule": {
+   "zh": "贪婪划分准则",
+   "src": "The greedy split rule",
+   "tags": []
+  },
+  "A CART decision tree builds itself top-down. At each node, it\n          picks the (feature, threshold) pair that maximally\n          @@T0@@decreases@@T1@@ the impurity of the children. Standard\n          impurities for classification:": {
+   "zh": "CART 决策树自顶向下构建自身。在每个节点，它选取使子节点不纯度@@T0@@下降@@T1@@最多的（特征, 阈值）组合。分类任务中标准的不纯度度量有：",
+   "src": "A CART decision tree builds itself top-down. At each node, it\n          picks the (feature, threshold) pair that maximally\n          <em>decreases</em> the impurity of the children. Standard\n          impurities for classification:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "For a candidate split, the impurity drop is\n          $\\Delta = I(\\text{parent}) - \\frac{N_L}{N}I(\\text{left}) - \\frac{N_R}{N}I(\\text{right})$.\n          Search over all features and all candidate thresholds, pick\n          the maximum, recurse on each side. Stop when a node is pure,\n          too small, or hits the depth limit.": {
+   "zh": "对某个候选划分，不纯度下降量为 $\\Delta = I(\\text{parent}) - \\frac{N_L}{N}I(\\text{left}) - \\frac{N_R}{N}I(\\text{right})$。遍历所有特征与所有候选阈值，取最大值，再对两侧递归。当某节点已纯、过小或达到深度上限时停止。",
+   "src": "For a candidate split, the impurity drop is\n          $\\Delta = I(\\text{parent}) - \\frac{N_L}{N}I(\\text{left}) - \\frac{N_R}{N}I(\\text{right})$.\n          Search over all features and all candidate thresholds, pick\n          the maximum, recurse on each side. Stop when a node is pure,\n          too small, or hits the depth limit.",
+   "tags": []
+  },
+  "Two consequences worth feeling: (1) splits are\n          @@T0@@axis-aligned@@T1@@ — the resulting decision\n          regions are unions of rectangles. (2) the algorithm is\n          @@T2@@greedy@@T3@@ — a globally-better split sequence\n          may exist but won't be found.": {
+   "zh": "有两点后果值得体会：（1）划分@@T0@@与坐标轴对齐@@T1@@——由此得到的决策区域是若干矩形的并集。（2）该算法是@@T2@@贪婪的@@T3@@——可能存在全局更优的划分序列，但它不会被找到。",
+   "src": "Two consequences worth feeling: (1) splits are\n          <strong>axis-aligned</strong> — the resulting decision\n          regions are unions of rectangles. (2) the algorithm is\n          <strong>greedy</strong> — a globally-better split sequence\n          may exist but won't be found.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 1½": {
+   "zh": "第 1½ 步",
+   "src": "Step 1½",
+   "tags": []
+  },
+  "Live: information gain across thresholds": {
+   "zh": "实时演示：信息增益随阈值的变化",
+   "src": "Live: information gain across thresholds",
+   "tags": []
+  },
+  "Drag the slider to pick a candidate threshold on a single\n          feature. The two histograms show how the parent (top) splits\n          into left/right children, and the curve below shows the\n          impurity-decrease $\\Delta$ over every possible threshold. The\n          tree picks the argmax.": {
+   "zh": "拖动滑块，在单个特征上选取一个候选阈值。两个直方图展示父节点（上方）如何划分为左/右子节点，下方的曲线展示不纯度下降量 $\\Delta$ 随每一个可能阈值的变化。决策树取 argmax。",
+   "src": "Drag the slider to pick a candidate threshold on a single\n          feature. The two histograms show how the parent (top) splits\n          into left/right children, and the curve below shows the\n          impurity-decrease $\\Delta$ over every possible threshold. The\n          tree picks the argmax.",
+   "tags": []
+  },
+  "threshold &nbsp;@@T0@@0.50@@T1@@": {
+   "zh": "阈值 &nbsp;@@T0@@0.50@@T1@@",
+   "src": "threshold &nbsp;<span id=\"ig-t-val\">0.50</span>",
+   "tags": [
+    "<span id=\"ig-t-val\">",
+    "</span>"
+   ]
+  },
+  "criterion": {
+   "zh": "准则",
+   "src": "criterion",
+   "tags": []
+  },
+  "Gini": {
+   "zh": "Gini 指数",
+   "src": "Gini",
+   "tags": []
+  },
+  "entropy": {
+   "zh": "熵",
+   "src": "entropy",
+   "tags": []
+  },
+  "New 1-D dataset": {
+   "zh": "新建一维数据集",
+   "src": "New 1-D dataset",
+   "tags": []
+  },
+  "Top: data on the feature axis. Middle: impurity curve. Marker = current threshold.": {
+   "zh": "上方：特征轴上的数据。中部：不纯度曲线。标记 = 当前阈值。",
+   "src": "Top: data on the feature axis. Middle: impurity curve. Marker = current threshold.",
+   "tags": []
+  },
+  "Three things to notice:": {
+   "zh": "三点值得注意：",
+   "src": "Three things to notice:",
+   "tags": []
+  },
+  "The curve is @@T0@@piecewise-constant@@T1@@: between two\n            adjacent training points, no information is gained or lost\n            by moving the threshold. Practical CART implementations\n            only evaluate the midpoints between adjacent sorted\n            feature values.": {
+   "zh": "这条曲线是@@T0@@分段常数@@T1@@的：在两个相邻训练点之间移动阈值，既不获得也不损失信息。实用的 CART 实现只评估相邻排序特征值之间的中点。",
+   "src": "The curve is <em>piecewise-constant</em>: between two\n            adjacent training points, no information is gained or lost\n            by moving the threshold. Practical CART implementations\n            only evaluate the midpoints between adjacent sorted\n            feature values.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Entropy and Gini agree almost always on the argmax — they\n            differ by at most ~2% on real data. Gini is the default in\n            sklearn because it's slightly cheaper to compute.": {
+   "zh": "熵与 Gini 在 argmax 上几乎总是一致——在真实数据上差异至多约 2%。Gini 是 sklearn 的默认选择，因为其计算略为廉价。",
+   "src": "Entropy and Gini agree almost always on the argmax — they\n            differ by at most ~2% on real data. Gini is the default in\n            sklearn because it's slightly cheaper to compute.",
+   "tags": []
+  },
+  "The argmax can be very close to a tie. Tiny changes in\n            training data flip which feature wins — this is the\n            @@T0@@instability@@T1@@ that motivates random forests.": {
+   "zh": "argmax 可能非常接近平局。训练数据上极微小的变化就会翻转哪个特征胜出——这正是促使人们采用随机森林的@@T0@@不稳定性@@T1@@。",
+   "src": "The argmax can be very close to a tie. Tiny changes in\n            training data flip which feature wins — this is the\n            <em>instability</em> that motivates random forests.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Build a tree, click by click": {
+   "zh": "一次一点击地构建一棵树",
+   "src": "Build a tree, click by click",
+   "tags": []
+  },
+  "Left-click to add a class-A point (blue), right-click /\n          shift-click for class-B (orange). The tree re-fits at every\n          click. Push @@T0@@max depth@@T1@@ up; watch the boundary become\n          increasingly fragmented. Push @@T2@@min samples per leaf@@T3@@\n          up; watch it smooth out.": {
+   "zh": "左键点击添加一个 A 类点（蓝色），右键点击 / 按住 Shift 点击添加 B 类点（橙色）。每次点击后树都会重新拟合。增大@@T0@@最大深度@@T1@@；观察边界变得越来越零碎。增大@@T2@@叶节点最小样本数@@T3@@；观察它变得平滑。",
+   "src": "Left-click to add a class-A point (blue), right-click /\n          shift-click for class-B (orange). The tree re-fits at every\n          click. Push <em>max depth</em> up; watch the boundary become\n          increasingly fragmented. Push <em>min samples per leaf</em>\n          up; watch it smooth out.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "max depth &nbsp;@@T0@@5@@T1@@": {
+   "zh": "最大深度 &nbsp;@@T0@@5@@T1@@",
+   "src": "max depth &nbsp;<span id=\"dt-depth-val\">5</span>",
+   "tags": [
+    "<span id=\"dt-depth-val\">",
+    "</span>"
+   ]
+  },
+  "min samples / leaf &nbsp;@@T0@@1@@T1@@": {
+   "zh": "叶节点最小样本数 &nbsp;@@T0@@1@@T1@@",
+   "src": "min samples / leaf &nbsp;<span id=\"dt-leaf-val\">1</span>",
+   "tags": [
+    "<span id=\"dt-leaf-val\">",
+    "</span>"
+   ]
+  },
+  "Clear points": {
+   "zh": "清空数据点",
+   "src": "Clear points",
+   "tags": []
+  },
+  "Seed XOR / spirals": {
+   "zh": "载入 XOR / 螺旋数据",
+   "src": "Seed XOR / spirals",
+   "tags": []
+  },
+  "Tree decision regions": {
+   "zh": "树的决策区域",
+   "src": "Tree decision regions",
+   "tags": []
+  },
+  "Random forest (25 trees)": {
+   "zh": "随机森林（25 棵树）",
+   "src": "Random forest (25 trees)",
+   "tags": []
+  },
+  "Logistic regression": {
+   "zh": "逻辑回归",
+   "src": "Logistic regression",
+   "tags": []
+  },
+  "Tree shape (BFS layout)": {
+   "zh": "树的结构（广度优先布局）",
+   "src": "Tree shape (BFS layout)",
+   "tags": []
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "What you should notice": {
+   "zh": "你应当注意到的现象",
+   "src": "What you should notice",
+   "tags": []
+  },
+  "@@T0@@Axis-aligned everything.@@T1@@ Even the\n            \"diagonal\" boundaries you see are staircases of vertical\n            and horizontal cuts. This is why decision trees struggle\n            with rotated data — feature engineering / rotated\n            embeddings help.": {
+   "zh": "@@T0@@一切都与坐标轴对齐。@@T1@@ 即便你看到的“斜向”边界，也是由竖切与横切构成的阶梯。这正是决策树在旋转数据上吃力的原因——特征工程 / 旋转嵌入会有所帮助。",
+   "src": "<strong>Axis-aligned everything.</strong> Even the\n            \"diagonal\" boundaries you see are staircases of vertical\n            and horizontal cuts. This is why decision trees struggle\n            with rotated data — feature engineering / rotated\n            embeddings help.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Depth ⇆ overfitting.@@T1@@ At depth 1 the tree\n            is just a thresholded line; at depth 8 every training point\n            sits in its own leaf. The right depth depends on how noisy\n            the data is.": {
+   "zh": "@@T0@@深度 ⇆ 过拟合。@@T1@@ 深度为 1 时，树只是一条带阈值的直线；深度为 8 时，每个训练点都各占一个叶节点。合适的深度取决于数据有多嘈杂。",
+   "src": "<strong>Depth ⇆ overfitting.</strong> At depth 1 the tree\n            is just a thresholded line; at depth 8 every training point\n            sits in its own leaf. The right depth depends on how noisy\n            the data is.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Min-samples-per-leaf is the cleanest regulariser.@@T1@@\n            Setting it to 5 forces the tree to ignore single-point\n            outliers; cleaner boundary, slightly higher train error,\n            usually better test error.": {
+   "zh": "@@T0@@叶节点最小样本数是最干净的正则化手段。@@T1@@\n            设为 5 会迫使树忽略单点离群值；边界更干净，训练误差略高，而测试误差通常更好。",
+   "src": "<strong>Min-samples-per-leaf is the cleanest regulariser.</strong>\n            Setting it to 5 forces the tree to ignore single-point\n            outliers; cleaner boundary, slightly higher train error,\n            usually better test error.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Random forest = many shallow trees voted.@@T1@@\n            Each tree sees a bootstrap sample and a random subset of\n            features per split. The 25-tree ensemble is much smoother\n            than a single deep tree at similar accuracy. This is why\n            it's the everyday tabular workhorse.": {
+   "zh": "@@T0@@随机森林 = 许多浅树投票。@@T1@@\n            每棵树看到的是一个自助采样样本，且每次划分只考虑随机的一部分特征。在相近的准确率下，25 棵树的集成比单棵深树平滑得多。这正是它成为日常表格数据主力工具的原因。",
+   "src": "<strong>Random forest = many shallow trees voted.</strong>\n            Each tree sees a bootstrap sample and a random subset of\n            features per split. The 25-tree ensemble is much smoother\n            than a single deep tree at similar accuracy. This is why\n            it's the everyday tabular workhorse.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Logistic regression = one straight line.@@T1@@\n            Worst on XOR-shaped data, often best on\n            high-dimensional-but-near-linear tabular tasks.": {
+   "zh": "@@T0@@逻辑回归 = 一条直线。@@T1@@\n            在 XOR 形数据上表现最差，而在高维但近乎线性的表格任务上常常最佳。",
+   "src": "<strong>Logistic regression = one straight line.</strong>\n            Worst on XOR-shaped data, often best on\n            high-dimensional-but-near-linear tabular tasks.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 3½": {
+   "zh": "第 3½ 步",
+   "src": "Step 3½",
+   "tags": []
+  },
+  "Regression trees": {
+   "zh": "回归树",
+   "src": "Regression trees",
+   "tags": []
+  },
+  "The same recipe works for regression: replace Gini/entropy\n          with squared-error impurity": {
+   "zh": "同一套配方也适用于回归：把 Gini/熵替换为平方误差不纯度",
+   "src": "The same recipe works for regression: replace Gini/entropy\n          with squared-error impurity",
+   "tags": []
+  },
+  "At each leaf, predict the @@T0@@mean@@T1@@ of the training $y$\n          values that fell there. The result is a piecewise-constant\n          function of $x$ — terrible for smooth signals (use a GP), but\n          excellent for tabular features where the right level set is\n          itself piecewise-constant.": {
+   "zh": "在每个叶节点，预测落入该处的训练 $y$ 值的@@T0@@均值@@T1@@。结果是 $x$ 的分段常数函数——对平滑信号很糟糕（应改用 GP），但对正确的水平集本身就是分段常数的表格特征却极为合适。",
+   "src": "At each leaf, predict the <em>mean</em> of the training $y$\n          values that fell there. The result is a piecewise-constant\n          function of $x$ — terrible for smooth signals (use a GP), but\n          excellent for tabular features where the right level set is\n          itself piecewise-constant.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "A subtlety: the split criterion for regression is equivalent\n          to maximising the @@T0@@between-group variance@@T1@@ at the\n          split — i.e. an axis-aligned ANOVA. This explains why\n          regression trees can find threshold-effects (e.g. \"above 65 mph,\n          fuel economy drops sharply\") that linear models miss.": {
+   "zh": "一个微妙之处：回归的划分准则等价于在划分处最大化@@T0@@组间方差@@T1@@——即一种与坐标轴对齐的方差分析（ANOVA）。这解释了为何回归树能找出线性模型所遗漏的阈值效应（例如“超过 65 mph 后，燃油经济性急剧下降”）。",
+   "src": "A subtlety: the split criterion for regression is equivalent\n          to maximising the <em>between-group variance</em> at the\n          split — i.e. an axis-aligned ANOVA. This explains why\n          regression trees can find threshold-effects (e.g. \"above 65 mph,\n          fuel economy drops sharply\") that linear models miss.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 3¾": {
+   "zh": "第 3¾ 步",
+   "src": "Step 3¾",
+   "tags": []
+  },
+  "Pruning &amp; the cost-complexity path": {
+   "zh": "剪枝与代价复杂度路径",
+   "src": "Pruning &amp; the cost-complexity path",
+   "tags": []
+  },
+  "Pre-pruning (depth limit, min-samples-per-leaf) is cheap but\n          coarse. Post-pruning is principled: grow a full tree, then\n          collapse subtrees that don't pay for themselves. CART's\n          cost-complexity criterion:": {
+   "zh": "预剪枝（深度上限、叶节点最小样本数）廉价但粗糙。后剪枝则更有原则：先长成一棵完整的树，再合并那些不划算的子树。CART 的代价复杂度准则为：",
+   "src": "Pre-pruning (depth limit, min-samples-per-leaf) is cheap but\n          coarse. Post-pruning is principled: grow a full tree, then\n          collapse subtrees that don't pay for themselves. CART's\n          cost-complexity criterion:",
+   "tags": []
+  },
+  "As $\\alpha$ increases from 0 to $\\infty$, the optimal tree\n          shrinks from the full tree to the root. The\n          @@T0@@cost-complexity path@@T1@@ is the sequence of trees you\n          pass through; the recommended way to pick $\\alpha$ is\n          cross-validation on this path.": {
+   "zh": "当 $\\alpha$ 从 0 增至 $\\infty$ 时，最优树从完整的树收缩至根节点。@@T0@@代价复杂度路径@@T1@@就是你途经的那一串树；挑选 $\\alpha$ 的推荐方法是在这条路径上做交叉验证。",
+   "src": "As $\\alpha$ increases from 0 to $\\infty$, the optimal tree\n          shrinks from the full tree to the root. The\n          <em>cost-complexity path</em> is the sequence of trees you\n          pass through; the recommended way to pick $\\alpha$ is\n          cross-validation on this path.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "scikit-learn exposes this via\n            @@T0@@DecisionTreeClassifier(ccp_alpha=α)@@T1@@ and\n            @@T2@@cost_complexity_pruning_path@@T3@@.": {
+   "zh": "scikit-learn 通过 @@T0@@DecisionTreeClassifier(ccp_alpha=α)@@T1@@ 与 @@T2@@cost_complexity_pruning_path@@T3@@ 暴露了这一功能。",
+   "src": "scikit-learn exposes this via\n            <code>DecisionTreeClassifier(ccp_alpha=α)</code> and\n            <code>cost_complexity_pruning_path</code>.",
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Boosted trees rarely use post-pruning — small depth +\n            many trees gives a similar effect with simpler bookkeeping.": {
+   "zh": "提升树很少使用后剪枝——小深度 + 大量树以更简单的簿记达到了类似效果。",
+   "src": "Boosted trees rarely use post-pruning — small depth +\n            many trees gives a similar effect with simpler bookkeeping.",
+   "tags": []
+  },
+  "Step 3⅞": {
+   "zh": "第 3⅞ 步",
+   "src": "Step 3⅞",
+   "tags": []
+  },
+  "Feature importance &amp; its pitfalls": {
+   "zh": "特征重要度及其陷阱",
+   "src": "Feature importance &amp; its pitfalls",
+   "tags": []
+  },
+  "Two ways to score feature importance from a fitted tree:": {
+   "zh": "从已拟合的树中评估特征重要度有两种方式：",
+   "src": "Two ways to score feature importance from a fitted tree:",
+   "tags": []
+  },
+  "@@T0@@MDI (Mean Decrease in Impurity).@@T1@@ Sum the\n            weighted impurity decrease over every node that split on\n            that feature. Cheap, default in sklearn — but\n            @@T2@@biased@@T3@@ towards high-cardinality features (more\n            possible thresholds = more chances to find a spurious\n            split).": {
+   "zh": "@@T0@@MDI（平均不纯度下降）。@@T1@@ 对有该特征参与划分的每个节点，累加其加权的 不纯度下降量。廉价，是 sklearn 的默认方法——但会@@T2@@偏向@@T3@@高基数特征（可能的阈值越多 = 越有机会找到一个虚假的划分）。",
+   "src": "<strong>MDI (Mean Decrease in Impurity).</strong> Sum the\n            weighted impurity decrease over every node that split on\n            that feature. Cheap, default in sklearn — but\n            <em>biased</em> towards high-cardinality features (more\n            possible thresholds = more chances to find a spurious\n            split).",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Permutation importance.@@T1@@ Shuffle a feature\n            on the validation set, measure the accuracy drop. Slower\n            but unbiased; recommended for any \"which features matter\"\n            claim that leaves the lab.": {
+   "zh": "@@T0@@置换重要度。@@T1@@ 在验证集上打乱某个特征，测量准确率的下降。较慢但无偏；对于任何要离开实验室的“哪些特征重要”的主张，都推荐使用它。",
+   "src": "<strong>Permutation importance.</strong> Shuffle a feature\n            on the validation set, measure the accuracy drop. Slower\n            but unbiased; recommended for any \"which features matter\"\n            claim that leaves the lab.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@SHAP TreeExplainer.@@T1@@ Exact Shapley values\n            for tree ensembles in polynomial time (Lundberg et&nbsp;al.,\n            2018). The right tool for per-prediction attribution; works\n            for XGBoost / LightGBM out of the box.": {
+   "zh": "@@T0@@SHAP TreeExplainer。@@T1@@ 对树集成在多项式时间内精确计算 Shapley 值（Lundberg 等人，2018）。逐预测归因的正确工具；开箱即用于 XGBoost / LightGBM。",
+   "src": "<strong>SHAP TreeExplainer.</strong> Exact Shapley values\n            for tree ensembles in polynomial time (Lundberg et&nbsp;al.,\n            2018). The right tool for per-prediction attribution; works\n            for XGBoost / LightGBM out of the box.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "What trees are good at — and what they're not": {
+   "zh": "决策树擅长什么——以及不擅长什么",
+   "src": "What trees are good at — and what they're not",
+   "tags": []
+  },
+  "@@T0@@Tabular features, mixed types.@@T1@@ Trees\n            handle categorical and numeric features without\n            normalisation. The default first try on any tabular task.": {
+   "zh": "@@T0@@表格特征、混合类型。@@T1@@ 决策树无需归一化即可处理类别与数值特征。任何表格任务的默认首选方案。",
+   "src": "<strong>Tabular features, mixed types.</strong> Trees\n            handle categorical and numeric features without\n            normalisation. The default first try on any tabular task.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Interpretability per prediction.@@T1@@\n            \"Predicted class A because feature X &gt; 3.2 and feature\n            Y &lt; 0.7\" — a tree gives you that path for free. Useful\n            for explainable systems and audits.": {
+   "zh": "@@T0@@逐预测的可解释性。@@T1@@\n            “预测为 A 类，因为特征 X &gt; 3.2 且特征 Y &lt; 0.7”——决策树免费给你这条路径。对于可解释系统与审计很有用。",
+   "src": "<strong>Interpretability per prediction.</strong>\n            \"Predicted class A because feature X &gt; 3.2 and feature\n            Y &lt; 0.7\" — a tree gives you that path for free. Useful\n            for explainable systems and audits.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Strong ensembles.@@T1@@ Random Forest, ExtraTrees,\n            Gradient Boosted Trees, XGBoost, LightGBM, CatBoost — all\n            still routinely win Kaggle tabular competitions.": {
+   "zh": "@@T0@@强大的集成。@@T1@@ Random Forest、ExtraTrees、梯度提升树、XGBoost、LightGBM、CatBoost——它们至今仍惯常赢得 Kaggle 表格竞赛。",
+   "src": "<strong>Strong ensembles.</strong> Random Forest, ExtraTrees,\n            Gradient Boosted Trees, XGBoost, LightGBM, CatBoost — all\n            still routinely win Kaggle tabular competitions.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Bad at:@@T1@@ high-dimensional sparse data\n            (text, images), smooth low-dim regression (use a GP),\n            extrapolation outside training range (a tree\n            literally cannot predict beyond min/max in training).": {
+   "zh": "@@T0@@不擅长的方面：@@T1@@ 高维稀疏数据（文本、图像）、平滑的低维回归（应改用 GP）、训练范围之外的外推（决策树字面上无法预测超出训练集 min/max 的值）。",
+   "src": "<strong>Bad at:</strong> high-dimensional sparse data\n            (text, images), smooth low-dim regression (use a GP),\n            extrapolation outside training range (a tree\n            literally cannot predict beyond min/max in training).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Inductive bias.@@T1@@ Strong axis-aligned\n            staircase prior. If your true decision boundary is a\n            sphere or rotated, you need rotated features or a\n            smoother model.": {
+   "zh": "@@T0@@归纳偏置。@@T1@@ 强烈偏向与坐标轴对齐的阶梯。如果你的真实决策边界是一个球面或已被旋转，你就需要旋转后的特征，或更平滑的模型。",
+   "src": "<strong>Inductive bias.</strong> Strong axis-aligned\n            staircase prior. If your true decision boundary is a\n            sphere or rotated, you need rotated features or a\n            smoother model.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@The slogan.@@T1@@\n          A single decision tree is rarely the answer; an ensemble of\n          trees often is. That ensemble (gradient-boosted) is what the\n          @@T2@@XGBoost article@@T3@@ covers\n          next.": {
+   "zh": "@@T0@@这句口号。@@T1@@\n          单棵决策树很少是答案；树的集成则常常是。那类（梯度提升的）集成正是@@T2@@XGBoost 一文@@T3@@接下来所讨论的内容。",
+   "src": "<strong>The slogan.</strong>\n          A single decision tree is rarely the answer; an ensemble of\n          trees often is. That ensemble (gradient-boosted) is what the\n          <a href=\"../xgboost/index.html\">XGBoost article</a> covers\n          next.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<a href=\"../xgboost/index.html\">",
+    "</a>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "CART, ID3, C4.5 — the family": {
+   "zh": "CART、ID3、C4.5——这一家族",
+   "src": "CART, ID3, C4.5 — the family",
+   "tags": []
+  },
+  "@@T0@@ID3 (Quinlan, 1986)@@T1@@ — entropy criterion;\n            categorical features only; one node per category value.\n            Historical; rarely used directly today.": {
+   "zh": "@@T0@@ID3（Quinlan, 1986）@@T1@@——熵准则；仅支持类别特征；每个类别取值一个节点。属历史算法；如今很少直接使用。",
+   "src": "<strong>ID3 (Quinlan, 1986)</strong> — entropy criterion;\n            categorical features only; one node per category value.\n            Historical; rarely used directly today.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@C4.5 (Quinlan, 1993)@@T1@@ — adds continuous\n            features (split = threshold); replaces information gain\n            with @@T2@@gain ratio@@T3@@ to fight bias toward\n            high-cardinality features; built-in missing-value handling.": {
+   "zh": "@@T0@@C4.5（Quinlan, 1993）@@T1@@——加入连续特征（划分 = 阈值）；用@@T2@@增益率@@T3@@取代信息增益以对抗对高基数特征的偏向；内建缺失值处理。",
+   "src": "<strong>C4.5 (Quinlan, 1993)</strong> — adds continuous\n            features (split = threshold); replaces information gain\n            with <em>gain ratio</em> to fight bias toward\n            high-cardinality features; built-in missing-value handling.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@CART (Breiman et&nbsp;al., 1984)@@T1@@ — binary\n            splits only; Gini for classification, squared error for\n            regression; cost-complexity pruning. The default in\n            scikit-learn and most modern libraries.": {
+   "zh": "@@T0@@CART（Breiman 等人，1984）@@T1@@——仅做二叉划分；分类用 Gini，回归用平方误差；代价复杂度剪枝。它是 scikit-learn 与大多数现代库的默认实现。",
+   "src": "<strong>CART (Breiman et&nbsp;al., 1984)</strong> — binary\n            splits only; Gini for classification, squared error for\n            regression; cost-complexity pruning. The default in\n            scikit-learn and most modern libraries.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Conditional inference trees@@T1@@ (Hothorn et&nbsp;al.,\n            2006) — replace the impurity criterion with statistical\n            tests of independence; eliminates the bias toward many-level\n            features. The R @@T2@@party@@T3@@ package.": {
+   "zh": "@@T0@@条件推断树@@T1@@（Hothorn 等人，2006）——用独立性统计检验取代不纯度准则；消除了对多水平特征的偏向。即 R 的 @@T2@@party@@T3@@ 包。",
+   "src": "<strong>Conditional inference trees</strong> (Hothorn et&nbsp;al.,\n            2006) — replace the impurity criterion with statistical\n            tests of independence; eliminates the bias toward many-level\n            features. The R <code>party</code> package.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "阅读清单",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Breiman, Friedman, Olshen, Stone (1984)@@T1@@\n            &mdash; @@T2@@Classification and Regression Trees.@@T3@@\n            The original CART book.": {
+   "zh": "@@T0@@Breiman, Friedman, Olshen, Stone (1984)@@T1@@\n            &mdash; @@T2@@Classification and Regression Trees.@@T3@@ CART 的原始著作。",
+   "src": "<strong>Breiman, Friedman, Olshen, Stone (1984)</strong>\n            &mdash; <em>Classification and Regression Trees.</em>\n            The original CART book.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Quinlan (1993)@@T1@@ &mdash; @@T2@@C4.5: Programs\n            for Machine Learning.@@T3@@": {
+   "zh": "@@T0@@Quinlan (1993)@@T1@@ &mdash; @@T2@@C4.5: Programs for Machine Learning.@@T3@@",
+   "src": "<strong>Quinlan (1993)</strong> &mdash; <em>C4.5: Programs\n            for Machine Learning.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Hastie, Tibshirani, Friedman@@T1@@, @@T2@@The\n            Elements of Statistical Learning@@T3@@, ch. 9 — best\n            intro-with-math.": {
+   "zh": "@@T0@@Hastie, Tibshirani, Friedman@@T1@@，@@T2@@The Elements of Statistical Learning@@T3@@，第 9 章——最好的“带数学的入门介绍”。",
+   "src": "<strong>Hastie, Tibshirani, Friedman</strong>, <em>The\n            Elements of Statistical Learning</em>, ch. 9 — best\n            intro-with-math.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Lundberg &amp; Lee (2017); Lundberg et&nbsp;al.\n            (2018)@@T1@@ &mdash; SHAP and TreeSHAP for explanation.": {
+   "zh": "@@T0@@Lundberg 与 Lee (2017)；Lundberg 等人 (2018)@@T1@@ &mdash; 用于解释的 SHAP 与 TreeSHAP。",
+   "src": "<strong>Lundberg &amp; Lee (2017); Lundberg et&nbsp;al.\n            (2018)</strong> &mdash; SHAP and TreeSHAP for explanation.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Grinsztajn, Oyallon, Varoquaux (2022)@@T1@@\n            &mdash; @@T2@@Why do tree-based models still outperform deep\n            learning on tabular data?@@T3@@ The empirical reference.": {
+   "zh": "@@T0@@Grinsztajn, Oyallon, Varoquaux (2022)@@T1@@\n            &mdash; @@T2@@Why do tree-based models still outperform deep learning on tabular data?@@T3@@ 经验性的参考。",
+   "src": "<strong>Grinsztajn, Oyallon, Varoquaux (2022)</strong>\n            &mdash; <em>Why do tree-based models still outperform deep\n            learning on tabular data?</em> The empirical reference.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "决策树，实时演示",
+  "tagline": "观察一棵 CART 树如何逐片地沿坐标轴对齐地划分二维平面——并看清它在何时过拟合",
+  "summary": "点击添加训练数据点；决策树实时生长，按 Gini / 熵 / 方差下降进行划分。提供最大深度与叶节点最小样本数的滑块。并排比较树的决策边界、逻辑回归与由 25 棵树构成的随机森林。",
+  "difficulty": "入门",
+  "collection": "经典机器学习",
+  "highlights": [
+   "左键/右键点击以添加 A 类 / B 类点；每次点击后树都会实时重新生长。",
+   "划分准则选择器（Gini / 熵）以及深度与最小样本数滑块。",
+   "并排比较：1 棵树 vs 由 25 棵树构成的随机森林 vs 逻辑回归。",
+   "带划分点标注的树形图；特征重要度条形图。"
+  ],
+  "tags": [
+   "决策树",
+   "CART",
+   "随机森林",
+   "经典机器学习",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

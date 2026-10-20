@@ -1,0 +1,707 @@
+{
+ "slug": "positional-encoding",
+ "units": {
+  "Positional Encodings — Sinusoid, RoPE, ALiBi": {
+   "zh": "位置编码 &mdash;&mdash; 正弦式、RoPE、ALiBi",
+   "src": "Positional Encodings — Sinusoid, RoPE, ALiBi",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Transformer attention is permutation-invariant: @@T0@@\"dog bites man\"@@T1@@\n          and @@T2@@\"man bites dog\"@@T3@@ would produce identical logits.\n          Position has to be injected from somewhere else. Three\n          families have won; this article shows all three on the same\n          axes — heatmap, similarity matrix, RoPE rotation,\n          extrapolation curves.": {
+   "zh": "Transformer 的注意力具有置换不变性：@@T0@@「狗咬人」@@T1@@\n          与 @@T2@@「人咬狗」@@T3@@ 将产生完全相同的 logit。位置信息必须从别处注入。已有三大类方案胜出；本文在同一套坐标下展示这三者 &mdash;&mdash; 热力图、相似度矩阵、RoPE 旋转、外推曲线。",
+   "src": "Transformer attention is permutation-invariant: <em>\"dog bites man\"</em>\n          and <em>\"man bites dog\"</em> would produce identical logits.\n          Position has to be injected from somewhere else. Three\n          families have won; this article shows all three on the same\n          axes — heatmap, similarity matrix, RoPE rotation,\n          extrapolation curves.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~16 min@@T1@@\n          @@T2@@Transformers &middot; Long Context &middot; Lec 14 demo@@T3@@": {
+   "zh": "@@T0@@约 16 分钟@@T1@@\n          @@T2@@Transformer &middot; 长上下文 &middot; 第 14 讲演示@@T3@@",
+   "src": "<span>~16 min</span>\n          <span>Transformers &middot; Long Context &middot; Lec 14 demo</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Why attention forgets order": {
+   "zh": "注意力为何会遗忘顺序",
+   "src": "Why attention forgets order",
+   "tags": []
+  },
+  "Plain attention computes\n          $\\text{softmax}(QK^\\top / \\sqrt d)\\, V$. Each output\n          token is a weighted sum over @@T0@@all@@T1@@ the input\n          tokens — but the weights depend only on the\n          @@T2@@content@@T3@@ of $Q$ and $K$, not on their indices.\n          Permute the input sequence and every attention weight is\n          permuted along with it. The output set is the same set.": {
+   "zh": "朴素注意力计算\n          $\\text{softmax}(QK^\\top / \\sqrt d)\\, V$。每个输出词元都是对 @@T0@@所有@@T1@@ 输入词元的加权和 &mdash;&mdash; 但权重仅取决于 $Q$ 与 $K$ 的\n          @@T2@@内容@@T3@@，而与它们的下标无关。\n          置换输入序列，每一个注意力权重也随之被置换。输出的集合仍然是同一个集合。",
+   "src": "Plain attention computes\n          $\\text{softmax}(QK^\\top / \\sqrt d)\\, V$. Each output\n          token is a weighted sum over <em>all</em> the input\n          tokens — but the weights depend only on the\n          <em>content</em> of $Q$ and $K$, not on their indices.\n          Permute the input sequence and every attention weight is\n          permuted along with it. The output set is the same set.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "That symmetry is fatal for any task that depends on order,\n          which is every interesting task language has. Three\n          families of fixes have prevailed:": {
+   "zh": "这一对称性对任何依赖顺序的任务都是致命的，而语言中所有有价值的任务都依赖顺序。已有三类修正方案胜出：",
+   "src": "That symmetry is fatal for any task that depends on order,\n          which is every interesting task language has. Three\n          families of fixes have prevailed:",
+   "tags": []
+  },
+  "@@T0@@Sinusoidal@@T1@@ (Vaswani et&nbsp;al., 2017): add a fixed waveform to each token embedding. Cheap, no learned parameters.": {
+   "zh": "@@T0@@正弦式@@T1@@（Vaswani 等，2017）：为每个词元嵌入加上一条固定的波形。成本低，不含可学习参数。",
+   "src": "<strong>Sinusoidal</strong> (Vaswani et&nbsp;al., 2017): add a fixed waveform to each token embedding. Cheap, no learned parameters.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@RoPE@@T1@@ (Su et&nbsp;al., 2021): rotate Q and K by an angle proportional to position. The dot product $Q_i \\cdot K_j$ then depends only on the offset $j - i$.": {
+   "zh": "@@T0@@RoPE@@T1@@（Su 等，2021）：将 Q 与 K 按与位置成正比的角旋转。此时点积 $Q_i \\cdot K_j$ 仅取决于偏移量 $j - i$。",
+   "src": "<strong>RoPE</strong> (Su et&nbsp;al., 2021): rotate Q and K by an angle proportional to position. The dot product $Q_i \\cdot K_j$ then depends only on the offset $j - i$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@ALiBi@@T1@@ (Press, Smith, Lewis, 2022): skip embeddings entirely. Add a linear penalty $-m \\cdot |i - j|$ to attention scores. Brutally simple, extrapolates well.": {
+   "zh": "@@T0@@ALiBi@@T1@@（Press、Smith、Lewis，2022）：完全跳过嵌入。将线性惩罚 $-m \\cdot |i - j|$ 加到注意力分数上。极其简单，外推性能良好。",
+   "src": "<strong>ALiBi</strong> (Press, Smith, Lewis, 2022): skip embeddings entirely. Add a linear penalty $-m \\cdot |i - j|$ to attention scores. Brutally simple, extrapolates well.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "They differ along three axes that matter at scale:\n          parameter count, ability to extrapolate to longer\n          sequences than seen at training, and computational cost.\n          Each of the three sections below makes those differences\n          visceral.": {
+   "zh": "它们在三个于规模化时至关重要的方面存在差异：参数数量、向比训练时更长序列外推的能力，以及计算成本。下面三节将分别让这些差异变得直观可感。",
+   "src": "They differ along three axes that matter at scale:\n          parameter count, ability to extrapolate to longer\n          sequences than seen at training, and computational cost.\n          Each of the three sections below makes those differences\n          visceral.",
+   "tags": []
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "Sinusoidal — one frequency per dimension": {
+   "zh": "正弦式 &mdash;&mdash; 每个维度一个频率",
+   "src": "Sinusoidal — one frequency per dimension",
+   "tags": []
+  },
+  "Pick a sequence length and embedding dimension. The\n          heatmap below shows the full positional encoding tensor:\n          rows are positions $0, 1, \\ldots, L-1$, columns are\n          embedding dimensions $0, 1, \\ldots, d-1$. Even columns are\n          sines; odd columns are cosines. Each dimension has its own\n          frequency, spaced geometrically from $1$ down to\n          $1 / 10000$.": {
+   "zh": "选择序列长度与嵌入维度。下方热力图展示完整的位置编码张量：行对应位置 $0, 1, \\ldots, L-1$，列对应嵌入维度 $0, 1, \\ldots, d-1$。偶数列为正弦，奇数列为余弦。每个维度各有其频率，从 $1$ 到 $1 / 10000$ 按几何级数分布。",
+   "src": "Pick a sequence length and embedding dimension. The\n          heatmap below shows the full positional encoding tensor:\n          rows are positions $0, 1, \\ldots, L-1$, columns are\n          embedding dimensions $0, 1, \\ldots, d-1$. Even columns are\n          sines; odd columns are cosines. Each dimension has its own\n          frequency, spaced geometrically from $1$ down to\n          $1 / 10000$.",
+   "tags": []
+  },
+  "seq len L": {
+   "zh": "序列长度 L",
+   "src": "seq len L",
+   "tags": []
+  },
+  "d_model": {
+   "zh": "d_model（模型维度）",
+   "src": "d_model",
+   "tags": []
+  },
+  "positional-encoding matrix (rows = position, columns = embedding dim)": {
+   "zh": "位置编码矩阵（行 = 位置，列 = 嵌入维度）",
+   "src": "positional-encoding matrix (rows = position, columns = embedding dim)",
+   "tags": []
+  },
+  "@@T0@@Reading the picture.@@T1@@\n            Leftmost columns oscillate fast (high-frequency,\n            distinguishing neighbours). Rightmost columns oscillate\n            slowly (low-frequency, encoding broad position bands).\n            Together they form a \"binary clock\" where every position\n            has a unique fingerprint.": {
+   "zh": "@@T0@@如何解读该图。@@T1@@\n            最左侧的列振荡很快（高频，用于区分相邻位置）。最右侧的列振荡很慢（低频，编码宽广的位置区段）。二者共同构成一个「二进制时钟」，使每个位置都有独特的指纹。",
+   "src": "<strong>Reading the picture.</strong>\n            Leftmost columns oscillate fast (high-frequency,\n            distinguishing neighbours). Rightmost columns oscillate\n            slowly (low-frequency, encoding broad position bands).\n            Together they form a \"binary clock\" where every position\n            has a unique fingerprint.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The headline property: $\\mathrm{PE}_{\\text{pos}+k}$ is a\n          fixed linear function of $\\mathrm{PE}_{\\text{pos}}$ for\n          any offset $k$. So a transformer can @@T0@@recover relative\n          position@@T1@@ from the absolute encoding via a learned\n          linear map. This was the original argument for why a\n          fixed sinusoid would work as well as a learned table.": {
+   "zh": "其核心性质在于：对任意偏移 $k$，$\\mathrm{PE}_{\\text{pos}+k}$ 都是 $\\mathrm{PE}_{\\text{pos}}$ 的固定线性函数。因此 transformer 可以通过一个学习得到的线性映射，从绝对编码中@@T0@@恢复出相对位置@@T1@@。这正是最初论证固定正弦式编码能与学习式查表同样有效的原因。",
+   "src": "The headline property: $\\mathrm{PE}_{\\text{pos}+k}$ is a\n          fixed linear function of $\\mathrm{PE}_{\\text{pos}}$ for\n          any offset $k$. So a transformer can <em>recover relative\n          position</em> from the absolute encoding via a learned\n          linear map. This was the original argument for why a\n          fixed sinusoid would work as well as a learned table.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Below: the cosine similarity between every pair of\n          positions. Diagonal is 1 (each position with itself); the\n          dropoff away from the diagonal tells you how\n          distinguishable nearby positions are.": {
+   "zh": "下图：每一对位置之间的余弦相似度。对角线为 1（每个位置与自身）；偏离对角线的衰减程度反映了相邻位置的可区分程度。",
+   "src": "Below: the cosine similarity between every pair of\n          positions. Diagonal is 1 (each position with itself); the\n          dropoff away from the diagonal tells you how\n          distinguishable nearby positions are.",
+   "tags": []
+  },
+  "cosine similarity matrix between positions ⟨PE@@T0@@i@@T1@@, PE@@T2@@j@@T3@@⟩": {
+   "zh": "位置间余弦相似度矩阵 ⟨PE@@T0@@i@@T1@@, PE@@T2@@j@@T3@@⟩",
+   "src": "cosine similarity matrix between positions ⟨PE<sub>i</sub>, PE<sub>j</sub>⟩",
+   "tags": [
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "Higher values = positions look similar to attention.\n            Smooth fall-off near the diagonal is exactly what we\n            want — close positions are confusable; far ones are\n            cleanly distinguished.": {
+   "zh": "取值越高，表示这些位置在注意力看来越相似。对角线附近的平滑衰减正是我们想要的 &mdash;&mdash; 靠近的位置彼此易混淆，相距较远的位置则能被清晰区分。",
+   "src": "Higher values = positions look similar to attention.\n            Smooth fall-off near the diagonal is exactly what we\n            want — close positions are confusable; far ones are\n            cleanly distinguished.",
+   "tags": []
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "RoPE — encode position by rotating": {
+   "zh": "RoPE &mdash;&mdash; 以旋转编码位置",
+   "src": "RoPE — encode position by rotating",
+   "tags": []
+  },
+  "Sinusoidal PE has a known weakness: it's added to the\n          embedding once, and the attention layer has to spend\n          capacity recovering relative position from the sum. RoPE\n          inverts this: instead of @@T0@@adding@@T1@@ position, it\n          @@T2@@rotates@@T3@@ the queries and keys.": {
+   "zh": "正弦式位置编码有一个已知的弱点：它只在嵌入上加一次，注意力层必须耗费容量从该和中恢复相对位置。RoPE 将这一点颠倒过来：它不@@T0@@加@@T1@@位置，而是@@T2@@旋转@@T3@@查询与键。",
+   "src": "Sinusoidal PE has a known weakness: it's added to the\n          embedding once, and the attention layer has to spend\n          capacity recovering relative position from the sum. RoPE\n          inverts this: instead of <em>adding</em> position, it\n          <em>rotates</em> the queries and keys.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Pair adjacent dimensions $(2i, 2i+1)$. For position\n          $\\text{pos}$, rotate that 2D sub-vector by an angle\n          $\\theta_i = \\text{pos} \\cdot 10000^{-2i/d}$. The dot\n          product between a rotated query at position $i$ and a\n          rotated key at position $j$ then becomes a function only\n          of the @@T0@@difference@@T1@@ $j - i$.": {
+   "zh": "将相邻维度配对为 $(2i, 2i+1)$。对位置 $\\text{pos}$，把该二维子向量旋转一个角度\n          $\\theta_i = \\text{pos} \\cdot 10000^{-2i/d}$。于是，位置 $i$ 的旋转后查询与位置 $j$ 的旋转后键之间的点积，便仅成为@@T0@@差值@@T1@@ $j - i$ 的函数。",
+   "src": "Pair adjacent dimensions $(2i, 2i+1)$. For position\n          $\\text{pos}$, rotate that 2D sub-vector by an angle\n          $\\theta_i = \\text{pos} \\cdot 10000^{-2i/d}$. The dot\n          product between a rotated query at position $i$ and a\n          rotated key at position $j$ then becomes a function only\n          of the <em>difference</em> $j - i$.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "position 1": {
+   "zh": "位置 1",
+   "src": "position 1",
+   "tags": []
+  },
+  "position 2": {
+   "zh": "位置 2",
+   "src": "position 2",
+   "tags": []
+  },
+  "base θ": {
+   "zh": "基频 θ",
+   "src": "base θ",
+   "tags": []
+  },
+  "two rotated query/key vectors (one 2D sub-pair)": {
+   "zh": "两个旋转后的查询/键向量（一个二维子对）",
+   "src": "two rotated query/key vectors (one 2D sub-pair)",
+   "tags": []
+  },
+  "dot product Q@@T0@@i@@T1@@ · K@@T2@@j@@T3@@ as i, j slide": {
+   "zh": "当 i、j 滑动时点积 Q@@T0@@i@@T1@@ · K@@T2@@j@@T3@@ 的变化",
+   "src": "dot product Q<sub>i</sub> · K<sub>j</sub> as i, j slide",
+   "tags": [
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "The headline: change positions 1 and 2 to (5, 15) or\n          (20, 30) — the offset is 10 in both. The dot product is\n          @@T0@@identical@@T1@@. RoPE has factored absolute position\n          out of the attention score; only relative position\n          remains.": {
+   "zh": "核心结论：将位置 1、2 改为 (5, 15) 或 (20, 30) &mdash;&mdash; 两者偏移量均为 10。点积@@T0@@完全相同@@T1@@。RoPE 已将绝对位置从注意力分数中分离出去，只留下相对位置。",
+   "src": "The headline: change positions 1 and 2 to (5, 15) or\n          (20, 30) — the offset is 10 in both. The dot product is\n          <em>identical</em>. RoPE has factored absolute position\n          out of the attention score; only relative position\n          remains.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Why this matters for long context.@@T1@@\n          With pure absolute encodings, every position has a\n          distinct embedding. Train on positions $0$–$2047$, test\n          on position $4096$, and the embedding for $4096$ has never\n          been seen. With RoPE, only the @@T2@@relative@@T3@@ offset\n          enters the dot product. Inference at offset 100 looks the\n          same whether the absolute positions are $(0, 100)$ or\n          $(5000, 5100)$.": {
+   "zh": "@@T0@@为何这对长上下文至关重要。@@T1@@\n          使用纯粹的绝对编码时，每个位置都有各不相同的嵌入。在位置 $0$–$2047$ 上训练、在位置 $4096$ 上测试，则该 $4096$ 的嵌入从未出现过。\n          而使用 RoPE 时，只有@@T2@@相对@@T3@@偏移进入点积。无论绝对位置是 $(0, 100)$ 还是 $(5000, 5100)$，偏移为 100 处的推理表现都相同。",
+   "src": "<strong>Why this matters for long context.</strong>\n          With pure absolute encodings, every position has a\n          distinct embedding. Train on positions $0$–$2047$, test\n          on position $4096$, and the embedding for $4096$ has never\n          been seen. With RoPE, only the <em>relative</em> offset\n          enters the dot product. Inference at offset 100 looks the\n          same whether the absolute positions are $(0, 100)$ or\n          $(5000, 5100)$.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "ALiBi — a linear penalty on distance": {
+   "zh": "ALiBi &mdash;&mdash; 对距离的线性惩罚",
+   "src": "ALiBi — a linear penalty on distance",
+   "tags": []
+  },
+  "The simplest of the three. Skip positional encodings at\n          the embedding layer entirely. Add a fixed bias\n          $-m \\cdot |i - j|$ to the attention score, where the\n          slope $m$ is hand-set per head (a geometric sequence\n          across heads — head $h$ uses $m_h = 2^{-8h/H}$).": {
+   "zh": "三者中最简单的一种。完全不在嵌入层使用位置编码。将固定偏置 $-m \\cdot |i - j|$ 加到注意力分数上，其中斜率 $m$ 按注意力头手工设定（各头之间构成等比数列 &mdash;&mdash; 第 $h$ 个头使用 $m_h = 2^{-8h/H}$）。",
+   "src": "The simplest of the three. Skip positional encodings at\n          the embedding layer entirely. Add a fixed bias\n          $-m \\cdot |i - j|$ to the attention score, where the\n          slope $m$ is hand-set per head (a geometric sequence\n          across heads — head $h$ uses $m_h = 2^{-8h/H}$).",
+   "tags": []
+  },
+  "The matrix below shows the bias on a 32×32 attention\n          grid for one head. Pick a slope. The bias is uniformly\n          negative and grows with distance: it penalises attending\n          to faraway tokens — equivalently, biases each token\n          toward attending to its neighbours.": {
+   "zh": "下方矩阵展示某个头在 32×32 注意力网格上的偏置。选择一个斜率。该偏置恒为负值并随距离增大：它惩罚对远处词元的关注 &mdash;&mdash; 等价地说，它使每个词元偏向关注其邻近词元。",
+   "src": "The matrix below shows the bias on a 32×32 attention\n          grid for one head. Pick a slope. The bias is uniformly\n          negative and grows with distance: it penalises attending\n          to faraway tokens — equivalently, biases each token\n          toward attending to its neighbours.",
+   "tags": []
+  },
+  "head index h": {
+   "zh": "头索引 h",
+   "src": "head index h",
+   "tags": []
+  },
+  "seq len": {
+   "zh": "序列长度",
+   "src": "seq len",
+   "tags": []
+  },
+  "ALiBi bias matrix (lower-triangular for causal attention)": {
+   "zh": "ALiBi 偏置矩阵（因果注意力下为下三角）",
+   "src": "ALiBi bias matrix (lower-triangular for causal attention)",
+   "tags": []
+  },
+  "per-head slope schedule": {
+   "zh": "各头斜率安排",
+   "src": "per-head slope schedule",
+   "tags": []
+  },
+  "Different heads use different slopes; some heads focus\n              on local context (steep slope), others on broad context (gentle\n              slope). The schedule is fixed at training time and never trained.": {
+   "zh": "不同的头使用不同的斜率；一些头关注局部上下文（斜率较陡），另一些关注宽泛上下文（斜率较缓）。该安排在训练时即固定，从不参与训练。",
+   "src": "Different heads use different slopes; some heads focus\n              on local context (steep slope), others on broad context (gentle\n              slope). The schedule is fixed at training time and never trained.",
+   "tags": []
+  },
+  "ALiBi's selling point: extrapolation. There's nothing in\n          the bias matrix that depends on absolute position — only\n          on $|i - j|$. The model trained on length 2048 can be\n          deployed at length 16384 with no degradation in the\n          relative-position signal it sees.": {
+   "zh": "ALiBi 的卖点在于外推。偏置矩阵中没有任何量依赖绝对位置 &mdash;&mdash; 只依赖 $|i - j|$。基于长度 2048 训练的模型可部署到长度 16384，其所见相对位置信号毫无退化。",
+   "src": "ALiBi's selling point: extrapolation. There's nothing in\n          the bias matrix that depends on absolute position — only\n          on $|i - j|$. The model trained on length 2048 can be\n          deployed at length 16384 with no degradation in the\n          relative-position signal it sees.",
+   "tags": []
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Extrapolation — train at 2k, test at 32k": {
+   "zh": "外推 &mdash;&mdash; 在 2k 上训练，在 32k 上测试",
+   "src": "Extrapolation — train at 2k, test at 32k",
+   "tags": []
+  },
+  "The benchmark that put RoPE and ALiBi on the map: train\n          a transformer with a max context of 2048 tokens; evaluate\n          perplexity at 4k, 8k, 16k, 32k. A scheme that has\n          memorised absolute positions $0$–$2047$ will fall off a\n          cliff past 2048. A scheme that uses only relative\n          information will degrade gracefully.": {
+   "zh": "让 RoPE 与 ALiBi 崭露头角的评测方式：以最大上下文 2048 个词元训练一个 transformer；在 4k、8k、16k、32k 处评估困惑度。凡死记了绝对位置 $0$–$2047$ 的方案，在超过 2048 后便会断崖式下跌。而仅使用相对信息的方案则会平缓退化。",
+   "src": "The benchmark that put RoPE and ALiBi on the map: train\n          a transformer with a max context of 2048 tokens; evaluate\n          perplexity at 4k, 8k, 16k, 32k. A scheme that has\n          memorised absolute positions $0$–$2047$ will fall off a\n          cliff past 2048. A scheme that uses only relative\n          information will degrade gracefully.",
+   "tags": []
+  },
+  "Below: the three positional-encoding schemes scored on a\n          synthetic \"relative-position recall\" task. The metric is\n          the cosine similarity between the model's representation\n          of a query at distance $\\Delta$ in training (≤ 2k) versus\n          the same offset at test (up to 32k). High and flat is\n          good; falling is bad. The numbers reproduce the\n          qualitative finding from Press et&nbsp;al. (2022):": {
+   "zh": "下图：三种位置编码方案在一个合成的「相对位置召回」任务上的得分。指标为：模型在训练时（≤ 2k）对距离 $\\Delta$ 处某查询的表示，与测试时（至多 32k）相同偏移处的表示之间的余弦相似度。高且平稳为佳；下降则不佳。这些数值重现了 Press 等（2022）的定性发现：",
+   "src": "Below: the three positional-encoding schemes scored on a\n          synthetic \"relative-position recall\" task. The metric is\n          the cosine similarity between the model's representation\n          of a query at distance $\\Delta$ in training (≤ 2k) versus\n          the same offset at test (up to 32k). High and flat is\n          good; falling is bad. The numbers reproduce the\n          qualitative finding from Press et&nbsp;al. (2022):",
+   "tags": []
+  },
+  "sinusoidal": {
+   "zh": "正弦式",
+   "src": "sinusoidal",
+   "tags": []
+  },
+  "trained 0–2k. drops sharply past 2k — model has never seen position 4000.": {
+   "zh": "在 0–2k 上训练。超过 2k 后急剧下降 &mdash;&mdash; 模型从未见过位置 4000。",
+   "src": "trained 0–2k. drops sharply past 2k — model has never seen position 4000.",
+   "tags": []
+  },
+  "RoPE": {
+   "zh": "RoPE（旋转位置编码）",
+   "src": "RoPE",
+   "tags": []
+  },
+  "only relative offsets matter; degrades gradually as the angle wraps.": {
+   "zh": "只有相对偏移起作用；随着角度绕回而逐渐退化。",
+   "src": "only relative offsets matter; degrades gradually as the angle wraps.",
+   "tags": []
+  },
+  "ALiBi": {
+   "zh": "ALiBi（线性偏置注意力）",
+   "src": "ALiBi",
+   "tags": []
+  },
+  "flat. nothing in the bias depends on absolute position.": {
+   "zh": "保持平稳。偏置中没有任何量依赖绝对位置。",
+   "src": "flat. nothing in the bias depends on absolute position.",
+   "tags": []
+  },
+  "@@T0@@The pattern.@@T1@@\n          Sinusoidal collapses past the training length because\n          its high-frequency dimensions wrap around in ways the\n          model has never optimised against. RoPE degrades because\n          its rotation angles wrap when positions exceed\n          $\\pi / \\theta_{\\min}$. ALiBi doesn't degrade because\n          its $-m \\cdot |i - j|$ never changes character: at\n          $\\Delta = 10000$ it's still just a slightly bigger\n          negative bias.": {
+   "zh": "@@T0@@规律。@@T1@@\n          正弦式编码在超过训练长度后崩溃，因为其高频维度会以模型从未优化过的形式绕回。RoPE 退化，是因为当位置超过\n          $\\pi / \\theta_{\\min}$ 时其旋转角会绕回。ALiBi 之所以不退化，是因为其 $-m \\cdot |i - j|$ 的性质始终不变：在 $\\Delta = 10000$ 处，它仍然只是一个略大一些的负偏置。",
+   "src": "<strong>The pattern.</strong>\n          Sinusoidal collapses past the training length because\n          its high-frequency dimensions wrap around in ways the\n          model has never optimised against. RoPE degrades because\n          its rotation angles wrap when positions exceed\n          $\\pi / \\theta_{\\min}$. ALiBi doesn't degrade because\n          its $-m \\cdot |i - j|$ never changes character: at\n          $\\Delta = 10000$ it's still just a slightly bigger\n          negative bias.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "When to use what": {
+   "zh": "何时使用何种方案",
+   "src": "When to use what",
+   "tags": []
+  },
+  "scheme": {
+   "zh": "方案",
+   "src": "scheme",
+   "tags": []
+  },
+  "where added": {
+   "zh": "添加位置",
+   "src": "where added",
+   "tags": []
+  },
+  "learnable?": {
+   "zh": "可学习？",
+   "src": "learnable?",
+   "tags": []
+  },
+  "relative?": {
+   "zh": "相对？",
+   "src": "relative?",
+   "tags": []
+  },
+  "extrapolates?": {
+   "zh": "可外推？",
+   "src": "extrapolates?",
+   "tags": []
+  },
+  "used by": {
+   "zh": "使用者",
+   "src": "used by",
+   "tags": []
+  },
+  "learned absolute": {
+   "zh": "学习式绝对位置",
+   "src": "learned absolute",
+   "tags": []
+  },
+  "token embedding": {
+   "zh": "词元嵌入",
+   "src": "token embedding",
+   "tags": []
+  },
+  "yes": {
+   "zh": "是",
+   "src": "yes",
+   "tags": []
+  },
+  "no (fixed table)": {
+   "zh": "否（固定查表）",
+   "src": "no (fixed table)",
+   "tags": []
+  },
+  "BERT, GPT-2": {
+   "zh": "BERT、GPT-2",
+   "src": "BERT, GPT-2",
+   "tags": []
+  },
+  "recoverable": {
+   "zh": "可恢复",
+   "src": "recoverable",
+   "tags": []
+  },
+  "partially": {
+   "zh": "部分可外推",
+   "src": "partially",
+   "tags": []
+  },
+  "original Transformer (Vaswani 2017)": {
+   "zh": "原始 Transformer（Vaswani 2017）",
+   "src": "original Transformer (Vaswani 2017)",
+   "tags": []
+  },
+  "Q, K (in attention)": {
+   "zh": "Q、K（在注意力内部）",
+   "src": "Q, K (in attention)",
+   "tags": []
+  },
+  "yes (in dot product)": {
+   "zh": "是（在点积中）",
+   "src": "yes (in dot product)",
+   "tags": []
+  },
+  "yes (with NTK / YaRN tricks)": {
+   "zh": "是（借助 NTK / YaRN 技巧）",
+   "src": "yes (with NTK / YaRN tricks)",
+   "tags": []
+  },
+  "Llama family, PaLM, GPT-NeoX, Mistral": {
+   "zh": "Llama 系列、PaLM、GPT-NeoX、Mistral",
+   "src": "Llama family, PaLM, GPT-NeoX, Mistral",
+   "tags": []
+  },
+  "attention score": {
+   "zh": "注意力分数",
+   "src": "attention score",
+   "tags": []
+  },
+  "yes (purely)": {
+   "zh": "是（纯相对）",
+   "src": "yes (purely)",
+   "tags": []
+  },
+  "BLOOM, MPT": {
+   "zh": "BLOOM、MPT",
+   "src": "BLOOM, MPT",
+   "tags": []
+  },
+  "T5 relative": {
+   "zh": "T5 式相对位置",
+   "src": "T5 relative",
+   "tags": []
+  },
+  "attention score (per-bucket bias)": {
+   "zh": "注意力分数（分桶偏置）",
+   "src": "attention score (per-bucket bias)",
+   "tags": []
+  },
+  "yes (small table)": {
+   "zh": "是（小规模查表）",
+   "src": "yes (small table)",
+   "tags": []
+  },
+  "The post-2022 consensus: @@T0@@RoPE@@T1@@ is the\n          modern default for autoregressive LLMs; @@T2@@ALiBi@@T3@@\n          is preferred when extrapolation is the top concern and\n          the model is single-task. Learned absolute is the legacy\n          baseline; nobody picks it for a new model.": {
+   "zh": "2022 年之后的共识是：@@T0@@RoPE@@T1@@ 是自回归 LLM 的现代默认选择；当外推能力为首要考虑且模型为单任务时，则倾向于\n          @@T2@@ALiBi@@T3@@。学习式绝对位置属于遗留基线；新模型无人采用。",
+   "src": "The post-2022 consensus: <strong>RoPE</strong> is the\n          modern default for autoregressive LLMs; <strong>ALiBi</strong>\n          is preferred when extrapolation is the top concern and\n          the model is single-task. Learned absolute is the legacy\n          baseline; nobody picks it for a new model.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "NTK-aware scaling, YaRN, and dynamic NTK are all\n          techniques for extending RoPE-trained models beyond their\n          training length. They rescale the base frequency to keep\n          rotation angles in the seen range. None of them comes free\n          — there is always some accuracy trade-off, well-documented\n          in the long-context benchmarks (LongBench, Needle in a\n          Haystack, RULER).": {
+   "zh": "NTK 感知缩放、YaRN 与动态 NTK 都是将经 RoPE 训练的模型扩展至超出其训练长度的技术。它们通过重新缩放基频，使旋转角保持在已见过的范围内。这些方法都并非没有代价 &mdash;&mdash; 总存在某种精度权衡，长上下文基准（LongBench、Needle in a Haystack、RULER）对此有充分记录。",
+   "src": "NTK-aware scaling, YaRN, and dynamic NTK are all\n          techniques for extending RoPE-trained models beyond their\n          training length. They rescale the base frequency to keep\n          rotation angles in the seen range. None of them comes free\n          — there is always some accuracy trade-off, well-documented\n          in the long-context benchmarks (LongBench, Needle in a\n          Haystack, RULER).",
+   "tags": []
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Three misconceptions": {
+   "zh": "三个常见误解",
+   "src": "Three misconceptions",
+   "tags": []
+  },
+  "\"RoPE has no parameters.\" → true, but...": {
+   "zh": "「RoPE 没有参数。」→ 确实如此，但……",
+   "src": "\"RoPE has no parameters.\" → true, but...",
+   "tags": []
+  },
+  "...the rotation base $\\theta = 10000$ is a hyperparameter\n            and choosing it badly hurts long-context behaviour.\n            Llama-3 uses $\\theta = 500{,}000$ to make the angles\n            wrap less aggressively at long distances. NTK-aware\n            scaling can be viewed as dynamically picking $\\theta$\n            at inference time.": {
+   "zh": "……旋转基频 $\\theta = 10000$ 是一个超参数，选择不当会损害长上下文表现。\n            Llama-3 采用 $\\theta = 500{,}000$，以减缓远距离处角度的绕回。NTK 感知缩放可视为在推理时动态地选取 $\\theta$。",
+   "src": "...the rotation base $\\theta = 10000$ is a hyperparameter\n            and choosing it badly hurts long-context behaviour.\n            Llama-3 uses $\\theta = 500{,}000$ to make the angles\n            wrap less aggressively at long distances. NTK-aware\n            scaling can be viewed as dynamically picking $\\theta$\n            at inference time.",
+   "tags": []
+  },
+  "\"ALiBi extrapolates perfectly to infinite context.\"": {
+   "zh": "「ALiBi 能完美外推到无限上下文。」",
+   "src": "\"ALiBi extrapolates perfectly to infinite context.\"",
+   "tags": []
+  },
+  "ALiBi degrades less than sinusoidal or RoPE, but it\n            does degrade: the model has only seen attention scores\n            with bias magnitudes up to $2048 \\cdot m$. Past that\n            range, the model's behaviour relies on the assumption\n            that a slightly larger bias has the same qualitative\n            effect — which holds in practice but not perfectly.": {
+   "zh": "ALiBi 的退化程度小于正弦式或 RoPE，但它确实会退化：模型只见过偏置幅度至多 $2048 \\cdot m$ 的注意力分数。超出该范围后，模型的行为依赖于「略大的偏置具有相同定性效果」这一假设 &mdash;&mdash; 这在实践中大致成立，但并不完美。",
+   "src": "ALiBi degrades less than sinusoidal or RoPE, but it\n            does degrade: the model has only seen attention scores\n            with bias magnitudes up to $2048 \\cdot m$. Past that\n            range, the model's behaviour relies on the assumption\n            that a slightly larger bias has the same qualitative\n            effect — which holds in practice but not perfectly.",
+   "tags": []
+  },
+  "\"Positional encoding is decoupled from attention.\"": {
+   "zh": "「位置编码与注意力是解耦的。」",
+   "src": "\"Positional encoding is decoupled from attention.\"",
+   "tags": []
+  },
+  "Sinusoidal encoding adds to the embedding once, before\n            attention sees anything; in that sense it is decoupled.\n            RoPE is @@T0@@inside@@T1@@ the attention computation\n            (rotates Q and K). ALiBi is also @@T2@@inside@@T3@@\n            attention (a bias on logits). The trend has been to\n            push position deeper into the attention machinery, not\n            keep it outside.": {
+   "zh": "正弦式编码在注意力看到任何内容之前，仅向嵌入加一次；从这个意义上说它是解耦的。\n            RoPE 位于@@T0@@注意力计算内部@@T1@@（旋转 Q 与 K）。ALiBi 同样位于@@T2@@注意力内部@@T3@@\n            （对 logit 施加偏置）。趋势一直是将位置信息更深地推入注意力机制之中，而非将其置于外部。",
+   "src": "Sinusoidal encoding adds to the embedding once, before\n            attention sees anything; in that sense it is decoupled.\n            RoPE is <em>inside</em> the attention computation\n            (rotates Q and K). ALiBi is also <em>inside</em>\n            attention (a bias on logits). The trend has been to\n            push position deeper into the attention machinery, not\n            keep it outside.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 7": {
+   "zh": "第 7 步",
+   "src": "Step 7",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "参考文献",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Vaswani et&nbsp;al., 2017@@T1@@ — @@T2@@Attention Is All You Need.@@T3@@ Sinusoidal positional encoding, §3.5.": {
+   "zh": "@@T0@@Vaswani 等，2017@@T1@@ &mdash;&mdash; @@T2@@Attention Is All You Need.@@T3@@ 正弦式位置编码，§3.5。",
+   "src": "<strong>Vaswani et&nbsp;al., 2017</strong> — <em>Attention Is All You Need.</em> Sinusoidal positional encoding, §3.5.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Shaw, Uszkoreit, Vaswani, 2018@@T1@@ — @@T2@@Self-Attention with Relative Position Representations.@@T3@@ The first relative-position scheme inside attention.": {
+   "zh": "@@T0@@Shaw、Uszkoreit、Vaswani，2018@@T1@@ &mdash;&mdash; @@T2@@Self-Attention with Relative Position Representations.@@T3@@ 首个位于注意力内部的相对位置方案。",
+   "src": "<strong>Shaw, Uszkoreit, Vaswani, 2018</strong> — <em>Self-Attention with Relative Position Representations.</em> The first relative-position scheme inside attention.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Raffel et&nbsp;al., 2019 (T5)@@T1@@ — bucketed relative-position bias added to attention scores.": {
+   "zh": "@@T0@@Raffel 等，2019（T5）@@T1@@ &mdash;&mdash; 加到注意力分数上的分桶相对位置偏置。",
+   "src": "<strong>Raffel et&nbsp;al., 2019 (T5)</strong> — bucketed relative-position bias added to attention scores.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Su et&nbsp;al., 2021@@T1@@ — @@T2@@RoFormer: Enhanced Transformer with Rotary Position Embedding.@@T3@@ The RoPE paper.": {
+   "zh": "@@T0@@Su 等，2021@@T1@@ &mdash;&mdash; @@T2@@RoFormer: Enhanced Transformer with Rotary Position Embedding.@@T3@@ 即 RoPE 原始论文。",
+   "src": "<strong>Su et&nbsp;al., 2021</strong> — <em>RoFormer: Enhanced Transformer with Rotary Position Embedding.</em> The RoPE paper.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Press, Smith, Lewis, 2022@@T1@@ — @@T2@@Train Short, Test Long: Attention with Linear Biases.@@T3@@ ALiBi.": {
+   "zh": "@@T0@@Press、Smith、Lewis，2022@@T1@@ &mdash;&mdash; @@T2@@Train Short, Test Long: Attention with Linear Biases.@@T3@@ 即 ALiBi。",
+   "src": "<strong>Press, Smith, Lewis, 2022</strong> — <em>Train Short, Test Long: Attention with Linear Biases.</em> ALiBi.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Chen et&nbsp;al., 2023@@T1@@ — @@T2@@Extending Context Window of Large Language Models via Positional Interpolation.@@T3@@ The first widely-adopted RoPE-extension trick.": {
+   "zh": "@@T0@@Chen 等，2023@@T1@@ &mdash;&mdash; @@T2@@Extending Context Window of Large Language Models via Positional Interpolation.@@T3@@ 首个被广泛采用的 RoPE 扩展技巧。",
+   "src": "<strong>Chen et&nbsp;al., 2023</strong> — <em>Extending Context Window of Large Language Models via Positional Interpolation.</em> The first widely-adopted RoPE-extension trick.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Peng et&nbsp;al., 2023@@T1@@ — @@T2@@YaRN: Efficient Context Window Extension of Large Language Models.@@T3@@": {
+   "zh": "@@T0@@Peng 等，2023@@T1@@ &mdash;&mdash; @@T2@@YaRN: Efficient Context Window Extension of Large Language Models.@@T3@@",
+   "src": "<strong>Peng et&nbsp;al., 2023</strong> — <em>YaRN: Efficient Context Window Extension of Large Language Models.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@bloc97, 2023@@T1@@ (LocalLlama post) — @@T2@@NTK-aware scaled RoPE.@@T3@@ The community-discovered fix that made long-context RoPE practical.": {
+   "zh": "@@T0@@bloc97，2023@@T1@@（LocalLlama 帖子）&mdash;&mdash; @@T2@@NTK-aware scaled RoPE.@@T3@@ 由社区发现的修正方案，使长上下文 RoPE 变得实用。",
+   "src": "<strong>bloc97, 2023</strong> (LocalLlama post) — <em>NTK-aware scaled RoPE.</em> The community-discovered fix that made long-context RoPE practical.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Kazemnejad et&nbsp;al., 2023@@T1@@ — @@T2@@The Impact of Positional Encoding on Length Generalization in Transformers.@@T3@@ Empirical comparison of all variants.": {
+   "zh": "@@T0@@Kazemnejad 等，2023@@T1@@ &mdash;&mdash; @@T2@@The Impact of Positional Encoding on Length Generalization in Transformers.@@T3@@ 对各类变体的实证比较。",
+   "src": "<strong>Kazemnejad et&nbsp;al., 2023</strong> — <em>The Impact of Positional Encoding on Length Generalization in Transformers.</em> Empirical comparison of all variants.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "位置编码 &mdash;&mdash; 正弦式、RoPE、ALiBi",
+  "tagline": "注意力具有置换不变性。三种打破该对称性的方法 &mdash;&mdash; 可视化呈现。",
+  "summary": "Transformer 的注意力没有顺序概念：「狗咬人」与「人咬狗」会得到完全相同的 logit。位置必须从外部注入。已有三类方案胜出 &mdash;&mdash; 正弦式（加到嵌入上）、RoPE（旋转查询与键）、ALiBi（对注意力分数施加线性惩罚）。三者均以实时演示呈现：热力图、点积相似度矩阵，以及延伸至 32k 词元的外推曲线。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "正弦式热力图，配有序列长度与 d_model 的实时滑块 &mdash;&mdash; 观察每个维度上的频带分布。",
+   "每一对位置之间的点积相似度矩阵；观察随着 |i − j| 增大，对角线如何变得锐利。",
+   "把 RoPE 视为二维旋转：拖动位置，观察 q 与 k 按与位置成正比的角旋转；所得点积只取决于相对偏移。",
+   "ALiBi 的线性偏置矩阵叠加在注意力之上；选择某个头，观察其斜率如何决定它惩罚距离的强度。",
+   "外推面板：在 2k 词元上训练，在 32k 上测试 &mdash;&mdash; 正弦式崩溃，RoPE 漂移，ALiBi 保持稳定。",
+   "ES 667 第 14 讲演示（Transformer 架构）；与注意力一文配合，可理解底层的 QKV 机制。"
+  ],
+  "tags": [
+   "Transformer",
+   "位置编码",
+   "RoPE",
+   "ALiBi",
+   "长上下文",
+   "交互式"
+  ]
+ },
+ "js": {
+  "rotation angles for dim 0: θ(p₁)=@@T0@@[[[0]]]@@T1@@ rad, ": {
+   "zh": "维度 0 的旋转角：θ(p₁)=@@T0@@[[[0]]]@@T1@@ 弧度，",
+   "exprs": [
+    "${(a1).toFixed(3)}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "rotation angles for dim 0: θ(p₁)=<strong>${(a1).toFixed(3)}</strong> rad, "
+  },
+  "Try p=(5,15) and p=(20,30) — same Δ, same dot product.": {
+   "zh": "试试 p=(5,15) 与 p=(20,30) &mdash;&mdash; 相同的 Δ，相同的点积。",
+   "exprs": [],
+   "tags": [],
+   "src": "Try p=(5,15) and p=(20,30) — same Δ, same dot product."
+  },
+  "per-head slope m": {
+   "zh": "各头的斜率 m",
+   "exprs": [],
+   "tags": [],
+   "src": "per-head slope m"
+  },
+  "trained ≤ 2k": {
+   "zh": "训练范围 ≤ 2k",
+   "exprs": [],
+   "tags": [],
+   "src": "trained ≤ 2k"
+  },
+  "sin-L-val": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": "sin-L-val"
+  },
+  "sin-D-val": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": "sin-D-val"
+  },
+  "ali-L-val": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": "ali-L-val"
+  }
+ }
+}

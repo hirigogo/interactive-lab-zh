@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>从内部看上下文学习</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>从内部看上下文学习</h1>
+        <p class="abstract">
+          一个冻结的 LLM 能从提示中的几个示例学会一项新任务，而无需更新任何权重。为什么？机制层面的答案是<em>归纳头</em>：一个两步注意力回路，一旦训练完成，就能几乎任意地复制“此前在上下文中出现过的模式”。
+        </p>
+        <div class="byline">
+          <span>约 20 分钟</span>
+          <span>LLM &middot; 机制可解释性 &middot; 少样本</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>从操作层面看什么是 ICL</h2>
+        <p>
+          你向一个冻结模型传入这样的提示：
+        </p>
+        <pre class="icl-pre">苹果 → 红色
+香蕉 → 黄色
+西兰花 → 绿色
+草莓 →</pre>
+        <p>
+          模型便输出 <code>红色</code>。无需微调，无需梯度步。任务上的准确率通常随上下文示例数 $k$ 增长而上升，随后趋于平缓。经验上，这对翻译、算术、命名实体识别、函数逼近，甚至小型推理任务都有效。
+        </p>
+        <p>
+          两个推动了这项研究的事实：
+        </p>
+        <ol class="explanation-list">
+          <li>ICL 随规模<em>涌现</em>。GPT-2（1.5B）做得很差；GPT-3（175B）做得很好。低于某个临界的模型规模与训练数据规模时，ICL 准确率仅相当于随机猜测。</li>
+          <li>ICL 在预训练中未出现的任务上也能生效。模型并非在检索记忆中的答案；它是在推理时运行某种起算法作用的东西。</li>
+        </ol>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>归纳头——一个两层的注意力回路</h2>
+        <p>
+          Olsson 等人（2022）定位了 ICL 最简单形式——<em>复制</em>——背后的机制。它需要两个注意力头协同工作：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>第 1 层——前一词元头。</strong> 在每个位置 $t$，关注位置 $t-1$。此时每个词元的表示都包含了“前一个词元”。</li>
+          <li><strong>第 2 层——归纳头。</strong> 给定位置 $t$ 处的当前词元 $A$，在序列更早处搜索那些<em>前一个</em>词元也是 $A$ 的位置。找到了？就预测紧随其后的那个词元。</li>
+        </ul>
+        <p>
+          这个两步回路实现的是：“找出上一次看到该词元的位置；复制其后出现的内容。”在序列 <code>X A Y B A ?</code> 上，它预测<code> Y</code>。结合<a href="../attention/index.html">注意力一文</a>的机制，这不过是一小段脚本。
+        </p>
+        <div class="math-block" id="math-induction"></div>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>看它如何工作——实时的 k 样本复制任务</h2>
+        <p>
+          一个玩具任务：每个提示有 $k$ 个（键, 值）对，其后跟一个查询键。正确答案是键与查询相等的那个对的值。该模型是一个带 4 个头的两层注意力网络，已预训练至擅长复制任务。滑动 $k$；观察准确率。
+        </p>
+        <div class="train-controls">
+          <label>k（上下文示例数）&nbsp;<span id="icl-k-val">3</span> <input type="range" id="icl-k" min="1" max="12" step="1" value="3"></label>
+          <label>词表大小 V &nbsp;<span id="icl-V-val">6</span> <input type="range" id="icl-V" min="3" max="20" step="1" value="6"></label>
+          <button class="action-btn action-btn--ghost" id="icl-newprompt">新建提示</button>
+          <span class="train-stat">准确率 <strong id="icl-acc">—</strong></span>
+        </div>
+        <div class="icl-grid">
+          <div class="icl-panel" style="grid-column: 1 / -1;">
+            <div class="panel-label">示例提示 + 模型预测</div>
+            <div class="icl-prompt" id="icl-prompt"></div>
+          </div>
+          <div class="icl-panel" style="grid-column: 1 / -1;">
+            <div class="panel-label">从查询词元出发的第 2 层注意力（归纳头正在工作）</div>
+            <div class="heatmap-grid" id="icl-attn"></div>
+          </div>
+          <div class="icl-panel" style="grid-column: 1 / -1;">
+            <div class="panel-label">k 样本准确率随 k 的变化</div>
+            <canvas id="icl-curve" width="880" height="280"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>“ICL 是隐式的梯度下降”</h2>
+        <p>
+          一条出人意料的研究路线（Akyürek 等人 2023；von Oswald 等人 2022；Garg 等人 2022）表明，单个 Transformer 层作用于一串 $(x_i, y_i)$ 对时，可以<em>实现</em>线性回归上的一步梯度下降。层数足够时，ICL 近似等于“用提示中的示例拟合一个小模型，然后预测”。
+        </p>
+        <div class="math-block" id="math-icl-gd"></div>
+        <p>
+          其构造方式：把 $(x, y)$ 对打包成词元；可以选取注意力层的 $W_Q, W_K, W_V$，使得查询位置处的输出等于对迄今数据做一步 GD 的预测。逐层叠加便复合成多步 GD。这既解释了 ICL 为何需要规模（要有足够多的层来执行足够多的步），也解释了它为何能泛化到留出的函数类。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>实践意涵</h2>
+        <ul class="explanation-list">
+          <li><strong>示例越多并不总是越好。</strong>
+            对大多数任务，准确率在 $k=10-20$ 附近趋于平缓；再往上只是在用上下文换取递减的收益。</li>
+          <li><strong>示例的选取很重要。</strong> 多样且有代表性的示例胜过随机采样。“在带标注的池子上做语义检索后取最优 K 个”就是 RAG 风格的改进。</li>
+          <li><strong>格式敏感性确实存在。</strong> 确切的分隔符、大小写以及示例顺序都可能使准确率摆动 5-15 个点。务必测试多种变体。</li>
+          <li><strong>思维链就是带有推理步骤的 ICL。</strong>
+            加入“让我们一步步思考”以及完整的解题示例，能开启困难得多的任务。原因在于：模型得以把更多算力分配给答案。</li>
+          <li><strong>在 ICL 下校准会严重失效。</strong>
+            置信度并不可靠；请把关键的预测用<a href="../conformal/index.html">共形预测</a>包裹起来。</li>
+          <li><strong>微调与 ICL 的权衡。</strong> 若你有不少于 100 个带标注示例且看重可靠性，就用 LoRA 微调；若你只有不超过 30 个示例，或任务不断变化，那么 ICL 才是正确的工具。</li>
+        </ul>
+        <div class="callout callout--key">
+          <strong>这句口号。</strong>
+          ICL 不是魔法：它只是一个足够大、已经学会它的模型内部的回路（归纳头），做着一件看起来像是在你的提示上做梯度下降的事。一旦你看见了这个回路，就不会再因提示如此重要而感到惊讶。
+        </div>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

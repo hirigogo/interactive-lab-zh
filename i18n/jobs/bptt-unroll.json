@@ -1,0 +1,284 @@
+{
+ "slug": "bptt-unroll",
+ "units": {
+  "Backprop Through Time": {
+   "zh": "随时间反向传播",
+   "src": "Backprop Through Time",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "To train an RNN you @@T0@@unroll@@T1@@ it into a deep feed-forward graph with shared\n      weights, then run ordinary backprop across it. Walk the backward pass step by\n      step: at each state, watch its gradient accumulate two pieces &mdash; one from the\n      loss right here, one carried back from the future &mdash; and see how truncation\n      cuts the chain and how the per-step product quietly vanishes or explodes.": {
+   "zh": "要训练一个 RNN，你需将其 @@T0@@展开@@T1@@ 为一个权重共享的深层前馈图，然后在其上运行普通的反向传播。逐步走一遍反向传播过程：在每一个状态处，观察其梯度累积两个部分 &mdash;&mdash; 一部分来自此处的损失，另一部分从未来回传 &mdash;&mdash; 并观察截断如何切断这条链，以及逐步的乘积如何悄无声息地消失或爆炸。",
+   "src": "To train an RNN you <em>unroll</em> it into a deep feed-forward graph with shared\n      weights, then run ordinary backprop across it. Walk the backward pass step by\n      step: at each state, watch its gradient accumulate two pieces &mdash; one from the\n      loss right here, one carried back from the future &mdash; and see how truncation\n      cuts the chain and how the per-step product quietly vanishes or explodes.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~9 min@@T1@@\n      @@T2@@Deep Learning &middot; RNNs &middot; Backpropagation@@T3@@": {
+   "zh": "@@T0@@约 9 分钟@@T1@@\n      @@T2@@深度学习 &middot; RNN &middot; 反向传播@@T3@@",
+   "src": "<span>~9 min</span>\n      <span>Deep Learning &middot; RNNs &middot; Backpropagation</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Unroll, then backprop": {
+   "zh": "先展开，再反向传播",
+   "src": "Unroll, then backprop",
+   "tags": []
+  },
+  "An RNN reuses one cell at every timestep, so in time it looks like a very deep\n      network whose layers all share the weights $w_h, w_x, b$. Draw it unrolled and\n      it is just a chain: inputs $x_t$ come in from below, an output/loss $\\mathcal{L}_t$\n      is read off above, and the hidden state is threaded left to right.": {
+   "zh": "RNN 在每一个时间步复用同一个单元，因此在时间维度上它看起来就像一个非常深的网络，其各层都共享权重 $w_h, w_x, b$。把它画成展开形式，它就只是一条链：输入 $x_t$ 从下方进入，输出/损失 $\\mathcal{L}_t$ 从上方读出，而隐藏状态从左到右贯穿其中。",
+   "src": "An RNN reuses one cell at every timestep, so in time it looks like a very deep\n      network whose layers all share the weights $w_h, w_x, b$. Draw it unrolled and\n      it is just a chain: inputs $x_t$ come in from below, an output/loss $\\mathcal{L}_t$\n      is read off above, and the hidden state is threaded left to right.",
+   "tags": []
+  },
+  "Backprop on this graph has a name &mdash; @@T0@@backpropagation through\n      time@@T1@@. Its one wrinkle: every hidden state feeds @@T2@@two@@T3@@ places, so\n      its gradient is a @@T4@@sum@@T5@@ of two incoming contributions.": {
+   "zh": "在此图上的反向传播有一个名字 &mdash;&mdash; @@T0@@随时间反向传播@@T1@@。它唯一的小麻烦在于：每个隐藏状态都会馈入 @@T2@@两@@T3@@ 处，因此其梯度是两份输入贡献的 @@T4@@和@@T5@@。",
+   "src": "Backprop on this graph has a name &mdash; <strong>backpropagation through\n      time</strong>. Its one wrinkle: every hidden state feeds <em>two</em> places, so\n      its gradient is a <em>sum</em> of two incoming contributions.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Lab": {
+   "zh": "实验台",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Walk the backward pass": {
+   "zh": "走一遍反向传播",
+   "src": "Walk the backward pass",
+   "tags": []
+  },
+  "Seven timesteps, unrolled. Press @@T0@@Step backward@@T1@@ to move the\n      gradient frontier from the last step toward the first. At each state the two\n      contributions light up: the vertical arrow is the local loss gradient, the\n      horizontal arrow is credit carried back from $h_{t+1}$. The @@T2@@truncation\n      $K$@@T3@@ slider severs the chain &mdash; greyed states are cut off, and no\n      credit ever reaches them.": {
+   "zh": "七个时间步，已展开。按 @@T0@@后向步进@@T1@@ 将梯度前沿从最后一步向第一步移动。在每一个状态处，两份贡献会亮起：竖直箭头是局部损失梯度，水平箭头是从 $h_{t+1}$ 回传的贡献。@@T2@@截断长度 $K$@@T3@@ 滑块会切断这条链 &mdash;&mdash; 变灰的状态被截断，任何贡献都无法到达它们。",
+   "src": "Seven timesteps, unrolled. Press <strong>Step backward</strong> to move the\n      gradient frontier from the last step toward the first. At each state the two\n      contributions light up: the vertical arrow is the local loss gradient, the\n      horizontal arrow is credit carried back from $h_{t+1}$. The <strong>truncation\n      $K$</strong> slider severs the chain &mdash; greyed states are cut off, and no\n      credit ever reaches them.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Truncation length @@T0@@$K$ = @@T1@@4@@T2@@ steps@@T3@@": {
+   "zh": "截断长度 @@T0@@$K$ = @@T1@@4@@T2@@ 步@@T3@@",
+   "src": "Truncation length <span>$K$ = <span id=\"kVal\">4</span> steps</span>",
+   "tags": [
+    "<span>",
+    "<span id=\"kVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Recurrent weight @@T0@@$|w_h|$ = @@T1@@0.85@@T2@@@@T3@@": {
+   "zh": "循环权重 @@T0@@$|w_h|$ = @@T1@@0.85@@T2@@@@T3@@",
+   "src": "Recurrent weight <span>$|w_h|$ = <span id=\"whVal\">0.85</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"whVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Activation slope @@T0@@$\\sigma'$ = @@T1@@0.90@@T2@@@@T3@@": {
+   "zh": "激活函数斜率 @@T0@@$\\sigma'$ = @@T1@@0.90@@T2@@@@T3@@",
+   "src": "Activation slope <span>$\\sigma'$ = <span id=\"aVal\">0.90</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"aVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "&larr; Step backward": {
+   "zh": "&larr; 后向步进",
+   "src": "&larr; Step backward",
+   "tags": []
+  },
+  "Run backward": {
+   "zh": "运行反向传播",
+   "src": "Run backward",
+   "tags": []
+  },
+  "Reset": {
+   "zh": "重置",
+   "src": "Reset",
+   "tags": []
+  },
+  "The RNN unrolled over 7 timesteps. Blue = forward pass. Orange = gradients flowing backward. Faded states are severed by truncation $K$.": {
+   "zh": "RNN 在 7 个时间步上展开。蓝色 = 前向传播。橙色 = 反向流动的梯度。变淡的状态是被截断长度 $K$ 切断的。",
+   "src": "The RNN unrolled over 7 timesteps. Blue = forward pass. Orange = gradients flowing backward. Faded states are severed by truncation $K$.",
+   "tags": []
+  },
+  "@@T0@@@@T1@@@@T2@@ forward pass@@T3@@\n      @@T4@@@@T5@@@@T6@@ local loss gradient@@T7@@\n      @@T8@@@@T9@@@@T10@@ credit carried back@@T11@@\n      @@T12@@@@T13@@@@T14@@ severed by truncation@@T15@@": {
+   "zh": "@@T0@@@@T1@@@@T2@@ 前向传播@@T3@@\n      @@T4@@@@T5@@@@T6@@ 局部损失梯度@@T7@@\n      @@T8@@@@T9@@@@T10@@ 回传的贡献@@T11@@\n      @@T12@@@@T13@@@@T14@@ 被截断切断@@T15@@",
+   "src": "<span><span class=\"swatch\" style=\"background:#2c6fb7;\"></span> forward pass</span>\n      <span><span class=\"swatch\" style=\"background:#d9622b;\"></span> local loss gradient</span>\n      <span><span class=\"swatch\" style=\"background:#1e7770;\"></span> credit carried back</span>\n      <span><span class=\"swatch\" style=\"background:#c9c0b0;\"></span> severed by truncation</span>",
+   "tags": [
+    "<span>",
+    "<span class=\"swatch\" style=\"background:#2c6fb7;\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"swatch\" style=\"background:#d9622b;\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"swatch\" style=\"background:#1e7770;\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"swatch\" style=\"background:#c9c0b0;\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Backward step@@T1@@\n        @@T2@@0 / 4@@T3@@": {
+   "zh": "@@T0@@后向步数@@T1@@\n        @@T2@@0 / 4@@T3@@",
+   "src": "<span class=\"stat-label\">Backward step</span>\n        <span class=\"stat-value\" id=\"bstepVal\">0 / 4</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"bstepVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Gradient frontier at@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@梯度前沿位于@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Gradient frontier at</span>\n        <span class=\"stat-value\" id=\"frontVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"frontVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Credit reaching frontier@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@到达前沿的贡献@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Credit reaching frontier</span>\n        <span class=\"stat-value\" id=\"creditVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"creditVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Press Step backward.@@T1@@ Watch the frontier march left and the\n      \"credit reaching frontier\" number change. Each hop multiplies it by\n      $|w_h|\\cdot\\sigma'$ &mdash; set that product below 1 and credit @@T2@@vanishes@@T3@@\n      as it travels back; set it above 1 and it @@T4@@explodes@@T5@@.": {
+   "zh": "@@T0@@按「后向步进」。@@T1@@ 观察前沿向左推进，以及「到达前沿的贡献」数值的变化。每跳一次都会将其乘以 $|w_h|\\cdot\\sigma'$ &mdash;&mdash; 把该乘积设为小于 1，贡献在回传途中会 @@T2@@消失@@T3@@；设为大于 1，则会 @@T4@@爆炸@@T5@@。",
+   "src": "<strong>Press Step backward.</strong> Watch the frontier march left and the\n      \"credit reaching frontier\" number change. Each hop multiplies it by\n      $|w_h|\\cdot\\sigma'$ &mdash; set that product below 1 and credit <em>vanishes</em>\n      as it travels back; set it above 1 and it <em>explodes</em>.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "收获",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Why long-range credit is so fragile": {
+   "zh": "为何长程贡献如此脆弱",
+   "src": "Why long-range credit is so fragile",
+   "tags": []
+  },
+  "Trace the credit that reaches an early state $h_t$ from a late loss $h_T$. It has\n      to pass through every recurrent edge in between, and each edge contributes the\n      same Jacobian factor. The whole path is therefore a @@T0@@product@@T1@@:": {
+   "zh": "追踪从靠后的损失 $h_T$ 传回到靠前状态 $h_t$ 的贡献。它必须经过其间每一条循环边，而每条边都贡献相同的雅可比因子。因此整条路径是一个 @@T0@@乘积@@T1@@：",
+   "src": "Trace the credit that reaches an early state $h_t$ from a late loss $h_T$. It has\n      to pass through every recurrent edge in between, and each edge contributes the\n      same Jacobian factor. The whole path is therefore a <em>product</em>:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "If $|w_h\\,\\sigma'| &lt; 1$, that product decays exponentially &mdash; the @@T0@@vanishing gradient@@T1@@. Distant timesteps get essentially zero learning signal.": {
+   "zh": "若 $|w_h\\,\\sigma'| &lt; 1$，该乘积按指数衰减 &mdash;&mdash; 这就是 @@T0@@梯度消失@@T1@@。遥远的时间步几乎得不到任何学习信号。",
+   "src": "If $|w_h\\,\\sigma'| &lt; 1$, that product decays exponentially &mdash; the <strong>vanishing gradient</strong>. Distant timesteps get essentially zero learning signal.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "If $|w_h\\,\\sigma'| &gt; 1$, it grows exponentially &mdash; the @@T0@@exploding gradient@@T1@@, which gradient clipping papers over but never truly fixes.": {
+   "zh": "若 $|w_h\\,\\sigma'| &gt; 1$，它按指数增长 &mdash;&mdash; 这就是 @@T0@@梯度爆炸@@T1@@，梯度裁剪只能掩盖它，而永远无法真正修复它。",
+   "src": "If $|w_h\\,\\sigma'| &gt; 1$, it grows exponentially &mdash; the <strong>exploding gradient</strong>, which gradient clipping papers over but never truly fixes.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Only $|w_h\\,\\sigma'| \\approx 1$ preserves credit over long ranges &mdash; a razor's edge that plain RNNs cannot reliably sit on.": {
+   "zh": "只有 $|w_h\\,\\sigma'| \\approx 1$ 才能在长程上保住贡献 &mdash;&mdash; 这是一条普通 RNN 无法可靠地稳住的剃刀边缘。",
+   "src": "Only $|w_h\\,\\sigma'| \\approx 1$ preserves credit over long ranges &mdash; a razor's edge that plain RNNs cannot reliably sit on.",
+   "tags": []
+  },
+  "@@T0@@Truncated BPTT is the practical compromise.@@T1@@ Instead of unrolling\n      the entire sequence, you backprop only $K$ steps and cut the rest (the greyed\n      region). It bounds compute and memory per update and tames exploding gradients\n      &mdash; at the cost that no gradient signal ever reaches beyond $K$ steps, so the\n      model simply cannot learn dependencies longer than its truncation window.": {
+   "zh": "@@T0@@截断式 BPTT 是实用的折中。@@T1@@ 你不再展开整个序列，而是只反向传播 $K$ 步并切断其余部分（灰色区域）。它限制了每次更新的计算与内存开销，并驯服了梯度爆炸 &mdash;&mdash; 代价是梯度信号永远无法到达 $K$ 步之外，因此模型根本无法学习长于其截断窗口的依赖关系。",
+   "src": "<strong>Truncated BPTT is the practical compromise.</strong> Instead of unrolling\n      the entire sequence, you backprop only $K$ steps and cut the rest (the greyed\n      region). It bounds compute and memory per update and tames exploding gradients\n      &mdash; at the cost that no gradient signal ever reaches beyond $K$ steps, so the\n      model simply cannot learn dependencies longer than its truncation window.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@The fix that stuck.@@T1@@ LSTMs and GRUs replace that fragile\n      $w_h\\,\\sigma'$ product with a nearly-linear, gated highway for the state, so the\n      per-step factor stays close to 1 by construction. Same unrolled picture &mdash;\n      just an easier road for credit to travel.": {
+   "zh": "@@T0@@真正奏效的修复方案。@@T1@@ LSTM 与 GRU 用一条近乎线性的、带门控的状态高速公路取代了那个脆弱的 $w_h\\,\\sigma'$ 乘积，使得逐步因子在构造上就保持接近 1。展开图看起来一样 &mdash;&mdash; 只是贡献的传播之路更好走。",
+   "src": "<strong>The fix that stuck.</strong> LSTMs and GRUs replace that fragile\n      $w_h\\,\\sigma'$ product with a nearly-linear, gated highway for the state, so the\n      per-step factor stays close to 1 by construction. Same unrolled picture &mdash;\n      just an easier road for credit to travel.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 13: RNNs, LSTMs and GRUs": {
+   "zh": "ES 667 深度学习讲解系列的一部分 &middot; 第 13 讲：RNN、LSTM 与 GRU",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 13: RNNs, LSTMs and GRUs",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "随时间反向传播",
+  "tagline": "展开一个 RNN，走一遍反向传播，观察截断如何切断贡献链",
+  "summary": "训练 RNN 意味着将其展开为一个深层共享权重的图，并在其上运行普通的反向传播。逐时间步地推进反向传播：在每一个隐藏状态处，其梯度累积两份贡献 —— 此处的局部损失，加上从未来回传的贡献。截断长度 K 滑块会清晰可见地切断这条链，而每跳的 w_h·σ′ 因子则显示贡献在沿时间回传时如何消失或爆炸。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "观察 RNN 在七个时间步上的展开图，包含输入、逐步损失以及贯穿其中的隐藏状态。",
+   "推进反向传播，观察每个状态的梯度如何累积两部分：局部损失加上从 h_{t+1} 回传的贡献。",
+   "滑动截断长度 K 以切断这条链 —— 变灰的状态得不到梯度，与截断式 BPTT 完全一致。",
+   "把 w_h·σ′ 乘积调到小于或大于 1，观察贡献在回传时消失或爆炸。",
+   "把普通 RNN 稳在剃刀边缘的困境，与 LSTM 和 GRU 为何要对状态随时间传播的路径加门控联系起来。"
+  ],
+  "tags": [
+   "BPTT",
+   "RNN",
+   "反向传播",
+   "梯度消失",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

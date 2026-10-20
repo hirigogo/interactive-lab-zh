@@ -1,0 +1,245 @@
+{
+ "slug": "derivative-tangent",
+ "units": {
+  "The Derivative is a Local Line": {
+   "zh": "导数是局部的直线",
+   "src": "The Derivative is a Local Line",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer &middot; Calculus Toolkit": {
+   "zh": "交互式讲解 &middot; 微积分工具箱",
+   "src": "Interactive Explainer &middot; Calculus Toolkit",
+   "tags": []
+  },
+  "A derivative is not a formula to memorize &mdash; it is the slope of the\n      straight line a curve becomes when you zoom in far enough. Drag the base\n      point, collapse a secant onto the tangent, and zoom until the curve\n      straightens. The number you land on @@T0@@is@@T1@@ $f'(x_0)$.": {
+   "zh": "导数不是一个需要背诵的公式 &mdash; 它是当你在某点放大到足够程度时，曲线所变成的那条直线的斜率。拖动基点，让割线收缩到切线上，并放大直到曲线变直。你最终得到的那个数@@T0@@就是@@T1@@ $f'(x_0)$。",
+   "src": "A derivative is not a formula to memorize &mdash; it is the slope of the\n      straight line a curve becomes when you zoom in far enough. Drag the base\n      point, collapse a secant onto the tangent, and zoom until the curve\n      straightens. The number you land on <em>is</em> $f'(x_0)$.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~8 min@@T1@@\n      @@T2@@Deep Learning &middot; Calculus &middot; Gradients@@T3@@": {
+   "zh": "@@T0@@约 8 分钟@@T1@@\n      @@T2@@深度学习 &middot; 微积分 &middot; 梯度@@T3@@",
+   "src": "<span>~8 min</span>\n      <span>Deep Learning &middot; Calculus &middot; Gradients</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Slope of what, exactly?": {
+   "zh": "究竟是谁的斜率？",
+   "src": "Slope of what, exactly?",
+   "tags": []
+  },
+  "The derivative $f'(x_0)$ is defined as a limit of slopes of secant lines.\n      Pick a nearby point a distance $h$ away, draw the line through\n      $(x_0, f(x_0))$ and $(x_0+h,\\, f(x_0+h))$, and read off its slope. Now let\n      the second point slide in toward the first:": {
+   "zh": "导数 $f'(x_0)$ 被定义为割线斜率的极限。取距离 $h$ 处的一个邻近点，画出过 $(x_0, f(x_0))$ 与 $(x_0+h,\\, f(x_0+h))$ 的直线，读出其斜率。现在让第二个点滑向第一个点：",
+   "src": "The derivative $f'(x_0)$ is defined as a limit of slopes of secant lines.\n      Pick a nearby point a distance $h$ away, draw the line through\n      $(x_0, f(x_0))$ and $(x_0+h,\\, f(x_0+h))$, and read off its slope. Now let\n      the second point slide in toward the first:",
+   "tags": []
+  },
+  "Two pictures of the same fact live below. The @@T0@@secant@@T1@@ slider\n      shrinks $h$ so the average slope converges to the instantaneous one. The\n      @@T2@@zoom@@T3@@ slider does it geometrically: magnify the graph around\n      $(x_0, f(x_0))$ and any smooth curve flattens into a straight line &mdash;\n      the tangent. That line, and its slope, is the entire content of \"derivative.\"": {
+   "zh": "下方给出同一事实的两幅图景。@@T0@@割线@@T1@@滑块缩小 $h$，使平均斜率收敛到瞬时斜率。@@T2@@放大@@T3@@滑块则从几何上做到这一点：将图像在 $(x_0, f(x_0))$ 附近放大，任何光滑曲线都会变平为一条直线 &mdash; 即切线。那条直线及其斜率，就是「导数」的全部内涵。",
+   "src": "Two pictures of the same fact live below. The <strong>secant</strong> slider\n      shrinks $h$ so the average slope converges to the instantaneous one. The\n      <strong>zoom</strong> slider does it geometrically: magnify the graph around\n      $(x_0, f(x_0))$ and any smooth curve flattens into a straight line &mdash;\n      the tangent. That line, and its slope, is the entire content of \"derivative.\"",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The Lab": {
+   "zh": "实验部分",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Secant, tangent, zoom": {
+   "zh": "割线、切线与放大",
+   "src": "Secant, tangent, zoom",
+   "tags": []
+  },
+  "Choose a curve, then @@T0@@drag left/right on the plot@@T1@@ (or use the\n      $x_0$ slider) to move the base point. Pull the $h$ slider toward $0$ and watch\n      the orange secant swing onto the blue tangent. Then push the zoom slider and\n      watch the curve itself straighten.": {
+   "zh": "选择一条曲线，然后@@T0@@在图上左右拖动@@T1@@（或使用 $x_0$ 滑块）来移动基点。将 $h$ 滑块向 $0$ 拉动，观察橙色割线如何摆向蓝色切线。随后推动放大滑块，观察曲线本身如何变直。",
+   "src": "Choose a curve, then <strong>drag left/right on the plot</strong> (or use the\n      $x_0$ slider) to move the base point. Pull the $h$ slider toward $0$ and watch\n      the orange secant swing onto the blue tangent. Then push the zoom slider and\n      watch the curve itself straighten.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Base point @@T0@@$x_0$ = @@T1@@1.00@@T2@@@@T3@@": {
+   "zh": "基点 @@T0@@$x_0$ = @@T1@@1.00@@T2@@@@T3@@",
+   "src": "Base point <span>$x_0$ = <span id=\"x0Val\">1.00</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"x0Val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Secant step @@T0@@$h$ = @@T1@@1.50@@T2@@@@T3@@": {
+   "zh": "割线步长 @@T0@@$h$ = @@T1@@1.50@@T2@@@@T3@@",
+   "src": "Secant step <span>$h$ = <span id=\"hVal\">1.50</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"hVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Zoom @@T0@@&times;@@T1@@1.0@@T2@@@@T3@@": {
+   "zh": "放大 @@T0@@&times;@@T1@@1.0@@T2@@@@T3@@",
+   "src": "Zoom <span>&times;<span id=\"zoomVal\">1.0</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"zoomVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Blue = tangent line $y = f(x_0) + f'(x_0)(x-x_0)$.\n        Orange = secant through the two dots, slope\n        $\\big(f(x_0+h)-f(x_0)\\big)/h$. Grid spacing is labelled and shrinks as you zoom.": {
+   "zh": "蓝色 = 切线 $y = f(x_0) + f'(x_0)(x-x_0)$。\n        橙色 = 过两点的割线，斜率\n        $\\big(f(x_0+h)-f(x_0)\\big)/h$。网格间距已标注，并随放大而缩小。",
+   "src": "Blue = tangent line $y = f(x_0) + f'(x_0)(x-x_0)$.\n        Orange = secant through the two dots, slope\n        $\\big(f(x_0+h)-f(x_0)\\big)/h$. Grid spacing is labelled and shrinks as you zoom.",
+   "tags": []
+  },
+  "@@T0@@Secant slope $\\;\\big(f(x_0+h)-f(x_0)\\big)/h$@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@割线斜率 $\\;\\big(f(x_0+h)-f(x_0)\\big)/h$@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Secant slope $\\;\\big(f(x_0+h)-f(x_0)\\big)/h$</span>\n        <span class=\"stat-value\" id=\"secVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"secVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Derivative $f'(x_0)$@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@导数 $f'(x_0)$@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Derivative $f'(x_0)$</span>\n        <span class=\"stat-value\" id=\"derivVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"derivVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Gap (secant &minus; tangent)@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@差距（割线 &minus; 切线）@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Gap (secant &minus; tangent)</span>\n        <span class=\"stat-value\" id=\"gapVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"gapVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Height $f(x_0)$@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@高度 $f(x_0)$@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Height $f(x_0)$</span>\n        <span class=\"stat-value\" id=\"fxVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"fxVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Do this now.@@T1@@ Set $x_0$ somewhere interesting, then drag the\n      $h$ slider from $2.5$ down toward $0$. The big orange number slides toward the\n      blue derivative, and the @@T2@@gap@@T3@@ shrinks &mdash; for a smooth curve it\n      shrinks roughly like $h$ itself. Separately, leave $h$ alone and crank the\n      zoom: the curve peels away from your eye as a perfect line. Same limit,\n      two lenses.": {
+   "zh": "@@T0@@现在就动手试试。@@T1@@ 把 $x_0$ 设在某个有意思的位置，然后将\n      $h$ 滑块从 $2.5$ 向 $0$ 拖动。橙色的大数字会滑向蓝色的导数值，@@T2@@差距@@T3@@随之缩小 &mdash; 对光滑曲线而言，它大致按 $h$ 本身的量级缩小。另外，保持 $h$ 不变而把放大倍数调大：曲线会从你眼前剥离成一条完美的直线。同一个极限，两种透镜。",
+   "src": "<strong>Do this now.</strong> Set $x_0$ somewhere interesting, then drag the\n      $h$ slider from $2.5$ down toward $0$. The big orange number slides toward the\n      blue derivative, and the <em>gap</em> shrinks &mdash; for a smooth curve it\n      shrinks roughly like $h$ itself. Separately, leave $h$ alone and crank the\n      zoom: the curve peels away from your eye as a perfect line. Same limit,\n      two lenses.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "收获",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Differentiable means locally linear": {
+   "zh": "可微意味着局部线性",
+   "src": "Differentiable means locally linear",
+   "tags": []
+  },
+  "Zoom into a differentiable function anywhere and it looks like a line. That is\n      the whole reason calculus powers deep learning: near the current weights, a\n      loss surface is well approximated by its tangent (its gradient), so we can\n      take a confident step downhill. Formally, the tangent is the best linear\n      approximation, with error that dies faster than $h$:": {
+   "zh": "把可微函数在任何位置放大，它看起来都像一条直线。这正是微积分能够驱动深度学习的全部原因：在当前权重附近，损失曲面可由其切线（即其梯度）很好地近似，因此我们可以自信地朝下坡方向迈出一步。形式上，切线是最佳线性近似，其误差比 $h$ 衰减得更快：",
+   "src": "Zoom into a differentiable function anywhere and it looks like a line. That is\n      the whole reason calculus powers deep learning: near the current weights, a\n      loss surface is well approximated by its tangent (its gradient), so we can\n      take a confident step downhill. Formally, the tangent is the best linear\n      approximation, with error that dies faster than $h$:",
+   "tags": []
+  },
+  "@@T0@@Corners break it.@@T1@@ Try $f(x)=|x|$ in your head at $x_0=0$: zooming never straightens the kink, and the left/right secant slopes disagree. No single tangent, no derivative &mdash; the same reason $\\mathrm{ReLU}$ needs a subgradient at $0$.": {
+   "zh": "@@T0@@尖角会使其失效。@@T1@@ 在头脑中考虑 $f(x)=|x|$ 在 $x_0=0$ 处的情形：无论怎样放大，尖角都无法变直，且左、右两侧的割线斜率互不一致。没有唯一的切线，也就没有导数 &mdash; 这正是 $\\mathrm{ReLU}$ 在 $0$ 处需要次梯度的原因。",
+   "src": "<strong>Corners break it.</strong> Try $f(x)=|x|$ in your head at $x_0=0$: zooming never straightens the kink, and the left/right secant slopes disagree. No single tangent, no derivative &mdash; the same reason $\\mathrm{ReLU}$ needs a subgradient at $0$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@The slope is the derivative.@@T1@@ There is nothing else in the definition: it is literally the number the secant slopes converge to.": {
+   "zh": "@@T0@@斜率就是导数。@@T1@@ 定义中别无他物：它字面上就是割线斜率所收敛到的那个数。",
+   "src": "<strong>The slope is the derivative.</strong> There is nothing else in the definition: it is literally the number the secant slopes converge to.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Backprop is this, everywhere at once.@@T1@@ Each layer contributes its local slope; the chain rule multiplies them. Every arrow in a computation graph is a tiny version of this picture.": {
+   "zh": "@@T0@@反向传播就是这件事，同时在所有位置发生。@@T1@@ 每一层贡献其局部斜率；链式法则将它们相乘。计算图中的每一个箭头，都是这幅图景的一个微缩版本。",
+   "src": "<strong>Backprop is this, everywhere at once.</strong> Each layer contributes its local slope; the chain rule multiplies them. Every arrow in a computation graph is a tiny version of this picture.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Next up:@@T1@@ functions of many variables do not have one slope but\n      a whole vector of them &mdash; the gradient. Each entry is exactly this\n      one-dimensional picture, taken along one axis. That is the next explainer,\n      @@T2@@Partial Derivatives are Slices@@T3@@.": {
+   "zh": "@@T0@@接下来：@@T1@@ 多变量函数没有单一的斜率，而是有一整个向量，即梯度。其中每个分量恰好就是这幅一维图景沿某一个坐标轴方向所取的结果。这就是下一篇讲解，\n      @@T2@@偏导数是切片@@T3@@。",
+   "src": "<strong>Next up:</strong> functions of many variables do not have one slope but\n      a whole vector of them &mdash; the gradient. Each entry is exactly this\n      one-dimensional picture, taken along one axis. That is the next explainer,\n      <em>Partial Derivatives are Slices</em>.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 3: Calculus Toolkit": {
+   "zh": "ES 667 深度学习讲解系列的一部分 &middot; 第三讲：微积分工具箱",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 3: Calculus Toolkit",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "导数是局部的直线",
+  "tagline": "把任何光滑曲线放大，它都会变成一条直线 — 其斜率就是导数",
+  "summary": "选择一条曲线，拖动基点，观察同一极限的两种视角。割线滑块将步长 h 收缩至零，使平均斜率收敛到瞬时斜率；放大滑块则不断放大图像，直到曲线可见地变直为它的切线。橙色的大割线数值滑向蓝色的导数值，使定义 f'(x0) = lim (f(x0+h)-f(x0))/h 成为你亲眼所见而非死记硬背的内容 — 并为局部线性性奠定基础，而后者正是梯度能够训练网络的原因。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "在 x^2、sin x 或 x^3 - x 上拖动基点，观察切线随之旋转以匹配局部斜率。",
+   "将割线步长 h 收缩至零，观察平均斜率收敛到精确的导数，其差距按 h 的量级衰减。",
+   "对基点处做几何放大，直到曲线变直为一条直线 — 将局部线性性直观呈现。",
+   "实时读取割线斜率、导数及其差距这三个相互关联的数值。",
+   "引申至深度学习为何有效：在当前权重附近损失看似线性，因此梯度给出了可信的下坡方向。"
+  ],
+  "tags": [
+   "微积分",
+   "导数",
+   "切线",
+   "梯度",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

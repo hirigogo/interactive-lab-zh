@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>亲身体会 Seq2Seq 瓶颈</title>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>亲身体会 Seq2Seq 瓶颈</h1>
+        <p class="abstract">
+          长句会压垮短上下文向量。亲手搭建一个单向量编码器，用长度不断增长的句子测试它，精确地看到信息从何时开始流失——正是这一失败使注意力机制成为必然。
+        </p>
+        <div class="byline">
+          <span>约 10 分钟</span>
+          <span>深度学习 · Seq2Seq · 注意力机制的动机</span>
+        </div>
+      </header>
+
+      <!-- 前言 -->
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>行李箱问题</h2>
+        <p>
+          设想你要去度一周假，航空公司限你只能带一件 7 千克的随身行李。你勉强应付得来。现在再设想用同一个行李箱去应付<em>为期六个月的探险</em>。行李箱没变——变的是你的需求。所有装不下的东西都只能留在原地。
+        </p>
+        <p>
+          2014 年的 Seq2Seq 模型（Sutskever、Vinyals、Le）构建了一个神经翻译器，把整个源句打包进单个固定大小的<strong>上下文向量</strong>——不妨设其为 512 个浮点数。短句打包得很好，长句则会溢出。本页让你实时运行这一压缩过程，观察翻译质量如何随句子长度增长而崩塌。
+        </p>
+        <div class="callout callout--think">
+          <strong>读完本页时</strong>，你将会看到上下文向量如何挣扎，测量到 BLEU 的下降，并彻底明白为何 Bahdanau 等人一年之后加入了注意力机制。
+        </div>
+      </section>
+
+      <!-- 第 1 步 -->
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>选择一对句子</h2>
+        <p>
+          三个示例翻译任务。每个任务都有短、中、长三种变体。选择一个场景开始。
+        </p>
+        <div class="button-row" id="scenario-buttons" role="group" aria-label="选择场景">
+          <button class="mode-button is-active" data-case="news">新闻句子</button>
+          <button class="mode-button" data-case="story">短篇故事</button>
+          <button class="mode-button" data-case="academic">学术文体</button>
+        </div>
+        <div class="interactive-figure">
+          <div class="controls">
+            <label>源句长度： <input type="range" id="len" min="5" max="60" step="1" value="12" /><span id="len-val" class="mono-text">12</span></label>
+          </div>
+          <svg id="step1-plot" width="880" height="220" viewBox="0 0 880 220"></svg>
+          <div class="stat-strip">
+            <div class="stat-pill">
+              <span class="stat-label">源词元数</span>
+              <span class="stat-value" id="src-tokens">–</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-label">信息量（比特，约）</span>
+              <span class="stat-value" id="src-bits">–</span>
+            </div>
+          </div>
+        </div>
+        <div class="callout callout--think">
+          <strong>先停一下。</strong> 一个 12 词的句子约有 120 比特的熵（≈每词 10 比特）。一个 512 维浮点向量原则上可编码约 16000 比特。因此对短句而言，空间*绰绰有余*。麻烦从约 50 词处开始。
+        </div>
+      </section>
+
+      <!-- 第 2 步 -->
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>压缩进一个上下文向量</h2>
+        <p>
+          现在来模拟编码器。每个词元被顺序读取；隐藏状态是完整的 <code>d</code> 维上下文的一个二维示意。拖动上下文维度，看看编码器有多少空间。
+        </p>
+        <div class="interactive-figure">
+          <div class="controls">
+            <label>上下文维度 d：
+              <select id="ctx-dim" style="padding:4px 8px;">
+                <option value="64">64</option>
+                <option value="256">256</option>
+                <option value="512" selected>512</option>
+                <option value="1024">1024</option>
+              </select>
+            </label>
+          </div>
+          <svg id="step2-plot" width="880" height="260" viewBox="0 0 880 260"></svg>
+          <div class="stat-strip">
+            <div class="stat-pill">
+              <span class="stat-label">上下文容量</span>
+              <span class="stat-value" id="ctx-cap">–</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-label">句子熵</span>
+              <span class="stat-value" id="sent-ent">–</span>
+            </div>
+            <div class="stat-pill highlight-pill">
+              <span class="stat-label">压缩损失</span>
+              <span class="stat-value" id="comp-loss">–</span>
+            </div>
+          </div>
+        </div>
+        <div class="callout">
+          <strong>解读这幅图。</strong> 编码器的每一步都把更多源信息压入同样大小的向量。早先的词元会逐渐褪去，因为后来的词元覆盖了该表示。Sutskever 的团队正是观察到了这一点，并通过<em>反转</em>源句部分解决了它（使早先的词元最后被写入，从而更靠近解码器读取之处）。
+        </div>
+      </section>
+
+      <!-- 第 3 步 -->
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>翻译质量与源句长度的关系</h2>
+        <p>
+          2014 年的论文（Sutskever 等人）按源句长度报告了 BLEU。以下是他们的结果以交互方式重现：BLEU 在超过约 30 个词元后急剧跌落。
+        </p>
+        <div class="interactive-figure">
+          <svg id="step3-plot" width="880" height="360" viewBox="0 0 880 360"></svg>
+          <div class="legend">
+            <span><span class="swatch" style="background:#d9622b"></span>Seq2Seq（无注意力）</span>
+            <span><span class="swatch" style="background:#7b9e89"></span>Seq2Seq（反转源句）</span>
+            <span><span class="swatch" style="background:#4a6670"></span>Bahdanau 注意力（2015）</span>
+          </div>
+        </div>
+        <div class="callout callout--null">
+          <strong>故事。</strong> 反转源句为他们换来了 4-5 个 BLEU 点——并非因为它修复了瓶颈，而是因为它改变了信息流失*发生的位置*（最后读取者 = 最靠近解码器者）。注意力用一个*灵活的查表*取代了固定向量，一举跃过了两条曲线。
+        </div>
+      </section>
+
+      <!-- 第 4 步 -->
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>哪些信息最先被丢弃？</h2>
+        <p>
+          这里有一个具体的例子。把一个句子送入压缩器，然后要求它回忆特定的部分。观察解码器还能恢复哪些部分。
+        </p>
+        <div class="interactive-figure">
+          <div class="controls">
+            <label>回忆哪个词元： <input type="range" id="recall" min="0" max="20" step="1" value="0" /><span id="recall-val" class="mono-text">0</span></label>
+          </div>
+          <svg id="step4-plot" width="880" height="240" viewBox="0 0 880 240"></svg>
+          <div class="stat-strip">
+            <div class="stat-pill">
+              <span class="stat-label">位置</span>
+              <span class="stat-value" id="pos-val">–</span>
+            </div>
+            <div class="stat-pill highlight-pill">
+              <span class="stat-label">回忆准确率</span>
+              <span class="stat-value" id="recall-acc">–</span>
+            </div>
+          </div>
+        </div>
+        <div class="callout callout--think">
+          <strong>模式。</strong> 中间的词元最先丢失——它们夹在开头（已褪去）与结尾（最新）之间。这一 U 形曲线正是为何在注意力之前的模型里，束搜索的翻译在长句上以弄错“中间部分”而著称。
+        </div>
+      </section>
+
+      <!-- 第 5 步 -->
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>注意力 · 移除瓶颈</h2>
+        <p>
+          注意力不是把所有内容硬塞进一个向量，而是让解码器<em>访问编码器的每一个隐藏状态</em>。在每个解码步，它按相关性为它们加权并求平均。
+        </p>
+        <div class="interactive-figure">
+          <svg id="step5-plot" width="880" height="260" viewBox="0 0 880 260"></svg>
+          <div class="legend">
+            <span><span class="swatch" style="background:#d9622b"></span>注意力权重 α_t,i</span>
+          </div>
+        </div>
+        <div class="callout callout--insight">
+          <strong>机制。</strong> 每个目标步 t 通过从<em>所有</em>源状态 h_1…h_T 中以学得的权重 α_t,i 采样来构建其上下文。长句不再有害——每个源词元都保持可访问。就是这样：注意力化解了瓶颈。
+        </div>
+        <div class="math-block">
+          c_t = Σ_i α_{t,i} · h_i &nbsp;&nbsp;&nbsp; 其中 &nbsp;&nbsp; α_{t,i} = softmax(score(s_t, h_i))
+        </div>
+      </section>
+
+      <!-- 常见误解 -->
+      <section class="step-section" id="misconceptions">
+        <div class="step-badge">常见误解</div>
+        <h2>三种常见的混淆</h2>
+        <div class="misconception-grid">
+          <div class="misconception-card">
+            <span class="misconception-icon">不实</span>
+            <p><strong>“把向量做大就行。”</strong><br />一个 2048 维的向量只是推迟问题，而非解决它。这个瓶颈是<em>结构性的</em>：一个向量要承载来自每一个位置的信息。你终究会耗尽空间。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">不实</span>
+            <p><strong>“反转源句只是一种取巧。”</strong><br />它是取巧，但是一种务实的取巧，揭示了瓶颈对句子哪一端伤害最大。真正的修复方案（注意力）正是从认识到这一泄露而来。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">不实</span>
+            <p><strong>“现代 LLM 仍在使用编码器-解码器。”</strong><br />2026 年的大多数 LLM 都是<em>仅解码器</em>结构——它们根本不把源内容编码成向量；整段对话就是一条长序列。编码器-解码器则保留在 T5 等翻译专用模型中。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 附加内容 -->
+      <section class="step-section" id="bonus">
+        <div class="step-badge">附加内容</div>
+        <h2>审视同一修复方法的三种视角</h2>
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>模型（年份）</th>
+              <th>新增内容</th>
+              <th>50 词元句子上的 BLEU</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Seq2Seq（2014）</td><td>编码器 + 解码器 LSTM，单个上下文向量</td><td>22</td></tr>
+            <tr><td>反转 Seq2Seq（2014）</td><td>翻转源句 · 架构相同</td><td>26</td></tr>
+            <tr><td>Bahdanau 注意力（2015）</td><td>解码器关注所有编码器状态</td><td>30</td></tr>
+            <tr><td>Transformer（2017）</td><td>处处是注意力 · 无循环结构</td><td>35+</td></tr>
+          </tbody>
+        </table>
+        <div class="callout callout--think">
+          <strong>最后总结。</strong> Seq2Seq 瓶颈是注意力机制在教学上的动机来源。此后每一种架构都是“注意力，只是路由方式不同”——Transformer 中的交叉注意力、Stable Diffusion 中的交叉注意力、LLaVA 中的交叉注意力。一旦你体会过瓶颈在何处作痛，修复方案便不言自明。
+        </div>
+      </section>
+
+      <section class="step-section" id="reading">
+        <div class="step-badge">延伸阅读</div>
+        <h2>从瓶颈到 Transformer 的论文脉络</h2>
+        <ul style="padding-left:1.4em; margin: 0 0 16px 0;">
+          <li style="margin-bottom:6px;"><strong>Sutskever, Vinyals, Le (2014)</strong> — <em>Sequence to Sequence Learning with Neural Networks.</em> 最初的编码器-解码器模型。</li>
+          <li style="margin-bottom:6px;"><strong>Cho 等人 (2014)</strong> — <em>Learning Phrase Representations using RNN Encoder–Decoder.</em> 基于 GRU 的同期论文。</li>
+          <li style="margin-bottom:6px;"><strong>Bahdanau, Cho, Bengio (2015)</strong> — <em>Neural Machine Translation by Jointly Learning to Align and Translate.</em> 第一篇注意力论文——通过让解码器回看修复了瓶颈。</li>
+          <li style="margin-bottom:6px;"><strong>Luong, Pham, Manning (2015)</strong> — <em>Effective Approaches to Attention-based Neural Machine Translation.</em> 点积注意力，即大多数现代系统所采用的形式。</li>
+          <li style="margin-bottom:6px;"><strong>Vaswani 等人 (2017)</strong> — <em>Attention Is All You Need.</em> Transformer——彻底放弃了循环结构。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

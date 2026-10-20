@@ -1,0 +1,152 @@
+{
+ "slug": "elbo-decomposition",
+ "units": {
+  "ELBO, Decomposed": {
+   "zh": "ELBO 分解详解",
+   "src": "ELBO, Decomposed",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "The Evidence Lower Bound is the VAE's loss — and it's just\n          @@T0@@two things added@@T1@@: reconstruction cost and KL to the\n          prior. Watch them fight as you train.": {
+   "zh": "证据下界（ELBO）就是 VAE 的损失 &mdash; 它不过是\n          @@T0@@两项之和@@T1@@：重构代价与到先验的 KL 散度。\n          在训练过程中观察二者的相互抗衡。",
+   "src": "The Evidence Lower Bound is the VAE's loss — and it's just\n          <em>two things added</em>: reconstruction cost and KL to the\n          prior. Watch them fight as you train.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~12 min@@T1@@\n          @@T2@@VAE &middot; Generative models@@T3@@": {
+   "zh": "@@T0@@约 12 分钟@@T1@@\n          @@T2@@VAE &middot; 生成模型@@T3@@",
+   "src": "<span>~12 min</span>\n          <span>VAE &middot; Generative models</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "The loss": {
+   "zh": "损失函数",
+   "src": "The loss",
+   "tags": []
+  },
+  "$\\beta = 1$ gives the classical VAE; $\\beta = 0$ degenerates to a plain AE; large $\\beta$ pushes toward disentangled latents at reconstruction cost.": {
+   "zh": "$\\beta = 1$ 给出经典的 VAE；$\\beta = 0$ 退化为普通的 AE；\n          较大的 $\\beta$ 会以牺牲重构质量为代价，推动潜变量走向解耦。",
+   "src": "$\\beta = 1$ gives the classical VAE; $\\beta = 0$ degenerates to a plain AE; large $\\beta$ pushes toward disentangled latents at reconstruction cost.",
+   "tags": []
+  },
+  "Try it": {
+   "zh": "动手试试",
+   "src": "Try it",
+   "tags": []
+  },
+  "The widget": {
+   "zh": "交互组件",
+   "src": "The widget",
+   "tags": []
+  },
+  "@@T0@@Train a tiny MNIST VAE in the browser.@@T1@@": {
+   "zh": "@@T0@@在浏览器中训练一个微型的 MNIST VAE。@@T1@@",
+   "src": "<em>Train a tiny MNIST VAE in the browser.</em>",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Live: two bars (recon + KL), 2D latent scatter, reconstruction grid.@@T1@@": {
+   "zh": "@@T0@@实时显示：两条柱状条（重构 + KL）、二维潜变量散点图、重构网格。@@T1@@",
+   "src": "<em>Live: two bars (recon + KL), 2D latent scatter, reconstruction grid.</em>",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Slider: β from 0 to 50.@@T1@@": {
+   "zh": "@@T0@@滑块：β 从 0 到 50。@@T1@@",
+   "src": "<em>Slider: β from 0 to 50.</em>",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Status: scaffold. Implementation pending.@@T1@@": {
+   "zh": "@@T0@@状态：脚手架。实现尚待完成。@@T1@@",
+   "src": "<em>Status: scaffold. Implementation pending.</em>",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "What you should see": {
+   "zh": "你应当观察到的现象",
+   "src": "What you should see",
+   "tags": []
+  },
+  "@@T0@@$\\beta = 0$ &middot; sharp reconstructions, latent is a mess.@@T1@@": {
+   "zh": "@@T0@@$\\beta = 0$ &middot; 重构清晰，但潜变量一片混乱。@@T1@@",
+   "src": "<strong>$\\beta = 0$ &middot; sharp reconstructions, latent is a mess.</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@$\\beta = 1$ &middot; balanced; samples look like digits.@@T1@@": {
+   "zh": "@@T0@@$\\beta = 1$ &middot; 二者均衡；样本看起来像数字。@@T1@@",
+   "src": "<strong>$\\beta = 1$ &middot; balanced; samples look like digits.</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@$\\beta = 50$ &middot; blurry reconstructions, but the latent axes pick up clean factors (stroke width, slant).@@T1@@": {
+   "zh": "@@T0@@$\\beta = 50$ &middot; 重构模糊，但潜变量的各轴捕捉到了干净的因子（笔画粗细、倾斜度）。@@T1@@",
+   "src": "<strong>$\\beta = 50$ &middot; blurry reconstructions, but the latent axes pick up clean factors (stroke width, slant).</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "ELBO 分解详解",
+  "tagline": "重构与 KL &mdash; 精确看清每一项让你付出的代价。",
+  "summary": "VAE 的目标函数包含两项：重构的负对数似然与到先验的 KL 散度。在浏览器中于 MNIST 上训练一个微型 VAE，观察两条柱状条在训练中的竞逐，滑动 β 使其偏重其中一项。经典的 β-VAE 解耦与重构之间的取舍，由此变得可触可感。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "训练期间实时显示两条柱状条：重构负对数似然与 KL(q‖p)。",
+   "将 β 从 0（普通 AE）经 1（原始 VAE）滑至 50（高度解耦）。",
+   "观察潜空间样本如何随 β 的变化而畸变。"
+  ],
+  "tags": [
+   "VAE",
+   "ELBO",
+   "Beta-VAE",
+   "生成模型",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

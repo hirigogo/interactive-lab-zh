@@ -1,0 +1,28 @@
+{
+  "slug": "vision-transformer",
+  "title": "视觉 Transformer：在真实照片上运行",
+  "date": "2026-05-09",
+  "tagline": "Patch、位置、自注意力与多层 rollout &mdash;&mdash; 全部基于真实预训练特征计算",
+  "summary": "一个预训练的 MobileNet 在你的浏览器中实时运行，将你照片的每个 patch 转成真实的 1024 维特征向量。随后我们在这些真实特征之间计算货真价实的点积注意力 &mdash;&mdash; 而非手工设定的标量 &mdash;&mdash; 并将结果绘制为叠加层。新增：一套顾及残差的多层注意力 rollout（Abnar 与 Zuidema，2020），它合成若干 ViT 层，展示感受野如何随深度增长。",
+  "readingTime": "22 min",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "order": 14,
+  "status": "published",
+  "tags": [
+    "视觉 Transformer",
+    "ViT",
+    "注意力机制",
+    "TensorFlow.js",
+    "MobileNet",
+    "计算机视觉",
+    "交互式"
+  ],
+  "highlights": [
+    "通过 TensorFlow.js 在浏览器内运行真实预训练的 MobileNet v2，为每个 patch 提取 1024 维特征向量。",
+    "在这些真实特征之间计算真实的点积 softmax 注意力 &mdash;&mdash; 全程不含任何玩具标量。",
+    "上传任意 JPEG/PNG 或选择一张图库照片；patch、向量与注意力都会重新计算。",
+    "可切换位置嵌入、改变 patch 尺寸、点击任意 patch 并查看其真实的注意力热力图。",
+    "逐步推进合成的 L 层堆叠，观察顾及残差的注意力 rollout 如何随深度增长感受野。"
+  ]
+}

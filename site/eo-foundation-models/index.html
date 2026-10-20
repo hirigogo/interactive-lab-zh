@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>深入理解对地观测基础模型</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>深入理解对地观测基础模型</h1>
+        <p class="abstract">
+          一次深入导览：为何 ImageNet 权重在卫星影像上表现不佳、哪些预训练方案真正实现了规模化、2026 年的模型库（Prithvi、SatMAE、Clay、AnySat、MMEarth 等）、一个实时的多波段 MAE 演示，以及一个从原始 Sentinel-2 到微调下游模型的端到端实例。
+        </p>
+        <div class="byline">
+          <span>约 30 分钟</span>
+          <span>基础模型 &middot; 对地观测 &middot; 预训练</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>为何对地观测与 ImageNet 不同？</h2>
+        <p>
+          在 ImageNet 上训练的基础模型见过 120 万张三通道 RGB 照片，这些照片由人类拍摄、也服务于人类。而卫星影像瓦片与上述任何一点都不相符：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>多光谱而非 RGB。</strong> Sentinel-2 提供 13 个波段（可见光 + 近红外 + 短波红外 + 若干大气校正波段）。Landsat-8 有 11 个。高光谱传感器则达 200 个以上。ImageNet 骨干网络学会的是按固定顺序读取三个通道；一旦向其输入 13 个通道，补丁嵌入层甚至无法初始化。</li>
+          <li><strong>标定辐亮度而非审美曝光。</strong> 像素值是物理反射率，而非 sRGB。SWIR-1 波段中取值 0.27 的像素<em>意味着</em>某种定量的量。ImageNet 预训练中的自动曝光与色彩平衡假设在此只会起反作用。</li>
+          <li><strong>多时相。</strong> 大多数对地观测任务需要一系列的重访观测，以观察作物生长、城市变化与季节性。而 ImageNet 只看到单帧，仅此而已。</li>
+          <li><strong>多分辨率 / 多模态。</strong> 光学（10m）、雷达（SAR，5–20m）、高程（30m）、夜间灯光、气候。只了解其中一种模态的基础模型会遗漏 80% 的信号。</li>
+          <li><strong>严重的类别不平衡 + 庞大的无标注数据储备。</strong> 陆地覆盖类别有 10–20 种，但地球上大部分区域属于其中三类之一（水体、森林、耕地）。标注代价高昂（往往依赖人工或专家），而无标注瓦片几乎是免费的。</li>
+          <li><strong>层级化的空间尺度。</strong> 一块瓦片覆盖数平方公里。同一任务可能需要像素级输出（分割）、补丁级输出（该 64×64 图块中的窑炉）或瓦片级输出（1km² 范围内的森林砍伐率）。ImageNet 的分类头无法泛化到这些情形。</li>
+        </ul>
+        <div class="callout callout--key">
+          <strong>一句话概括。</strong>
+          对地观测基础模型以牺牲互联网影像的广度，换取遥感数据的深度与物理内涵。预训练目标并未改变（大多为 MAE）；改变的是数据、分词器与评估方式。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>2026 年的对地观测基础模型库</h2>
+        <p>
+          截至 2026 年年中，约有十余个仍在积极维护的对地观测基础模型。它们在模态、预训练目标与下游覆盖范围上各不相同：
+        </p>
+        <div class="examples-table-wrap">
+          <table class="examples-table">
+            <thead><tr><th>模型</th><th>年份</th><th>骨干网络</th><th>模态</th><th>预训练目标</th><th>擅长任务</th></tr></thead>
+            <tbody>
+              <tr><td><strong>SatMAE</strong> 模型</td><td>2022</td><td>ViT-L 骨干</td><td>光学（多光谱、多时相）</td><td>带波段与时序掩码的 MAE</td><td>多时相分类</td></tr>
+              <tr><td><strong>Prithvi-100M</strong>（NASA / IBM）</td><td>2023</td><td>ViT-L 骨干</td><td>HLS 数据集（Sentinel-2 + Landsat-8）</td><td>6 波段瓦片上的 MAE</td><td>洪水、火烧迹地、作物类型</td></tr>
+              <tr><td><strong>Prithvi-EO 600M / 2.0</strong> 模型</td><td>2024</td><td>ViT-H 骨干</td><td>HLS 数据集 + 时相</td><td>MAE + 时相建模</td><td>层级化变化检测</td></tr>
+              <tr><td><strong>SatMAE++</strong> 模型</td><td>2023</td><td>ViT-L 骨干</td><td>光学 + SAR</td><td>MAE + 跨模态对比学习</td><td>跨传感器泛化</td></tr>
+              <tr><td><strong>SatlasPretrain</strong> 模型</td><td>2023</td><td>Swin-B 骨干</td><td>Sentinel-1、Sentinel-2、NAIP</td><td>在 137 个任务上有监督训练</td><td>多任务微调</td></tr>
+              <tr><td><strong>Clay v1</strong> 模型</td><td>2024</td><td>ViT-B 骨干/L 骨干</td><td>多模态嵌入</td><td>MAE + CLIP 式语言对齐</td><td>搜索 / 检索 / 零样本</td></tr>
+              <tr><td><strong>MMEarth</strong> 模型</td><td>2024</td><td>ViT-B 骨干</td><td>12 种模态（S2、S1、DEM、气候、生物量等）</td><td>多模态 MAE</td><td>模态灵活的下游任务</td></tr>
+              <tr><td><strong>AnySat</strong> 模型</td><td>2024</td><td>JEPA 式</td><td>任意光学配置（任意波段、任意分辨率、任意时间）</td><td>预测式（V-JEPA 风格）</td><td>异构场景部署</td></tr>
+              <tr><td><strong>Presto</strong> 模型</td><td>2023</td><td>作用于像素的一维 Transformer</td><td>Sentinel-2 + S1 + ERA5 数据</td><td>逐像素时间序列上的 MAE</td><td>作物类型，极小的微调集</td></tr>
+              <tr><td><strong>GFM</strong>（Mendieta 等）</td><td>2023</td><td>ViT-B 骨干</td><td>光学</td><td>基于通用 ViT 的持续 MAE 预训练</td><td>在域内重训练成本低</td></tr>
+              <tr><td><strong>IBM/NASA Granite-EO</strong> 模型</td><td>2024</td><td>ViT-H 骨干/22 骨干</td><td>HLS 数据集</td><td>MAE + 气候条件化目标</td><td>业务化部署</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          可分为两大阵营：多光谱 MAE 阵营（Prithvi、SatMAE、Granite）与多模态阵营（Clay、MMEarth、AnySat）。前者结构更简单，在固定传感器上更强；后者在部署时更具灵活性，适用于尚不确定将获得何种波段或传感器的情形。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>预训练目标：带若干变体的掩码自编码器</h2>
+        <p>
+          几乎所有成功的对地观测基础模型都使用掩码自编码器（见<a href="../vision-ssl/index.html">视觉预训练一文</a>的第 1 步）。这些变体至关重要：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>光谱掩码。</strong> 掩蔽整个波段，而不仅是补丁。编码器必须学习波段与波段之间的关系（例如，NDVI = (NIR - Red) / (NIR + Red) 隐含于任何光学基础模型之中）。SatMAE 与 MMEarth 即采用此做法。</li>
+          <li><strong>时相掩码。</strong> 掩蔽多时相堆栈中的整个时间步。迫使模型对物候、天气与变化进行插值。代表工作为 Prithvi 2.0 与 Presto。</li>
+          <li><strong>模态丢弃。</strong> 以概率 $p$ 丢弃整个模态（SAR / DEM / 气候）。这迫使模型具备优雅降级的能力。为 MMEarth 的标准方案。</li>
+          <li><strong>分辨率与 GSD 编码。</strong> 将地面采样距离（例如 10m 与 30m）作为词元嵌入加入，使模型能够对尺度进行归一化。Clay 与 AnySat 依赖于此。</li>
+          <li><strong>气候 / 位置条件化。</strong> 许多近期模型以经纬度与季节为条件。这有助于泛化到未见区域。</li>
+        </ul>
+        <div class="math-block" id="math-eomae"></div>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>实时演示：合成 Sentinel-2 瓦片上的多波段 MAE</h2>
+        <p>
+          我们合成一块 6 波段 64×64 的瓦片（模拟 Sentinel-2 的 B2/B3/B4/B8/B11/B12），并赋予其跨波段的真实相关性（植被使绿光与近红外相关；水体抑制近红外；土壤在短波红外中凸显）。拖动掩码比例并选择要掩蔽的波段；重建结果是对可见补丁的智能填补，模拟 MAE 解码器所收敛到的结果。
+        </p>
+        <div class="train-controls">
+          <label>掩码比例 &nbsp;<span id="eo-ratio-val">0.50</span> <input type="range" id="eo-ratio" min="0.05" max="0.95" step="0.05" value="0.5"></label>
+          <label>待掩蔽波段
+            <select id="eo-bands">
+              <option value="random" selected>每波段的随机补丁</option>
+              <option value="all-bands">整波段（掩蔽波段堆栈）</option>
+              <option value="time">整时间步（掩蔽全部 3 个日期）</option>
+            </select>
+          </label>
+          <button class="action-btn action-btn--ghost" id="eo-reroll">新瓦片</button>
+        </div>
+        <div class="eo-figure">
+          <div class="eo-band-strip" id="eo-bands-orig"></div>
+          <figcaption>原始 6 个波段（B2 蓝、B3 绿、B4 红、B8 近红外、B11 短波红外 1、B12 短波红外 2）。</figcaption>
+        </div>
+        <div class="eo-figure">
+          <div class="eo-band-strip" id="eo-bands-masked"></div>
+          <figcaption>掩码后的输入（编码器所见）。</figcaption>
+        </div>
+        <div class="eo-figure">
+          <div class="eo-band-strip" id="eo-bands-recon"></div>
+          <figcaption>解码器重建结果；显示各波段的 RMSE。</figcaption>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>从原始 Sentinel-2 到微调后的下游模型</h2>
+        <p>
+          从 Copernicus 产品到已部署的窑炉检测 / 作物类型 / 生物量模型的端到端流程。
+        </p>
+        <div class="examples-table-wrap">
+          <table class="examples-table">
+            <thead><tr><th>阶段</th><th>工具</th><th>关键意义</th></tr></thead>
+            <tbody>
+              <tr><td><strong>1. 下载</strong></td><td>Sentinel Hub、Microsoft Planetary Computer、AWS Open Data、NASA HLS 数据集</td><td>L1C（大气层顶）与 L2A（地表反射率）——除非自有大气校正流程，否则应选择 L2A</td></tr>
+              <tr><td><strong>2. 切块与归一化</strong></td><td>rasterio、rioxarray</td><td>重投影到统一 CRS，切成 224×224 的图块，按训练集的均值/标准差逐波段归一化</td></tr>
+              <tr><td><strong>3. 过滤</strong></td><td>云 / 雪掩码（s2cloudless、SCL 波段）</td><td>约 30% 的光学瓦片受云覆盖；若不加以过滤，基础模型会去学习预测云，导致下游任务表现不佳</td></tr>
+              <tr><td><strong>4. 预训练（或加载）</strong></td><td>Hugging Face hub：ibm-nasa-geospatial/Prithvi-100M、made-with-clay/Clay-v1</td><td>几乎总是加载现成模型；只有当自身领域确实偏离分布时（高光谱、微卫星）才自行预训练</td></tr>
+              <tr><td><strong>5. 适配编码器</strong></td><td>线性探测 → LoRA → 全量微调</td><td>标注量 ≤1 万时线性探测最优；≥1 万时对注意力层用 LoRA；≥10 万时全量微调</td></tr>
+              <tr><td><strong>6. 任务头</strong></td><td>UperNet / DPT / 线性分类器</td><td>分割任务在 ViT 之上接 UperNet；图块分类用全局池化 + MLP；回归任务用 MLP</td></tr>
+              <tr><td><strong>7. 评估</strong></td><td>在地理空间上留出的瓦片（不可有空间泄漏！）</td><td>随机划分会显著高估性能；应使用空间分块（在地理块上做 k 折交叉验证）——这是对地观测论文中最常见的错误</td></tr>
+              <tr><td><strong>8. 部署</strong></td><td>onnx / tflite / TorchServe，并将 TIFF 预处理一并固化其中</td><td>部署风险来自数据流水线，而非模型本身</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout callout--warn">
+          <strong>对地观测机器学习论文中最严重的错误。</strong>
+          即随机划分训练/测试集。相邻瓦片彼此相关；随机划分会把邻近瓦片同时放入训练集与测试集，使准确率高估 5–25%。空间分块（按 1°×1° 网格、国家、流域划分）才能反映真实的泛化能力。审稿时务必要求这一点。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>通用基础模型的用武之地</h2>
+        <p>
+          DINOv2、SAM2、CLIP 以及新一代视觉-语言模型同样可用于对地观测 &mdash; 有时效果极佳，有时则一塌糊涂。可参考的经验法则如下：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>DINOv2 特征用于 RGB 瓦片。</strong> 在小样本对地观测分类上可持平或优于 ImageNet 预训练的 ResNet。但在多光谱或多时相数据上不如对地观测专用基础模型。</li>
+          <li><strong>SAM2 用于分割提示。</strong> 若目标位于 RGB 影像中且视觉上易于区分（窑炉、船只、建筑、大片田地），则「在该目标周围勾出多边形」的零样本表现极佳。但在小目标或仅靠光谱可区分的类别上会彻底失效。</li>
+          <li><strong>CLIP 用于检索。</strong> 通过文本查询找到「包含砖窑」的瓦片 — 在 RGB 上效果出奇地好。可与对地观测专用嵌入结合以进行重排序。</li>
+          <li><strong>Pixtral / GPT-4o 用于瓦片上的视觉问答。</strong>
+            当你希望快速探索时（「该瓦片中是否可见火情？」）颇为有用；但当需要定量的辐射测量答案时则毫无用处（此时<a href="../vlm/index.html#step-5">热陷阱论证</a>适用）。</li>
+          <li><strong>VLM 与对地观测基础模型的组合。</strong> 这是 2026 年的前沿方向：对地观测基础模型对瓦片进行嵌入；一个小型适配器将其投影到 LLM 空间；由 LLM 就瓦片回答自由形式的问题。EarthGPT / RemoteCLIP / GeoChat 是早期示例。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>动手之前的实用建议</h2>
+        <ul class="explanation-list">
+          <li><strong>除非必要，否则不要自行预训练。</strong> 从 Prithvi 或 Clay 入手；你几乎不可能超越它们数万 GPU 小时的投入。只有在遇到上述模型未覆盖的领域偏移时才自行预训练（无人机、微卫星、含新波段的高光谱）。</li>
+          <li><strong>标注预算才是关键。</strong> 用冻结的基础模型加线性探测，在 200 个标注图块上的表现会比从零训练的 ResNet 高出约 15–30 个 mAP 点。</li>
+          <li><strong>瓦片尺寸很重要。</strong> 224×224 是 ViT 预训练基础模型的标准尺寸；许多对地观测目标（小型窑炉、建筑、车辆）需要更细的尺度；此时可采用 SAM 式高分辨率或滑动窗口方案。</li>
+          <li><strong>主动学习 + 空间分块。</strong>
+            将<a href="../active-learning/index.html">主动学习一文</a>与空间分块交叉验证相结合，把标注预算花在真正能提升泛化能力的瓦片上。</li>
+          <li><strong>对输出施加保形预测。</strong>
+            为任何已部署的对地观测模型套上<a href="../conformal/index.html">保形预测</a>以获得可信区间；其边缘覆盖率保证正是监管方所期望的。</li>
+          <li><strong>此处校准比在 ImageNet 中更为重要。</strong> 政策应用中「窑炉」的预测概率必须经过校准；可按区域使用温度缩放。</li>
+        </ul>
+        <div class="callout callout--think">
+          <strong>最终结论。</strong>
+          对地观测基础模型之所以存在，是因为遥感是一种独特的模态。截至 2026 年，任何卫星机器学习项目的合理默认做法是：下载 Prithvi 或 Clay，冻结它，接上一个小型任务头，并在数据耗尽之前只训练该任务头。大部分工作量在于数据流水线与空间分块评估，而非模型本身。
+        </div>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

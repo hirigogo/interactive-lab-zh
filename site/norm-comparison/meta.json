@@ -1,0 +1,24 @@
+{
+  "slug": "norm-comparison",
+  "title": "BatchNorm 与 LayerNorm、RMSNorm 之比较",
+  "date": "2026-05-23",
+  "tagline": "三种归一化，一个张量——看清每一种究竟在什么之上求平均。",
+  "summary": "选择一个四维张量（批量、通道、高度、宽度）或一个序列（批量、长度、维度）。在 BN / LN / RMSNorm 之间切换。高亮会显示每种方法究竟在哪一切片上求平均。这对理解为何 BN 主宰 CNN 而 LayerNorm 主宰 Transformer、以及为何 RMSNorm 是现代简化方案至关重要。",
+  "readingTime": "12 min",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "order": 101,
+  "status": "draft",
+  "tags": [
+    "归一化",
+    "BatchNorm",
+    "LayerNorm",
+    "RMSNorm",
+    "交互式"
+  ],
+  "highlights": [
+    "悬停于张量之上，查看每种归一化在哪个切片上求平均。",
+    "比较 BN 在训练/评估之间的差异（滑动统计量）与 LN 在批上的对称性。",
+    "切换 RMSNorm，观察去掉均值中心化会带来什么变化。"
+  ]
+}

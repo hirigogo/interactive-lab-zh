@@ -1,0 +1,874 @@
+{
+ "slug": "optical-flow",
+ "units": {
+  "Optical Flow, Frame by Frame": {
+   "zh": "逐帧解析光流",
+   "src": "Optical Flow, Frame by Frame",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Optical flow is the 2-D velocity field that says, for every pixel\n          in a video frame, where it moved in the next frame. This page runs\n          a real Lucas-Kanade solver and a real block-matching dense flow\n          estimator in your browser, on real video. Step through a sports\n          clip one frame at a time and watch the vectors fall out of the\n          brightness-constancy equations.": {
+   "zh": "光流是一个二维速度场，它对视频帧中的每个像素给出其在下一帧中的运动去向。本页在浏览器中、对真实视频运行一个真实的 Lucas-Kanade 求解器和一个真实的块匹配稠密光流估计器。逐帧步进一段体育视频，观察向量如何由亮度恒定方程推导而出。",
+   "src": "Optical flow is the 2-D velocity field that says, for every pixel\n          in a video frame, where it moved in the next frame. This page runs\n          a real Lucas-Kanade solver and a real block-matching dense flow\n          estimator in your browser, on real video. Step through a sports\n          clip one frame at a time and watch the vectors fall out of the\n          brightness-constancy equations.",
+   "tags": []
+  },
+  "@@T0@@~16 min@@T1@@\n          @@T2@@Computer Vision &middot; Video &middot; Classical CV@@T3@@": {
+   "zh": "@@T0@@约 16 分钟@@T1@@\n          @@T2@@计算机视觉 &middot; 视频 &middot; 经典计算机视觉@@T3@@",
+   "src": "<span>~16 min</span>\n          <span>Computer Vision &middot; Video &middot; Classical CV</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Motion is a 2-D vector field": {
+   "zh": "运动是一个二维向量场",
+   "src": "Motion is a 2-D vector field",
+   "tags": []
+  },
+  "Play a video for a few frames and every pixel has a story:\n          stationary background pixels don't move; a tennis ball travels a\n          huge distance; a runner's arms and legs move differently from\n          their torso. Collecting all those per-pixel displacements between\n          two consecutive frames gives you a @@T0@@flow field@@T1@@.\n          Each cell is a 2-D vector $(u, v)$ in pixels-per-frame. That's\n          it&mdash;that's optical flow.": {
+   "zh": "播放一段视频若干帧，每个像素都有一段故事：静止的背景像素不动，网球的位移极大，跑步者的手臂与腿相对其躯干运动方式各异。把两个连续帧之间所有逐像素位移汇总起来，便得到一个@@T0@@流场@@T1@@。其中每一格都是一个以像素/帧为单位的二维向量 $(u, v)$。仅此而已 &mdash; 这就是光流。",
+   "src": "Play a video for a few frames and every pixel has a story:\n          stationary background pixels don't move; a tennis ball travels a\n          huge distance; a runner's arms and legs move differently from\n          their torso. Collecting all those per-pixel displacements between\n          two consecutive frames gives you a <strong>flow field</strong>.\n          Each cell is a 2-D vector $(u, v)$ in pixels-per-frame. That's\n          it&mdash;that's optical flow.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Historically, motion estimation drove the compression behind every\n          video codec (MPEG, H.264, AV1), the tracking in camcorders, and\n          the slo-mo in modern smartphones. Modern SLAM, 3-D reconstruction,\n          and video diffusion models still lean on it.": {
+   "zh": "从历史上看，运动估计驱动了每一种视频编解码器（MPEG、H.264、AV1）背后的压缩、摄像机中的跟踪以及现代智能手机上的慢动作功能。当代的 SLAM、三维重建与视频扩散模型依然依赖它。",
+   "src": "Historically, motion estimation drove the compression behind every\n          video codec (MPEG, H.264, AV1), the tracking in camcorders, and\n          the slo-mo in modern smartphones. Modern SLAM, 3-D reconstruction,\n          and video diffusion models still lean on it.",
+   "tags": []
+  },
+  "Pick a clip": {
+   "zh": "选择片段",
+   "src": "Pick a clip",
+   "tags": []
+  },
+  "@@T0@@Drop a video here, or click to upload.@@T1@@\n            @@T2@@\n              MP4 / WebM work best. A short sports or action clip is ideal.\n              Playback and flow computation run locally&mdash;nothing is uploaded.\n            @@T3@@": {
+   "zh": "@@T0@@将视频拖放到此处，或点击上传。@@T1@@\n            @@T2@@\n              MP4 / WebM 效果最佳。一段简短的体育或动作片段最为理想。\n              播放与光流计算均在本地运行 &mdash; 不会上传任何内容。\n            @@T3@@",
+   "src": "<strong>Drop a video here, or click to upload.</strong>\n            <small>\n              MP4 / WebM work best. A short sports or action clip is ideal.\n              Playback and flow computation run locally&mdash;nothing is uploaded.\n            </small>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<small>",
+    "</small>"
+   ]
+  },
+  "Four public-domain / CC-licensed sample clips.": {
+   "zh": "四段公有领域 / CC 授权的示例片段。",
+   "src": "Four public-domain / CC-licensed sample clips.",
+   "tags": []
+  },
+  "Pick a sample or drop your own video.": {
+   "zh": "选择一段示例，或拖入你自己的视频。",
+   "src": "Pick a sample or drop your own video.",
+   "tags": []
+  },
+  "Play": {
+   "zh": "播放",
+   "src": "Play",
+   "tags": []
+  },
+  "&larr; Step": {
+   "zh": "&larr; 步进",
+   "src": "&larr; Step",
+   "tags": []
+  },
+  "Step &rarr;": {
+   "zh": "步进 &rarr;",
+   "src": "Step &rarr;",
+   "tags": []
+  },
+  "Reset": {
+   "zh": "重置",
+   "src": "Reset",
+   "tags": []
+  },
+  "@@T0@@frame 0 / 0@@T1@@": {
+   "zh": "@@T0@@第 0 / 0 帧@@T1@@",
+   "src": "<span class=\"player-status\" id=\"player-status\">frame 0 / 0</span>",
+   "tags": [
+    "<span class=\"player-status\" id=\"player-status\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Video size@@T1@@@@T2@@—@@T3@@": {
+   "zh": "@@T0@@视频尺寸@@T1@@@@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Video size</span><span class=\"stat-value\" id=\"vid-size\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"vid-size\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Frame rate@@T1@@@@T2@@—@@T3@@": {
+   "zh": "@@T0@@帧率@@T1@@@@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Frame rate</span><span class=\"stat-value\" id=\"vid-fps\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"vid-fps\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Flow compute@@T1@@@@T2@@—@@T3@@": {
+   "zh": "@@T0@@光流计算@@T1@@@@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Flow compute</span><span class=\"stat-value\" id=\"flow-ms\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"flow-ms\">",
+    "</span>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "Two frames, one question": {
+   "zh": "两帧图像，一个问题",
+   "src": "Two frames, one question",
+   "tags": []
+  },
+  "Every optical-flow algorithm starts with the same setup: the\n          current frame $I_t$ and the previous frame $I_{t-1}$. For each\n          pixel at position $(x, y)$ in frame $t$, we ask: @@T0@@where was\n          this pixel in frame $t-1$@@T1@@? Call the answer\n          $(x - u, y - v)$. The pair $(u, v)$ is the flow at $(x, y)$.": {
+   "zh": "每一种光流算法都始于相同的设定：当前帧 $I_t$ 与前一帧 $I_{t-1}$。对帧 $t$ 中位于 $(x, y)$ 处的每个像素，我们追问：@@T0@@该像素在帧 $t-1$ 中位于何处@@T1@@？记其答案为 $(x - u, y - v)$。数对 $(u, v)$ 便是 $(x, y)$ 处的光流。",
+   "src": "Every optical-flow algorithm starts with the same setup: the\n          current frame $I_t$ and the previous frame $I_{t-1}$. For each\n          pixel at position $(x, y)$ in frame $t$, we ask: <em>where was\n          this pixel in frame $t-1$</em>? Call the answer\n          $(x - u, y - v)$. The pair $(u, v)$ is the flow at $(x, y)$.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step through the clip and look at the before/after below. The\n          stationary parts look almost identical; the moving parts are\n          ghosted or duplicated. That's exactly the signal flow algorithms\n          exploit.": {
+   "zh": "逐帧步进该片段并查看下方的前后对比。静止部分看起来几乎完全相同；运动部分则出现重影或重复。这正是光流算法所利用的信号。",
+   "src": "Step through the clip and look at the before/after below. The\n          stationary parts look almost identical; the moving parts are\n          ghosted or duplicated. That's exactly the signal flow algorithms\n          exploit.",
+   "tags": []
+  },
+  "Previous frame $I_{t-1}$": {
+   "zh": "前一帧 $I_{t-1}$",
+   "src": "Previous frame $I_{t-1}$",
+   "tags": []
+  },
+  "Current frame $I_t$": {
+   "zh": "当前帧 $I_t$",
+   "src": "Current frame $I_t$",
+   "tags": []
+  },
+  "The difference image $I_t - I_{t-1}$": {
+   "zh": "差分图像 $I_t - I_{t-1}$",
+   "src": "The difference image $I_t - I_{t-1}$",
+   "tags": []
+  },
+  "Subtract frame $t-1$ from frame $t$ pixel-by-pixel. Static pixels\n          cancel out and go grey; moving pixels leave a bright residual\n          that traces out the motion.": {
+   "zh": "将帧 $t$ 与帧 $t-1$ 逐像素相减。静止像素相互抵消而呈灰色；运动像素则留下明亮的残差，勾勒出运动轨迹。",
+   "src": "Subtract frame $t-1$ from frame $t$ pixel-by-pixel. Static pixels\n          cancel out and go grey; moving pixels leave a bright residual\n          that traces out the motion.",
+   "tags": []
+  },
+  "Frame difference — bright = pixel changed, grey = static.": {
+   "zh": "帧间差分 —— 明亮表示像素发生变化，灰色表示静止。",
+   "src": "Frame difference — bright = pixel changed, grey = static.",
+   "tags": []
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "The brightness constancy assumption": {
+   "zh": "亮度恒定性假设",
+   "src": "The brightness constancy assumption",
+   "tags": []
+  },
+  "The foundation of (almost) every classical optical flow method is\n          a very simple claim:": {
+   "zh": "（几乎）每一种经典光流方法的基础都是一个极为简单的论断：",
+   "src": "The foundation of (almost) every classical optical flow method is\n          a very simple claim:",
+   "tags": []
+  },
+  "A pixel's brightness at $(x, y, t)$ equals its brightness at\n          $(x + u, y + v, t + 1)$. That's the brightness constancy\n          assumption. First-order Taylor-expand around $(x, y, t)$ and you\n          get the @@T0@@optical flow constraint equation@@T1@@:": {
+   "zh": "像素在 $(x, y, t)$ 处的亮度等于其在 $(x + u, y + v, t + 1)$ 处的亮度。这就是亮度恒定性假设。在 $(x, y, t)$ 处作一阶泰勒展开，即得@@T0@@光流约束方程@@T1@@：",
+   "src": "A pixel's brightness at $(x, y, t)$ equals its brightness at\n          $(x + u, y + v, t + 1)$. That's the brightness constancy\n          assumption. First-order Taylor-expand around $(x, y, t)$ and you\n          get the <strong>optical flow constraint equation</strong>:",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Here $I_x$, $I_y$, $I_t$ are the spatial and temporal derivatives\n          of the image. This is @@T0@@one equation in two unknowns@@T1@@\n          ($u, v$). That's the @@T2@@aperture problem@@T3@@: locally,\n          you can only measure motion perpendicular to intensity gradients.": {
+   "zh": "其中 $I_x$、$I_y$、$I_t$ 为图像的空间导数与时间导数。这是@@T0@@一个含两个未知量@@T1@@（$u, v$）的方程。这就是@@T2@@孔径问题@@T3@@：在局部，你只能测出垂直于灰度梯度方向的运动。",
+   "src": "Here $I_x$, $I_y$, $I_t$ are the spatial and temporal derivatives\n          of the image. This is <em>one equation in two unknowns</em>\n          ($u, v$). That's the <strong>aperture problem</strong>: locally,\n          you can only measure motion perpendicular to intensity gradients.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@When the assumption fails.@@T1@@\n          Dramatic lighting changes, exposure flicker, shadows, specular\n          highlights, occlusions (a pixel genuinely has no predecessor),\n          big displacements beyond the Taylor radius&mdash;all break\n          brightness constancy. Modern networks (RAFT, FlowFormer) use it\n          as a soft prior, not a hard constraint.": {
+   "zh": "@@T0@@当该假设失效时。@@T1@@\n          剧烈的光照变化、曝光闪烁、阴影、镜面高光、遮挡（某像素确实没有前驱）、超出泰勒展开半径的大位移 &mdash; 这些都会破坏亮度恒定性。现代网络（RAFT、FlowFormer）将其作为软先验，而非硬约束。",
+   "src": "<strong>When the assumption fails.</strong>\n          Dramatic lighting changes, exposure flicker, shadows, specular\n          highlights, occlusions (a pixel genuinely has no predecessor),\n          big displacements beyond the Taylor radius&mdash;all break\n          brightness constancy. Modern networks (RAFT, FlowFormer) use it\n          as a soft prior, not a hard constraint.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Lucas-Kanade: constrain the missing equation": {
+   "zh": "Lucas-Kanade：补足缺失的那个方程",
+   "src": "Lucas-Kanade: constrain the missing equation",
+   "tags": []
+  },
+  "Lucas and Kanade (1981) get around the aperture problem by\n          assuming the flow is @@T0@@locally constant@@T1@@: every pixel in a\n          small window $W$ around $(x, y)$ shares the same $(u, v)$. That\n          turns the single OFCE at one pixel into an over-determined system\n          of many OFCEs at neighbouring pixels, which you solve by least\n          squares:": {
+   "zh": "Lucas 与 Kanade（1981）通过假设光流@@T0@@局部恒定@@T1@@ 来绕过孔径问题：$(x, y)$ 附近一个小窗口 $W$ 内的每个像素共享相同的 $(u, v)$。这将单个像素处的一条光流约束方程转化为邻近像素上众多约束方程构成的超定方程组，可用最小二乘求解：",
+   "src": "Lucas and Kanade (1981) get around the aperture problem by\n          assuming the flow is <em>locally constant</em>: every pixel in a\n          small window $W$ around $(x, y)$ shares the same $(u, v)$. That\n          turns the single OFCE at one pixel into an over-determined system\n          of many OFCEs at neighbouring pixels, which you solve by least\n          squares:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The $2 \\times 2$ matrix $\\sum \\nabla I\\, \\nabla I^\\top$ is the\n          classic @@T0@@structure tensor@@T1@@. Its eigenvalues tell you\n          whether the window has reliable flow: two big eigenvalues = a\n          corner (well-conditioned, unique answer); one big one = an edge\n          (aperture problem); zero eigenvalues = a textureless region\n          (flow is hopeless).": {
+   "zh": "该 $2 \\times 2$ 矩阵 $\\sum \\nabla I\\, \\nabla I^\\top$ 即经典的@@T0@@结构张量@@T1@@。其特征值告诉你该窗口的光流是否可靠：两个大特征值 = 角点（良态，解唯一）；只有一个大特征值 = 边缘（孔径问题）；特征值为零 = 无纹理区域（光流无从谈起）。",
+   "src": "The $2 \\times 2$ matrix $\\sum \\nabla I\\, \\nabla I^\\top$ is the\n          classic <strong>structure tensor</strong>. Its eigenvalues tell you\n          whether the window has reliable flow: two big eigenvalues = a\n          corner (well-conditioned, unique answer); one big one = an edge\n          (aperture problem); zero eigenvalues = a textureless region\n          (flow is hopeless).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Real Lucas-Kanade, live": {
+   "zh": "真实的 Lucas-Kanade，实时运行",
+   "src": "Real Lucas-Kanade, live",
+   "tags": []
+  },
+  "Below, we pick out the strongest corner points in the current\n          frame using a small Shi-Tomasi score (the min-eigenvalue of the\n          structure tensor), solve Lucas-Kanade at each corner, and draw\n          the flow vectors. The math is all in the browser: spatial gradients\n          by Sobel, temporal gradient by frame difference, window-local\n          least squares per corner.": {
+   "zh": "下面，我们用一个简化的 Shi-Tomasi 评分（结构张量的最小特征值）在当前帧中挑选最强的角点，在每个角点处求解 Lucas-Kanade，并绘制光流向量。全部计算都在浏览器中完成：空间梯度用 Sobel 算子，时间梯度用帧间差分，每个角点处作窗口局部最小二乘。",
+   "src": "Below, we pick out the strongest corner points in the current\n          frame using a small Shi-Tomasi score (the min-eigenvalue of the\n          structure tensor), solve Lucas-Kanade at each corner, and draw\n          the flow vectors. The math is all in the browser: spatial gradients\n          by Sobel, temporal gradient by frame difference, window-local\n          least squares per corner.",
+   "tags": []
+  },
+  "Window size @@T0@@@@T1@@15@@T2@@ px@@T3@@": {
+   "zh": "窗口大小 @@T0@@@@T1@@15@@T2@@ 像素@@T3@@",
+   "src": "Window size <span><span id=\"win-val\">15</span> px</span>",
+   "tags": [
+    "<span>",
+    "<span id=\"win-val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Max features @@T0@@@@T1@@60@@T2@@@@T3@@": {
+   "zh": "最大特征点数 @@T0@@@@T1@@60@@T2@@@@T3@@",
+   "src": "Max features <span><span id=\"nfeat-val\">60</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"nfeat-val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Min corner quality @@T0@@@@T1@@0.02@@T2@@@@T3@@": {
+   "zh": "最低角点质量 @@T0@@@@T1@@0.02@@T2@@@@T3@@",
+   "src": "Min corner quality <span><span id=\"quality-val\">0.02</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"quality-val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Blue dots@@T1@@ = tracked corners.\n            @@T2@@Orange arrows@@T3@@ = estimated flow (magnified 4×).": {
+   "zh": "@@T0@@蓝色圆点@@T1@@ = 被跟踪的角点。\n            @@T2@@橙色箭头@@T3@@ = 估计光流（放大 4×）。",
+   "src": "<span style=\"color: #2c6fb7; font-weight: 700\">Blue dots</span> = tracked corners.\n            <span style=\"color: #d9622b; font-weight: 700\">Orange arrows</span> = estimated flow (magnified 4×).",
+   "tags": [
+    "<span style=\"color: #2c6fb7; font-weight: 700\">",
+    "</span>",
+    "<span style=\"color: #d9622b; font-weight: 700\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Corners found@@T1@@@@T2@@0@@T3@@": {
+   "zh": "@@T0@@找到的角点@@T1@@@@T2@@0@@T3@@",
+   "src": "<span class=\"stat-label\">Corners found</span><span class=\"stat-value\" id=\"lk-count\">0</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"lk-count\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Mean |flow|@@T1@@@@T2@@—@@T3@@": {
+   "zh": "@@T0@@平均 |flow|@@T1@@@@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Mean |flow|</span><span class=\"stat-value\" id=\"lk-mean\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"lk-mean\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Max |flow|@@T1@@@@T2@@—@@T3@@": {
+   "zh": "@@T0@@最大 |flow|@@T1@@@@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Max |flow|</span><span class=\"stat-value\" id=\"lk-max\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"lk-max\">",
+    "</span>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Dense flow: one vector per pixel": {
+   "zh": "稠密光流：每个像素一个向量",
+   "src": "Dense flow: one vector per pixel",
+   "tags": []
+  },
+  "Sparse LK on a handful of corners is great for tracking but leaves\n          most of the image unexplained. Dense methods (Horn-Schunck 1981,\n          Farnebäck 2003, RAFT 2020) produce @@T0@@one vector per pixel@@T1@@.\n          Here we use a simple approach: run LK on a regular grid of\n          positions across the image, yielding a dense-enough flow field to\n          visualise.": {
+   "zh": "在少量角点上做稀疏 LK 对跟踪而言很好，却使图像的大部分区域无从解释。稠密方法（Horn-Schunck 1981、Farnebäck 2003、RAFT 2020）产生@@T0@@每个像素一个向量@@T1@@ 的结果。此处我们采用一种简单做法：在图像上按规则网格铺开位置并逐点运行 LK，从而得到足够稠密、可用于可视化的流场。",
+   "src": "Sparse LK on a handful of corners is great for tracking but leaves\n          most of the image unexplained. Dense methods (Horn-Schunck 1981,\n          Farnebäck 2003, RAFT 2020) produce <em>one vector per pixel</em>.\n          Here we use a simple approach: run LK on a regular grid of\n          positions across the image, yielding a dense-enough flow field to\n          visualise.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The standard visualisation maps every flow vector to an HSV colour:\n          @@T0@@hue = direction@@T1@@, @@T2@@saturation = 1@@T3@@,\n          @@T4@@value = magnitude@@T5@@ (clamped). Red for rightward\n          motion, green for up, cyan for left, magenta for down. A still\n          pixel is black.": {
+   "zh": "标准可视化方式将每个光流向量映射为一种 HSV 颜色：@@T0@@色相 = 方向@@T1@@，@@T2@@饱和度 = 1@@T3@@，@@T4@@明度 = 幅值@@T5@@（截断）。向右运动为红色，向上为绿色，向左为青色，向下为品红。静止像素为黑色。",
+   "src": "The standard visualisation maps every flow vector to an HSV colour:\n          <strong>hue = direction</strong>, <strong>saturation = 1</strong>,\n          <strong>value = magnitude</strong> (clamped). Red for rightward\n          motion, green for up, cyan for left, magenta for down. A still\n          pixel is black.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Grid spacing @@T0@@@@T1@@8@@T2@@ px@@T3@@": {
+   "zh": "网格间距 @@T0@@@@T1@@8@@T2@@ 像素@@T3@@",
+   "src": "Grid spacing <span><span id=\"grid-val\">8</span> px</span>",
+   "tags": [
+    "<span>",
+    "<span id=\"grid-val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Magnitude threshold @@T0@@@@T1@@0.5@@T2@@ px@@T3@@": {
+   "zh": "幅值阈值 @@T0@@@@T1@@0.5@@T2@@ 像素@@T3@@",
+   "src": "Magnitude threshold <span><span id=\"mag-val\">0.5</span> px</span>",
+   "tags": [
+    "<span>",
+    "<span id=\"mag-val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Dense flow HSV heatmap (overlaid on the current frame). Drag the\n            threshold slider to filter noise.": {
+   "zh": "稠密光流 HSV 热力图（叠加在当前帧上）。拖动阈值滑块以滤除噪声。",
+   "src": "Dense flow HSV heatmap (overlaid on the current frame). Drag the\n            threshold slider to filter noise.",
+   "tags": []
+  },
+  "Colour wheel: hue is the direction of motion (red = right,\n              green = up, cyan = left, magenta = down).": {
+   "zh": "色轮：色相表示运动方向（红色 = 向右，绿色 = 向上，青色 = 向左，品红 = 向下）。",
+   "src": "Colour wheel: hue is the direction of motion (red = right,\n              green = up, cyan = left, magenta = down).",
+   "tags": []
+  },
+  "@@T0@@What to watch for.@@T1@@\n          On a panning shot, the whole image moves in one direction and the\n          heatmap becomes a uniform colour (e.g. all red when the camera\n          pans right). On a sports clip with a moving ball or player, the\n          background goes dark (tiny flow, clamped to black) while the fast\n          object lights up bright. That's optical flow doing its job as a\n          motion segmenter for free.": {
+   "zh": "@@T0@@观察要点。@@T1@@\n          在摇镜镜头中，整幅图像朝同一方向运动，热力图呈现为单一颜色（例如相机向右摇时全为红色）。在包含运动球或运动员的体育片段中，背景变暗（光流极小，截断为黑色），而快速物体则明亮凸显。这就是光流免费充当运动分割器的表现。",
+   "src": "<strong>What to watch for.</strong>\n          On a panning shot, the whole image moves in one direction and the\n          heatmap becomes a uniform colour (e.g. all red when the camera\n          pans right). On a sports clip with a moving ball or player, the\n          background goes dark (tiny flow, clamped to black) while the fast\n          object lights up bright. That's optical flow doing its job as a\n          motion segmenter for free.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Why classical methods fail on big motion": {
+   "zh": "经典方法为何在大运动下失效",
+   "src": "Why classical methods fail on big motion",
+   "tags": []
+  },
+  "Taylor expansion around the current pixel is only accurate for\n          small displacements&mdash;typically 1-2 pixels. On a 60 fps video\n          of slow-moving objects that's fine. On a 24 fps video of a pitched\n          baseball, the ball moves dozens of pixels per frame and LK's\n          Taylor-expansion breaks.": {
+   "zh": "围绕当前像素所作的泰勒展开仅对小位移 &mdash; 通常 1-2 个像素 &mdash; 才准确。对缓动目标的 60 fps 视频而言这不成问题。但在投出棒球的 24 fps 视频中，球每帧移动数十个像素，LK 的泰勒展开便失效了。",
+   "src": "Taylor expansion around the current pixel is only accurate for\n          small displacements&mdash;typically 1-2 pixels. On a 60 fps video\n          of slow-moving objects that's fine. On a 24 fps video of a pitched\n          baseball, the ball moves dozens of pixels per frame and LK's\n          Taylor-expansion breaks.",
+   "tags": []
+  },
+  "The classical fix is @@T0@@pyramidal Lucas-Kanade@@T1@@:\n          downsample the image into a Gaussian pyramid, estimate flow at\n          the coarse level (where motion is small in pixels), warp the\n          next-level frame using that coarse estimate, and refine. Run on\n          the same clip at 4&times; downscale and you can track the ball\n          again.": {
+   "zh": "经典的补救办法是@@T0@@金字塔 Lucas-Kanade@@T1@@：将图像降采样为高斯金字塔，在粗糙层级（此处以像素计的运动很小）估计光流，用该粗糙估计对下一层级的帧作仿射对齐，再逐步细化。在同一片段上按 4&times; 降采样运行，便能重新跟踪到球。",
+   "src": "The classical fix is <strong>pyramidal Lucas-Kanade</strong>:\n          downsample the image into a Gaussian pyramid, estimate flow at\n          the coarse level (where motion is small in pixels), warp the\n          next-level frame using that coarse estimate, and refine. Run on\n          the same clip at 4&times; downscale and you can track the ball\n          again.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Family": {
+   "zh": "方法族",
+   "src": "Family",
+   "tags": []
+  },
+  "Key idea": {
+   "zh": "核心思想",
+   "src": "Key idea",
+   "tags": []
+  },
+  "Strength": {
+   "zh": "优势",
+   "src": "Strength",
+   "tags": []
+  },
+  "Weakness": {
+   "zh": "不足",
+   "src": "Weakness",
+   "tags": []
+  },
+  "@@T0@@Lucas-Kanade (this page)@@T1@@": {
+   "zh": "@@T0@@Lucas-Kanade（本页）@@T1@@",
+   "src": "<strong>Lucas-Kanade (this page)</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Local window least-squares under brightness constancy.": {
+   "zh": "在亮度恒定性下作局部窗口最小二乘。",
+   "src": "Local window least-squares under brightness constancy.",
+   "tags": []
+  },
+  "Fast, interpretable, no training.": {
+   "zh": "快速、可解释、无需训练。",
+   "src": "Fast, interpretable, no training.",
+   "tags": []
+  },
+  "Small motions only, aperture problem, brightness-dependent.": {
+   "zh": "仅适用于小运动，存在孔径问题，依赖亮度。",
+   "src": "Small motions only, aperture problem, brightness-dependent.",
+   "tags": []
+  },
+  "@@T0@@Pyramidal LK@@T1@@": {
+   "zh": "@@T0@@金字塔 LK@@T1@@",
+   "src": "<strong>Pyramidal LK</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "LK at coarse scale then iterative refinement.": {
+   "zh": "在粗糙尺度上做 LK，再迭代细化。",
+   "src": "LK at coarse scale then iterative refinement.",
+   "tags": []
+  },
+  "Handles large motions, real-time.": {
+   "zh": "可处理大运动，实时性良好。",
+   "src": "Handles large motions, real-time.",
+   "tags": []
+  },
+  "Still brightness-dependent; no occlusion handling.": {
+   "zh": "仍依赖亮度；不处理遮挡。",
+   "src": "Still brightness-dependent; no occlusion handling.",
+   "tags": []
+  },
+  "@@T0@@Horn-Schunck@@T1@@": {
+   "zh": "@@T0@@Horn-Schunck（全局变分法）@@T1@@",
+   "src": "<strong>Horn-Schunck</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Global energy: brightness constancy + smoothness prior.": {
+   "zh": "全局能量：亮度恒定性 + 平滑先验。",
+   "src": "Global energy: brightness constancy + smoothness prior.",
+   "tags": []
+  },
+  "Dense output, smooth fields.": {
+   "zh": "输出稠密，流场平滑。",
+   "src": "Dense output, smooth fields.",
+   "tags": []
+  },
+  "Over-smooths motion boundaries; slow.": {
+   "zh": "过度平滑运动边界；速度较慢。",
+   "src": "Over-smooths motion boundaries; slow.",
+   "tags": []
+  },
+  "@@T0@@Farnebäck@@T1@@": {
+   "zh": "@@T0@@Farnebäck（局部多项式法）@@T1@@",
+   "src": "<strong>Farnebäck</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Fit local polynomial to image; solve for affine displacement.": {
+   "zh": "对图像拟合局部多项式；求解仿射位移。",
+   "src": "Fit local polynomial to image; solve for affine displacement.",
+   "tags": []
+  },
+  "Sub-pixel accurate, dense, real-time on CPU.": {
+   "zh": "亚像素精度，稠密输出，在 CPU 上实时。",
+   "src": "Sub-pixel accurate, dense, real-time on CPU.",
+   "tags": []
+  },
+  "Still locally affine assumption; tuned hyperparameters.": {
+   "zh": "仍依赖局部仿射假设；需调校超参数。",
+   "src": "Still locally affine assumption; tuned hyperparameters.",
+   "tags": []
+  },
+  "@@T0@@Deep flow (FlowNet, PWC, RAFT)@@T1@@": {
+   "zh": "@@T0@@深度光流（FlowNet、PWC、RAFT）@@T1@@",
+   "src": "<strong>Deep flow (FlowNet, PWC, RAFT)</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Learned matching on feature pyramids, iterative refinement with GRUs.": {
+   "zh": "在特征金字塔上学习匹配，用 GRU 迭代细化。",
+   "src": "Learned matching on feature pyramids, iterative refinement with GRUs.",
+   "tags": []
+  },
+  "State-of-the-art; handles occlusion &amp; lighting.": {
+   "zh": "达到最先进水平；可处理遮挡与光照变化。",
+   "src": "State-of-the-art; handles occlusion &amp; lighting.",
+   "tags": []
+  },
+  "Needs GPU; expensive training; can hallucinate.": {
+   "zh": "需要 GPU；训练昂贵；可能产生幻觉。",
+   "src": "Needs GPU; expensive training; can hallucinate.",
+   "tags": []
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "The big number": {
+   "zh": "那个大数字",
+   "src": "The big number",
+   "tags": []
+  },
+  "Flow is dense by definition. Every pixel, every frame, two numbers.\n          For one second of 720p video at 30 fps that's:": {
+   "zh": "按定义光流即为稠密。每个像素、每一帧、两个数。对于一秒 30 fps 的 720p 视频，这便意味着：",
+   "src": "Flow is dense by definition. Every pixel, every frame, two numbers.\n          For one second of 720p video at 30 fps that's:",
+   "tags": []
+  },
+  "Flow vectors in one second of 720p @ 30 fps": {
+   "zh": "一秒 720p @ 30 fps 视频中的光流向量数",
+   "src": "Flow vectors in one second of 720p @ 30 fps",
+   "tags": []
+  },
+  "1280 × 720 pixels × 30 frames × 2 components = 55.3&nbsp;million\n            numbers. That's why every flow algorithm you'll ever use is\n            designed to be fast per pixel&mdash;classical methods do one\n            matrix-vector solve; neural methods do one GPU sweep.": {
+   "zh": "1280 × 720 像素 × 30 帧 × 2 个分量 = 5530&nbsp;万个数值。正因如此，你会用到的每一种光流算法都被设计为在逐像素层面足够快 &mdash; 经典方法只做一次矩阵向量求解，神经方法只做一次 GPU 扫描。",
+   "src": "1280 × 720 pixels × 30 frames × 2 components = 55.3&nbsp;million\n            numbers. That's why every flow algorithm you'll ever use is\n            designed to be fast per pixel&mdash;classical methods do one\n            matrix-vector solve; neural methods do one GPU sweep.",
+   "tags": []
+  },
+  "Step 7": {
+   "zh": "第 7 步",
+   "src": "Step 7",
+   "tags": []
+  },
+  "Four ways optical flow trips people up": {
+   "zh": "光流让人栽跟头的四种方式",
+   "src": "Four ways optical flow trips people up",
+   "tags": []
+  },
+  "@@T0@@Myth@@T1@@": {
+   "zh": "@@T0@@误区@@T1@@",
+   "src": "<span class=\"misconception-icon\">Myth</span>",
+   "tags": [
+    "<span class=\"misconception-icon\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@\"Optical flow = motion in 3-D.\"@@T1@@@@T2@@\n              Optical flow is 2-D displacement in the image plane. A camera\n              zooming in produces large flow without any object moving. Flow\n              from rotating camera looks like translation. Recovering 3-D\n              requires stereo, depth sensors, or structure-from-motion.": {
+   "zh": "@@T0@@“光流 = 三维运动。”@@T1@@@@T2@@\n              光流是图像平面内的二维位移。相机变焦会产生很大的光流，却没有任何物体在运动；相机旋转所产生的光流看起来像平移。要恢复三维信息，需借助立体视觉、深度传感器或运动恢复结构。",
+   "src": "<strong>\"Optical flow = motion in 3-D.\"</strong><br />\n              Optical flow is 2-D displacement in the image plane. A camera\n              zooming in produces large flow without any object moving. Flow\n              from rotating camera looks like translation. Recovering 3-D\n              requires stereo, depth sensors, or structure-from-motion.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@\"Brightness constancy holds for modern cameras.\"@@T1@@@@T2@@\n              Auto-exposure, auto-white-balance, HDR merging, and rolling\n              shutters routinely violate it. A fluorescent light flickering\n              at 50/60 Hz is a classic trap. Real pipelines photometrically\n              correct or learn to ignore these.": {
+   "zh": "@@T0@@“对现代相机而言亮度恒定性成立。”@@T1@@@@T2@@\n              自动曝光、自动白平衡、HDR 合成与卷帘快门都会经常破坏该假设。以 50/60 Hz 闪烁的荧光灯是经典的陷阱。实际的流水线会作光度校正，或学会忽略这些效应。",
+   "src": "<strong>\"Brightness constancy holds for modern cameras.\"</strong><br />\n              Auto-exposure, auto-white-balance, HDR merging, and rolling\n              shutters routinely violate it. A fluorescent light flickering\n              at 50/60 Hz is a classic trap. Real pipelines photometrically\n              correct or learn to ignore these.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@\"The flow is well-defined at occlusions.\"@@T1@@@@T2@@\n              Pixels that appear for the first time (newly disoccluded) or\n              disappear (newly occluded) have no meaningful predecessor or\n              successor. Classical methods produce garbage there; modern\n              methods explicitly predict an occlusion mask alongside flow.": {
+   "zh": "@@T0@@“在遮挡处光流仍有良好定义。”@@T1@@@@T2@@\n              首次出现（新近解除遮挡）或消失（新近被遮挡）的像素并无有意义的前驱或后继。经典方法在这些位置产生的结果毫无意义；现代方法则在预测光流的同时显式预测遮挡掩码。",
+   "src": "<strong>\"The flow is well-defined at occlusions.\"</strong><br />\n              Pixels that appear for the first time (newly disoccluded) or\n              disappear (newly occluded) have no meaningful predecessor or\n              successor. Classical methods produce garbage there; modern\n              methods explicitly predict an occlusion mask alongside flow.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@\"More pixels = better flow.\"@@T1@@@@T2@@\n              A textureless wall has zero spatial gradient, which means the\n              structure-tensor is singular and LK fails no matter how many\n              pixels you feed it. Flow quality depends on image content,\n              not resolution.": {
+   "zh": "@@T0@@“像素越多光流越好。”@@T1@@@@T2@@\n              无纹理的墙面空间梯度为零，这意味着结构张量奇异，无论喂入多少像素 LK 都会失败。光流质量取决于图像内容，而非分辨率。",
+   "src": "<strong>\"More pixels = better flow.\"</strong><br />\n              A textureless wall has zero spatial gradient, which means the\n              structure-tensor is singular and LK fails no matter how many\n              pixels you feed it. Flow quality depends on image content,\n              not resolution.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          Optical flow is the oldest motion primitive in computer vision,\n          built on one equation per pixel and one assumption (brightness\n          constancy). You've now seen that equation fail on big motion,\n          seen Lucas-Kanade solve it at corners, and seen a dense flow\n          field light up the moving parts of a real clip. Every modern\n          tracking / stabilisation / video codec / SLAM pipeline still\n          starts from this same pixel-sized question: where did you come\n          from?": {
+   "zh": "@@T0@@最终要点。@@T1@@\n          光流是计算机视觉中最古老的运动基本要素，建立于每个像素一个方程以及一个假设（亮度恒定性）之上。你已看到该方程在大运动下失效，看到 Lucas-Kanade 在角点处对其求解，也看到稠密流场如何点亮真实片段中的运动部分。每一种现代跟踪 / 稳定 / 视频编解码 / SLAM 流水线，仍从这同一个以像素为单位的追问出发：你来自何处？",
+   "src": "<strong>Final takeaway.</strong>\n          Optical flow is the oldest motion primitive in computer vision,\n          built on one equation per pixel and one assumption (brightness\n          constancy). You've now seen that equation fail on big motion,\n          seen Lucas-Kanade solve it at corners, and seen a dense flow\n          field light up the moving parts of a real clip. Every modern\n          tracking / stabilisation / video codec / SLAM pipeline still\n          starts from this same pixel-sized question: where did you come\n          from?",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 8": {
+   "zh": "第 8 步",
+   "src": "Step 8",
+   "tags": []
+  },
+  "From Lucas-Kanade to RAFT — the recent history": {
+   "zh": "从 Lucas-Kanade 到 RAFT —— 近代沿革",
+   "src": "From Lucas-Kanade to RAFT — the recent history",
+   "tags": []
+  },
+  "@@T0@@Lucas-Kanade (1981).@@T1@@ Local, sparse, fast. Solve a 2×2 system per corner.": {
+   "zh": "@@T0@@Lucas-Kanade（1981）。@@T1@@ 局部、稀疏、快速。每个角点求解一个 2×2 方程组。",
+   "src": "<strong>Lucas-Kanade (1981).</strong> Local, sparse, fast. Solve a 2×2 system per corner.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Horn-Schunck (1981).@@T1@@ Dense flow via global smoothness regularisation. Energy minimisation; iterative numerical solution.": {
+   "zh": "@@T0@@Horn-Schunck（1981）。@@T1@@ 通过全局平滑正则化获得稠密光流。能量最小化；迭代数值求解。",
+   "src": "<strong>Horn-Schunck (1981).</strong> Dense flow via global smoothness regularisation. Energy minimisation; iterative numerical solution.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Coarse-to-fine variational methods (1990s–2000s).@@T1@@ Build an image pyramid; estimate flow at the coarsest level; warp; refine on the next finer level. The classical recipe for handling large motion.": {
+   "zh": "@@T0@@由粗到细的变分方法（1990s–2000s）。@@T1@@ 构建图像金字塔；在最粗层级估计光流；作仿射对齐；在下一更细层级细化。这是处理大运动的经典方案。",
+   "src": "<strong>Coarse-to-fine variational methods (1990s–2000s).</strong> Build an image pyramid; estimate flow at the coarsest level; warp; refine on the next finer level. The classical recipe for handling large motion.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@FlowNet (2015).@@T1@@ The first end-to-end deep flow estimator. A U-Net-style architecture, trained on synthetic FlyingChairs data.": {
+   "zh": "@@T0@@FlowNet（2015）。@@T1@@ 首个端到端深度光流估计器。采用 U-Net 风格架构，在合成数据 FlyingChairs 上训练。",
+   "src": "<strong>FlowNet (2015).</strong> The first end-to-end deep flow estimator. A U-Net-style architecture, trained on synthetic FlyingChairs data.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@PWC-Net (2018).@@T1@@ Combines deep features with classical pyramid warping and cost-volume construction. State of the art for years; ~25× smaller than FlowNet2.": {
+   "zh": "@@T0@@PWC-Net（2018）。@@T1@@ 将深度特征与经典的金字塔对齐和代价体构建相结合。多年保持最优；体积约为 FlowNet2 的 1/25。",
+   "src": "<strong>PWC-Net (2018).</strong> Combines deep features with classical pyramid warping and cost-volume construction. State of the art for years; ~25× smaller than FlowNet2.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@RAFT (2020).@@T1@@ Recurrent All-Pairs Field Transforms. Computes a full 4-D cost volume of all-pairs feature correlations, then a recurrent GRU refines flow iteratively. Still the strongest published-and-published-again baseline.": {
+   "zh": "@@T0@@RAFT（2020）。@@T1@@ 循环全对场变换。计算全对特征相关性的完整四维代价体，再由循环 GRU 迭代细化光流。至今仍是反复被引用并作为对比的最强基线。",
+   "src": "<strong>RAFT (2020).</strong> Recurrent All-Pairs Field Transforms. Computes a full 4-D cost volume of all-pairs feature correlations, then a recurrent GRU refines flow iteratively. Still the strongest published-and-published-again baseline.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@FlowFormer / GMA / unimatch (2022+).@@T1@@ Transformer-based flow with attention over the cost volume. Marginal gains over RAFT at higher cost.": {
+   "zh": "@@T0@@FlowFormer / GMA / unimatch（2022 年起）。@@T1@@ 基于 Transformer 的光流，在代价体上使用注意力机制。相对 RAFT 的提升有限，而代价更高。",
+   "src": "<strong>FlowFormer / GMA / unimatch (2022+).</strong> Transformer-based flow with attention over the cost volume. Marginal gains over RAFT at higher cost.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@SEA-RAFT (2024).@@T1@@ RAFT with a mixture-of-Laplace loss for robustness; current state of the art on Sintel + KITTI benchmarks.": {
+   "zh": "@@T0@@SEA-RAFT（2024）。@@T1@@ 以拉普拉斯混合损失增强鲁棒性的 RAFT；目前在 Sintel 与 KITTI 基准上处于最优水平。",
+   "src": "<strong>SEA-RAFT (2024).</strong> RAFT with a mixture-of-Laplace loss for robustness; current state of the art on Sintel + KITTI benchmarks.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 9": {
+   "zh": "第 9 步",
+   "src": "Step 9",
+   "tags": []
+  },
+  "Cost volumes — the heart of modern flow": {
+   "zh": "代价体 —— 现代光流的核心",
+   "src": "Cost volumes — the heart of modern flow",
+   "tags": []
+  },
+  "A cost volume is a 4-D tensor $C(i, j, u, v)$ that scores how well the feature at pixel $(i, j)$ in frame 1 matches the feature at pixel $(i + u, j + v)$ in frame 2. For an image of size $H \\times W$ and a search range of $r$ pixels, the cost volume has $H \\cdot W \\cdot (2r+1)^2$ entries.": {
+   "zh": "代价体是一个四维张量 $C(i, j, u, v)$，它给出帧 1 中像素 $(i, j)$ 处的特征与帧 2 中像素 $(i + u, j + v)$ 处的特征匹配程度的评分。对尺寸为 $H \\times W$ 的图像以及 $r$ 个像素的搜索范围，代价体具有 $H \\cdot W \\cdot (2r+1)^2$ 个条目。",
+   "src": "A cost volume is a 4-D tensor $C(i, j, u, v)$ that scores how well the feature at pixel $(i, j)$ in frame 1 matches the feature at pixel $(i + u, j + v)$ in frame 2. For an image of size $H \\times W$ and a search range of $r$ pixels, the cost volume has $H \\cdot W \\cdot (2r+1)^2$ entries.",
+   "tags": []
+  },
+  "Modern flow networks (PWC, RAFT, GMFlow) compute this cost volume and then run small neural decoders on it to extract flow. The cost volume @@T0@@is@@T1@@ the brightness-constancy/photometric similarity made explicit — but in feature space, where it tolerates lighting changes that pixel-space brightness constancy doesn't.": {
+   "zh": "现代光流网络（PWC、RAFT、GMFlow）计算该代价体，再在其上运行小型神经解码器以提取光流。代价体@@T0@@正是@@T1@@ 显式化的亮度恒定 / 光度相似性 —— 只不过是在特征空间中，因而能够容忍像素空间亮度恒定性所无法容忍的光照变化。",
+   "src": "Modern flow networks (PWC, RAFT, GMFlow) compute this cost volume and then run small neural decoders on it to extract flow. The cost volume <em>is</em> the brightness-constancy/photometric similarity made explicit — but in feature space, where it tolerates lighting changes that pixel-space brightness constancy doesn't.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 10": {
+   "zh": "第 10 步",
+   "src": "Step 10",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "推荐阅读",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Horn &amp; Schunck (1981)@@T1@@ — @@T2@@Determining Optical Flow.@@T3@@": {
+   "zh": "@@T0@@Horn &amp; Schunck（1981）@@T1@@ — @@T2@@Determining Optical Flow.@@T3@@",
+   "src": "<strong>Horn &amp; Schunck (1981)</strong> — <em>Determining Optical Flow.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Lucas &amp; Kanade (1981)@@T1@@ — @@T2@@An Iterative Image Registration Technique with an Application to Stereo Vision.@@T3@@": {
+   "zh": "@@T0@@Lucas &amp; Kanade（1981）@@T1@@ — @@T2@@An Iterative Image Registration Technique with an Application to Stereo Vision.@@T3@@",
+   "src": "<strong>Lucas &amp; Kanade (1981)</strong> — <em>An Iterative Image Registration Technique with an Application to Stereo Vision.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Dosovitskiy et&nbsp;al. (2015)@@T1@@ — @@T2@@FlowNet.@@T3@@ First end-to-end deep flow.": {
+   "zh": "@@T0@@Dosovitskiy 等（2015）@@T1@@ — @@T2@@FlowNet.@@T3@@ 首个端到端深度光流。",
+   "src": "<strong>Dosovitskiy et&nbsp;al. (2015)</strong> — <em>FlowNet.</em> First end-to-end deep flow.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Sun et&nbsp;al. (2018)@@T1@@ — @@T2@@PWC-Net.@@T3@@": {
+   "zh": "@@T0@@Sun 等（2018）@@T1@@ — @@T2@@PWC-Net.@@T3@@",
+   "src": "<strong>Sun et&nbsp;al. (2018)</strong> — <em>PWC-Net.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Teed &amp; Deng (2020)@@T1@@ — @@T2@@RAFT.@@T3@@": {
+   "zh": "@@T0@@Teed &amp; Deng（2020）@@T1@@ — @@T2@@RAFT.@@T3@@",
+   "src": "<strong>Teed &amp; Deng (2020)</strong> — <em>RAFT.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Wang et&nbsp;al. (2024)@@T1@@ — @@T2@@SEA-RAFT.@@T3@@ The current SOTA recipe.": {
+   "zh": "@@T0@@Wang 等（2024）@@T1@@ — @@T2@@SEA-RAFT.@@T3@@ 当前最先进的方案。",
+   "src": "<strong>Wang et&nbsp;al. (2024)</strong> — <em>SEA-RAFT.</em> The current SOTA recipe.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "逐帧解析光流",
+  "tagline": "在体育片段上实时观察真实的 Lucas-Kanade 与稠密光流计算",
+  "summary": "逐帧播放真实视频，观察真实的 Lucas-Kanade 求解器计算每个像素的二维速度，并将结果着色为 HSV 热力图。你可上传自己的片段、逐帧步进，并感受亮度恒定性假设在快速运动的体育画面中如何失效。",
+  "difficulty": "中级",
+  "collection": "计算机视觉",
+  "highlights": [
+   "带有逐帧步进控件的实时视频播放器；可选择体育片段或上传自己的视频。",
+   "在相邻两帧上以纯 JS 运行真实的逐块 Lucas-Kanade —— 在角点显著处绘制箭头。",
+   "在 80×60 网格上计算稠密光流并渲染为 HSV 热力图：色相 = 方向，明度 = 幅值。",
+   "滑动幅值阈值以滤除噪声，观察运动如何从杂乱背景中凸显。"
+  ],
+  "tags": [
+   "光流",
+   "Lucas-Kanade",
+   "稠密光流",
+   "视频",
+   "计算机视觉",
+   "交互式"
+  ]
+ },
+ "js": {
+  "[[[0]]] fps (assumed)": {
+   "zh": "[[[0]]] fps（假定值）",
+   "exprs": [
+    "${state.fps}"
+   ],
+   "tags": [],
+   "src": "${state.fps} fps (assumed)"
+  },
+  "Video failed to load:": {
+   "zh": "视频加载失败：",
+   "exprs": [],
+   "tags": [],
+   "src": "Video failed to load:"
+  },
+  "Could not load this sample. Drop a local file above.": {
+   "zh": "无法加载该示例。请在上方拖入本地文件。",
+   "exprs": [],
+   "tags": [],
+   "src": "Could not load this sample. Drop a local file above."
+  },
+  "Step or play the video": {
+   "zh": "步进或播放视频",
+   "exprs": [],
+   "tags": [],
+   "src": "Step or play the video"
+  },
+  "Play failed:": {
+   "zh": "播放失败：",
+   "exprs": [],
+   "tags": [],
+   "src": "Play failed:"
+  }
+ }
+}

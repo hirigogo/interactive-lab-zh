@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>从零实现 RAG</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css?v=3" />
+  </head>
+  <body>
+    <div class="progress-bar" aria-hidden="true"><div class="progress-bar__fill" id="progressFill"></div></div>
+
+    <article class="article">
+      <header class="hero">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>从零实现 RAG</h1>
+        <p class="abstract">
+          问聊天机器人昨天选举谁获胜，它会自信地编造一个答案。解决之道？在它作答<em>之前</em>把正确的文档交给它。这就是 RAG&mdash;检索增强生成&mdash;而你可以用两个早已熟悉的思想把它搭建出来。
+        </p>
+        <p class="abstract">
+          拖动数据点、切换领域，观察词元的逐步生成。流水线的每个步骤都是可交互的。
+        </p>
+        <div class="hero__meta">
+          <span>约 12 分钟</span>
+          <span>深度学习</span>
+          <span>检索</span>
+          <span>语言模型</span>
+        </div>
+      </header>
+
+      <!-- ─── Section I ─── -->
+
+      <section class="step-section" id="motivation">
+        <div class="step-badge">第一部分</div>
+        <h2>问题所在：冻结的知识</h2>
+        <p>
+          语言模型的知识在训练期间被固化在权重之中。训练一旦结束，这些权重便被冻结。由此产生三个在实践中反复出现的问题：
+        </p>
+        <div class="problem-list">
+          <div class="problem-card">
+            <span class="problem-num">1</span>
+            <div>
+              <strong>知识过时。</strong>
+              询问训练截止日期之后发生的事，模型一无所知。它要么拒绝回答，要么更糟&mdash;自信地瞎猜。
+            </div>
+          </div>
+          <div class="problem-card">
+            <span class="problem-num">2</span>
+            <div>
+              <strong>缺失领域事实。</strong>
+              你公司的内部文档、一篇小众研究论文、某座新城市的
+              公交时刻表&mdash;这些都不在训练数据之中。
+            </div>
+          </div>
+          <div class="problem-card">
+            <span class="problem-num">3</span>
+            <div>
+              <strong>幻觉。</strong>
+              当模型不知道某事时，它往往不去说「我不知道」，而是编造一个听起来合理
+              却错误的答案。
+            </div>
+          </div>
+        </div>
+
+        <div class="callout">
+          <strong>核心思想。</strong>
+          与其在知识每次变化时都重新训练模型，不如让它参加一场
+          <em>开卷考试</em>。在查询时取回相关文档，
+          并将它们粘贴进提示词。模型阅读这些文本并据此作答&mdash;而非凭记忆作答。这就是 RAG。
+        </div>
+      </section>
+
+      <!-- ─── Section II ─── -->
+
+      <section class="step-section" id="prerequisites">
+        <div class="step-badge">第二部分</div>
+        <h2>两个基本构件</h2>
+        <p>
+          RAG 恰好组合了两个思想。如果你上过机器学习入门课程，两者你都已经知道。在把它们连接起来之前，我们先确认对它们的理解一致。
+        </p>
+
+        <div class="two-col">
+          <div class="col-card">
+            <p class="eyebrow">构件 1</p>
+            <h3>下一词元预测（语言模型）</h3>
+            <div class="math-block" id="math-lm"></div>
+            <p>
+              语言模型接收一个词元序列，并预测接下来是什么。GPT、LLaMA、Claude&mdash;它们都以此方式工作，一次预测一个词元。模型「所知道」的一切都存在于其权重之中。这被称为 <strong>参数化记忆</strong>&mdash;训练结束后便固定下来。
+            </p>
+          </div>
+          <div class="col-card col-card--accent">
+            <p class="eyebrow">构件 2</p>
+            <h3>k 近邻（kNN）</h3>
+            <div class="math-block" id="math-knn"></div>
+            <p>
+              将项目表示为向量（空间中的点）。给定一个查询向量，
+              找出最近的 k 个点。查询时无需学习&mdash;纯粹的
+              几何。若两份文档主题相近，它们的向量
+              便会彼此靠近。
+            </p>
+          </div>
+        </div>
+
+        <div class="callout callout--think">
+          <strong>暂停思考。</strong>
+          语言模型能生成流畅的文本，却可能凭空捏造事实。kNN 能找到
+          相关文档，却写不出句子。RAG 将二者串联：
+          kNN 检索事实，语言模型将其转化为答案。
+          二者单独都无法完成这项任务。
+        </div>
+      </section>
+
+      <!-- ─── Section III ─── -->
+
+      <section class="step-section" id="pipeline">
+        <div class="step-badge">第三部分</div>
+        <h2>RAG 流水线</h2>
+        <p>共五步。我们将交互式地逐一走过每一步。</p>
+
+        <div class="pipeline" id="pipelineSteps">
+          <div class="pipe-step" data-pipe="query"><span class="pipe-icon">q</span><span class="pipe-label">查询</span></div>
+          <span class="pipe-arrow">&rarr;</span>
+          <div class="pipe-step" data-pipe="embed"><span class="pipe-icon">E</span><span class="pipe-label">嵌入</span></div>
+          <span class="pipe-arrow">&rarr;</span>
+          <div class="pipe-step" data-pipe="retrieve"><span class="pipe-icon">kNN</span><span class="pipe-label">检索</span></div>
+          <span class="pipe-arrow">&rarr;</span>
+          <div class="pipe-step" data-pipe="prompt"><span class="pipe-icon">[ ]</span><span class="pipe-label">提示词</span></div>
+          <span class="pipe-arrow">&rarr;</span>
+          <div class="pipe-step" data-pipe="generate"><span class="pipe-icon">LM</span><span class="pipe-label">生成</span></div>
+        </div>
+
+        <p>
+          共分两个阶段。<strong>离线阶段</strong>（只做一次）：嵌入全部
+          文档，并将其存入可检索的索引。
+          <strong>在线阶段</strong>（查询时）：将用户的问题
+          推过整条流水线。我们逐步搭建这两者。
+        </p>
+
+        <p>
+          首先，选择一个领域。这决定了语料库（模型可检索的文档集合）：
+        </p>
+
+        <div class="domain-switcher">
+          <button class="domain-btn domain-btn--active" data-domain="airquality">空气质量</button>
+          <button class="domain-btn" data-domain="cooking">烹饪</button>
+          <button class="domain-btn" data-domain="history">历史</button>
+          <button class="domain-btn" data-domain="medical">医学</button>
+        </div>
+      </section>
+
+      <!-- ─── Pipeline Step 1: 语料库 & 嵌入 ─── -->
+
+      <section class="step-section" id="embedding">
+        <div class="step-badge">第四部分：第 1 步</div>
+        <h2>嵌入文档</h2>
+        <p>
+          以下是我们迷你语料库中的五份文档。在真实系统中，会有成千上万乃至
+          数百万份&mdash;但五份已足以看清其机制。
+        </p>
+
+        <div class="doc-list" id="docList"></div>
+
+        <p>
+          <strong>编码器模型</strong>（如 Sentence-BERT）读取每份
+          文档并输出一个 <strong>向量</strong>&mdash;一串捕捉文档语义的
+          数值。主题相近的文档会产生相似的向量。在真实系统中，这些向量为 768 维或
+          更高，但为了便于可视化，我们采用 <strong>二维嵌入</strong>。
+        </p>
+
+        <h3>文档的二维嵌入</h3>
+        <p>
+          下方每个蓝点是一份文档，按其二维嵌入坐标
+          绘制。注意主题相关的文档如何聚拢在一起。
+        </p>
+
+        <div class="embed-demo">
+          <div class="embed-demo__table" id="embedTable"></div>
+        </div>
+
+        <div class="code-block"><pre><code>docs  = split(corpus)       <span class="cm"># 将文本切分为段落</span>
+emb   = encoder(docs)       <span class="cm"># 嵌入每个块 &rarr; 向量</span>
+index = FAISS(emb)          <span class="cm"># 构建可检索的索引</span></code></pre></div>
+
+        <div class="callout callout--think">
+          <strong>什么样的嵌入才算好？</strong>
+          「德里的冬季 PM2.5」应当落在「加尔各答的冬季雾霾」附近，而远离
+          「玫瑰奶球是油炸的」。编码器在其自身于大规模文本语料上的训练过程中
+          学会了这些距离。
+        </div>
+      </section>
+
+      <!-- ─── Pipeline Step 2: 查询 embedding ─── -->
+
+      <section class="step-section" id="query-embed">
+        <div class="step-badge">第五部分：第 2 步</div>
+        <h2>嵌入查询</h2>
+        <p>
+          用户提出一个问题。我们将其通过<em>同一个</em>编码器
+          以获得查询向量。由于编码器将语义相近的文本映射到邻近的点，
+          查询便会落在相关文档附近。
+        </p>
+
+        <div class="query-box">
+          <span class="query-label">查询</span>
+          <span id="queryText"></span>
+        </div>
+
+        <div class="embed-demo">
+          <div class="embed-demo__row">
+            <span class="embed-demo__label">查询嵌入：</span>
+            <code id="queryEmbDisplay"></code>
+          </div>
+        </div>
+
+        <p>
+          现在文档与查询同处一个向量空间。
+          下方是二维嵌入画布。<span style="color:var(--coral);font-weight:700">橙色点</span>
+          是查询；蓝色点是文档。
+          <strong>拖动橙色查询点</strong> 进行探索&mdash;最近的两份
+          文档将实时以距离线高亮显示。
+        </p>
+
+        <figure class="figure">
+          <canvas id="embeddingCanvas" width="560" height="400"></canvas>
+          <figcaption>
+            拖动 <span style="color:var(--coral);font-weight:700">查询点</span>
+            进行探索。注意下方的检索表、提示词构建器与注意力热力图如何实时同步更新！
+          </figcaption>
+        </figure>
+      </section>
+
+      <!-- ─── Pipeline Step 3: Retrieval ─── -->
+
+      <section class="step-section" id="retrieval">
+        <div class="step-badge">第六部分：第 3 步</div>
+        <h2>用 kNN 检索</h2>
+        <p>
+          现在我们计算查询向量与
+          每个文档向量之间的欧氏距离：
+        </p>
+
+        <div class="math-block" id="math-dist"></div>
+
+        <p>
+          按距离排序。最近的 top-k（此处 k=2）份文档「胜出」，
+          成为我们检索到的上下文。以下是实时的距离表&mdash;拖动
+          上方的查询点，观察它如何更新：
+        </p>
+
+        <table class="data-table" id="distanceTable">
+          <thead>
+            <tr><th>文档</th><th>嵌入</th><th>距离</th><th>是否检索到？</th></tr>
+          </thead>
+          <tbody id="distanceTableBody"></tbody>
+        </table>
+
+        <div class="callout">
+          <strong>为何取 top-k 而非全部？</strong>
+          语言模型的上下文窗口有限（通常为 4K&ndash;128K 词元）。我们
+          无法粘贴每一份文档，因此只选取最相关的 k 份。
+          选择 k 是一种权衡：太小会遗漏上下文；太大
+          则无关文档会淹没信号。
+        </div>
+      </section>
+
+      <!-- ─── Pipeline Step 4: Prompt assembly ─── -->
+
+      <section class="step-section" id="prompt">
+        <div class="step-badge">第七部分：第 4 步</div>
+        <h2>构建提示词</h2>
+        <p>
+          这里是检索与生成交汇之处。我们取检索到的
+          文档与用户的问题，将它们拼接成一个
+          文本块&mdash;即语言模型将要阅读的提示词：
+        </p>
+
+        <div class="prompt-builder" id="promptBuilder">
+          <div class="prompt-part prompt-part--ctx">
+            <span class="prompt-tag prompt-tag--ctx">上下文（检索到的文档）</span>
+            <div id="promptContext"></div>
+          </div>
+          <div class="prompt-part prompt-part--q">
+            <span class="prompt-tag prompt-tag--q">问题（用户查询）</span>
+            <div id="prompt查询"></div>
+          </div>
+        </div>
+
+        <div class="code-block"><pre><code>q_emb  = encoder(query)            <span class="cm"># 第 2 步：嵌入查询</span>
+docs   = index.search(q_emb, k=2)  <span class="cm"># 第 3 步：检索 top-2</span>
+prompt = concat(docs, query)        <span class="cm"># 第 4 步：组装提示词</span>
+output = LLM(prompt)                <span class="cm"># 第 5 步：生成答案</span></code></pre></div>
+
+        <p>
+          提示词组装完成后，<strong>RAG 的检索任务便告结束</strong>。
+          此后便是标准的语言建模&mdash;语言模型阅读
+          提示词，逐词元生成答案。
+        </p>
+      </section>
+
+      <!-- ─── Section VII ─── -->
+
+      <section class="step-section" id="generate">
+        <div class="step-badge">第八部分：第 5 步</div>
+        <h2>生成答案</h2>
+        <p>
+          语言模型以完整的提示词（上下文 + 问题）为条件，
+          逐词元生成。在数学上，它仍然是纯粹的下一词元
+          预测：
+        </p>
+
+        <div class="math-block" id="math-gen"></div>
+
+        <p>
+          但上下文词元深刻地改变了<em>哪些</em>词元
+          更可能出现。没有上下文时，模型可能产生幻觉。有了上下文，它
+          便能将答案建立在真实文本之上。点击观察生成过程的展开：
+        </p>
+
+        <div class="gen-box">
+          <div class="gen-prompt" id="genPromptPreview"></div>
+          <div class="gen-output" id="genOutput"></div>
+          <div class="gen-controls">
+            <button class="btn" id="generateBtn">生成答案</button>
+            <button class="btn btn--ghost" id="resetGenBtn">重置</button>
+          </div>
+        </div>
+
+        <p>
+          <span class="hl-ctx">以绿色高亮</span>的词元直接
+          来自检索到的上下文。模型并非在做字面意义上的「复制」&mdash;只是
+          在下一词元预测下，上下文使这些特定词语
+          变得极可能出现。
+        </p>
+
+        <h3>语言模型如何使用上下文？</h3>
+        <p>
+          通过 <strong>自注意力机制</strong>。在生成每个输出
+          词元时，模型会关注提示词中的所有词元&mdash;包括
+          检索到的文档。它自然地聚焦于最相关的上下文
+          词元：
+        </p>
+
+        <div class="math-block" id="math-attn"></div>
+
+        <div class="attn-heatmap" id="attentionHeatmap"></div>
+
+        <p>
+          单元格颜色越深 = 注意力权重越高。当模型生成
+          「Delhi」时，它会高度关注上下文中的「Delhi」。当它生成
+          「PM2.5」时，它会关注「PM2.5」。注意力机制正是
+          RAG 在神经网络层面得以奏效的原因。
+        </p>
+
+        <h3>并排对比：有 RAG 与无 RAG</h3>
+
+        <div class="two-col">
+          <div class="col-card">
+            <p class="eyebrow">无 RAG</p>
+            <div class="math-block" id="math-norag"></div>
+            <p>模型仅依赖其权重。可能产生幻觉或含糊其辞。</p>
+            <div class="example example--bad">
+              「德里的空气污染是一个值得关注的重大问题，尤其在特定季节……」
+              <span class="verdict verdict--bad">含糊、有所保留</span>
+            </div>
+          </div>
+          <div class="col-card col-card--accent">
+            <p class="eyebrow">有 RAG</p>
+            <div class="math-block" id="math-withrag"></div>
+            <p>上下文中包含该事实。注意力机制将其提升到答案之中。</p>
+            <div class="example example--good">
+              「德里冬季的空气污染非常严重，PM2.5 水平常达到危害级别。」
+              <span class="verdict verdict--good">具体、有据可依</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout">
+          <strong>指令微调至关重要。</strong>
+          基座语言模型可能会把提示词当作某份文档的一部分来续写，
+          而不是回答问题。经过指令微调的
+          模型已然学会「上下文 + 问题 &rarr; 答案」。
+          下一词元预测的数学不变，但权重经过对齐，以产出
+          有用的回答。
+        </div>
+      </section>
+
+      <!-- ─── Section VIII ─── -->
+
+      <section class="step-section" id="domains">
+        <div class="step-badge">第九部分</div>
+        <h2>尝试不同领域</h2>
+        <p>
+          RAG 的优美之处在于整条流水线与领域无关。只要更换
+          语料库，同样的五个步骤便可适用于空气质量、烹饪、历史
+          或医学。切换领域，观察每一步如何相应调整：
+        </p>
+
+        <div class="domain-switcher" id="domainSwitcher2">
+          <button class="domain-btn domain-btn--active" data-domain="airquality">空气质量</button>
+          <button class="domain-btn" data-domain="cooking">烹饪</button>
+          <button class="domain-btn" data-domain="history">历史</button>
+          <button class="domain-btn" data-domain="medical">医学</button>
+        </div>
+
+        <div class="walkthrough" id="walkthrough">
+          <div class="wt-step">
+            <div class="wt-num">1</div>
+            <div class="wt-body">
+              <h4>语料库</h4>
+              <div id="wtDocs"></div>
+            </div>
+          </div>
+          <div class="wt-step">
+            <div class="wt-num">2</div>
+            <div class="wt-body">
+              <h4>查询</h4>
+              <div id="wt查询"></div>
+            </div>
+          </div>
+          <div class="wt-step">
+            <div class="wt-num">3</div>
+            <div class="wt-body">
+              <h4>已检索（k = 2）</h4>
+              <div id="wtRetrieved"></div>
+            </div>
+          </div>
+          <div class="wt-step">
+            <div class="wt-num">4</div>
+            <div class="wt-body">
+              <h4>组装后的提示词</h4>
+              <div class="wt-prompt" id="wtPrompt"></div>
+            </div>
+          </div>
+          <div class="wt-step">
+            <div class="wt-num">5</div>
+            <div class="wt-body">
+              <h4>生成的答案</h4>
+              <div class="wt-answer" id="wtAnswer"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── Section IX ─── -->
+
+      <section class="step-section" id="why">
+        <div class="step-badge">第十部分</div>
+        <h2>RAG 为何有效</h2>
+
+        <p>
+          直觉很简单：与其要求模型凭记忆回忆某个事实，
+          不如递给它一张笔记。但我们可以把这一点说得更精确。
+        </p>
+
+        <p>无 RAG 时，模型完全基于参数化记忆进行生成：</p>
+        <div class="math-block" id="math-why1"></div>
+
+        <p>有 RAG 时，我们对检索到的文档求边缘化：</p>
+        <div class="math-block" id="math-why2"></div>
+
+        <p>在实践中，我们用 top-k 文档来近似：</p>
+        <div class="math-block" id="math-why3"></div>
+
+        <h3>三项具体的收益</h3>
+        <ul>
+          <li><strong>减少幻觉。</strong> 语言模型有真实的文本可供
+            参照，从而远不易凭空捏造事实。</li>
+          <li><strong>始终最新。</strong> 需要更新的知识？更新
+            文档库即可。无需重新训练&mdash;只需重建索引。</li>
+          <li><strong>比微调更经济。</strong> 模型权重保持
+            冻结。只有索引发生变化。更新知识无需 GPU。</li>
+        </ul>
+
+        <h3>RAG 与 kNN-LM：一处微妙的区别</h3>
+        <table class="data-table">
+          <thead>
+            <tr><th>方法</th><th>检索单元</th><th>使用方式</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>kNN-LM</strong>（kNN 语言模型）</td><td>单个词元</td><td>在每一步插值进输出 logit</td></tr>
+            <tr><td><strong>RAG</strong>（检索增强生成）</td><td>整份文档</td><td>前置到输入提示词之前</td></tr>
+          </tbody>
+        </table>
+
+        <div class="callout">
+          <strong>一句话总结。</strong>
+          RAG = 对知识做 kNN + 对文本做语言模型。
+          参数化记忆（模型所学）+ 非参数化记忆
+          （你刚刚检索到的内容）。
+        </div>
+      </section>
+
+      <!-- ─── Section X ─── -->
+
+      <section class="step-section" id="failures">
+        <div class="step-badge">第十一部分</div>
+        <h2>RAG 何时失效</h2>
+        <p>
+          RAG 强大，但并非魔法。理解其失效模式
+          将为你省下大量调试时间：
+        </p>
+
+        <div class="failure-list">
+          <div class="failure">
+            <h4>1. 检索器取回错误的文档</h4>
+            <p>
+              若嵌入模型对你的领域理解不足，它
+              可能检索到表面上相似但语义上错误的文档。
+              垃圾上下文输入 &rarr; 垃圾答案输出。
+              <em>嵌入模型的质量就是 RAG 性能的上限。</em>
+            </p>
+          </div>
+          <div class="failure">
+            <h4>2. 上下文稀释（k 过大）</h4>
+            <p>
+              向提示词塞入过多文档会使注意力被摊薄。
+              那一份相关文档被掩埋在九份无关文档之中。
+              更小、更精确的 k 常常胜过更大的 k。
+            </p>
+          </div>
+          <div class="failure">
+            <h4>3. 冗余文档浪费上下文</h4>
+            <p>
+              五份内容雷同的文档会占用宝贵的上下文
+              窗口，却不增添任何新信息。多样性感知的检索
+              （如 MMR&mdash;最大边际相关性）对此有所帮助。
+            </p>
+          </div>
+          <div class="failure">
+            <h4>4. 无法进行多跳推理</h4>
+            <p>
+              若答案需要综合文档 A 与文档 B 中的
+              事实，语言模型往往力不能及。它倾向于从单份
+              文档中抄袭，而非跨多份文档进行综合。这是一个
+              活跃的研究方向。
+            </p>
+          </div>
+        </div>
+
+        <div class="callout">
+          <strong>引用并不等于证据。</strong>
+          即便模型写下「[来源 1]」，它也可能引用了错误的文档，
+          或曲解了该文档的内容。语言模型输出中的引用是一种习得的
+          输出模式，而非一种有据可依的机制。务必核实。
+        </div>
+      </section>
+
+      <!-- ─── Section XI ─── -->
+
+      <section class="step-section" id="takeaways">
+        <div class="step-badge">第十二部分</div>
+        <h2>我们构建了什么</h2>
+
+        <ul>
+          <li><strong>RAG = 检索 + 生成。</strong> 在嵌入空间中找出最近的
+            文档，将其粘贴进提示词，然后让
+            语言模型依据文本作答。</li>
+          <li><strong>五个步骤。</strong> 嵌入 &rarr; 建索引 &rarr; 检索
+            &rarr; 构建提示词 &rarr; 生成。</li>
+          <li><strong>改善输入，而非改善模型。</strong> RAG 并不
+            改变模型权重&mdash;它改变模型所看到的内容。
+            底层的数学依旧是下一词元预测。</li>
+          <li><strong>注意力机制是其机理。</strong> 语言模型通过
+            自注意力机制关注上下文词元，自然地将相关事实
+            引入其输出。</li>
+          <li><strong>认清其局限。</strong> 劣质嵌入、稀释的上下文、
+            冗余文档以及多跳推理，正是 RAG 失效之处。
+            没有任何工具是万灵药。</li>
+        </ul>
+
+        <div class="final-eq" id="math-final"></div>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script src="app.js?v=3"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

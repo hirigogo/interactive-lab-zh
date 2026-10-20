@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>随机森林：逐棵树地理解</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>随机森林：逐棵树地理解</h1>
+        <p class="abstract">
+          Bagging + 随机特征采样——最简单却仍能在半数场合取胜的表格数据集成方法。
+          逐棵添加树；观察决策边界变得平滑、OOB 误差下降、特征重要性
+          趋于稳定。在同一数据集上把 RF 与纯 bagging、Extra-Trees 进行比较。
+        </p>
+        <div class="byline">
+          <span>约 16 分钟</span>
+          <span>经典机器学习 &middot; 集成方法 &middot; Bagging</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>两行说清方差缩减的论证</h2>
+        <p>
+          单棵深树具有高方差：训练集上的微小扰动会大幅改变划分点。若我们有 $T$ 棵树，两两相关系数为 $\rho$，每棵树的方差为 $\sigma^2$，则平均预测的方差为
+        </p>
+        <div class="math-block" id="math-var"></div>
+        <p>
+          它由两项构成：一项由树间相关性驱动、不可消除；另一项为 $1/T$，由独立性驱动。<strong>Bagging</strong> 通过让每棵树在不同的自助样本上训练来降低 $\rho$。<strong>随机特征子采样</strong> 进一步迫使不同的树在不同特征上划分，从而降低 $\rho$。二者的结合正是随机森林稳定性的来源：$T \to \infty$ 使 $\sigma^2/T$ 项趋于零，而残余项 $\rho\sigma^2$ 远小于 $\sigma^2$。
+        </p>
+        <p>
+          单棵深树近似无偏但方差很大；对数百棵这样的树求平均可保持偏置并压平方差。这就是所有 bagged 集成方法背后的全部直觉。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>多样性的两个来源</h2>
+        <p>
+          单棵深决策树具有高方差——训练集上的微小扰动会大幅改变划分点。
+          随机森林（Breiman，2001）对许多这样的树求平均，
+          并通过两个技巧使每棵树与其余树去相关：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>Bagging。</strong> 每棵树看到的都是训练数据的一个自助样本
+            （有放回抽样，规模与原数据相同）。约 63% 的不重复样本点
+            会出现在每个自助样本中；其余 37% 即该树的
+            <em>袋外（out-of-bag）</em> 样本——每棵树都免费获得一个
+            留出集。</li>
+          <li><strong>随机特征子采样。</strong> 在每次划分时，
+            只有 $d$ 个特征中的 $m$ 个有资格被选中。默认值：分类任务 $m = \sqrt d$，
+            回归任务 $m = d/3$。它迫使不同的树关注不同的特征，
+            效果优于仅对特征做 bagging。</li>
+        </ul>
+        <div class="math-block" id="math-rf"></div>
+        <p>
+          Extra-Trees（Geurts 等，2006）更进一步：在每次划分时，
+          以<em>随机</em>方式而非最优方式选取阈值。它以略增偏置
+          换取更大的方差缩减；在信号丰富的数据上往往略差，
+          在噪声数据上则略好。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>观察森林生长</h2>
+        <p>
+          点击 <em>添加树</em> 以逐棵添加树。
+          森林预测的类别是其各棵树的多数投票结果。
+          决策边界在前 10 棵树时迅速变平滑，此后逐渐平缓。
+          仅当树的数量 $\ge$ 3 时才报告 OOB 误差。
+        </p>
+        <div class="train-controls">
+          <button class="action-btn" id="rf-add">添加树</button>
+          <button class="action-btn" id="rf-add10">+10 棵树</button>
+          <button class="action-btn action-btn--ghost" id="rf-reset">重置森林</button>
+          <button class="action-btn action-btn--ghost" id="rf-newdata">新数据</button>
+          <label>最大深度 &nbsp;<span id="rf-depth-val">6</span> <input type="range" id="rf-depth" min="2" max="12" step="1" value="6"></label>
+          <label>每次划分的特征数 (m) &nbsp;<span id="rf-mtry-val">1</span> <input type="range" id="rf-mtry" min="1" max="2" step="1" value="1"></label>
+          <span class="train-stat">树的数量 <strong id="rf-n">0</strong></span>
+          <span class="train-stat">OOB 误差 <strong id="rf-oob">—</strong></span>
+        </div>
+        <div class="dt-grid">
+          <div class="dt-panel">
+            <div class="panel-label">仅 bagging（m = d = 2）</div>
+            <canvas id="rf-bag" width="380" height="380"></canvas>
+          </div>
+          <div class="dt-panel">
+            <div class="panel-label">随机森林（m 由滑块控制）</div>
+            <canvas id="rf-rf" width="380" height="380"></canvas>
+          </div>
+          <div class="dt-panel">
+            <div class="panel-label">Extra-Trees（随机划分）</div>
+            <canvas id="rf-extra" width="380" height="380"></canvas>
+          </div>
+        </div>
+        <div class="dt-grid">
+          <div class="dt-panel" style="grid-column: 1 / -1;">
+            <div class="panel-label">OOB 误差 + 特征重要性，逐棵树呈现</div>
+            <canvas id="rf-stats" width="880" height="260"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>OOB 误差——免费的留出集</h2>
+        <p>
+          对约 37% 的自助样本未包含该点的树而言，每个训练点都是“袋外”的。
+          要得到它的 OOB 预测：仅在这些树上投票。OOB 误差即
+          所有训练点使用各自 OOB 预测得到的误分类率。
+        </p>
+        <div class="math-block" id="math-oob"></div>
+        <p>
+          其性质为：(1) 无信息泄漏；(2) 调参时无需划分训练/测试集；
+          (3) 随着树的数量增加，收敛到真实的测试误差。
+          第 2 步中的 OOB 曲线应与留出测试曲线的走势在噪声范围内一致。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>特征重要性——三种方法，皆非完美</h2>
+        <ul class="explanation-list">
+          <li><strong>不纯度平均下降量（MDI）。</strong> 把某个特征
+            在每棵树的每次划分中所贡献的不纯度下降量求和，再归一化。
+            速度快，但对高基数特征有偏。</li>
+          <li><strong>置换重要性。</strong> 在 OOB 集中打乱某个特征；
+            测量 OOB 准确率的下降幅度；下降越大表示越重要。
+            无偏，但计算代价高。</li>
+          <li><strong>SHAP / TreeSHAP。</strong> 具备 Shapley 值保证的
+            逐预测贡献。解释 RF / boosting 预测的现代标准方法。</li>
+        </ul>
+        <p>
+          实时演示展示的是 MDI。在真实数据集上务必用
+          置换重要性交叉验证——MDI 可能把某个随机噪声的高基数特征
+          标记为“重要”。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>RF 擅长什么——以及它会在哪里栽跟头</h2>
+        <ul class="explanation-list">
+          <li><strong>优势。</strong> 混合类型的表格数据、
+            特征众多、交互作用温和、对离群点稳健、
+            能处理缺失值、可并行训练、可用 OOB 调参。</li>
+          <li><strong>劣势。</strong> 在训练范围之外的推断
+            （构造上即为零）；平滑的低维回归（高斯过程更好）；
+            类别高度不平衡（应使用类别加权采样）；极高维稀疏
+            （XGBoost / LightGBM 往往更优）；无法高效地捕捉
+            旋转后的决策边界。</li>
+          <li><strong>它在 2026 年的地位。</strong> 对任何
+            能用 10 行 sklearn 代码处理的表格任务而言，它仍是默认的首选。
+            若想再提升一轮准确率，可改用 <a href="../xgboost/index.html">XGBoost /
+            LightGBM</a> 并调参。若需要概率输出，
+            可用<a href="../conformal/index.html">保形预测</a>包装，或使用 NGBoost。</li>
+        </ul>
+        <div class="callout callout--key">
+          <strong>口号。</strong>
+          群体智慧，但群体中的每个成员看到的是世界的不同侧面。
+          其背后的数学只有一行
+          （对独立同分布的弱学习器求平均可把方差降低为 1/n）；
+          其实践含义是：只要能训练五十棵决策树，就绝不要只训练一棵。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>RF 与梯度提升——何时使用哪一种</h2>
+        <div class="examples-table-wrap" style="overflow-x:auto;">
+          <table class="examples-table">
+            <thead><tr><th>维度</th><th>随机森林</th><th>梯度提升（XGBoost / LightGBM）</th></tr></thead>
+            <tbody>
+              <tr><td>训练方式</td><td>各树相互独立（可并行）</td><td>各树依序训练（后续树修正先前树的错误）</td></tr>
+              <tr><td>单树深度</td><td>较深（往往不加限制）</td><td>较浅（3–8）</td></tr>
+              <tr><td>对超参数的敏感度</td><td>稳健——默认值通常即可</td><td>敏感——必须调节学习率、max_depth、正则化项</td></tr>
+              <tr><td>过拟合风险</td><td>较低（得益于平均）</td><td>较高——需要早停</td></tr>
+              <tr><td>概率校准</td><td>概率校准较差</td><td>略好，但仍需用 Platt / isotonic 包装</td></tr>
+              <tr><td>最适用于</td><td>特征众多、信号温和、快速原型开发</td><td>准确率目标严苛、数据集庞大、Kaggle 竞赛</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          思维模型：<em>RF 对许多从零训练的树求平均；boosting 则在一系列小树上依次拟合彼此的残差。</em> 关于 boosting 的机制，参见 <a href="../xgboost/index.html">XGBoost 一文</a>。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-7">
+        <div class="step-badge">第 7 步</div>
+        <h2>超参数速查表</h2>
+        <div class="examples-table-wrap" style="overflow-x:auto;">
+          <table class="examples-table">
+            <thead><tr><th>参数</th><th>默认值</th><th>何时改、如何改</th></tr></thead>
+            <tbody>
+              <tr><td><code>n_estimators</code>（树的数量）</td><td>100</td><td>增加到 OOB 误差趋于平稳为止；收益廉价，且不会过拟合。</td></tr>
+              <tr><td><code>max_depth</code>（最大深度）</td><td>None（无）（完全生长）</td><td>若内存受限则限制在 10–15；对准确率影响较小。</td></tr>
+              <tr><td><code>max_features</code>（最大特征数）</td><td>$\sqrt d$（分类）/ $d/3$（回归）</td><td>特征冗余时调低；特征稀疏 / 微弱时调高。</td></tr>
+              <tr><td><code>min_samples_leaf</code>（叶节点最小样本数）</td><td>1</td><td>标签含噪时提高到 5；决策边界更平滑。</td></tr>
+              <tr><td><code>bootstrap</code>（自助采样）</td><td>True（真）</td><td>设为 False 可关闭 bagging（此时 OOB 无定义）。</td></tr>
+              <tr><td><code>class_weight</code>（类别权重）</td><td>None（无）</td><td>对不平衡分类使用 <code>"balanced"</code>。</td></tr>
+              <tr><td><code>n_jobs</code>（并行任务数）</td><td>1</td><td>设为 <code>-1</code>（即使用全部 CPU 核心）——可完美并行。</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-8">
+        <div class="step-badge">第 8 步</div>
+        <h2>阅读清单</h2>
+        <ul class="explanation-list">
+          <li><strong>Breiman (2001)</strong> &mdash; <em>《随机森林s》</em>。原始论文。可读性很高。</li>
+          <li><strong>Geurts, Ernst, Wehenkel (2006)</strong> &mdash; <em>《Extremely Randomized Trees》</em>。</li>
+          <li><strong>Hastie, Tibshirani, Friedman</strong>，<em>《The Elements of Statistical Learning》</em>，第 15 章。</li>
+          <li><strong>Louppe (2014)</strong> &mdash; <em>《Understanding 随机森林s: From Theory to Practice》</em>。博士学位论文，深入讨论偏置-方差与重要性估计量。</li>
+          <li><strong>Strobl et&nbsp;al. (2007)</strong> &mdash; <em>《Bias in random forest variable importance measures》</em>。关于 MDI 偏置的论文；“应改用置换重要性”的经典参考文献。</li>
+          <li><strong>Grinsztajn, Oyallon, Varoquaux (2022)</strong> &mdash; <em>《Why do tree-based models still outperform deep learning on tabular data?》</em></li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

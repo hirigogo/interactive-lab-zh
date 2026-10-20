@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>注意力机制的精算</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>注意力机制的精算</h1>
+        <p class="abstract">
+          选定一个歧义词，拖动其 Query 向量，观察 Transformer
+          如何判断该倾听哪些邻词&mdash;&mdash;随着箭头移动，每个点积、
+          softmax 权重与 value 混合都实时计算。
+        </p>
+        <div class="byline">
+          <span>约 15 分钟</span>
+          <span>深度学习 &middot; Transformer &middot; 注意力机制</span>
+        </div>
+      </header>
+
+      <!-- ─── 前言 ─── -->
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>歧义问题</h2>
+        <p>
+          孤立的词几乎没有意义。以 <strong>bank</strong> 为例。它指的是
+          <em>河岸</em>，还是
+          <em>银行</em>？单看这个词无法判断&mdash;&mdash;你必须
+          考察它的邻词。
+        </p>
+        <p>
+          自注意力机制正是 Transformer 让每个词 <em>向周围询问</em> 的方式。
+          句子中的每个词都向其余所有词发问：“我应当
+          在多大程度上关注你？”答案以一个介于 0 与 1 之间的数值返回。
+          随后每个词以邻词含义的加权混合来重建自身。
+        </p>
+        <p>
+          本页将上述过程全部显式展开。读到最后，你将亲手把
+          原始分数送入 softmax，观察混合 value 向量的形成，
+          并建立起关于 Transformer 何以在消歧任务上胜过此前
+          各类架构的直觉。
+        </p>
+
+        <h3>选择句子</h3>
+        <p>
+          我们将逐一分析若干经典的歧义词。选定其中之一，
+          整页内容便随之展开：
+        </p>
+        <div class="button-row" id="scenario-buttons" role="group" aria-label="选择歧义词">
+          <button class="mode-button is-active" data-scenario="riverBank">“河岸”</button>
+          <button class="mode-button" data-scenario="moneyBank">“我把钱存入银行”</button>
+          <button class="mode-button" data-scenario="appleFruit">“我吃了一块苹果派”</button>
+          <button class="mode-button" data-scenario="appleCorp">“苹果公司发布了一款手机”</button>
+          <button class="mode-button" data-scenario="bassFish">“我在湖里钓到一条鲈鱼”</button>
+          <button class="mode-button" data-scenario="selfBank">“河岸自身岿然不动”（自注意力机制）</button>
+        </div>
+        <p class="scenario-caption" id="scenario-caption">
+          焦点词 <strong>bank</strong> 需要通过倾听其邻词，
+          判断其与水相关还是与金钱相关。
+        </p>
+      </section>
+
+      <!-- ─── 第 1 步 ─── -->
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>每个词承担的三种角色</h2>
+        <p>
+          在 Transformer 中，每个词都关联着三个相互独立的
+          向量，各自扮演不同角色：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>Query（$Q$）：</strong>“我在寻找什么？”
+            这是希望对自身进行更新的那个词的视角。</li>
+          <li><strong>Key（$K$）：</strong>“我能提供什么？”
+            其余每个词都在此展示自身的特征。</li>
+          <li><strong>Value（$V$）：</strong>“若你决定关注我，
+            以下便是我实际贡献的含义。”</li>
+        </ul>
+        <p>
+          Query 与 Key 决定关注的 <em>程度</em>。Value
+          决定 <em>所混合的内容</em>。将这两种角色区分开来，
+          正是注意力机制具备表达力的原因所在。
+        </p>
+        <div class="callout callout--think">
+          <strong>图书馆类比。</strong>
+          设想你走进一座图书馆，手里拿着一张写有问题的便笺
+          （即你的 <em>query</em>）。每本书都有书脊标签
+          （<em>key</em>），书内则有正文（<em>value</em>）。你将
+          便笺与书脊标签逐一比对，抽出相符的书，
+          再阅读其正文。这便是注意力机制的一步。
+        </div>
+      </section>
+
+      <!-- ─── 第 2 步 — NEW: where Q, K, V come from ─── -->
+      <section class="step-section" id="step-qkv-source">
+        <div class="step-badge">第 2 步</div>
+        <h2>Q、K、V 的实际来源</h2>
+        <p>
+          第&nbsp;1 步将 Q、K、V 描述为一个词所扮演的三种角色。那么
+          这些向量在物理上从何而来？它们都是同一个输入嵌入
+          $x_i \in \mathbb{R}^{d_{\text{model}}}$ 的
+          <strong>线性投影</strong>。三个矩阵
+          $W_Q, W_K, W_V$ 只需学习一次，并在所有位置间共享：
+        </p>
+        <div class="math-block" id="math-qkv-projection"></div>
+        <p>
+          同一输入，三种不同的旋转。query 旋转提取出“我在寻找什么？”
+          这类特征，key 旋转提取出“我展示什么？”这类特征，
+          而 value 旋转则提取出“若被关注，我交付什么？”。一个词
+          之所以扮演三种角色，是因为有三个独立的矩阵经过训练，
+          以三种不同方式解读它。
+        </p>
+
+        <h3>算例：真实的数值</h3>
+        <p>
+          点击任意词元，观察其原始嵌入 $x_i$ 经由
+          $W_Q$、$W_K$、$W_V$ 变换的过程。我们取 $d_{\text{model}}=4$ 与
+          $d_k = d_v = 2$，以便矩阵能在屏幕上完整显示 &mdash; 在
+          GPT 类模型中它们为 768 或 4096，但计算方式完全相同。
+          （此处的嵌入与投影矩阵均为预先备好；在实际
+          训练中它们由梯度下降习得 &mdash; 参见
+          第&nbsp;8 步。）
+        </p>
+
+        <div class="qkv-derivation">
+          <div class="qkv-token-row" id="qkv-tokens" role="group" aria-label="选择词元">
+            <!-- token chips inserted by JS -->
+          </div>
+          <div class="qkv-derivation-body">
+            <div class="qkv-block qkv-block--input">
+              <div class="matrix-label">嵌入 $x_i$</div>
+              <div class="matrix-grid" id="qkv-x"></div>
+              <div class="matrix-shape">$1 \times 4$</div>
+            </div>
+            <div class="qkv-multiply">×</div>
+            <div class="qkv-w-stack">
+              <div class="qkv-w-block">
+                <div class="matrix-label" style="color:var(--q-color)">$W_Q$</div>
+                <div class="matrix-grid" id="qkv-wq"></div>
+                <div class="matrix-shape">$4 \times 2$</div>
+              </div>
+              <div class="qkv-w-block">
+                <div class="matrix-label" style="color:var(--k-color)">$W_K$</div>
+                <div class="matrix-grid" id="qkv-wk"></div>
+                <div class="matrix-shape">$4 \times 2$</div>
+              </div>
+              <div class="qkv-w-block">
+                <div class="matrix-label" style="color:var(--v-color)">$W_V$</div>
+                <div class="matrix-grid" id="qkv-wv"></div>
+                <div class="matrix-shape">$4 \times 2$</div>
+              </div>
+            </div>
+            <div class="qkv-equals">=</div>
+            <div class="qkv-result-stack">
+              <div class="qkv-r-block">
+                <div class="matrix-label" style="color:var(--q-color)">$q_i$</div>
+                <div class="matrix-grid" id="qkv-q-out"></div>
+                <div class="matrix-shape">$1 \times 2$</div>
+              </div>
+              <div class="qkv-r-block">
+                <div class="matrix-label" style="color:var(--k-color)">$k_i$</div>
+                <div class="matrix-grid" id="qkv-k-out"></div>
+                <div class="matrix-shape">$1 \times 2$</div>
+              </div>
+              <div class="qkv-r-block">
+                <div class="matrix-label" style="color:var(--v-color)">$v_i$</div>
+                <div class="matrix-grid" id="qkv-v-out"></div>
+                <div class="matrix-shape">$1 \times 2$</div>
+              </div>
+            </div>
+          </div>
+          <div class="qkv-explain" id="qkv-explain">
+            选定一个词元以查看其投影。
+          </div>
+        </div>
+
+        <div class="callout">
+          <strong>为何需要三个矩阵而非一个？</strong>
+          单次旋转一次只能表达一种特征视角。借助
+          三个相互独立的矩阵，模型可以同时让一个词
+          “请求动词”、“展示为与水相关的名词”，以及
+          “交付地理含义”&mdash;&mdash;三项正交的任务，
+          落在三个正交的子空间中。
+        </div>
+      </section>
+
+      <!-- ─── 第 3 步 ─── -->
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 3 步</div>
+        <h2>点积 = 相容性得分</h2>
+        <p>
+          如何度量一个 Query 与一个 Key 的匹配程度？我们使用
+          <strong>点积</strong>。若两个向量方向相同，
+          得分即为较大的正值。若彼此垂直，则为零。若
+          方向相反，则为负值。
+        </p>
+        <div class="math-block" id="math-dot-product"></div>
+        <p>
+          拖动焦点词的
+          <span style="color:var(--q-color);font-weight:bold">橙色 Query</span>
+          箭头，以及其余各词的
+          <span style="color:var(--k-color);font-weight:bold">蓝色 Key</span>
+          箭头。观察下方原始得分的实时更新。
+          将 query 拖至与某个特定的 key 对齐，你便能看到
+          该词胜出。
+        </p>
+
+        <div class="interactive-figure">
+          <canvas id="qkCanvas" width="880" height="440"></canvas>
+          <figcaption>
+            以二维替代真实的高维 Q/K 空间。所有箭头
+            均被约束在单位圆上。
+          </figcaption>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table" id="rawScoresTable">
+            <thead>
+              <tr>
+                <th>词</th>
+                <th>Query 向量</th>
+                <th>Key 向量</th>
+                <th>点积</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <strong>真实 Transformer 中的缩放点积。</strong>
+          在实际实现中，点积会除以
+          $\sqrt{d_k}$（其中 $d_k$ 为 key 的维度）。当维度
+          很大时，原始点积会急剧膨胀，把 softmax 压成 one-hot。
+          该缩放因子使梯度保持健康。在二维情形下我们将其忽略，
+          因为影响微乎其微。
+        </div>
+      </section>
+
+      <!-- ─── 第 4 步 ─── -->
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>Softmax 将得分转化为百分比</h2>
+        <p>
+          原始点积并不是权重&mdash;&mdash;它们可能为负，也可能
+          极大。我们需要让它们表现得像求和为 1 的概率。
+          <strong>Softmax</strong> 恰好能做到这一点：
+        </p>
+        <div class="math-block" id="math-softmax"></div>
+        <p>
+          取指数会放大差异：一个仅略高于其余项的得分
+          会急剧上升，从而在权重中占据主导。这
+          正是 softmax 被称为“软”argmax 的原因&mdash;&mdash;它选出一个赢家，
+          但仍向其余所有项传递非零信号。
+        </p>
+
+        <h3>逐步计算（实时）</h3>
+        <p>
+          以下是将完整流程应用于你当前拖拽所得布局的结果。
+          每个数值都来自上方画布：
+        </p>
+        <div class="table-wrap">
+          <table class="data-table" id="attentionTable">
+            <thead>
+              <tr>
+                <th>词</th>
+                <th>原始得分</th>
+                <th>exp(score)</th>
+                <th>权重（softmax）</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Populated by JS -->
+            </tbody>
+            <tfoot id="attentionTableFoot">
+              <!-- Populated by JS -->
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="math-block" id="math-softmax-live"></div>
+
+        <div class="callout callout--think">
+          <strong>注意这种赢家通吃的现象。</strong>
+          使你某个点积明显大于其余各项。你将
+          看到其 softmax 权重跃升至 80% 以上，而其余各项降至
+          个位数。此时再将另一个 key 向量微微拨向 query&mdash;&mdash;
+          即使仅倾斜极小的角度，新词也会夺走一大块注意力。
+          得分的微小变化意味着权重的巨大变化。
+        </div>
+      </section>
+
+      <!-- ─── 第 5 步 ─── -->
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>将各 value 混合为新的含义</h2>
+        <p>
+          现在到了兑现的时刻。焦点词以各 <strong>Value</strong> 向量的
+          加权和重建自身含义，所用权重正是我们
+          刚刚算出的 softmax 权重：
+        </p>
+        <div class="math-block" id="math-final-v"></div>
+        <p>
+          下方<span style="color:var(--v-color);font-weight:bold">青色
+          箭头</span> 是每个词的 value 向量（可拖动它们以
+          模拟不同的“含义”）。虚线
+          <span style="color:var(--warm);font-weight:bold">橙色箭头</span>
+          为 $V_{\text{final}}$&mdash;&mdash;即焦点词的新上下文含义。
+          观察它滑向注意力权重最高的那个 value。
+        </p>
+
+        <div class="interactive-figure">
+          <canvas id="valueCanvas" width="880" height="440"></canvas>
+          <figcaption>
+            按当前注意力权重对各 value 向量所作的混合。虚线
+            橙色箭头：输出 $V_{\text{final}}$。
+          </figcaption>
+        </div>
+
+        <div class="math-block" id="math-final-live"></div>
+
+        <div class="callout">
+          <strong>为何要将 key 与 value 分开。</strong>
+          乍看之下你可能会问：为何不让 value 同时充当 key
+          <em>以及</em> 被平均的对象？因为那样就无法
+          表达“关注 <em>river</em> 这个词，因为它是一个水的
+          线索，但取用它更宽泛的 <em>地理</em> 含义，而非原始
+          词元。”Key 询问“是否匹配？”；value 回答
+          “若匹配，我便贡献这些。”
+        </div>
+      </section>
+
+      <!-- ─── 第 6 步 — NEW: matrix form ─── -->
+      <section class="step-section" id="step-matrix">
+        <div class="step-badge">第 6 步</div>
+        <h2>一次完成 &mdash; 矩阵视角</h2>
+        <p>
+          真实的 Transformer 并不逐个遍历词元。它们
+          将全部 $N$ 个 query 堆叠为矩阵 $Q$，全部 $N$ 个 key 堆叠为 $K$，
+          全部 $N$ 个 value 堆叠为 $V$，并通过
+          一次矩阵乘法得出整层的输出：
+        </p>
+        <div class="math-block" id="math-attention-full"></div>
+        <p>
+          以下即为该计算的精确执行，实时作用于你当前
+          的句子。得分矩阵 $S$ 是每个 query
+          对每个 key 的表格。对每一行施加 softmax，便得到
+          注意力权重矩阵 $A$。再与 $V$ 相乘，即得
+          新的嵌入 $Y$ &mdash; 每个词元一个向量，全部在一次
+          矩阵乘法中完成。
+        </p>
+
+        <div class="matrix-flow" id="matrix-flow">
+          <div class="matrix-flow-cell">
+            <div class="matrix-label">得分 $S = QK^\top / \sqrt{d_k}$</div>
+            <div class="heatmap-grid" id="hm-scores"></div>
+            <div class="matrix-shape" id="hm-scores-shape">$N \times N$</div>
+          </div>
+          <div class="matrix-arrow">softmax<br>（按行）</div>
+          <div class="matrix-flow-cell">
+            <div class="matrix-label">权重 $A = \mathrm{softmax}(S)$</div>
+            <div class="heatmap-grid" id="hm-weights"></div>
+            <div class="matrix-shape">$N \times N$</div>
+          </div>
+          <div class="matrix-arrow">·V</div>
+          <div class="matrix-flow-cell">
+            <div class="matrix-label">输出 $Y = AV$</div>
+            <div class="matrix-grid" id="hm-output"></div>
+            <div class="matrix-shape">$N \times d_v$</div>
+          </div>
+        </div>
+        <div class="matrix-row-pick">
+          <span>查看行：</span>
+          <span class="matrix-row-buttons" id="matrix-row-buttons"></span>
+          <span class="matrix-row-explain" id="matrix-row-explain">选定一行以查看某个词元向外分配的注意力。</span>
+        </div>
+
+        <div class="callout">
+          <strong>将其当作表格来读。</strong>
+          $A$ 的第 $i$ 行是“词元 $i$ 如何分配其注意力”。
+          该行各项之和必为 1。第 $j$ 列则讲述相反的故事：
+          “谁在关注词元 $j$？”。对角线上的 $A_{ii}$
+          即自注意力 &mdash; 每个词元倾听自身的程度。
+        </div>
+      </section>
+
+      <!-- ─── 第 7 步 — NEW: three knobs ─── -->
+      <section class="step-section" id="step-knobs">
+        <div class="step-badge">第 7 步</div>
+        <h2>塑造每个 Transformer 的三个旋钮</h2>
+        <p>
+          上面简洁的公式掩盖了三个设计选择，它们决定
+          该层是有用还是失效。下面将逐一展示，并配以简短的
+          交互演示。
+        </p>
+
+        <h3>旋钮 1 &mdash; 为何要除以 $\sqrt{d_k}$？</h3>
+        <p>
+          两个随机 $d_k$ 维向量的点积
+          方差为 $d_k$。随着 $d_k$ 增大，原始得分变得极大，softmax
+          变得尖锐而趋于 one-hot，梯度随之消失。除以
+          $\sqrt{d_k}$ 可使方差保持在 1，与宽度无关。
+        </p>
+        <div class="control-row" style="grid-template-columns: 1fr 1fr;">
+          <div class="control-block">
+            <label>$d_k$ &nbsp; <span id="dk-val">8</span> <input type="range" id="dk-slider" min="1" max="256" value="8" step="1"></label>
+          </div>
+          <div class="control-block" style="display:flex;align-items:center;gap:0.6rem;">
+            <label class="toggle-pair">
+              <input type="checkbox" id="dk-scale" checked>
+              <span>除以 $\sqrt{d_k}$</span>
+            </label>
+          </div>
+        </div>
+        <div class="dk-demo" id="dk-demo">
+          <div class="dk-demo-side">
+            <div class="dk-demo-label">一个 query 对 8 个随机 key 的 softmax 权重样本</div>
+            <div class="bar-row" id="dk-bars"></div>
+            <div class="dk-demo-stats" id="dk-stats">—</div>
+          </div>
+          <div class="dk-demo-side">
+            <div class="dk-demo-label">大量随机 query 下最大权重的直方图</div>
+            <canvas id="dk-hist" width="380" height="180"></canvas>
+            <div class="dk-demo-stats" id="dk-hist-stats">—</div>
+          </div>
+        </div>
+
+        <h3>旋钮 2 &mdash; 因果掩码</h3>
+        <p>
+          对于语言模型，位置 $t$ 处的词不得窥视
+          位置 $t+1, t+2, \dots$ &mdash; 否则训练只会教它
+          复制下一个词元。我们在 softmax <em>之前</em> 将这些元素
+          置零，方法是给上三角区域加上 $-\infty$。
+          经 softmax 后，未来的权重恰为 0。
+        </p>
+        <div class="mask-flow" id="mask-flow">
+          <div class="matrix-flow-cell">
+            <div class="matrix-label">未掩码的权重 $A$</div>
+            <div class="heatmap-grid" id="hm-mask-before"></div>
+          </div>
+          <div class="matrix-arrow">+ 掩码</div>
+          <div class="matrix-flow-cell">
+            <div class="matrix-label">因果 $A_{\text{causal}}$</div>
+            <div class="heatmap-grid" id="hm-mask-after"></div>
+          </div>
+        </div>
+        <p style="font-family: var(--sans); color: var(--muted); font-size: 0.95rem; max-width: 68ch;">
+          每行中保留下来的权重会经由 softmax 重新归一化，
+          因此靠前的词元只能看到自身，下一个词元看到自身及其
+          前一个词元，依此类推。正是这一技巧使
+          GPT 类模型具备自回归性质。
+        </p>
+
+        <h3>旋钮 3 &mdash; 多头</h3>
+        <p>
+          一张注意力图一次只能表达一种关系。
+          真实的 Transformer 并行运行 $h$ 个头 &mdash; 每个头都有
+          各自的 $W_Q^{(h)}, W_K^{(h)}, W_V^{(h)}$ &mdash; 随后
+          将其输出拼接。不同的头学会各自专精
+          （句法、指代、位置邻接、主题）。
+        </p>
+        <div class="multihead-grid" id="multihead-grid">
+          <!-- 4 heads' heatmaps + labels -->
+        </div>
+        <p style="font-family: var(--sans); color: var(--muted); font-size: 0.95rem; max-width: 68ch;">
+          每个头看到的输入相同，但使用的旋转不同
+          （此处我们以四个手动选取的旋转来模拟）。
+          真实的多头是习得的，但其直观效果一致：它们
+          关注到不同的事物。
+        </p>
+      </section>
+
+      <!-- ─── 第 8 步 — NEW: positional encoding ─── -->
+      <section class="step-section" id="step-positional">
+        <div class="step-badge">第 8 步</div>
+        <h2>位置：注意力机制暗藏的缺陷</h2>
+        <p>
+          自注意力机制具有 <strong>置换不变性</strong>。打乱
+          输入词元的顺序，输出仍是同一组新的向量，
+          只是重新排列而已。对语言而言这是致命的 &mdash;
+          “狗咬人”与“人咬狗”不应相同。
+        </p>
+        <div class="callout callout--warn">
+          <strong>简证。</strong> 用置换 $P$ 重排 $X$ 中的
+          词元。于是 $Q, K, V$ 也随之置换：$Q' = PQ$，
+          $K' = PK$，$V' = PV$。新的注意力输出为
+          $\mathrm{softmax}(PQ\,(PK)^\top/\sqrt{d_k})\,PV
+          = P\,\mathrm{softmax}(QK^\top/\sqrt{d_k})\,V$。输出
+          向量的集合完全相同，只是顺序发生了变化。
+        </div>
+
+        <h3>解决之道 &mdash; 引入位置信号</h3>
+        <p>
+          在任何注意力运算开始之前，模型会为每个词元的
+          嵌入加上一个位置向量
+          $p_t \in \mathbb{R}^{d_{\text{model}}}$。Vaswani 等人的经典选择是正弦式编码：
+        </p>
+        <div class="math-block" id="math-pe"></div>
+        <p>
+          每个维度都是波长不同的正弦曲线。
+          短波长的维度用于区分相近的位置；
+          长波长的维度则承载相距较远的结构。二者共同
+          为每个位置赋予唯一的指纹 &mdash; 更关键的是，
+          这一指纹使 <em>相对</em> 位置可以被线性
+          解码。
+        </p>
+
+        <div class="pe-figure">
+          <canvas id="pe-canvas" width="720" height="280"></canvas>
+          <figcaption>
+            正弦式位置编码。行表示位置，列
+            表示维度。左侧波长较短，右侧
+            较长。在下方控件中悬停选定某一行，即可查看某个
+            位置的完整向量。
+          </figcaption>
+        </div>
+        <div class="control-row" style="grid-template-columns: 1fr 1fr 1fr;">
+          <div class="control-block">
+            <label>位置数 $T$ &nbsp;<span id="pe-T-val">32</span> <input type="range" id="pe-T" min="8" max="64" step="2" value="32"></label>
+          </div>
+          <div class="control-block">
+            <label>维度 $d$ &nbsp;<span id="pe-d-val">32</span> <input type="range" id="pe-d" min="8" max="64" step="2" value="32"></label>
+          </div>
+          <div class="control-block">
+            <label>高亮位置 &nbsp;<span id="pe-pos-val">5</span> <input type="range" id="pe-pos" min="0" max="31" step="1" value="5"></label>
+          </div>
+        </div>
+
+        <h3>有与无 &mdash; 重排句子</h3>
+        <p>
+          开启或关闭位置信号，然后打乱词序。
+          有位置信号时，“river bank”与“bank river”产生的
+          注意力不同；无位置信号时二者完全相同。
+        </p>
+        <div class="permute-controls">
+          <button class="action-btn" id="permute-shuffle">打乱词序</button>
+          <button class="action-btn action-btn--ghost" id="permute-reset">重置顺序</button>
+          <label class="toggle-pair">
+            <input type="checkbox" id="permute-pe" checked>
+            <span>加入位置编码</span>
+          </label>
+        </div>
+        <div class="permute-grid">
+          <div class="matrix-flow-cell">
+            <div class="matrix-label">词元顺序</div>
+            <div class="permute-tokens" id="permute-tokens"></div>
+          </div>
+          <div class="matrix-flow-cell">
+            <div class="matrix-label">焦点词元的注意力权重</div>
+            <div class="heatmap-grid" id="permute-heatmap"></div>
+          </div>
+        </div>
+
+        <div class="callout">
+          <strong>现代变体。</strong> 原始的正弦式
+          编码简单，且可外推至更长的序列。现代
+          系统常采用 <strong>可学习</strong> 嵌入（BERT）、
+          <strong>旋转式</strong> 嵌入（RoPE，用于 LLaMA 与
+          DeepSeek &mdash; 它旋转 Q 与 K，而非将其加到 $X$ 上），或
+          <strong>ALiBi</strong>（一种直接加到
+          得分矩阵上的固定偏置）。它们解决的都是同一个问题：
+          告诉注意力机制每个词元位于何处。
+        </div>
+      </section>
+
+      <!-- ─── 第 9 步 — NEW: training -->
+      <section class="step-section" id="step-train">
+        <div class="step-badge">第 9 步</div>
+        <h2>观察一个微型注意力头的学习过程</h2>
+        <p>
+          本文此前出现的每个 Q、K、V 都是为产生
+          “正确”答案而手工调校的。真实的 Transformer 并不会
+          凭空获得它们 &mdash; 而是通过梯度下降发现它们。现在
+          让我们在浏览器中进行一次端到端的训练，反向传播全部
+          手工编码。每个参数、每个梯度、每一步都写于
+          纯 JavaScript 之中 &mdash; 未引入任何外部库。
+        </p>
+
+        <h3>玩具任务 &mdash; 软查找</h3>
+        <p>
+          我们给模型一个含四个词元的序列。前三个
+          是 <strong>候选</strong>：每个都携带 $\{A, B, C\}$ 中的 one-hot
+          标识，外加一个随机的三维负载。第
+          四个是 <strong>query</strong>：一个 one-hot，指明我们
+          想要哪个候选的负载，其负载槽位为零。
+          模型必须在该 query 位置输出对应的负载
+          &mdash; 一个真正的“按名查找”问题。
+        </p>
+        <div class="math-block" id="math-train-task"></div>
+        <p>
+          唯一可学习的参数是三个投影
+          矩阵 $W_Q$、$W_K$、$W_V$。我们将其初始化为小幅度的
+          随机高斯值，在 query 位置处以均方误差为
+          目标运行梯度下降，并观察损失下降。
+        </p>
+
+        <div class="train-controls">
+          <button class="action-btn" id="train-toggle">开始训练</button>
+          <button class="action-btn action-btn--ghost" id="train-reset">重新初始化</button>
+          <label>学习率 &nbsp;<span id="lr-val">0.10</span> <input type="range" id="lr-slider" min="0.01" max="0.5" step="0.01" value="0.1"></label>
+          <span class="train-stat">step <strong id="train-step">0</strong></span>
+          <span class="train-stat">loss <strong id="train-loss">—</strong></span>
+        </div>
+
+        <div class="train-grid">
+          <div class="train-panel">
+            <div class="matrix-label">损失曲线（对数刻度）</div>
+            <canvas id="train-loss-canvas" width="500" height="240"></canvas>
+            <div class="train-caption" id="train-loss-caption">按 <em>开始训练</em> 即可开始。</div>
+          </div>
+          <div class="train-panel">
+            <div class="matrix-label">固定样本上的注意力权重</div>
+            <div class="heatmap-grid" id="train-heatmap"></div>
+            <div class="train-caption" id="train-example-caption">—</div>
+          </div>
+        </div>
+
+        <h3>模型正在学习什么</h3>
+        <div class="train-w-grid">
+          <div class="train-w-panel">
+            <div class="matrix-label" style="color:var(--q-color)">$W_Q$</div>
+            <div class="matrix-grid" id="train-wq"></div>
+          </div>
+          <div class="train-w-panel">
+            <div class="matrix-label" style="color:var(--k-color)">$W_K$</div>
+            <div class="matrix-grid" id="train-wk"></div>
+          </div>
+          <div class="train-w-panel">
+            <div class="matrix-label" style="color:var(--v-color)">$W_V$</div>
+            <div class="matrix-grid" id="train-wv"></div>
+          </div>
+        </div>
+
+        <div class="callout callout--think">
+          <strong>应留意的现象。</strong>
+          大约 100 步之内，损失下降一个数量级。
+          注意力图中 query 所在的一行会（几乎）跃变为
+          在相匹配的候选处呈 one-hot。$W_Q$ 与 $W_K$ 起初
+          随机，但很快在 id 列上长出较大的元素
+          （从而使点积捕捉到相匹配的 id）；$W_V$ 则在 value
+          列上长出较大的元素（从而使正确的负载得以
+          传递）。没有人告诉模型“按 id 查找” &mdash;
+          它自行发现了这一策略，因为这是压低损失的
+          最省力方式。
+        </div>
+      </section>
+
+      <!-- ─── 第 9 步b — NEW: multi-head specialisation -->
+      <section class="step-section" id="step-multihead">
+        <div class="step-badge">第 9 步半</div>
+        <h2>两个头，两位专家</h2>
+        <p>
+          第 7 步说明了多头的存在；第 9 步训练了一个头。现在
+          观察 <em>两个</em> 头在同一个单头无法解决的
+          任务上并排训练。每个头拥有各自的
+          $W_Q, W_K, W_V$（外加一个将两者输出合并的最终线性层）。
+          损失同时流经二者。
+        </p>
+        <h3>任务：两次相容的查找</h3>
+        <p>
+          该序列有四个词元：两个
+          <strong>A 型对</strong> $(\text{key}_A, \text{val}_A)$
+          与两个 <strong>B 型对</strong> $(\text{key}_B,
+          \text{val}_B)$。每个词元的输入为
+          $\bigl[\text{type}\ (2)\;|\;\text{key}\ (3)\;|\;\text{val}\ (3)\bigr]$。
+          query 词元（第 4 个词元）携带
+          $\bigl[\text{type-A flag}\ (1)\;|\;\text{key}\ (3)\;|\;\text{type-B flag}\ (1)\;|\;\text{key}\ (3)\bigr]$，
+          我们要求模型在 query 位置输出
+          $\text{val}_A + \text{val}_B$。单个头
+          无法将这两次查找解耦；两个头可以。
+        </p>
+        <div class="train-controls">
+          <button class="action-btn" id="mh-toggle">开始训练</button>
+          <button class="action-btn action-btn--ghost" id="mh-reset">重新初始化</button>
+          <label>学习率 &nbsp;<span id="mh-lr-val">0.05</span> <input type="range" id="mh-lr" min="0.005" max="0.3" step="0.005" value="0.05"></label>
+          <label class="toggle-pair"><input type="checkbox" id="mh-singlehead"> 消融为单头</label>
+          <span class="train-stat">步数 <strong id="mh-step">0</strong></span>
+          <span class="train-stat">损失 <strong id="mh-loss">—</strong></span>
+        </div>
+        <div class="train-grid">
+          <div class="train-panel">
+            <div class="matrix-label">头 A 的注意力（固定样本）</div>
+            <div class="heatmap-grid" id="mh-heatA"></div>
+          </div>
+          <div class="train-panel">
+            <div class="matrix-label">头 B 的注意力（同一样本）</div>
+            <div class="heatmap-grid" id="mh-heatB"></div>
+          </div>
+        </div>
+        <div class="train-grid">
+          <div class="train-panel">
+            <div class="matrix-label">损失曲线</div>
+            <canvas id="mh-loss-canvas" width="500" height="240"></canvas>
+          </div>
+          <div class="train-panel">
+            <div class="matrix-label">头部特化程度得分</div>
+            <canvas id="mh-spec-canvas" width="500" height="240"></canvas>
+            <div class="train-caption">
+              每个头在其偏好类型上的尖锐程度。约 80 步之后，
+              随着各头分割任务，特化程度开始上升。
+            </div>
+          </div>
+        </div>
+        <div class="callout callout--think">
+          <strong>应留意的现象。</strong>
+          在 <em>两个头</em> 的情况下，损失平滑下降至接近零；
+          一个头的热图聚焦于 A 型对，另一个则聚焦于
+          B 型对。勾选 <em>消融为单头</em>，
+          损失会在高得多的水平上趋于平台 &mdash; 单个注意力模式
+          无法同时指向两个不同的事物。这正是
+          真实的 Transformer 采用 8 个或 16 个头的实际原因。
+        </div>
+      </section>
+
+      <!-- ─── 第 10 步 ─── -->
+      <section class="step-section" id="step-10">
+        <div class="step-badge">第 10 步</div>
+        <h2>在全部五个句子上运行</h2>
+        <p>
+          再来看一次这一流程，这次完全自动化。下方
+          的表格将同一组 Q、K、V 向量（为每个歧义词预设的“合理”
+          向量）代入完整的注意力公式求值，
+          并显示哪个邻词占据主导。点击不同的句子，
+          即可看到不同的胜出者。
+        </p>
+        <div class="examples-table-wrap">
+          <table class="examples-table">
+            <thead>
+              <tr>
+                <th>句子</th>
+                <th>焦点词</th>
+                <th>关注度最高的邻词</th>
+                <th>注意力占比 %</th>
+                <th>解读</th>
+              </tr>
+            </thead>
+            <tbody id="summaryTableBody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+        <div class="callout callout--think">
+          <strong>观察所得。</strong>
+          在五个句子中的每一个里，歧义词的 query 都恰好与一个
+          能够为其消歧的邻词对齐。“Bank”在一种情形下倾听
+          “river”，在另一种情形下倾听“money”。“Apple”则分别关注“pie”
+          与“phone”。<em>这正是</em> 借助注意力实现的消歧 &mdash; 没有
+          手工编写的规则，只有向量的对齐。
+        </div>
+      </section>
+
+      <!-- ─── 第 11 步 ─── -->
+      <section class="step-section" id="step-11">
+        <div class="step-badge">第 11 步</div>
+        <h2>注意力机制 <em>并非</em> 的三件事</h2>
+        <div class="misconception-grid">
+          <div class="misconception-card">
+            <span class="misconception-icon">误解</span>
+            <p><strong>“注意力不过是加权平均，并无新意。”</strong><br />
+              权重本身是通过 $QK^\top$ <em>由数据计算得出</em>
+              的 &mdash; 它们依赖于每一对词元。没有任何
+              静态的加权和能做到这一点。它是一个
+              系数在运行时被学得的函数。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">误解</span>
+            <p><strong>“注意力能告诉你模型关注什么。”</strong><br />
+              注意力权重只是深度模型内部的 <em>一种</em> 信号。
+              剔除一个低权重的邻词未必会改变
+              预测结果，而同一个 logit 可以经由多种权重
+              模式达到。将其解读为解释是有风险的。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">误解</span>
+            <p><strong>“每个词对每个其他词的注意力代价相同。”</strong><br />
+              自注意力机制在序列长度上为 $O(n^2)$：句子长度加倍，
+              计算量变为四倍。这正是长上下文模型
+              采用各种技巧（稀疏、线性、滑动窗口）来削减开销的原因。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── 第 12 步 ─── -->
+      <section class="step-section" id="step-12">
+        <div class="step-badge">第 12 步</div>
+        <h2>我们仍然略去未谈的内容</h2>
+        <p>
+          至此你已看到单头、单层，含位置编码、含掩码、
+          含多头、含训练的每一个数值。
+          真实的 Transformer 还有更多：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>多层堆叠。</strong> 一个
+            注意力块的输出成为下一块的输入。经过若干
+            层之后，“bank”所承载的含义由横跨整个句子的
+            <em>推理链</em> 塑造而成。ViT-Base 堆叠 12 层，
+            GPT-3 堆叠 96 层，据报道 GPT-4 更多。</li>
+          <li><strong>残差流 + LayerNorm。</strong> 每个块都被包裹为
+            $x \leftarrow x + \mathrm{Attn}(x)$，随后接一个
+            LayerNorm 和一个 MLP。残差使信息可以原封不动地
+            跨层传递，如今它被认为正是模型写入其上的
+            “记忆带”。</li>
+          <li><strong>交叉注意力。</strong> 在编码器-解码器模型
+            （翻译、T5、图像到文本）中，$Q$ 来自解码器，
+            而 $K, V$ 来自编码器 &mdash; 解码器
+            “询问源端”而非询问自身。在机制上是同一个
+            公式。</li>
+          <li><strong>高效注意力。</strong> $O(N^2)$ 在
+            长上下文下会急剧膨胀。FlashAttention 重排矩阵乘法以适配
+            SRAM；滑动窗口（Mistral）、稀疏（Longformer）、
+            状态空间（Mamba）以及线性注意力（Linformer）
+            等变体则牺牲少许表达力，换取 $O(N)$ 或
+            $O(N \log N)$ 的复杂度。</li>
+          <li><strong>推理时的 KV 缓存。</strong> 当聊天机器人
+            逐个词元地生成文本时，此前所有词元的 key 与 value
+            都会被缓存并重复使用。在生产部署中，这一缓存
+            占据了 GPU 显存的大部分。</li>
+        </ul>
+        <div class="callout callout--think">
+          <strong>最后总结。</strong>
+          自注意力机制是 Transformer 用来询问
+          “我该倾听哪些邻词？”的通用方式。你刚刚手工
+          计算了这一答案的每一个步骤 &mdash; 从产生 Q、K、V 的
+          投影矩阵，到矩阵形式的
+          softmax，到位置信息的修正，再到在一个真实的玩具任务上
+          运行梯度下降。将这一运算在深度与宽度上堆叠起来，
+          配以残差、MLP 以及十亿级词元的训练集，便是
+          从原始词元构建出 GPT 级理解力的方式。
+        </div>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>从似然到损失</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+
+<style>
+:root {
+  --serif: 'Source Serif 4', Georgia, serif;
+  --sans: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+  --bg: #fdfcf9;
+  --paper: #ffffff;
+  --text: #2f2a22;
+  --muted: #6e665b;
+  --border: #e2d8c6;
+  --accent: #2c6fb7;
+  --warm: #d9622b;
+  --success: #1e7770;
+  --target: #d9622b;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; font-family: var(--serif); color: var(--text); background: var(--bg); line-height: 1.65; }
+
+.article { max-width: 980px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+.back-link { display: inline-block; margin-bottom: 1.5rem; color: var(--muted); text-decoration: none; font-family: var(--sans); font-size: 0.9rem; }
+.back-link:hover { color: var(--text); }
+.article-header { margin-bottom: 3rem; text-align: center; }
+.kicker { margin: 0 0 0.75rem; font-family: var(--sans); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); }
+h1 { margin: 0 auto 1rem; font-size: clamp(2.4rem, 5vw, 3.5rem); line-height: 1.1; letter-spacing: -0.02em; color: #1a1815; max-width: 18ch; }
+.abstract { margin: 0 auto 1rem; max-width: 62ch; font-size: 1.15rem; color: #4d463d; }
+.byline { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1.4rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-family: var(--sans); font-size: 0.92rem; }
+
+.step-section {
+  position: relative;
+  margin-top: 4rem;
+  padding: 3rem 2.5rem;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.03);
+}
+.step-badge {
+  position: absolute;
+  top: -16px;
+  left: 32px;
+  background: var(--accent);
+  color: white;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.4rem 1.2rem;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(44, 111, 183, 0.25);
+}
+h2 { margin: 0 0 1rem; font-size: clamp(1.6rem, 3.5vw, 2.2rem); line-height: 1.15; color: #1a1815; }
+h3 { margin-top: 2rem; margin-bottom: 0.8rem; font-size: 1.25rem; color: #1a1815; }
+p { max-width: 68ch; font-size: 1.1rem; }
+ul { max-width: 68ch; font-size: 1.1rem; padding-left: 1.4rem; }
+li { margin-bottom: 0.5rem; }
+.math-block { margin: 1.5rem 0; text-align: center; font-size: 1.05rem; }
+
+.control-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.4rem;
+  margin: 1.6rem 0;
+}
+.control-block { display: flex; flex-direction: column; gap: 0.5rem; }
+.control-block label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.control-block label span {
+  font-family: var(--mono);
+  color: var(--warm);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid var(--paper);
+  box-shadow: 0 2px 6px rgba(44,111,183,0.4);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid var(--paper);
+}
+
+.button-row { display: flex; gap: 0.6rem; flex-wrap: wrap; margin: 1rem 0; }
+.mode-button {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--paper);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.mode-button:hover { border-color: var(--accent); }
+.mode-button.is-active { background: var(--accent); color: white; border-color: var(--accent); }
+.mode-button:focus-visible,
+.action-btn:focus-visible,
+input:focus-visible {
+  outline: 3px solid rgba(44,111,183,0.35);
+  outline-offset: 3px;
+}
+
+.action-btn {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.7rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.01em;
+}
+.action-btn--primary { background: var(--accent); color: white; box-shadow: 0 2px 8px rgba(44,111,183,0.3); }
+.action-btn--primary:hover { background: #2461a3; transform: translateY(-1px); }
+.action-btn--ghost { background: var(--paper); color: var(--text); border: 1.5px solid var(--border); }
+.action-btn--ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+.interactive-figure { margin: 1.5rem 0; }
+.interactive-figure canvas {
+  display: block;
+  width: 100%;
+  background: #fbfaf6;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.interactive-figure figcaption {
+  margin-top: 0.7rem;
+  font-size: 0.92rem;
+  color: var(--muted);
+  text-align: center;
+  font-style: italic;
+}
+
+.panels-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+  margin: 1.5rem 0;
+}
+.panels-grid figure { margin: 0; }
+@media (max-width: 720px) { .panels-grid { grid-template-columns: 1fr; } }
+
+.stat-strip { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0; }
+.stat-pill {
+  flex: 1 1 140px;
+  min-width: 140px;
+  background: var(--paper);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 0.9rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  text-align: left;
+}
+.stat-pill .stat-label {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+}
+.stat-pill .stat-value { font-family: var(--mono); font-size: 1.5rem; font-weight: 600; color: var(--text); }
+.stat-pill--accent { border-color: var(--accent); }
+.stat-pill--accent .stat-value { color: var(--accent); }
+.stat-pill--warm { border-color: var(--warm); }
+.stat-pill--warm .stat-value { color: var(--warm); }
+
+.callout {
+  margin: 2rem 0 0.5rem;
+  padding: 1.2rem 1.5rem;
+  border-radius: 12px;
+  border-left: 4px solid var(--accent);
+  background: rgba(44,111,183,0.05);
+  font-size: 1.02rem;
+}
+.callout strong { color: var(--accent); }
+.callout--think { border-left-color: var(--success); background: rgba(30,119,112,0.06); }
+.callout--think strong { color: var(--success); }
+.callout--warn { border-left-color: var(--warm); background: rgba(217,98,43,0.06); }
+.callout--warn strong { color: var(--warm); }
+
+.toggle-line { display: flex; align-items: center; gap: 0.6rem; font-family: var(--sans); font-weight: 600; font-size: 0.95rem; }
+.toggle-line input { width: 18px; height: 18px; accent-color: var(--warm); cursor: pointer; }
+
+.examples-table-wrap { overflow-x: auto; margin: 1.5rem 0; }
+.examples-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.examples-table th, .examples-table td { text-align: left; padding: 0.7rem 0.9rem; border-bottom: 1px solid var(--border); }
+.examples-table th {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  background: #faf8f3;
+}
+.examples-table td:first-child { font-weight: 600; }
+
+footer { margin-top: 4rem; text-align: center; font-family: var(--sans); font-size: 0.85rem; color: var(--muted); }
+
+@media (max-width: 640px) {
+  .step-section { padding: 2rem 1.4rem; }
+}
+</style>
+</head>
+<body>
+
+<article class="article">
+  <header class="article-header">
+    <a class="back-link" href="../">&larr; 讲解库</a>
+    <p class="kicker">交互式讲解</p>
+    <h1>从似然到损失</h1>
+    <p class="abstract">
+      损失函数从何而来？并非凭空产生。假定你数据的残差服从某种噪声分布 $p(r)$，再去求解使数据最可能的参数。最大化似然即等价于最小化 $-\log p(r)$——<em>它</em>就是你的损失。改变噪声模型，便改变了损失。本页让三个面板保持同步，使你能够实时观察损失如何从概率密度中导出。
+    </p>
+    <div class="byline">
+      <span>约 11 分钟</span>
+      <span>深度学习 &middot; 损失函数 &middot; 最大似然</span>
+    </div>
+  </header>
+
+  <section class="step-section" id="prelude">
+    <div class="step-badge">前言</div>
+    <h2>贯通全篇的那一个恒等式</h2>
+    <p>
+      用一条直线 $\hat{y}_i = w\,x_i + b$ 拟合数据。每个点都有一个残差 $r_i = y_i - \hat{y}_i$。现在将这些残差<em>建模</em>为从密度 $p(r)$ 中抽取的随机噪声。假定各点相互独立，则整个数据集的似然为乘积 $\prod_i p(r_i)$。最大化它与最小化负对数似然是同一件事：
+    </p>
+    <div class="math-block">
+      $$\underbrace{-\log \prod_i p(r_i)}_{\text{negative log-likelihood}}
+        = \sum_i \underbrace{\big(-\log p(r_i)\big)}_{\text{per-point loss}} .$$
+    </div>
+    <p>
+      因此<strong>损失函数字面上就是 $-\log p(r)$</strong>。你曾做出的每一个选择——MSE、MAE、Huber 损失——都是对噪声形状的一次下注。假定高斯噪声，你就刚刚推导出了平方误差。假定拉普拉斯噪声，绝对误差便随之而来。下面让我们亲眼看看。
+    </p>
+  </section>
+
+  <section class="step-section" id="lab">
+    <div class="step-badge">实验区</div>
+    <h2>密度、损失与拟合——尽在一屏</h2>
+    <p>
+      选择一种噪声模型。左侧面板绘制其密度 $p(r)$；右侧面板绘制由此得到的损失 $-\log p(r)$。它们下方是一个小型数据集以及一条由你控制的直线。密度曲线与损失曲线上的彩色圆点即你实际的残差；数据面板上的竖直短线则是落在地面上的同一批残差。总损失即这些逐点高度之和。
+    </p>
+
+    <div class="button-row" id="model-selector">
+      <button class="mode-button is-active" data-model="gaussian" aria-pressed="true">高斯 &rarr; 平方误差</button>
+      <button class="mode-button" data-model="laplace" aria-pressed="false">拉普拉斯 &rarr; 绝对误差</button>
+      <button class="mode-button" data-model="uniform" aria-pressed="false">均匀 &rarr; 硬性区间</button>
+      <button class="mode-button" data-model="studentt" aria-pressed="false">学生 t &rarr; 稳健</button>
+    </div>
+
+    <div class="control-row">
+      <div class="control-block">
+        <label for="sigmaSlider">噪声尺度 <span>$\sigma$ = <span id="sigmaVal">1.00</span></span></label>
+        <input type="range" id="sigmaSlider" min="0.3" max="3.0" step="0.05" value="1.0">
+      </div>
+      <div class="control-block">
+        <label for="slopeSlider">直线斜率 <span>$w$ = <span id="slopeVal">0.60</span></span></label>
+        <input type="range" id="slopeSlider" min="-1.0" max="2.5" step="0.02" value="0.60">
+      </div>
+      <div class="control-block">
+        <label for="interSlider">直线截距 <span>$b$ = <span id="interVal">1.00</span></span></label>
+        <input type="range" id="interSlider" min="-3.0" max="5.0" step="0.05" value="1.0">
+      </div>
+    </div>
+
+    <div class="button-row">
+      <button class="action-btn action-btn--primary" id="btn-fit">拟合所选损失</button>
+      <label class="toggle-line" style="margin-left:0.6rem;">
+        <input type="checkbox" id="outlierToggle"> 添加一个离群点
+      </label>
+    </div>
+    <p id="fitStatus" role="status" aria-live="polite" style="min-height:1.4em; margin:0.35rem 0 0;"></p>
+
+    <div class="panels-grid">
+      <figure class="interactive-figure">
+        <canvas id="densCanvas" width="460" height="300"></canvas>
+        <figcaption>噪声密度 $p(r)$。圆点标记每个残差的似然。</figcaption>
+      </figure>
+      <figure class="interactive-figure">
+        <canvas id="lossCanvas" width="460" height="300"></canvas>
+        <figcaption>逐残差损失 $-\log p(r)$。圆点高度 = 该点的损失。</figcaption>
+      </figure>
+    </div>
+
+    <figure class="interactive-figure">
+      <canvas id="dataCanvas" width="920" height="360"></canvas>
+      <figcaption>附带你所拟合直线的数据。每根竖直短线都是一个残差，其着色反映它贡献的损失大小（绿色 = 代价低，红色 = 代价高）。</figcaption>
+    </figure>
+
+    <div class="stat-strip">
+      <div class="stat-pill stat-pill--accent">
+        <span class="stat-label">总损失 $\sum_i -\log p(r_i)$</span>
+        <span class="stat-value" id="totalLossVal">&mdash;</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-label">最差的单个点</span>
+        <span class="stat-value" id="worstVal">&mdash;</span>
+      </div>
+      <div class="stat-pill stat-pill--warm">
+        <span class="stat-label">损失增长如</span>
+        <span class="stat-value" id="tailVal">&mdash;</span>
+      </div>
+    </div>
+
+    <div class="callout callout--think">
+      <strong>请试试。</strong>在高斯模型下开启<em>添加一个离群点</em>，然后点击 <em>拟合所选损失</em>。观察整条直线如何倾斜以追逐那一个坏点——平方误差付出 $r^2$ 的代价，因此远处的点会主导整个求和。现在切换到拉普拉斯或学生 t 并再次吸附拟合（拉普拉斯的拟合近似中位数直线）。稳健损失几乎纹丝不动，因为它们的尾部增长要慢得多。
+    </div>
+  </section>
+
+  <section class="step-section" id="why">
+    <div class="step-badge">收获</div>
+    <h2>为何尾部就是全部要害</h2>
+    <p>
+      只看右侧的损失面板，观察它在残差<em>很大</em>时的表现：
+    </p>
+    <div class="examples-table-wrap">
+      <table class="examples-table">
+        <thead>
+          <tr><th>噪声模型</th><th>密度 $p(r)$</th><th>损失 $-\log p(r)$</th><th>远端尾部行为</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>高斯</td>
+            <td>$\propto e^{-r^2/2\sigma^2}$</td>
+            <td>平方误差 $\;\tfrac{r^2}{2\sigma^2}$</td>
+            <td>按 $r^2$ 增长 &mdash; 离群点主导</td>
+          </tr>
+          <tr>
+            <td>拉普拉斯</td>
+            <td>$\propto e^{-|r|/b}$</td>
+            <td>绝对误差 $\;|r|/b$</td>
+            <td>按 $|r|$ 增长 &mdash; 稳健</td>
+          </tr>
+          <tr>
+            <td>在 $[-a,a]$ 上的均匀分布</td>
+            <td>区间内为 $\tfrac{1}{2a}$，区间外为 $0$</td>
+            <td>区间内为常数，区间外为 $+\infty$</td>
+            <td>一堵硬墙 &mdash; 任何落在区间外的点都被禁止</td>
+          </tr>
+          <tr>
+            <td>学生 t（$\nu=3$）</td>
+            <td>$\propto \big(1+\tfrac{r^2}{\nu\sigma^2}\big)^{-\frac{\nu+1}{2}}$</td>
+            <td>$\tfrac{\nu+1}{2}\log\!\big(1+\tfrac{r^2}{\nu\sigma^2}\big)$</td>
+            <td>按 $\log r^2$ 增长 &mdash; 极为稳健</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      最后一列才是点睛之笔。按 $r^2$ 增长的损失会让单个遥远的点获得极大的发言权；按 $|r|$ 或 $\log r$ 增长的损失则封顶了它的影响力。所谓「稳健回归」，无非就是假定了一个尾部更厚的噪声模型。
+    </p>
+    <div class="callout callout--warn">
+      <strong>要点。</strong>你选择的并非损失函数——你选择的是噪声模型，而损失就是 $-\log p(r)$，无论你承认与否。MSE 假定高斯噪声。MAE 假定拉普拉斯噪声。若你的数据存在离群点，那正是你的模型在告诉你：高斯的尾部太薄了。
+    </div>
+  </section>
+
+  <footer>ES 667 深度学习讲解系列之一 &middot; 第 1 讲：为何是这些损失？</footer>
+</article>
+
+<script>
+/* ============================ math helpers ============================ */
+// Lanczos log-gamma
+function lgamma(x) {
+  const g = 7;
+  const c = [0.99999999999980993, 676.5203681218851, -1259.1392167224028,
+    771.32342877765313, -176.61502916214059, 12.507343278686905,
+    -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+  if (x < 0.5) return Math.log(Math.PI / Math.sin(Math.PI * x)) - lgamma(1 - x);
+  x -= 1;
+  let a = c[0];
+  const t = x + g + 0.5;
+  for (let i = 1; i < g + 2; i++) a += c[i] / (x + i);
+  return 0.5 * Math.log(2 * Math.PI) + (x + 0.5) * Math.log(t) - t + Math.log(a);
+}
+
+const NU = 3; // Student-t degrees of freedom
+// For a fair comparison every model is scaled to have variance sigma^2.
+function modelParams(sigma) {
+  return {
+    gaussStd: sigma,
+    lapB: sigma / Math.SQRT2,            // var = 2b^2 = sigma^2
+    uniA: sigma * Math.sqrt(3),          // var = a^2/3 = sigma^2
+    tScale: sigma * Math.sqrt((NU - 2) / NU) // var = s^2 * nu/(nu-2) = sigma^2
+  };
+}
+
+// density p(r)
+function density(model, r, sigma) {
+  const P = modelParams(sigma);
+  if (model === 'gaussian') {
+    return Math.exp(-(r * r) / (2 * P.gaussStd * P.gaussStd)) / (P.gaussStd * Math.sqrt(2 * Math.PI));
+  }
+  if (model === 'laplace') {
+    return Math.exp(-Math.abs(r) / P.lapB) / (2 * P.lapB);
+  }
+  if (model === 'uniform') {
+    return Math.abs(r) <= P.uniA ? 1 / (2 * P.uniA) : 0;
+  }
+  // student-t
+  const s = P.tScale;
+  const logC = lgamma((NU + 1) / 2) - lgamma(NU / 2) - 0.5 * Math.log(NU * Math.PI) - Math.log(s);
+  const z = r / s;
+  return Math.exp(logC) * Math.pow(1 + (z * z) / NU, -(NU + 1) / 2);
+}
+
+// loss = -log p(r)
+function loss(model, r, sigma) {
+  const P = modelParams(sigma);
+  if (model === 'gaussian') {
+    const s2 = P.gaussStd * P.gaussStd;
+    return (r * r) / (2 * s2) + 0.5 * Math.log(2 * Math.PI * s2);
+  }
+  if (model === 'laplace') {
+    return Math.abs(r) / P.lapB + Math.log(2 * P.lapB);
+  }
+  if (model === 'uniform') {
+    return Math.abs(r) <= P.uniA ? Math.log(2 * P.uniA) : Infinity;
+  }
+  const s = P.tScale;
+  const logC = lgamma((NU + 1) / 2) - lgamma(NU / 2) - 0.5 * Math.log(NU * Math.PI) - Math.log(s);
+  const z = r / s;
+  return (NU + 1) / 2 * Math.log(1 + (z * z) / NU) - logC;
+}
+
+const TAIL_TEXT = { gaussian: 'r squared', laplace: '|r|', uniform: 'wall at |r|=a', studentt: 'log(r^2)' };
+
+/* ============================ data ============================ */
+// deterministic scatter around y = 0.6 x + 1.0
+const BASE_POINTS = (() => {
+  const xs = [0.6, 1.3, 2.1, 2.9, 3.6, 4.4, 5.2, 6.1, 6.9, 7.7, 8.6, 9.3];
+  const noise = [0.42, -0.55, 0.28, -0.31, 0.61, -0.18, 0.35, -0.62, 0.22, 0.48, -0.4, 0.15];
+  return xs.map((x, i) => ({ x, y: 0.6 * x + 1.0 + noise[i] }));
+})();
+const OUTLIER = { x: 5.6, y: 11.2 };
+
+function currentPoints() {
+  const pts = BASE_POINTS.slice();
+  if (document.getElementById('outlierToggle').checked) pts.push(OUTLIER);
+  return pts;
+}
+
+/* ============================ canvas helpers ============================ */
+function fitCanvas(canvas) {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { ctx, w: rect.width, h: rect.height };
+}
+function lossColor(v, vmax) {
+  // green (cheap) -> red (expensive)
+  const t = Math.max(0, Math.min(1, v / vmax));
+  const r = Math.round(40 + t * 200);
+  const g = Math.round(150 - t * 110);
+  const b = Math.round(90 - t * 40);
+  return `rgb(${r},${g},${b})`;
+}
+
+/* ============================ state ============================ */
+let MODEL = 'gaussian';
+const sigmaSlider = document.getElementById('sigmaSlider');
+const slopeSlider = document.getElementById('slopeSlider');
+const interSlider = document.getElementById('interSlider');
+
+/* ============================ density + loss panels ============================ */
+function drawFunctionPanel(canvas, fn, opts) {
+  const { ctx, w, h } = fitCanvas(canvas);
+  ctx.clearRect(0, 0, w, h);
+  const padL = 46, padR = 16, padT = 22, padB = 34;
+  const cw = w - padL - padR, ch = h - padT - padB;
+  const rMin = -opts.rMax, rMax = opts.rMax;
+  const yMin = 0, yMax = opts.yMax;
+  const X = r => padL + (r - rMin) / (rMax - rMin) * cw;
+  const Y = v => padT + ch - (v - yMin) / (yMax - yMin) * ch;
+
+  // axes / gridlines
+  ctx.strokeStyle = 'rgba(47,42,34,0.08)';
+  ctx.fillStyle = '#8a8072';
+  ctx.font = '500 10px Manrope, sans-serif';
+  ctx.lineWidth = 1;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (let r = Math.ceil(rMin); r <= rMax; r += 2) {
+    ctx.beginPath(); ctx.moveTo(X(r), padT); ctx.lineTo(X(r), padT + ch); ctx.stroke();
+    ctx.fillText(r.toString(), X(r), padT + ch + 6);
+  }
+  // zero line
+  ctx.strokeStyle = 'rgba(47,42,34,0.22)';
+  ctx.beginPath(); ctx.moveTo(X(0), padT); ctx.lineTo(X(0), padT + ch); ctx.stroke();
+  // baseline
+  ctx.beginPath(); ctx.moveTo(padL, padT + ch); ctx.lineTo(padL + cw, padT + ch); ctx.stroke();
+
+  // curve
+  ctx.strokeStyle = opts.color;
+  ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  let started = false;
+  for (let px = 0; px <= cw; px += 1) {
+    const r = rMin + (px / cw) * (rMax - rMin);
+    let v = fn(r);
+    if (!isFinite(v)) { started = false; continue; } // break at infinities (uniform walls)
+    v = Math.min(v, yMax * 1.15);
+    const x = padL + px, y = Y(v);
+    if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // uniform: draw the hard walls to +inf on the loss panel
+  if (MODEL === 'uniform' && opts.isLoss) {
+    const a = modelParams(parseFloat(sigmaSlider.value)).uniA;
+    ctx.strokeStyle = 'rgba(217,98,43,0.55)';
+    ctx.setLineDash([5, 4]); ctx.lineWidth = 2;
+    [-a, a].forEach(xa => {
+      if (xa >= rMin && xa <= rMax) {
+        ctx.beginPath(); ctx.moveTo(X(xa), padT); ctx.lineTo(X(xa), Y(opts.insideVal)); ctx.stroke();
+      }
+    });
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#d9622b';
+    ctx.font = '600 10px Manrope, sans-serif';
+    ctx.fillText('+∞', X(a) + 12, padT + 4);
+    ctx.fillText('+∞', X(-a) - 12, padT + 4);
+  }
+
+  // residual markers
+  const sigma = parseFloat(sigmaSlider.value);
+  opts.residuals.forEach(r => {
+    let v = opts.valueAt(r);
+    const clipped = !isFinite(v) || v > yMax * 1.1;
+    const vy = clipped ? padT + 4 : Y(Math.min(v, yMax * 1.1));
+    const vx = X(Math.max(rMin, Math.min(rMax, r)));
+    // drop line
+    ctx.strokeStyle = 'rgba(47,42,34,0.18)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(vx, padT + ch); ctx.lineTo(vx, vy); ctx.stroke();
+    // dot
+    ctx.fillStyle = clipped ? '#c0392b' : opts.color;
+    ctx.beginPath(); ctx.arc(vx, vy, clipped ? 4.5 : 3.4, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // title
+  ctx.fillStyle = '#5a5247';
+  ctx.font = '600 11px Manrope, sans-serif';
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillText(opts.title, padL, 4);
+}
+
+/* ============================ data panel ============================ */
+function drawDataPanel() {
+  const canvas = document.getElementById('dataCanvas');
+  const { ctx, w, h } = fitCanvas(canvas);
+  ctx.clearRect(0, 0, w, h);
+  const padL = 44, padR = 20, padT = 20, padB = 34;
+  const cw = w - padL - padR, ch = h - padT - padB;
+  const pts = currentPoints();
+  const sigma = parseFloat(sigmaSlider.value);
+  const wSlope = parseFloat(slopeSlider.value);
+  const bInt = parseFloat(interSlider.value);
+
+  const xMin = 0, xMax = 10;
+  const yMin = -1, yMax = 13;
+  const X = x => padL + (x - xMin) / (xMax - xMin) * cw;
+  const Y = y => padT + ch - (y - yMin) / (yMax - yMin) * ch;
+
+  // grid
+  ctx.strokeStyle = 'rgba(47,42,34,0.07)';
+  ctx.fillStyle = '#8a8072';
+  ctx.font = '500 10px Manrope, sans-serif';
+  ctx.lineWidth = 1;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (let x = 0; x <= 10; x += 2) {
+    ctx.beginPath(); ctx.moveTo(X(x), padT); ctx.lineTo(X(x), padT + ch); ctx.stroke();
+    ctx.fillText(x.toString(), X(x), padT + ch + 6);
+  }
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  for (let y = 0; y <= 12; y += 4) {
+    ctx.beginPath(); ctx.moveTo(padL, Y(y)); ctx.lineTo(padL + cw, Y(y)); ctx.stroke();
+    ctx.fillText(y.toString(), padL - 8, Y(y));
+  }
+
+  // fitted line
+  ctx.strokeStyle = '#2c6fb7';
+  ctx.lineWidth = 2.6;
+  ctx.beginPath();
+  ctx.moveTo(X(xMin), Y(wSlope * xMin + bInt));
+  ctx.lineTo(X(xMax), Y(wSlope * xMax + bInt));
+  ctx.stroke();
+
+  // residual stubs + points, colored by loss
+  const losses = pts.map(p => loss(MODEL, p.y - (wSlope * p.x + bInt), sigma));
+  const finiteMax = Math.max(0.5, ...losses.filter(isFinite));
+  pts.forEach((p, i) => {
+    const yhat = wSlope * p.x + bInt;
+    const r = p.y - yhat;
+    const col = isFinite(losses[i]) ? lossColor(losses[i], finiteMax) : '#c0392b';
+    // residual stub
+    ctx.strokeStyle = col; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(X(p.x), Y(p.y)); ctx.lineTo(X(p.x), Y(yhat)); ctx.stroke();
+    // point
+    ctx.fillStyle = col;
+    ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), (p === OUTLIER) ? 6.5 : 5, 0, Math.PI * 2); ctx.fill();
+    if (p === OUTLIER) {
+      ctx.strokeStyle = '#c0392b'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), 9, 0, Math.PI * 2); ctx.stroke();
+    }
+  });
+
+  ctx.fillStyle = '#5a5247';
+  ctx.font = '600 11px Manrope, sans-serif';
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillText('data  &  fitted line  y = w x + b', padL, 4);
+}
+
+/* ============================ orchestration ============================ */
+function residuals() {
+  const wSlope = parseFloat(slopeSlider.value);
+  const bInt = parseFloat(interSlider.value);
+  return currentPoints().map(p => p.y - (wSlope * p.x + bInt));
+}
+
+function redraw() {
+  const sigma = parseFloat(sigmaSlider.value);
+  const res = residuals();
+
+  // dynamic y-scales
+  const dPeak = density(MODEL, 0, sigma);
+  const yMaxDens = Math.max(0.05, dPeak * 1.25);
+  // loss y-scale: cover residuals but cap
+  const finiteLoss = res.map(r => loss(MODEL, r, sigma)).filter(isFinite);
+  const insideVal = MODEL === 'uniform' ? Math.log(2 * modelParams(sigma).uniA) : 0;
+  let yMaxLoss = Math.max(4, ...finiteLoss.map(v => v * 1.15));
+  if (MODEL === 'uniform') yMaxLoss = Math.max(3, insideVal + 3);
+  yMaxLoss = Math.min(yMaxLoss, 40);
+
+  drawFunctionPanel(document.getElementById('densCanvas'),
+    r => density(MODEL, r, sigma),
+    { rMax: 6, yMax: yMaxDens, color: '#1e7770', title: 'p(r)  —  noise density',
+      residuals: res, valueAt: r => density(MODEL, r, sigma), isLoss: false });
+
+  drawFunctionPanel(document.getElementById('lossCanvas'),
+    r => loss(MODEL, r, sigma),
+    { rMax: 6, yMax: yMaxLoss, color: '#d9622b', title: '−log p(r)  —  loss',
+      residuals: res, valueAt: r => loss(MODEL, r, sigma), isLoss: true, insideVal });
+
+  drawDataPanel();
+
+  // stats
+  const losses = res.map(r => loss(MODEL, r, sigma));
+  const anyInf = losses.some(v => !isFinite(v));
+  const total = anyInf ? Infinity : losses.reduce((a, b) => a + b, 0);
+  document.getElementById('totalLossVal').textContent = anyInf ? '∞' : total.toFixed(2);
+  const worst = Math.max(...losses.map(v => isFinite(v) ? v : Infinity));
+  document.getElementById('worstVal').textContent = isFinite(worst) ? worst.toFixed(2) : '∞';
+  document.getElementById('tailVal').textContent = TAIL_TEXT[MODEL];
+}
+
+/* ============================ least squares fit for current model ============================ */
+function snapFit() {
+  const pts = currentPoints();
+  const sigma = parseFloat(sigmaSlider.value);
+  // Coordinate-descent / IRLS style: minimize sum loss(y - (w x + b)) for current model.
+  // Start from OLS, refine with a small grid search around it for robustness across models.
+  let sx = 0, sy = 0, sxx = 0, sxy = 0, n = pts.length;
+  pts.forEach(p => { sx += p.x; sy += p.y; sxx += p.x * p.x; sxy += p.x * p.y; });
+  let w = (n * sxy - sx * sy) / (n * sxx - sx * sx);
+  let b = (sy - w * sx) / n;
+  const totalLoss = (ww, bb) => {
+    let s = 0;
+    for (const p of pts) { const v = loss(MODEL, p.y - (ww * p.x + bb), sigma); if (!isFinite(v)) return Infinity; s += v; }
+    return s;
+  };
+  // Uniform likelihoods have flat feasible regions separated by infinity, so
+  // an OLS start can be marooned outside every feasible basin. Seed the local
+  // refinement with a bounded coarse search over the actual slider domain.
+  if (MODEL === 'uniform') {
+    let best = Infinity, bestW = w, bestB = b;
+    for (let cw = -1; cw <= 2.5001; cw += 0.05) {
+      for (let cb = -3; cb <= 5.0001; cb += 0.05) {
+        const candidateLoss = totalLoss(cw, cb);
+        if (candidateLoss < best) { best = candidateLoss; bestW = cw; bestB = cb; }
+      }
+    }
+    w = bestW;
+    b = bestB;
+  }
+  // refine (coordinate descent with shrinking step) — works for 拉普拉斯/t/uniform too
+  let step = 0.8;
+  for (let iter = 0; iter < 260; iter++) {
+    let best = totalLoss(w, b), improved = false;
+    const cand = [
+      [Math.min(2.5, w + step), b], [Math.max(-1, w - step), b],
+      [w, Math.min(5, b + step)], [w, Math.max(-3, b - step)],
+    ];
+    for (const [cw2, cb] of cand) {
+      const l = totalLoss(cw2, cb);
+      if (l < best) { best = l; w = cw2; b = cb; improved = true; }
+    }
+    if (!improved) step *= 0.6;
+    if (step < 1e-3) break;
+  }
+  const finalLoss = totalLoss(w, b);
+  const status = document.getElementById('fitStatus');
+  if (!isFinite(finalLoss)) {
+    status.textContent = 'No feasible line at this Uniform width. Increase the noise scale or remove the outlier.';
+    return;
+  }
+  status.textContent = `Fitted the ${MODEL === 'gaussian' ? '高斯' : MODEL === 'laplace' ? '拉普拉斯' : MODEL === 'studentt' ? 'Student-t' : 'Uniform'} negative log-likelihood.`;
+  slopeSlider.value = w.toFixed(2);
+  interSlider.value = b.toFixed(2);
+  document.getElementById('slopeVal').textContent = parseFloat(slopeSlider.value).toFixed(2);
+  document.getElementById('interVal').textContent = parseFloat(interSlider.value).toFixed(2);
+  redraw();
+}
+
+/* ============================ wiring ============================ */
+document.querySelectorAll('#model-selector .mode-button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#model-selector .mode-button').forEach(x => {
+      x.classList.remove('is-active');
+      x.setAttribute('aria-pressed', 'false');
+    });
+    b.classList.add('is-active');
+    b.setAttribute('aria-pressed', 'true');
+    MODEL = b.dataset.model;
+    document.getElementById('fitStatus').textContent = '';
+    redraw();
+  });
+});
+sigmaSlider.addEventListener('input', () => { document.getElementById('sigmaVal').textContent = parseFloat(sigmaSlider.value).toFixed(2); redraw(); });
+slopeSlider.addEventListener('input', () => { document.getElementById('slopeVal').textContent = parseFloat(slopeSlider.value).toFixed(2); redraw(); });
+interSlider.addEventListener('input', () => { document.getElementById('interVal').textContent = parseFloat(interSlider.value).toFixed(2); redraw(); });
+document.getElementById('outlierToggle').addEventListener('change', redraw);
+document.getElementById('btn-fit').addEventListener('click', snapFit);
+
+// drag on data panel to set intercept (vertical drag) — a friendly extra
+(function enableDrag() {
+  const canvas = document.getElementById('dataCanvas');
+  let dragging = false;
+  const setFromEvent = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const py = e.clientY - rect.top;
+    const padT = 20, padB = 34, ch = rect.height - padT - padB, yMin = -1, yMax = 13;
+    const yData = yMin + (1 - (py - padT) / ch) * (yMax - yMin);
+    // keep slope, set intercept so line passes near cursor at x=5 (mid)
+    const w = parseFloat(slopeSlider.value);
+    let b = yData - w * 5;
+    b = Math.max(-3, Math.min(5, b));
+    interSlider.value = b.toFixed(2);
+    document.getElementById('interVal').textContent = parseFloat(interSlider.value).toFixed(2);
+    redraw();
+  };
+  canvas.addEventListener('pointerdown', e => {
+    dragging = true;
+    canvas.setPointerCapture(e.pointerId);
+    setFromEvent(e);
+  });
+  canvas.addEventListener('pointermove', e => { if (dragging) setFromEvent(e); });
+  canvas.addEventListener('pointerup', () => { dragging = false; });
+  canvas.addEventListener('pointercancel', () => { dragging = false; });
+  canvas.style.touchAction = 'none';
+  canvas.style.cursor = 'ns-resize';
+})();
+
+window.addEventListener('load', redraw);
+window.addEventListener('resize', redraw);
+</script>
+
+
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

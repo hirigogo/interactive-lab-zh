@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>哈希表：逐次冲突解析</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>哈希表：逐次冲突解析</h1>
+        <p class="abstract">
+          哈希表从外面看充满魔力：平均 $O(1)$
+          查找、无顺序，被用于每一个字典与缓存。
+          而在内部，这种魔力源自冲突解析。把键插入一张小表中，观察它们如何冲突；
+          在链式法与三种开放寻址策略之间切换；观察负载因子逐渐升高、查找逐渐变慢。
+        </p>
+        <div class="byline">
+          <span>约 15 分钟</span>
+          <span>数据结构 &middot; 哈希 &middot; 缓存</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>鸽巢问题</h2>
+        <p>
+          哈希表把一个键——任意一个键——映射到固定数组中的某个槽位。
+          该映射是一个哈希函数 $h(\text{key}) \mod
+          m$，其中 $m$ 为表的大小。整个机制都依赖于该映射近似均匀。
+        </p>
+        <p>
+          它不可能既均匀<em>又</em>单射：可能的键有无穷多个，
+          而槽位只有 $m$ 个。因此两个不同的键最终会哈希到同一槽位。
+          问题在于，当这种情况发生时你该如何处理。
+        </p>
+        <p>
+          答案分为两大族：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>分离链接法。</strong> 每个槽位拥有一个链表。
+            冲突的键被追加到该链表上。查找时遍历该链表。
+            易于推理；但会访问非连续的内存。</li>
+          <li><strong>开放寻址法。</strong> 冲突的键会在数组
+            自身之中<em>探测</em>下一个空槽位。探测策略
+            （线性、二次、随机、robin hood 哈希）正是设计上的选择。
+            对缓存友好；但更为微妙。</li>
+        </ul>
+        <p>
+          下面是一张可插入的 16 槽小表。在策略之间切换，
+          观察同样的插入操作如何产生截然不同的布局。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>插入、观察、探测</h2>
+        <div class="controls">
+          <label>策略
+            <select id="ht-策略">
+              <option value="chain">分离链接法</option>
+              <option value="linear" selected>线性探测</option>
+              <option value="quadratic">二次探测</option>
+              <option value="robin">robin hood 哈希（线性）</option>
+            </select>
+          </label>
+          <label>哈希
+            <select id="ht-哈希">
+              <option value="fnv" selected>FNV-1a（尚可）</option>
+              <option value="bad">首字母（对抗性）</option>
+            </select>
+          </label>
+          <label>插入
+            <input type="text" id="ht-key" placeholder="单词或数字" />
+          </label>
+          <button class="btn" id="ht-添加">添加</button>
+          <button class="btn btn--ghost" id="ht-查找">查找</button>
+          <button class="btn btn--ghost" id="ht-del">删除</button>
+          <button class="btn btn--ghost" id="ht-burst">连插 10 个随机键</button>
+          <button class="btn btn--warn" id="ht-清空">清空</button>
+        </div>
+        <div class="legend">
+          <span><span class="legend-sw" style="background: var(--slot-empty);"></span>空</span>
+          <span><span class="legend-sw" style="background: rgba(44,111,183,0.20);"></span>已占用</span>
+          <span><span class="legend-sw" style="background: var(--slot-prob);"></span>探测中</span>
+          <span><span class="legend-sw" style="background: var(--slot-active);"></span>刚刚插入</span>
+          <span><span class="legend-sw" style="background: var(--slot-tomb);"></span>墓碑</span>
+          <span><span class="legend-sw" style="background: var(--slot-rich);"></span>robin-hood 驱逐</span>
+        </div>
+        <div class="ht-table" id="ht-table"></div>
+        <div class="ht-stats">
+          <div class="stat-card">
+            <span class="s-label">表大小 m</span>
+            <span class="s-value" id="ht-size">16</span>
+          </div>
+          <div class="stat-card" id="ht-load-card">
+            <span class="s-label">负载因子 α</span>
+            <span class="s-value" id="ht-load">0.00</span>
+          </div>
+          <div class="stat-card" id="ht-probe-card">
+            <span class="s-label">平均探测长度</span>
+            <span class="s-value" id="ht-probe">0.0</span>
+          </div>
+          <div class="stat-card">
+            <span class="s-label">键数 n</span>
+            <span class="s-value" id="ht-count">0</span>
+          </div>
+        </div>
+        <div class="ht-status" id="ht-status">输入一个键并按下添加。</div>
+        <p>
+          可以尝试：
+        </p>
+        <ul class="explanation-list">
+          <li>用 FNV-1a + 线性探测插入 "cat"、"dog"、"ant"、"bat"、"ape"、"dot"。
+            观察平均探测长度保持在 1 附近。现在把哈希切换为首字母并
+            重新插入——每个键都哈希到其首字母，
+            于是 "ant"、"ape" 堆积在同一个槽位上。</li>
+          <li>切换到分离链接法并配合糟糕的哈希，连插 10 个随机键。
+            链在少数几个槽位上增长；查找的代价与链长成线性关系。</li>
+          <li>切换到 robin-hood 探测。在高负载因子下插入键；
+            观察当某个探测距离更长的键到来时，早期到达的键
+            如何被<em>驱逐</em>到更靠后的槽位。</li>
+          <li>从线性探测的表中删除一个键。会留下一个墓碑（灰色）——
+            若标记为普通的“空”，就会破坏那些探测时经过此槽位的键的
+            搜索链。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>什么使哈希函数变得优秀</h2>
+        <p>
+          有两条性质至关重要：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>均匀性。</strong> 每个槽位被选中的概率
+            应当相等。糟糕的哈希函数（如“首字母”）会使键聚集；
+            好的哈希函数则会把它们分散开。</li>
+          <li><strong>雪崩效应。</strong> 输入中一位的变化
+            应当让输出约一半的位发生翻转。现代哈希函数
+            （FNV-1a、MurmurHash、xxHash、CityHash、SipHash）正是为此而设计。</li>
+        </ul>
+        <div class="math-block" id="math-mod"></div>
+        <p>
+          对于非密码学哈希——FNV-1a、Murmur——其威胁模型是
+          “没有攻击者，只有近似均匀的输入”。速度快、足够好。
+          对于攻击者可控的输入（HTTP 头部、JSON 键、网络载荷），
+          你需要一种带随机密钥的<em>带密钥</em>哈希：<strong>SipHash</strong>
+          是标准选择。没有它，一个知道你所使用哈希函数的攻击者
+          就能合成出全部映射到同一槽位的键，把你 $O(1)$ 的表变成 $O(n^2)$ 的拒绝服务攻击。
+        </p>
+        <div class="callout callout--warn">
+          <strong>哈希泛洪。</strong>
+          上面那个“首字母”糟糕哈希，是 2003 年针对 PHP、Perl、ASP.NET 与 JVM 的
+          真实攻击的玩具版本。各种语言最终采用的修复方案是
+          进程随机哈希种子（使同一程序的两次运行看到
+          不同的哈希值），以及针对用户可控输入使用 SipHash。
+          如果你在 2026 年编写服务器，你的运行时大概已经做到了这一点。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>分离链接法——简单的一种</h2>
+        <p>
+          每个槽位指向一个链表（或小数组），其中存放所有哈希到该位置
+          的键。插入：前插到链表头部。
+          查找：遍历该链表。
+        </p>
+        <div class="math-block" id="math-chain"></div>
+        <p>
+          在均匀哈希下，期望链长为
+          $\alpha = n/m$——即负载因子。平均查找代价为 $O(1 + \alpha)$。
+          即使在 $\alpha = 5$（负载很重的表）时，
+          你也只是遍历约 5 个节点的链表——远非 $O(n)$。
+        </p>
+        <p>
+          分离链接法所牺牲的是：缓存局部性。每个链表节点都是
+          一次堆分配；遍历它就是一次缓存未命中。在现代硬件上，
+          主存延迟是 L1 的 100 倍，这正是一张快速哈希表与一张缓慢哈希表
+          之间的差别。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>开放寻址法——快速的一种</h2>
+        <p>
+          把每个键直接存储在数组中。发生冲突时，沿着一个槽位序列
+          探测，直到找到空位为止。整张表位于连续内存中；
+          每次查找只触及一条缓存行。
+        </p>
+        <div class="math-block" id="math-linear"></div>
+        <p>
+          三种经典的探测序列：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>线性探测。</strong> $h_i = (h(k) + i)
+            \bmod m$。缓存表现完美。但存在<em>一次聚集</em>问题：
+            一段连续被占用的槽位趋于不断增长，因为任何哈希到该段内部
+            的键都会探测到它的末端。一旦 $\alpha
+            \gtrsim 0.7$，性能便急剧下降。</li>
+          <li><strong>二次探测。</strong> $h_i = (h(k) +
+            c_1 i + c_2 i^2) \bmod m$。它打破了一次聚集，
+            却引入了<em>二次聚集</em>：初始哈希相同的键
+            遵循完全相同的探测序列。缓存友好性略逊于线性探测。</li>
+          <li><strong>双重哈希。</strong> $h_i = (h_1(k) + i \,
+            h_2(k)) \bmod m$，其中使用第二个独立的哈希。它同时避免了
+            两种聚集问题；代价是每次探测要额外计算一次哈希。</li>
+        </ul>
+        <p>
+          所有开放寻址策略在 $\alpha = 1$ 之前就会失效
+          （你无法向一张满表插入——因为确实没有空槽位）。
+          它们通常在 $\alpha$ 越过某个阈值（依变体不同为 0.5、0.75 或 0.9）时扩容。
+          扩容意味着：分配一张 2 倍大小的表，对所有键重新哈希，释放旧表。
+          每次插入的均摊代价为 $O(1)$；扩容触发时会有一次较慢的插入。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>Robin Hood 哈希——劫富济贫</h2>
+        <p>
+          线性探测加一个巧思：当新键探测经过一个已有键时，
+          比较二者的<em>位移</em>（探测次数）。若原住键的位移
+          比新来键在此槽位应有的位移更短，就<em>交换二者</em>
+          ——把原住键踢出，带着它继续探测。
+          名称由此而来：劫掠富有者（低位移的键），
+          补给贫穷者（高位移的键）。
+        </p>
+        <div class="math-block" id="math-robin"></div>
+        <p>
+          其要点在于：它使各键的探测距离趋于均等。经过大量插入之后，
+          每个键的探测距离都落在平均值的一个常数倍以内。方差急剧缩小。
+          最坏情况查找时间与<em>最大</em>位移成正比，
+          在均匀哈希下为 $O(\log n)$，而非高负载因子下
+          普通线性探测的 $O(\sqrt n)$。
+        </p>
+        <p>
+          Robin-hood 哈希是现代快速哈希表库的默认选择
+          （Rust 的 <code>HashMap</code> 直到最近都经由
+          哈希brown 采用它；Boost 的 <code>flat_map</code>；
+          Google 的 <code>absl::flat_哈希_map</code>），
+          原因正是它使高负载因子变得可行。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>速查表</h2>
+        <table class="ht-cmp-table">
+          <thead>
+            <tr>
+              <th>策略</th>
+              <th>平均查找</th>
+              <th>最坏查找</th>
+              <th>内存</th>
+              <th>缓存</th>
+              <th>删除</th>
+              <th>典型 $\alpha_\text{max}$</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>分离链接法</td>
+              <td>$O(1 + \alpha)$</td>
+              <td>$O(n)$（退化情形）</td>
+              <td>$m + n$ + 节点指针</td>
+              <td>较差</td>
+              <td>容易（断开链接）</td>
+              <td>$\alpha$ 无上界</td>
+            </tr>
+            <tr>
+              <td>线性探测</td>
+              <td>$\frac{1}{1 - \alpha}$</td>
+              <td>高 $\alpha$ 时为 $O(\sqrt n)$</td>
+              <td>$m$</td>
+              <td>极佳</td>
+              <td>墓碑标记</td>
+              <td>$\sim 0.7$</td>
+            </tr>
+            <tr>
+              <td>二次探测</td>
+              <td>$-\frac{\ln(1-\alpha)}{\alpha}$</td>
+              <td>$O(\log n)$</td>
+              <td>$m$</td>
+              <td>良好</td>
+              <td>墓碑标记</td>
+              <td>$\sim 0.5$</td>
+            </tr>
+            <tr>
+              <td>robin hood 哈希</td>
+              <td>$\frac{1}{1 - \alpha}$</td>
+              <td>$O(\log n)$</td>
+              <td>$m$ + 每槽 1 字节</td>
+              <td>极佳</td>
+              <td>回移删除</td>
+              <td>$\sim 0.9$</td>
+            </tr>
+            <tr>
+              <td>cuckoo（两张表）</td>
+              <td>最坏 $O(1)$</td>
+              <td>最坏 $O(1)$</td>
+              <td>$2m$</td>
+              <td>良好</td>
+              <td>容易</td>
+              <td>$\sim 0.5$</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="step-section" id="step-7">
+        <div class="step-badge">第 7 步</div>
+        <h2>进阶分支</h2>
+        <ul class="explanation-list">
+          <li><strong>Cuckoo 哈希。</strong> 每个键有两个
+            候选槽位（经由两个独立哈希）。发生冲突时，驱逐原住键，
+            把它重新放到其<em>另一个</em>槽位。如此继续。
+            最坏情况查找为 $O(1)$；若负载过高，插入可能陷入循环，
+            此时需用新的哈希函数重新哈希。</li>
+          <li><strong>Hopscotch 哈希。</strong> 与线性探测类似，
+            但保证每个键都位于其初始位置附近的 $H$ 个槽位邻域内。
+            查找最多探测 $H$ 个槽位（即一条缓存行）。</li>
+          <li><strong>Swiss tables</strong>（Google 的
+            <code>absl::flat_哈希_map</code>）。每个槽位用 1 字节元数据
+            存储一个 7 位的哈希签名以及
+            空/满/墓碑状态。探测时用 SIMD 一次扫描 16 字节元数据，
+            先比较签名再触及键本身。在真实工作负载上可带来
+            一个数量级的加速。</li>
+          <li><strong>一致性哈希。</strong> 分布式哈希表
+            （Cassandra、DynamoDB、每一个 CDN）需要在节点加入与离开时
+            存活，而无须重新哈希<em>所有</em>内容。一致性哈希把键与
+            节点映射到同一个环上；每个键归入其顺时针方向最近的节点。
+            增加一个节点只移动 $O(n / N)$ 个键。</li>
+          <li><strong>布隆过滤器。</strong> 当你不需要存储键本身，
+            只需回答“我见过这个吗？”时。$k$ 个哈希加一个位数组；
+            内存恒定、查找恒定、绝无假阴性，假阳性可控制。
+            其概率型亲属包括：count-min sketch、HyperLogLog。</li>
+          <li><strong>完美哈希。</strong> 若键集合事先固定
+            （编译器的关键字表、语言的保留字），你可以构造一个
+            <em>零</em>冲突的哈希函数。两级方案（FKS、CHD）可在期望 $O(n)$
+            的构造时间内实现这一点。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-8">
+        <div class="step-badge">第 8 步</div>
+        <h2>尖锐之处</h2>
+        <ul class="explanation-list">
+          <li><strong>开放寻址中的删除很棘手。</strong>
+            把一个槽位标记为“空”会破坏探测链。
+            <em>墓碑</em>表示“此处曾被占用；请继续探测”。
+            墓碑会不断累积；最终每次探测都要扫描全部墓碑。
+            你要么定期重新哈希，要么使用
+            <em>回移删除</em>（与 robin-hood 兼容），
+            它把后续的键滑入空缺之中。</li>
+          <li><strong>遍历顺序未定义。</strong> 哈希表
+            不做出任何顺序承诺。若你需要
+            “按插入顺序遍历”（Python 自 3.7 起的 <code>dict</code>），
+            其实现会在表旁维护一个额外的有序列表。
+            在其他语言中不要依赖遍历顺序。</li>
+          <li><strong>扩容是均摊的，而非最坏情况。</strong>
+            一次触发 2 倍扩容的插入代价为 $O(n)$。
+            多数生产系统改用<em>增量式重新哈希</em>（Redis）：
+            在每次操作中，把少量条目从旧表搬到新表，
+            直至迁移完成。</li>
+          <li><strong>关键在缓存行，而非槽位。</strong> 现代哈希表
+            基准测试主要由 L1 缓存命中/未命中决定。
+            一张渐近性质糟糕的“慢”哈希表，若其探测触及的缓存行更少，
+            可能比一张渐近性质更好的“快”表快 3 倍。
+            请在真实数据上做基准测试；绝不要用均匀随机整数。</li>
+          <li><strong>相等性与哈希必须一致。</strong> 若两个对象
+            相等，它们必须哈希到同一个值。
+            只重写 <code>__哈希__</code> 而不重写 <code>__eq__</code>
+            （或反之），你就会得到一个隐蔽的数据丢失 bug，
+            需要数周才能发现。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-9">
+        <div class="step-badge">第 9 步</div>
+        <h2>阅读清单</h2>
+        <ul class="explanation-list">
+          <li><strong>Knuth, TAOCP Vol&nbsp;3, §6.4.</strong> 哈希。
+            多数现代变体最早在此得到分析。</li>
+          <li><strong>Pagh &amp; Rodler, 2001</strong> &mdash;
+            <em>《Cuckoo Hashing》</em></li>
+          <li><strong>Celis, Larson, Munro, 1985</strong> &mdash;
+            <em>《Robin Hood Hashing》</em>。原始论文，
+            在三十年后它变得流行之前便已问世。</li>
+          <li><strong>Aumasson &amp; Bernstein, 2012</strong> &mdash;
+            <em>《SipHash: a fast short-input PRF》</em>。
+            哈希表安全领域默认使用的带密钥哈希。</li>
+          <li><strong>Maier, Sanders, Dementiev, 2019</strong> &mdash;
+            <em>《Concurrent Hash Tables: Fast and General(?)》</em>。
+            对无锁 / 无等待哈希表实现的综述。</li>
+          <li><strong>Karger et&nbsp;al., 1997</strong> &mdash;
+            <em>《Consistent Hashing and Random Trees》</em>。
+            分布式键值存储的基石。</li>
+          <li><strong>Google abseil / SwissTable 设计文档。</strong>
+            如何用 SIMD 一次扫描 16 字节元数据——
+            现代快速哈希表的范本。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

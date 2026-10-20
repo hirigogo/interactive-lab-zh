@@ -1,0 +1,219 @@
+{
+ "slug": "inception-cost",
+ "units": {
+  "Why 1×1 Convolutions Save Compute": {
+   "zh": "为何 1×1 卷积能节省计算量",
+   "src": "Why 1×1 Convolutions Save Compute",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "A $3\\times3$ convolution that maps many channels to many channels is expensive:\n      cost grows with $C_{\\text{in}}\\times C_{\\text{out}}$. Inception's trick is to\n      squeeze the channels down with a cheap $1\\times1$ convolution @@T0@@first@@T1@@, do\n      the pricey $3\\times3$ on the narrow stack, and it can come out several times\n      cheaper for the same output shape. Slide the channel counts and watch the two\n      bars diverge.": {
+   "zh": "一个把许多通道映射到许多通道的 $3\\times3$ 卷积代价高昂：\n      其开销随 $C_{\\text{in}}\\times C_{\\text{out}}$ 增长。Inception 的技巧是\n      先用一个廉价的 $1\\times1$ 卷积把通道挤压@@T0@@变小@@T1@@，\n      再在变窄的通道堆叠上做昂贵的 $3\\times3$，于是在同样的输出形状下\n      可以便宜数倍。拖动通道数滑块，观察两条柱形如何拉开差距。",
+   "src": "A $3\\times3$ convolution that maps many channels to many channels is expensive:\n      cost grows with $C_{\\text{in}}\\times C_{\\text{out}}$. Inception's trick is to\n      squeeze the channels down with a cheap $1\\times1$ convolution <em>first</em>, do\n      the pricey $3\\times3$ on the narrow stack, and it can come out several times\n      cheaper for the same output shape. Slide the channel counts and watch the two\n      bars diverge.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~7 min@@T1@@\n      @@T2@@Deep Learning &middot; Modern CNNs &middot; Efficiency@@T3@@": {
+   "zh": "@@T0@@约 7 分钟@@T1@@\n      @@T2@@深度学习 &middot; 现代 CNN &middot; 效率@@T3@@",
+   "src": "<span>~7 min</span>\n      <span>Deep Learning &middot; Modern CNNs &middot; Efficiency</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "The Lab": {
+   "zh": "实验台",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Direct vs. bottleneck, in FLOPs": {
+   "zh": "直接卷积与瓶颈结构，以 FLOPs 计",
+   "src": "Direct vs. bottleneck, in FLOPs",
+   "tags": []
+  },
+  "Both paths take a $C_{\\text{in}}$-channel feature map of size $H\\times W$ and\n      produce a $C_{\\text{out}}$-channel map of the same spatial size. The\n      @@T0@@direct@@T1@@ path does one $3\\times3$ convolution. The\n      @@T2@@bottleneck@@T3@@ path first projects to $C_{\\text{mid}}$ channels with a\n      $1\\times1$ convolution, then does the $3\\times3$ on that narrower stack. The bars\n      below are total multiply&ndash;adds, drawn to scale.": {
+   "zh": "两条路径都接收一张大小为 $H\\times W$、含 $C_{\\text{in}}$ 个通道的特征图，\n      并产生一张空间尺寸相同、含 $C_{\\text{out}}$ 个通道的特征图。\n      @@T0@@直接@@T1@@路径做一次 $3\\times3$ 卷积。\n      @@T2@@瓶颈@@T3@@路径先用一个 $1\\times1$ 卷积投影到 $C_{\\text{mid}}$ 个通道，\n      再在那个更窄的通道堆叠上做 $3\\times3$。下方的柱形\n      表示总乘加次数，按比例绘制。",
+   "src": "Both paths take a $C_{\\text{in}}$-channel feature map of size $H\\times W$ and\n      produce a $C_{\\text{out}}$-channel map of the same spatial size. The\n      <strong>direct</strong> path does one $3\\times3$ convolution. The\n      <strong>bottleneck</strong> path first projects to $C_{\\text{mid}}$ channels with a\n      $1\\times1$ convolution, then does the $3\\times3$ on that narrower stack. The bars\n      below are total multiply&ndash;adds, drawn to scale.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Presets:@@T1@@": {
+   "zh": "@@T0@@预设：@@T1@@",
+   "src": "<span style=\"font-family:var(--sans);font-size:0.85rem;font-weight:600;color:var(--muted)\">Presets:</span>",
+   "tags": [
+    "<span style=\"font-family:var(--sans);font-size:0.85rem;font-weight:600;color:var(--muted)\">",
+    "</span>"
+   ]
+  },
+  "Inception 3×3 branch": {
+   "zh": "Inception 的 3×3 分支",
+   "src": "Inception 3×3 branch",
+   "tags": []
+  },
+  "ResNet-style bottleneck": {
+   "zh": "ResNet 式瓶颈",
+   "src": "ResNet-style bottleneck",
+   "tags": []
+  },
+  "Mid too wide": {
+   "zh": "中间层过宽",
+   "src": "Mid too wide",
+   "tags": []
+  },
+  "$C_{\\text{mid}}$ (bottleneck) @@T0@@= @@T1@@64@@T2@@@@T3@@": {
+   "zh": "$C_{\\text{mid}}$（瓶颈）@@T0@@= @@T1@@64@@T2@@@@T3@@",
+   "src": "$C_{\\text{mid}}$ (bottleneck) <span>= <span id=\"cmidVal\">64</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"cmidVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Spatial $H = W$ @@T0@@= @@T1@@28@@T2@@@@T3@@": {
+   "zh": "空间尺寸 $H = W$ @@T0@@= @@T1@@28@@T2@@@@T3@@",
+   "src": "Spatial $H = W$ <span>= <span id=\"hwVal\">28</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"hwVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Two bars to scale: the direct $3\\times3$ path versus the $1\\times1$-then-$3\\times3$ bottleneck (split into its two convolutions).": {
+   "zh": "两条按比例的柱形：直接 $3\\times3$ 路径与先 $1\\times1$ 后 $3\\times3$ 的瓶颈（拆分为其两次卷积）。",
+   "src": "Two bars to scale: the direct $3\\times3$ path versus the $1\\times1$-then-$3\\times3$ bottleneck (split into its two convolutions).",
+   "tags": []
+  },
+  "@@T0@@Direct 3×3@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@直接 3×3@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Direct 3×3</span>\n        <span class=\"stat-value\" id=\"directVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"directVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Bottleneck total@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@瓶颈总计@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Bottleneck total</span>\n        <span class=\"stat-value\" id=\"bottleVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"bottleVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Savings ratio@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@节省比@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Savings ratio</span>\n        <span class=\"stat-value\" id=\"ratioVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"ratioVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Push $C_{\\text{mid}}$ up past $C_{\\text{in}}$.@@T1@@ The savings ratio drops below\n      $1$: the bottleneck now costs @@T2@@more@@T3@@ than the direct conv, because the $1\\times1$ is no\n      longer a squeeze. The trick only pays off when $C_{\\text{mid}}$ is genuinely small &mdash;\n      a narrow waist between two wide layers. That waist is exactly what \"bottleneck\" names.": {
+   "zh": "@@T0@@把 $C_{\\text{mid}}$ 推高到超过 $C_{\\text{in}}$。@@T1@@ 节省比会降到\n      $1$ 以下：瓶颈的代价此时@@T2@@反而高于@@T3@@直接卷积，因为 $1\\times1$\n      不再起到挤压通道的作用。只有当 $C_{\\text{mid}}$ 确实很小时，这一技巧才划算——\n      它是在两个宽层之间收出一个细腰。这个细腰正是“瓶颈”一词所指之物。",
+   "src": "<strong>Push $C_{\\text{mid}}$ up past $C_{\\text{in}}$.</strong> The savings ratio drops below\n      $1$: the bottleneck now costs <em>more</em> than the direct conv, because the $1\\times1$ is no\n      longer a squeeze. The trick only pays off when $C_{\\text{mid}}$ is genuinely small &mdash;\n      a narrow waist between two wide layers. That waist is exactly what \"bottleneck\" names.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "回报",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Where the factor comes from": {
+   "zh": "这个倍数从何而来",
+   "src": "Where the factor comes from",
+   "tags": []
+  },
+  "For an output of $H\\times W$ pixels and $C_{\\text{out}}$ channels, each output value\n      is a dot product over a $K\\times K \\times C_{\\text{in}}$ patch, so a convolution costs": {
+   "zh": "对于 $H\\times W$ 个像素、$C_{\\text{out}}$ 个通道的输出，\n      每个输出值都是在一个 $K\\times K \\times C_{\\text{in}}$ 的图块上做点积，因此一次卷积的代价为",
+   "src": "For an output of $H\\times W$ pixels and $C_{\\text{out}}$ channels, each output value\n      is a dot product over a $K\\times K \\times C_{\\text{in}}$ patch, so a convolution costs",
+   "tags": []
+  },
+  "Putting the two paths side by side (with $K=3$ for the spatial conv, $K=1$ for the projection):": {
+   "zh": "把两条路径并列比较（空间卷积取 $K=3$，投影取 $K=1$）：",
+   "src": "Putting the two paths side by side (with $K=3$ for the spatial conv, $K=1$ for the projection):",
+   "tags": []
+  },
+  "The expensive $3\\times3$ now runs on $C_{\\text{mid}}$ input channels instead of $C_{\\text{in}}$ &mdash; that is where the big saving lives.": {
+   "zh": "昂贵的 $3\\times3$ 现在在 $C_{\\text{mid}}$ 而非 $C_{\\text{in}}$ 个输入通道上运行 &mdash;\n      这正是大幅节省之所在。",
+   "src": "The expensive $3\\times3$ now runs on $C_{\\text{mid}}$ input channels instead of $C_{\\text{in}}$ &mdash; that is where the big saving lives.",
+   "tags": []
+  },
+  "The extra $1\\times1$ costs only $HW\\,C_{\\text{in}}C_{\\text{mid}}$: cheap, because a $1\\times1$ has no spatial extent, just a per-pixel channel mix.": {
+   "zh": "额外的 $1\\times1$ 只需 $HW\\,C_{\\text{in}}C_{\\text{mid}}$ 的代价：很便宜，因为\n      $1\\times1$ 没有空间跨度，只是逐像素的通道混合。",
+   "src": "The extra $1\\times1$ costs only $HW\\,C_{\\text{in}}C_{\\text{mid}}$: cheap, because a $1\\times1$ has no spatial extent, just a per-pixel channel mix.",
+   "tags": []
+  },
+  "Net win whenever $C_{\\text{mid}}$ is small relative to $C_{\\text{in}}$ and $C_{\\text{out}}$ &mdash; the whole point of a bottleneck.": {
+   "zh": "只要 $C_{\\text{mid}}$ 相对于 $C_{\\text{in}}$ 与 $C_{\\text{out}}$ 都很小，就能净赚 &mdash;\n      这正是瓶颈结构的全部意义。",
+   "src": "Net win whenever $C_{\\text{mid}}$ is small relative to $C_{\\text{in}}$ and $C_{\\text{out}}$ &mdash; the whole point of a bottleneck.",
+   "tags": []
+  },
+  "@@T0@@This one idea recurs everywhere.@@T1@@ GoogLeNet/Inception uses $1\\times1$\n      convolutions to shrink channels before the $3\\times3$ and $5\\times5$ branches. ResNet's\n      \"bottleneck block\" wraps a $3\\times3$ between a $1\\times1$ down-projection and a $1\\times1$\n      up-projection. MobileNet's depthwise-separable convolution is the same instinct pushed\n      further. Cheap channel mixing before expensive spatial mixing is a load-bearing pattern\n      of modern CNNs.": {
+   "zh": "@@T0@@这一个思想反复出现于各处。@@T1@@ GoogLeNet/Inception 在\n      $3\\times3$ 与 $5\\times5$ 分支之前用 $1\\times1$\n      卷积来压缩通道。ResNet 的“瓶颈块”把一个 $3\\times3$ 夹在 $1\\times1$\n      降维投影与 $1\\times1$ 升维投影之间。MobileNet 的深度可分离卷积\n      则把同样的直觉推得更远。在昂贵的空间混合之前先做廉价的通道混合，\n      是现代 CNN 的一种承重结构。",
+   "src": "<strong>This one idea recurs everywhere.</strong> GoogLeNet/Inception uses $1\\times1$\n      convolutions to shrink channels before the $3\\times3$ and $5\\times5$ branches. ResNet's\n      \"bottleneck block\" wraps a $3\\times3$ between a $1\\times1$ down-projection and a $1\\times1$\n      up-projection. MobileNet's depthwise-separable convolution is the same instinct pushed\n      further. Cheap channel mixing before expensive spatial mixing is a load-bearing pattern\n      of modern CNNs.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 9: Modern CNNs &amp; Transfer Learning": {
+   "zh": "ES 667 深度学习讲解系列之一 &middot; 第 9 讲：现代 CNN 与迁移学习",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 9: Modern CNNs &amp; Transfer Learning",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "为何 1×1 卷积能节省计算量",
+  "tagline": "比较直接 3x3 卷积与 1x1 瓶颈结构，观察 FLOPs 柱形如何拉开数倍差距",
+  "summary": "两条路径产生相同的输出形状：一次直接的 3x3 卷积，或先经 1x1 投影压到较窄的 C_mid 再做 3x3。C_in、C_mid、C_out 与空间尺寸的滑块驱动一个实时 FLOPs 对比图，以两条按比例的柱形呈现，其中瓶颈被拆分为其 1x1 与 3x3 两部分，并标出节省比。一个 ResNet 式预设展示数倍的收益；把 C_mid 推高到超过 C_in 则显示比值降到 1 以下，从而清楚地表明瓶颈究竟何时才划算。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "以两条按比例绘制的柱形，呈现直接 3x3 卷积与 1x1 瓶颈的乘加计算量对比。",
+   "瓶颈柱形被拆分为廉价的 1x1 投影，以及其在收窄通道堆叠上的 3x3。",
+   "一个实时的节省比展示 ResNet 式瓶颈的数倍收益。",
+   "把 C_mid 推高到超过 C_in，观察比值降到 1 以下，从而说明瓶颈只有在细腰时才划算。",
+   "精确公式 9 C_in C_out 除以 C_mid (C_in + 9 C_out) 会用你当前的数值代入渲染。"
+  ],
+  "tags": [
+   "Inception",
+   "1x1 卷积",
+   "FLOPs",
+   "效率",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

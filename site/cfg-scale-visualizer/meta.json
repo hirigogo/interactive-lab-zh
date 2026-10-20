@@ -1,0 +1,25 @@
+{
+  "slug": "cfg-scale-visualizer",
+  "title": "无分类器引导尺度",
+  "date": "2026-04-18",
+  "tagline": "滑动引导权重 w，观察生成的形状朝提示词拉伸",
+  "summary": "无分类器引导在无条件预测与条件预测之间作外推。将权重 w 从 0（无引导，无条件）经 7（Stable Diffusion 默认值）滑至 30（引导过度，出现振铃）。观察生成的形状如何实实在在地朝目标拉伸 &mdash; 并在高 w 时崩坏。",
+  "readingTime": "6 min",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "order": 20,
+  "status": "published",
+  "tags": [
+    "扩散模型",
+    "CFG",
+    "Stable Diffusion",
+    "交互式"
+  ],
+  "highlights": [
+    "w = 0 · 纯无条件，提示词被忽略。",
+    "w = 1 · 弱条件，提示词贴合度模糊。",
+    "w = 7 · 2026 年 Stable Diffusion 的默认值。",
+    "w = 15+ · 引导过度，出现过饱和与振铃伪影。",
+    "外推公式实时展示；在噪声预测步骤中仅需一行代码。"
+  ]
+}

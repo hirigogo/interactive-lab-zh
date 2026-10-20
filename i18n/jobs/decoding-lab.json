@@ -1,0 +1,354 @@
+{
+ "slug": "decoding-lab",
+ "units": {
+  "Generate, Token by Token": {
+   "zh": "逐词元生成",
+   "src": "Generate, Token by Token",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "A language model does not write a sentence &mdash; it predicts @@T0@@one@@T1@@ next\n      token, samples it, sticks it on the end, and does the whole thing again. Press\n      @@T2@@Step@@T3@@ to run one round of that loop over a tiny vocabulary, and\n      turn the @@T4@@temperature@@T5@@, @@T6@@top-k@@T7@@ and\n      @@T8@@top-p@@T9@@ knobs to watch the next-token distribution sharpen, narrow,\n      and change what gets sampled.": {
+   "zh": "语言模型并不写出一整个句子 &mdash;&mdash; 它预测 @@T0@@一个@@T1@@ 下一个词元，采样它，把它接到末尾，然后重复整个过程。按 @@T2@@步进@@T3@@ 在一个很小的词表上运行该循环的一轮，并转动 @@T4@@温度@@T5@@、@@T6@@top-k@@T7@@ 与 @@T8@@top-p@@T9@@ 旋钮，观察下一词元分布如何变尖锐、变窄，以及如何改变被采样的内容。",
+   "src": "A language model does not write a sentence &mdash; it predicts <em>one</em> next\n      token, samples it, sticks it on the end, and does the whole thing again. Press\n      <strong>Step</strong> to run one round of that loop over a tiny vocabulary, and\n      turn the <strong>temperature</strong>, <strong>top-k</strong> and\n      <strong>top-p</strong> knobs to watch the next-token distribution sharpen, narrow,\n      and change what gets sampled.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@~9 min@@T1@@\n      @@T2@@Deep Learning &middot; Transformers &middot; Decoding@@T3@@": {
+   "zh": "@@T0@@约 9 分钟@@T1@@\n      @@T2@@深度学习 &middot; Transformer &middot; 解码@@T3@@",
+   "src": "<span>~9 min</span>\n      <span>Deep Learning &middot; Transformers &middot; Decoding</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Autoregression is a loop": {
+   "zh": "自回归是一个循环",
+   "src": "Autoregression is a loop",
+   "tags": []
+  },
+  "Give the model a prefix of tokens $x_{1:t}$. It runs one forward pass &mdash;\n      embed, causal self-attention, feed-forward &mdash; and emits a vector of\n      @@T0@@logits@@T1@@, one score per vocabulary word. A softmax turns those into a\n      probability for the next token:": {
+   "zh": "给模型一个词元前缀 $x_{1:t}$。它运行一次前向传播 &mdash;&mdash; 嵌入、因果自注意力、前馈 &mdash;&mdash; 并输出一个 @@T0@@logit@@T1@@ 向量，词表中每个词对应一个分数。softmax 将其转化为下一个词元的概率：",
+   "src": "Give the model a prefix of tokens $x_{1:t}$. It runs one forward pass &mdash;\n      embed, causal self-attention, feed-forward &mdash; and emits a vector of\n      <em>logits</em>, one score per vocabulary word. A softmax turns those into a\n      probability for the next token:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Then the sampled token is appended and the loop repeats with $x_{1:t+1}$. Nothing\n      about the model changes between steps &mdash; only the context grows. The\n      interesting choices all live in that last arrow, $x_{t+1}\\sim p$: how we turn a\n      distribution into a single word. Temperature $T$, top-k and top-p (nucleus) are\n      three knobs that reshape $p$ before we draw from it.": {
+   "zh": "随后被采样的词元被追加，循环以 $x_{1:t+1}$ 重复。步骤之间模型的任何部分都不改变 &mdash;&mdash; 只有上下文在增长。有趣的选择全都存在于最后那个箭头 $x_{t+1}\\sim p$ 之中：我们如何把一个分布变成一个单词。温度 $T$、top-k 与 top-p（核采样）是三个旋钮，它们在我们从 $p$ 中抽样之前重塑 $p$。",
+   "src": "Then the sampled token is appended and the loop repeats with $x_{1:t+1}$. Nothing\n      about the model changes between steps &mdash; only the context grows. The\n      interesting choices all live in that last arrow, $x_{t+1}\\sim p$: how we turn a\n      distribution into a single word. Temperature $T$, top-k and top-p (nucleus) are\n      three knobs that reshape $p$ before we draw from it.",
+   "tags": []
+  },
+  "The Lab": {
+   "zh": "实验台",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Run the decoding loop": {
+   "zh": "运行解码循环",
+   "src": "Run the decoding loop",
+   "tags": []
+  },
+  "Pick a prefix, set the knobs, and press @@T0@@Step@@T1@@. Each press shows the\n      next-token distribution over a fixed 12-word vocabulary, samples one token\n      (highlighted), and appends it. The logits are fixed and seeded &mdash; a small\n      stand-in model &mdash; so the distribution is fully determined by the context and\n      your knob settings.": {
+   "zh": "选择一个前缀，设定旋钮，然后按 @@T0@@步进@@T1@@。每次按下都会展示在固定的 12 个词词表上的下一词元分布，采样一个词元（高亮显示）并将其追加。logit 是固定且设定好随机种子的 &mdash;&mdash; 一个小型替代模型 &mdash;&mdash; 因此该分布完全由上下文与你的旋钮设置决定。",
+   "src": "Pick a prefix, set the knobs, and press <strong>Step</strong>. Each press shows the\n      next-token distribution over a fixed 12-word vocabulary, samples one token\n      (highlighted), and appends it. The logits are fixed and seeded &mdash; a small\n      stand-in model &mdash; so the distribution is fully determined by the context and\n      your knob settings.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Prefix:@@T1@@": {
+   "zh": "@@T0@@前缀：@@T1@@",
+   "src": "<span class=\"chip-lbl\">Prefix:</span>",
+   "tags": [
+    "<span class=\"chip-lbl\">",
+    "</span>"
+   ]
+  },
+  "the cat": {
+   "zh": "",
+   "src": "the cat",
+   "tags": []
+  },
+  "a dog": {
+   "zh": "",
+   "src": "a dog",
+   "tags": []
+  },
+  "the cat sat on": {
+   "zh": "",
+   "src": "the cat sat on",
+   "tags": []
+  },
+  "then the": {
+   "zh": "",
+   "src": "then the",
+   "tags": []
+  },
+  "@@T0@@prefix x₁:ₜ@@T1@@\n      @@T2@@→@@T3@@\n      @@T4@@embed@@T5@@\n      @@T6@@→@@T7@@\n      @@T8@@causal self-attention@@T9@@\n      @@T10@@→@@T11@@\n      @@T12@@FFN@@T13@@\n      @@T14@@→@@T15@@\n      @@T16@@logits z@@T17@@\n      @@T18@@→@@T19@@\n      @@T20@@sample xₜ₊₁@@T21@@": {
+   "zh": "@@T0@@前缀 x₁:ₜ@@T1@@\n      @@T2@@→@@T3@@\n      @@T4@@嵌入@@T5@@\n      @@T6@@→@@T7@@\n      @@T8@@因果自注意力@@T9@@\n      @@T10@@→@@T11@@\n      @@T12@@FFN@@T13@@\n      @@T14@@→@@T15@@\n      @@T16@@logit z@@T17@@\n      @@T18@@→@@T19@@\n      @@T20@@采样 xₜ₊₁@@T21@@",
+   "src": "<span class=\"pipe-box\" id=\"pipePrefix\">prefix x₁:ₜ</span>\n      <span class=\"pipe-arrow\">→</span>\n      <span class=\"pipe-box\">embed</span>\n      <span class=\"pipe-arrow\">→</span>\n      <span class=\"pipe-box\">causal self-attention</span>\n      <span class=\"pipe-arrow\">→</span>\n      <span class=\"pipe-box\">FFN</span>\n      <span class=\"pipe-arrow\">→</span>\n      <span class=\"pipe-box\" id=\"pipeLogits\">logits z</span>\n      <span class=\"pipe-arrow\">→</span>\n      <span class=\"pipe-box\" id=\"pipeSample\">sample xₜ₊₁</span>",
+   "tags": [
+    "<span class=\"pipe-box\" id=\"pipePrefix\">",
+    "</span>",
+    "<span class=\"pipe-arrow\">",
+    "</span>",
+    "<span class=\"pipe-box\">",
+    "</span>",
+    "<span class=\"pipe-arrow\">",
+    "</span>",
+    "<span class=\"pipe-box\">",
+    "</span>",
+    "<span class=\"pipe-arrow\">",
+    "</span>",
+    "<span class=\"pipe-box\">",
+    "</span>",
+    "<span class=\"pipe-arrow\">",
+    "</span>",
+    "<span class=\"pipe-box\" id=\"pipeLogits\">",
+    "</span>",
+    "<span class=\"pipe-arrow\">",
+    "</span>",
+    "<span class=\"pipe-box\" id=\"pipeSample\">",
+    "</span>"
+   ]
+  },
+  "Temperature @@T0@@$T$ = @@T1@@1.00@@T2@@@@T3@@": {
+   "zh": "温度 @@T0@@$T$ = @@T1@@1.00@@T2@@@@T3@@",
+   "src": "Temperature <span>$T$ = <span id=\"tempVal\">1.00</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"tempVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Top-k @@T0@@@@T1@@off@@T2@@@@T3@@": {
+   "zh": "Top-k @@T0@@@@T1@@关闭@@T2@@@@T3@@",
+   "src": "Top-k <span><span id=\"kVal\">off</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"kVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Top-p (nucleus) @@T0@@$p$ = @@T1@@1.00@@T2@@@@T3@@": {
+   "zh": "Top-p（核采样）@@T0@@$p$ = @@T1@@1.00@@T2@@@@T3@@",
+   "src": "Top-p (nucleus) <span>$p$ = <span id=\"pVal\">1.00</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"pVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Step &rarr;": {
+   "zh": "步进 &rarr;",
+   "src": "Step &rarr;",
+   "tags": []
+  },
+  "Generate x6": {
+   "zh": "生成 x6",
+   "src": "Generate x6",
+   "tags": []
+  },
+  "Reset to prefix": {
+   "zh": "重置为前缀",
+   "src": "Reset to prefix",
+   "tags": []
+  },
+  "New sample": {
+   "zh": "新样本",
+   "src": "New sample",
+   "tags": []
+  },
+  "Next-token distribution over the vocabulary. Dashed outline = after temperature only; solid bar = after top-k / top-p (renormalized). Grey = filtered out ($p=0$). The arrow marks the token that was sampled.": {
+   "zh": "词表上的下一词元分布。虚线轮廓 = 仅施加温度之后；实心柱 = 施加 top-k / top-p 之后（重新归一化）。灰色 = 被过滤掉（$p=0$）。箭头标出被采样的那个词元。",
+   "src": "Next-token distribution over the vocabulary. Dashed outline = after temperature only; solid bar = after top-k / top-p (renormalized). Grey = filtered out ($p=0$). The arrow marks the token that was sampled.",
+   "tags": []
+  },
+  "@@T0@@@@T1@@@@T2@@after temperature@@T3@@\n      @@T4@@@@T5@@@@T6@@kept (renormalized)@@T7@@\n      @@T8@@@@T9@@@@T10@@filtered out@@T11@@\n      @@T12@@@@T13@@@@T14@@sampled token@@T15@@": {
+   "zh": "@@T0@@@@T1@@@@T2@@施加温度之后@@T3@@\n      @@T4@@@@T5@@@@T6@@保留（已重新归一化）@@T7@@\n      @@T8@@@@T9@@@@T10@@被过滤掉@@T11@@\n      @@T12@@@@T13@@@@T14@@被采样的词元@@T15@@",
+   "src": "<span><span class=\"swline\"></span>after temperature</span>\n      <span><span class=\"sw\" style=\"background:#2c6fb7\"></span>kept (renormalized)</span>\n      <span><span class=\"sw\" style=\"background:#cfc6b6\"></span>filtered out</span>\n      <span><span class=\"sw\" style=\"background:#d9622b\"></span>sampled token</span>",
+   "tags": [
+    "<span>",
+    "<span class=\"swline\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"sw\" style=\"background:#2c6fb7\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"sw\" style=\"background:#cfc6b6\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"sw\" style=\"background:#d9622b\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Last sampled@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@最近采样@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Last sampled</span>\n        <span class=\"stat-value\" id=\"lastVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"lastVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Candidates kept@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@保留的候选数@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Candidates kept</span>\n        <span class=\"stat-value\" id=\"keptVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"keptVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Entropy (bits)@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@熵（比特）@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Entropy (bits)</span>\n        <span class=\"stat-value\" id=\"entVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"entVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Top prob@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@最高概率@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Top prob</span>\n        <span class=\"stat-value\" id=\"topVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"topVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Turn temperature to 0.1.@@T1@@ The distribution collapses onto its\n      single most likely token &mdash; near-greedy, repetitive, safe. Push it to 2.0 and\n      it flattens toward uniform &mdash; surprising, sometimes incoherent. Now set\n      $T=1$ and instead pull @@T2@@top-p@@T3@@ down to 0.6: the long tail of\n      unlikely words greys out entirely, so you keep the fluency of a warm temperature\n      without ever sampling something absurd. That is why nucleus sampling is the modern\n      default.": {
+   "zh": "@@T0@@把温度调到 0.1。@@T1@@ 分布坍缩到其唯一最可能的词元上 &mdash;&mdash; 近乎贪心、重复、稳妥。把它推到 2.0，则向均匀分布变平 &mdash;&mdash; 出人意料，有时不连贯。现在设 $T=1$，改为把 @@T2@@top-p@@T3@@ 拉低到 0.6：不可能词的长尾被完全变灰，于是你既保持了较暖温度的流畅性，又绝不会采到荒谬的内容。这正是核采样成为现代默认做法的原因。",
+   "src": "<strong>Turn temperature to 0.1.</strong> The distribution collapses onto its\n      single most likely token &mdash; near-greedy, repetitive, safe. Push it to 2.0 and\n      it flattens toward uniform &mdash; surprising, sometimes incoherent. Now set\n      $T=1$ and instead pull <strong>top-p</strong> down to 0.6: the long tail of\n      unlikely words greys out entirely, so you keep the fluency of a warm temperature\n      without ever sampling something absurd. That is why nucleus sampling is the modern\n      default.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "收获",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Three knobs, one trade-off": {
+   "zh": "三个旋钮，一个权衡",
+   "src": "Three knobs, one trade-off",
+   "tags": []
+  },
+  "Every decoding knob is negotiating the same tension: @@T0@@diversity@@T1@@ (explore\n      more of the distribution) against @@T2@@focus@@T3@@ (stay on the high-probability\n      words the model is confident about). They just cut the distribution differently.": {
+   "zh": "每一个解码旋钮都在调和同一种张力：@@T0@@多样性@@T1@@（更多探索整个分布）与 @@T2@@聚焦@@T3@@（停留在模型有把握的高概率词上）之间的张力。它们只是以不同方式切割分布。",
+   "src": "Every decoding knob is negotiating the same tension: <em>diversity</em> (explore\n      more of the distribution) against <em>focus</em> (stay on the high-probability\n      words the model is confident about). They just cut the distribution differently.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Temperature@@T1@@ rescales the logits before softmax. $T<1$ sharpens toward the top token; $T>1$ flattens toward uniform. It reshapes @@T2@@every@@T3@@ probability but removes nothing.": {
+   "zh": "@@T0@@温度@@T1@@ 在 softmax 之前对 logit 重新缩放。$T<1$ 向最高词元方向变尖锐；$T>1$ 向均匀分布变平。它重塑 @@T2@@每一个@@T3@@ 概率，但不移除任何内容。",
+   "src": "<strong>Temperature</strong> rescales the logits before softmax. $T<1$ sharpens toward the top token; $T>1$ flattens toward uniform. It reshapes <em>every</em> probability but removes nothing.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Top-k@@T1@@ keeps only the $k$ highest-probability tokens and zeroes the rest &mdash; a hard cap on how many candidates survive, regardless of how the mass is spread.": {
+   "zh": "@@T0@@Top-k@@T1@@ 只保留概率最高的 $k$ 个词元，其余置零 &mdash;&mdash; 这是对存活候选数量的硬性上限，与概率质量如何分布无关。",
+   "src": "<strong>Top-k</strong> keeps only the $k$ highest-probability tokens and zeroes the rest &mdash; a hard cap on how many candidates survive, regardless of how the mass is spread.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Top-p (nucleus)@@T1@@ keeps the smallest set of tokens whose probabilities sum to at least $p$. The cut adapts to the shape: a confident step keeps one or two words, an uncertain step keeps many.": {
+   "zh": "@@T0@@Top-p（核采样）@@T1@@ 保留概率之和至少达到 $p$ 的最小词元集合。切割位置会自适应分布的形状：自信的一步只保留一两个词，不确定的一步则保留很多。",
+   "src": "<strong>Top-p (nucleus)</strong> keeps the smallest set of tokens whose probabilities sum to at least $p$. The cut adapts to the shape: a confident step keeps one or two words, an uncertain step keeps many.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Why sampling at all?@@T1@@ Always taking the arg-max (greedy) is\n      deterministic and often degenerates into loops. Sampling injects the controlled\n      randomness that makes generations varied and human-sounding &mdash; and top-k /\n      top-p are the guardrails that stop that randomness from wandering into the\n      model's low-probability nonsense. Decoding is where a fixed model becomes a\n      writer with a personality you can dial.": {
+   "zh": "@@T0@@为何要采样？@@T1@@ 总是取 arg-max（贪心）是确定性的，且常常退化为循环。采样注入了受控的随机性，使生成内容多样、听起来像人话 &mdash;&mdash; 而 top-k / top-p 则是护栏，阻止这种随机性游荡到模型低概率的胡言乱语之中。解码正是让一个固定的模型变成一个可以由你调校个性的写作者的地方。",
+   "src": "<strong>Why sampling at all?</strong> Always taking the arg-max (greedy) is\n      deterministic and often degenerates into loops. Sampling injects the controlled\n      randomness that makes generations varied and human-sounding &mdash; and top-k /\n      top-p are the guardrails that stop that randomness from wandering into the\n      model's low-probability nonsense. Decoding is where a fixed model becomes a\n      writer with a personality you can dial.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 16: Transformers I &mdash; Self-Attention": {
+   "zh": "ES 667 深度学习讲解系列的一部分 &middot; 第 16 讲：Transformer I &mdash;&mdash; 自注意力",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 16: Transformers I &mdash; Self-Attention",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "逐词元生成",
+  "tagline": "一个自回归解码沙盒，温度、top-k 与 top-p 在此重塑模型接下来采样的内容",
+  "summary": "语言模型从不一次性写出句子 —— 它预测一个下一词元，采样它，追加它，然后循环。在一个很小的固定词表上选择前缀，然后按「步进」运行一轮：从上下文到 logit，再到下一词元概率柱状图，随后一个被采样的词元被追加，序列随之增长。转动温度、top-k 与 top-p（核采样），观察分布如何变尖锐、变窄，其被过滤的尾部如何变灰 —— 在给定随机种子 logit 下这一切都是确定性的 —— 以体会每个旋钮如何在多样性与聚焦之间权衡。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "一次一个词元地运行自回归循环：从上下文到 logit，再到下一词元柱状图，最终到一个被采样并追加的词元。",
+   "观察温度在 T<1 时使分布向贪心方向变尖锐，在 T>1 时使其向均匀分布变平。",
+   "观察 top-k 与 top-p（核采样）如何硬性过滤尾部，将移除的词元变灰，并对保留部分重新归一化。",
+   "在同一张图上比较施加温度之后的分布（虚线）与施加过滤之后的分布（实心）。",
+   "跟踪实时的熵、保留候选数与最高概率，以量化多样性与聚焦之间的权衡。"
+  ],
+  "tags": [
+   "解码",
+   "采样",
+   "温度",
+   "Top-p",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

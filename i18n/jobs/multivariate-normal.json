@@ -1,0 +1,1590 @@
+{
+ "slug": "multivariate-normal",
+ "units": {
+  "Seeing the Multivariate Normal": {
+   "zh": "认识多元正态分布",
+   "src": "Seeing the Multivariate Normal",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "You already know the bell curve. This article shows you how it generalizes to two\n          dimensions, why the covariance matrix controls everything, and what happens when you\n          condition on one variable to learn about the other. Every formula below has an\n          interactive figure right next to it &mdash; move the sliders and watch the math update\n          in real time.": {
+   "zh": "你已熟悉钟形曲线。本文将展示它如何推广到二维、为何协方差矩阵掌控一切，以及当对一个变量取值以推断另一个变量时会发生什么。下文的每一个公式旁都配有交互式图形 &mdash; 拖动滑块即可实时观察数学结果的更新。",
+   "src": "You already know the bell curve. This article shows you how it generalizes to two\n          dimensions, why the covariance matrix controls everything, and what happens when you\n          condition on one variable to learn about the other. Every formula below has an\n          interactive figure right next to it &mdash; move the sliders and watch the math update\n          in real time.",
+   "tags": []
+  },
+  "@@T0@@~20 min@@T1@@\n          @@T2@@Probability &middot; Statistics &middot; Linear Algebra@@T3@@": {
+   "zh": "@@T0@@约 20 分钟@@T1@@\n          @@T2@@概率论 &middot; 统计学 &middot; 线性代数@@T3@@",
+   "src": "<span>~20 min</span>\n          <span>Probability &middot; Statistics &middot; Linear Algebra</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@I.@@T1@@ One dimension: density, area, and the 68-95-99.7 rule": {
+   "zh": "@@T0@@I.@@T1@@ 一维：密度、面积与 68-95-99.7 法则",
+   "src": "<span class=\"num\">I.</span> One dimension: density, area, and the 68-95-99.7 rule",
+   "tags": [
+    "<span class=\"num\">",
+    "</span>"
+   ]
+  },
+  "A normal distribution describes a random variable that clusters around a center value\n          and drops off symmetrically in both directions. It is specified by exactly two numbers:\n          the mean @@T0@@&mu;@@T1@@, which sets the center, and the standard deviation\n          @@T2@@&sigma;@@T3@@, which sets the width. Nothing else matters. Every bell curve in\n          the world, once you know those two numbers, is the same shape up to a shift and a\n          stretch.": {
+   "zh": "正态分布描述的是一个围绕中心值聚集、并向两侧对称衰减的随机变量。它完全由两个数确定：决定中心的均值 @@T0@@&mu;@@T1@@，以及决定宽度的标准差 @@T2@@&sigma;@@T3@@。除此之外别无其他。世界上任何一条钟形曲线，只要已知这两个数，在平移与伸缩的意义下都是同一形状。",
+   "src": "A normal distribution describes a random variable that clusters around a center value\n          and drops off symmetrically in both directions. It is specified by exactly two numbers:\n          the mean <code>&mu;</code>, which sets the center, and the standard deviation\n          <code>&sigma;</code>, which sets the width. Nothing else matters. Every bell curve in\n          the world, once you know those two numbers, is the same shape up to a shift and a\n          stretch.",
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "The density function tells you the relative likelihood of landing near any particular\n          value of @@T0@@x@@T1@@. It is @@T2@@not@@T3@@ a probability &mdash; it can actually be\n          greater than 1 for narrow distributions. Probability comes only from @@T4@@area under the\n          curve@@T5@@ between two endpoints:": {
+   "zh": "密度函数给出落在 @@T0@@x@@T1@@ 附近任一特定取值处的相对可能性。它@@T2@@并不是@@T3@@概率 &mdash; 对于较窄的分布，它甚至可以大于 1。概率仅来源于两个端点之间的@@T4@@曲线下面积@@T5@@：",
+   "src": "The density function tells you the relative likelihood of landing near any particular\n          value of <code>x</code>. It is <em>not</em> a probability &mdash; it can actually be\n          greater than 1 for narrow distributions. Probability comes only from <em>area under the\n          curve</em> between two endpoints:",
+   "tags": [
+    "<code>",
+    "</code>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The exponential in the formula is doing all the work. The quantity\n          @@T0@@(x&minus;&mu;)&sup2; / (2&sigma;&sup2;)@@T1@@ measures how far @@T2@@x@@T3@@\n          sits from the center in units of the standard deviation. At the mean, this exponent is\n          zero and the density is at its peak. One standard deviation away, the exponent is\n          @@T4@@&minus;&frac12;@@T5@@, so the density has dropped by a factor of\n          @@T6@@e@@T7@@&minus;0.5@@T8@@ &approx; 0.61@@T9@@. Two standard deviations away, the\n          exponent is @@T10@@&minus;2@@T11@@, and the density has dropped to\n          @@T12@@e@@T13@@&minus;2@@T14@@ &approx; 0.14@@T15@@ of the peak. The drop-off is fast.": {
+   "zh": "公式中的指数项承担了全部作用。量 @@T0@@(x&minus;&mu;)&sup2; / (2&sigma;&sup2;)@@T1@@ 以标准差为单位衡量 @@T2@@x@@T3@@ 距中心有多远。在均值处，该指数为零，密度达到峰值。偏离一个标准差处，指数为 @@T4@@&minus;&frac12;@@T5@@，故密度降至 @@T6@@e@@T7@@&minus;0.5@@T8@@ &approx; 0.61@@T9@@ 倍。偏离两个标准差处，指数为 @@T10@@&minus;2@@T11@@，密度降至峰值的 @@T12@@e@@T13@@&minus;2@@T14@@ &approx; 0.14@@T15@@。衰减十分迅速。",
+   "src": "The exponential in the formula is doing all the work. The quantity\n          <code>(x&minus;&mu;)&sup2; / (2&sigma;&sup2;)</code> measures how far <code>x</code>\n          sits from the center in units of the standard deviation. At the mean, this exponent is\n          zero and the density is at its peak. One standard deviation away, the exponent is\n          <code>&minus;&frac12;</code>, so the density has dropped by a factor of\n          <code>e<sup>&minus;0.5</sup> &approx; 0.61</code>. Two standard deviations away, the\n          exponent is <code>&minus;2</code>, and the density has dropped to\n          <code>e<sup>&minus;2</sup> &approx; 0.14</code> of the peak. The drop-off is fast.",
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "<sup>",
+    "</sup>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "<sup>",
+    "</sup>",
+    "</code>"
+   ]
+  },
+  "This leads to the famous @@T0@@68-95-99.7 rule@@T1@@: about 68% of the probability\n          mass lies within &plusmn;1&sigma; of the mean, about 95% within &plusmn;2&sigma;, and\n          about 99.7% within &plusmn;3&sigma;. These numbers do not depend on which particular\n          &mu; and &sigma; you have &mdash; they are universal properties of the bell-curve shape.\n          You can verify them in the figure below by adjusting the interval edges.": {
+   "zh": "这便引出著名的 @@T0@@68-95-99.7 法则@@T1@@：约 68% 的概率质量位于均值的 &plusmn;1&sigma; 之内，约 95% 位于 &plusmn;2&sigma; 之内，约 99.7% 位于 &plusmn;3&sigma; 之内。这些数值与具体的 &mu; 和 &sigma; 无关 &mdash; 它们是钟形曲线形状的普适性质。你可在下图中调整区间端点加以验证。",
+   "src": "This leads to the famous <strong>68-95-99.7 rule</strong>: about 68% of the probability\n          mass lies within &plusmn;1&sigma; of the mean, about 95% within &plusmn;2&sigma;, and\n          about 99.7% within &plusmn;3&sigma;. These numbers do not depend on which particular\n          &mu; and &sigma; you have &mdash; they are universal properties of the bell-curve shape.\n          You can verify them in the figure below by adjusting the interval edges.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Concrete example.@@T1@@ Suppose the temperature sensor on a weather station\n          reads 20.0&deg;C on average (&mu;&nbsp;=&nbsp;20) with a measurement noise of\n          &sigma;&nbsp;=&nbsp;0.5&deg;C. Then about 68% of readings will fall between 19.5&deg;C\n          and 20.5&deg;C, and a reading outside the range 18.5&ndash;21.5&deg;C\n          (&plusmn;3&sigma;) would occur less than 0.3% of the time. That is the kind of\n          quantitative statement the normal distribution lets you make with just two numbers.": {
+   "zh": "@@T0@@具体例子。@@T1@@ 设某气象站的温度传感器平均读数为 20.0&deg;C（&mu;&nbsp;=&nbsp;20），测量噪声为 &sigma;&nbsp;=&nbsp;0.5&deg;C。则约 68% 的读数将落在 19.5&deg;C 至 20.5&deg;C 之间，而读数超出 18.5&ndash;21.5&deg;C（&plusmn;3&sigma;）范围的情形出现比例低于 0.3%。这正是正态分布让你仅凭两个数即可作出的定量陈述。",
+   "src": "<strong>Concrete example.</strong> Suppose the temperature sensor on a weather station\n          reads 20.0&deg;C on average (&mu;&nbsp;=&nbsp;20) with a measurement noise of\n          &sigma;&nbsp;=&nbsp;0.5&deg;C. Then about 68% of readings will fall between 19.5&deg;C\n          and 20.5&deg;C, and a reading outside the range 18.5&ndash;21.5&deg;C\n          (&plusmn;3&sigma;) would occur less than 0.3% of the time. That is the kind of\n          quantitative statement the normal distribution lets you make with just two numbers.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Mean &mu;": {
+   "zh": "均值 &mu;",
+   "src": "Mean &mu;",
+   "tags": []
+  },
+  "Std dev &sigma;": {
+   "zh": "标准差 &sigma;",
+   "src": "Std dev &sigma;",
+   "tags": []
+  },
+  "Left edge": {
+   "zh": "左端点",
+   "src": "Left edge",
+   "tags": []
+  },
+  "Right edge": {
+   "zh": "右端点",
+   "src": "Right edge",
+   "tags": []
+  },
+  "@@T0@@@@T1@@P(a&le;X&le;b)@@T2@@ = @@T3@@68.27%@@T4@@@@T5@@\n            @@T6@@@@T7@@z-range@@T8@@ @@T9@@[-1.00, 1.00]@@T10@@@@T11@@\n            @@T12@@@@T13@@Peak density@@T14@@ @@T15@@0.399@@T16@@@@T17@@\n            @@T18@@Probability that X lands inside the shaded region.@@T19@@": {
+   "zh": "@@T0@@@@T1@@P(a&le;X&le;b)@@T2@@ = @@T3@@68.27%@@T4@@@@T5@@\n            @@T6@@@@T7@@z 范围@@T8@@ @@T9@@[-1.00, 1.00]@@T10@@@@T11@@\n            @@T12@@@@T13@@峰值密度@@T14@@ @@T15@@0.399@@T16@@@@T17@@\n            @@T18@@X 落在阴影区域内的概率。@@T19@@",
+   "src": "<span class=\"readout\"><strong>P(a&le;X&le;b)</strong> = <span id=\"oneDProbability\">68.27%</span></span>\n            <span class=\"readout\"><strong>z-range</strong> <span id=\"oneDZRange\">[-1.00, 1.00]</span></span>\n            <span class=\"readout\"><strong>Peak density</strong> <span id=\"oneDPeak\">0.399</span></span>\n            <span class=\"readout-text\" id=\"oneDProbabilityCopy\">Probability that X lands inside the shaded region.</span>",
+   "tags": [
+    "<span class=\"readout\">",
+    "<strong>",
+    "</strong>",
+    "<span id=\"oneDProbability\">",
+    "</span>",
+    "</span>",
+    "<span class=\"readout\">",
+    "<strong>",
+    "</strong>",
+    "<span id=\"oneDZRange\">",
+    "</span>",
+    "</span>",
+    "<span class=\"readout\">",
+    "<strong>",
+    "</strong>",
+    "<span id=\"oneDPeak\">",
+    "</span>",
+    "</span>",
+    "<span class=\"readout-text\" id=\"oneDProbabilityCopy\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@What to notice.@@T1@@ Watch the peak drop as &sigma; grows. The total area\n          under the curve is always exactly 1, so spreading the mass wider forces the peak down.\n          For the standard normal (&mu;=0, &sigma;=1), the peak height is\n          @@T2@@1/&radic;(2&pi;) &approx; 0.399@@T3@@. For &sigma;=2 it is half that.": {
+   "zh": "@@T0@@值得注意之处。@@T1@@ 观察随着 &sigma; 增大峰值下降的现象。曲线下总面积恒为 1，因此把概率质量铺得更宽必然压低峰值。对标准正态分布（&mu;=0，&sigma;=1），峰高为 @@T2@@1/&radic;(2&pi;) &approx; 0.399@@T3@@。当 &sigma;=2 时，峰高减半。",
+   "src": "<strong>What to notice.</strong> Watch the peak drop as &sigma; grows. The total area\n          under the curve is always exactly 1, so spreading the mass wider forces the peak down.\n          For the standard normal (&mu;=0, &sigma;=1), the peak height is\n          <code>1/&radic;(2&pi;) &approx; 0.399</code>. For &sigma;=2 it is half that.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "The @@T0@@standardized variable@@T1@@ @@T2@@z = (x&minus;&mu;)/&sigma;@@T3@@ converts any\n          normal to the standard normal. This is not just a trick for looking up tables &mdash;\n          it is the conceptual move that makes higher dimensions manageable. In 2D, the analogue\n          of &ldquo;how many standard deviations away?&rdquo; is the @@T4@@Mahalanobis\n          distance@@T5@@, which accounts for the fact that spread can be different in different\n          directions.": {
+   "zh": "@@T0@@标准化变量@@T1@@ @@T2@@z = (x&minus;&mu;)/&sigma;@@T3@@ 可将任意正态分布化为标准正态分布。这不仅是查表所用的技巧 &mdash; 它是使高维情形变得可处理的关键概念性操作。在二维中，&ldquo;偏离多少个标准差？&rdquo;的类似物是 @@T4@@马氏距离@@T5@@，它考虑了不同方向上的离散程度可以不同这一事实。",
+   "src": "The <em>standardized variable</em> <code>z = (x&minus;&mu;)/&sigma;</code> converts any\n          normal to the standard normal. This is not just a trick for looking up tables &mdash;\n          it is the conceptual move that makes higher dimensions manageable. In 2D, the analogue\n          of &ldquo;how many standard deviations away?&rdquo; is the <em>Mahalanobis\n          distance</em>, which accounts for the fact that spread can be different in different\n          directions.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<code>",
+    "</code>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Try:@@T1@@": {
+   "zh": "@@T0@@试一试：@@T1@@",
+   "src": "<strong>Try:</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Standard normal": {
+   "zh": "标准正态分布",
+   "src": "Standard normal",
+   "tags": []
+  },
+  "Wide (&sigma;=1.8)": {
+   "zh": "较宽（&sigma;=1.8）",
+   "src": "Wide (&sigma;=1.8)",
+   "tags": []
+  },
+  "Shifted right (&mu;=1.2)": {
+   "zh": "右移（&mu;=1.2）",
+   "src": "Shifted right (&mu;=1.2)",
+   "tags": []
+  },
+  "@@T0@@II.@@T1@@ Two dimensions: the covariance matrix and what it controls": {
+   "zh": "@@T0@@II.@@T1@@ 二维：协方差矩阵及其所掌控之物",
+   "src": "<span class=\"num\">II.</span> Two dimensions: the covariance matrix and what it controls",
+   "tags": [
+    "<span class=\"num\">",
+    "</span>"
+   ]
+  },
+  "Now imagine measuring two quantities at once &mdash; say, hours studied and exam score,\n          or latitude and longitude from a noisy GPS. Each measurement pair is a point in the\n          plane. If the noise in both coordinates is roughly Gaussian, the joint distribution is a\n          @@T0@@bivariate normal@@T1@@. Instead of a single bell curve, you get a bell-shaped hill\n          in 3D. Viewed from above, the level curves of that hill are ellipses.": {
+   "zh": "现在设想同时测量两个量 &mdash; 例如学习时长与考试成绩，或带噪 GPS 给出的纬度与经度。每一对观测值都是平面上的一点。若两个坐标上的噪声大致服从高斯分布，则联合分布为@@T0@@二元正态分布@@T1@@。此时得到的不是一条钟形曲线，而是三维空间中一座钟形山峰。从上方俯视，该山峰的等值线为椭圆。",
+   "src": "Now imagine measuring two quantities at once &mdash; say, hours studied and exam score,\n          or latitude and longitude from a noisy GPS. Each measurement pair is a point in the\n          plane. If the noise in both coordinates is roughly Gaussian, the joint distribution is a\n          <em>bivariate normal</em>. Instead of a single bell curve, you get a bell-shaped hill\n          in 3D. Viewed from above, the level curves of that hill are ellipses.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The bivariate normal is parametrized by five numbers: two means\n          (&mu;@@T0@@x@@T1@@,&nbsp;&mu;@@T2@@y@@T3@@), two standard deviations\n          (&sigma;@@T4@@x@@T5@@,&nbsp;&sigma;@@T6@@y@@T7@@), and one correlation coefficient &rho;.\n          Those five numbers get packaged into a mean vector and a 2&times;2 covariance matrix:": {
+   "zh": "二元正态分布由五个数参数化：两个均值（&mu;@@T0@@x@@T1@@，&nbsp;&mu;@@T2@@y@@T3@@）、两个标准差（&sigma;@@T4@@x@@T5@@，&nbsp;&sigma;@@T6@@y@@T7@@）以及一个相关系数 &rho;。这五个数被打包成一个均值向量与一个 2&times;2 的协方差矩阵：",
+   "src": "The bivariate normal is parametrized by five numbers: two means\n          (&mu;<sub>x</sub>,&nbsp;&mu;<sub>y</sub>), two standard deviations\n          (&sigma;<sub>x</sub>,&nbsp;&sigma;<sub>y</sub>), and one correlation coefficient &rho;.\n          Those five numbers get packaged into a mean vector and a 2&times;2 covariance matrix:",
+   "tags": [
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "\\[\n            \\mathbf{x} \\sim \\mathcal{N}\\!\\left(\n              \\boldsymbol{\\mu},\\;\n              \\Sigma\n            \\right),\n            \\qquad\n            \\boldsymbol{\\mu} = \\begin{bmatrix} \\mu_x \\\\ \\mu_y \\end{bmatrix},\n            \\qquad\n            \\Sigma =\n            \\begin{bmatrix}\n              \\sigma_x^2 & \\rho\\,\\sigma_x\\sigma_y \\\\\n              \\rho\\,\\sigma_x\\sigma_y & \\sigma_y^2\n            \\end{bmatrix}\n          \\]": {
+   "zh": "",
+   "src": "\\[\n            \\mathbf{x} \\sim \\mathcal{N}\\!\\left(\n              \\boldsymbol{\\mu},\\;\n              \\Sigma\n            \\right),\n            \\qquad\n            \\boldsymbol{\\mu} = \\begin{bmatrix} \\mu_x \\\\ \\mu_y \\end{bmatrix},\n            \\qquad\n            \\Sigma =\n            \\begin{bmatrix}\n              \\sigma_x^2 & \\rho\\,\\sigma_x\\sigma_y \\\\\n              \\rho\\,\\sigma_x\\sigma_y & \\sigma_y^2\n            \\end{bmatrix}\n          \\]",
+   "tags": []
+  },
+  "@@T0@@Reading the covariance matrix.@@T1@@ The diagonal entries\n          &sigma;@@T2@@x@@T3@@&sup2; and &sigma;@@T4@@y@@T5@@&sup2; are the variances you already\n          know from 1D &mdash; they control spread along each axis independently. The\n          off-diagonal entry &rho;&sigma;@@T6@@x@@T7@@&sigma;@@T8@@y@@T9@@ is the\n          @@T10@@covariance@@T11@@. It tells you whether the two variables tend to increase together\n          (positive), move in opposite directions (negative), or vary independently (zero). The\n          correlation &rho; is just the covariance normalized to lie between &minus;1 and +1.": {
+   "zh": "@@T0@@解读协方差矩阵。@@T1@@ 对角线元素 &sigma;@@T2@@x@@T3@@&sup2; 与 &sigma;@@T4@@y@@T5@@&sup2; 即你在一维中已熟知的方差 &mdash; 它们分别独立地掌控沿各坐标轴的离散程度。非对角元素 &rho;&sigma;@@T6@@x@@T7@@&sigma;@@T8@@y@@T9@@ 即为@@T10@@协方差@@T11@@。它告诉你两个变量是倾向于同向增大（正）、反向变化（负），还是独立变动（零）。相关系数 &rho; 不过是归一化到 &minus;1 与 +1 之间的协方差。",
+   "src": "<strong>Reading the covariance matrix.</strong> The diagonal entries\n          &sigma;<sub>x</sub>&sup2; and &sigma;<sub>y</sub>&sup2; are the variances you already\n          know from 1D &mdash; they control spread along each axis independently. The\n          off-diagonal entry &rho;&sigma;<sub>x</sub>&sigma;<sub>y</sub> is the\n          <em>covariance</em>. It tells you whether the two variables tend to increase together\n          (positive), move in opposite directions (negative), or vary independently (zero). The\n          correlation &rho; is just the covariance normalized to lie between &minus;1 and +1.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Why ellipses?@@T1@@ The density formula for the 2D case involves the\n          @@T2@@quadratic form@@T3@@\n          (@@T4@@x@@T5@@&minus;@@T6@@&mu;@@T7@@)@@T8@@T@@T9@@\n          &Sigma;@@T10@@&minus;1@@T11@@\n          (@@T12@@x@@T13@@&minus;@@T14@@&mu;@@T15@@).\n          Setting that quadratic form equal to a constant gives\n          you the equation of an ellipse. Points on the same ellipse have the same density, so\n          the contours of the distribution are ellipses. The eigenvalues of &Sigma; determine the\n          lengths of the ellipse axes; the eigenvectors determine the tilt.": {
+   "zh": "@@T0@@为何是椭圆？@@T1@@ 二维情形的密度公式包含@@T2@@二次型@@T3@@ (@@T4@@x@@T5@@&minus;@@T6@@&mu;@@T7@@)@@T8@@T@@T9@@ &Sigma;@@T10@@&minus;1@@T11@@ (@@T12@@x@@T13@@&minus;@@T14@@&mu;@@T15@@)。令该二次型等于一个常数，即得椭圆的方程。同一椭圆上的点具有相同的密度，故该分布的等值线为椭圆。&Sigma; 的特征值决定椭圆各轴的长度，特征向量决定其倾斜方向。",
+   "src": "<strong>Why ellipses?</strong> The density formula for the 2D case involves the\n          <em>quadratic form</em>\n          (<strong>x</strong>&minus;<strong>&mu;</strong>)<sup>T</sup>\n          &Sigma;<sup>&minus;1</sup>\n          (<strong>x</strong>&minus;<strong>&mu;</strong>).\n          Setting that quadratic form equal to a constant gives\n          you the equation of an ellipse. Points on the same ellipse have the same density, so\n          the contours of the distribution are ellipses. The eigenvalues of &Sigma; determine the\n          lengths of the ellipse axes; the eigenvectors determine the tilt.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<sup>",
+    "</sup>",
+    "<sup>",
+    "</sup>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The prefactor @@T0@@1/(2&pi;|&Sigma;|@@T1@@1/2@@T2@@)@@T3@@ is the normalization\n          constant &mdash; it ensures the density integrates to 1 over the whole plane. The\n          determinant |&Sigma;| measures the &ldquo;volume&rdquo; of the ellipse: larger\n          determinant means more spread, which means lower peak density, just like the 1D case.": {
+   "zh": "前置因子 @@T0@@1/(2&pi;|&Sigma;|@@T1@@1/2@@T2@@)@@T3@@ 是归一化常数 &mdash; 它保证密度在整个平面上的积分为 1。行列式 |&Sigma;| 度量椭圆的 &ldquo;体积&rdquo;：行列式越大意味着离散程度越高，从而峰值密度越低，这与一维情形完全一致。",
+   "src": "The prefactor <code>1/(2&pi;|&Sigma;|<sup>1/2</sup>)</code> is the normalization\n          constant &mdash; it ensures the density integrates to 1 over the whole plane. The\n          determinant |&Sigma;| measures the &ldquo;volume&rdquo; of the ellipse: larger\n          determinant means more spread, which means lower peak density, just like the 1D case.",
+   "tags": [
+    "<code>",
+    "<sup>",
+    "</sup>",
+    "</code>"
+   ]
+  },
+  "Mean x": {
+   "zh": "均值 x",
+   "src": "Mean x",
+   "tags": []
+  },
+  "Mean y": {
+   "zh": "均值 y",
+   "src": "Mean y",
+   "tags": []
+  },
+  "Spread &sigma;@@T0@@x@@T1@@": {
+   "zh": "离散度 &sigma;@@T0@@x@@T1@@",
+   "src": "Spread &sigma;<sub>x</sub>",
+   "tags": [
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "Spread &sigma;@@T0@@y@@T1@@": {
+   "zh": "离散度 &sigma;@@T0@@y@@T1@@",
+   "src": "Spread &sigma;<sub>y</sub>",
+   "tags": [
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "Correlation &rho;": {
+   "zh": "相关系数 &rho;",
+   "src": "Correlation &rho;",
+   "tags": []
+  },
+  "@@T0@@@@T1@@Covariance@@T2@@ @@T3@@@@T4@@@@T5@@\n            @@T6@@@@T7@@Ellipse tilt@@T8@@ @@T9@@31.0&deg;@@T10@@@@T11@@\n            @@T12@@@@T13@@Major axis &sigma;@@T14@@ @@T15@@1.41@@T16@@@@T17@@": {
+   "zh": "@@T0@@@@T1@@协方差@@T2@@ @@T3@@@@T4@@@@T5@@\n            @@T6@@@@T7@@椭圆倾斜角@@T8@@ @@T9@@31.0&deg;@@T10@@@@T11@@\n            @@T12@@@@T13@@长轴 &sigma;@@T14@@ @@T15@@1.41@@T16@@@@T17@@",
+   "src": "<span class=\"readout\"><strong>Covariance</strong> <span id=\"covarianceMatrix\"></span></span>\n            <span class=\"readout\"><strong>Ellipse tilt</strong> <span id=\"ellipseAngle\">31.0&deg;</span></span>\n            <span class=\"readout\"><strong>Major axis &sigma;</strong> <span id=\"majorSpread\">1.41</span></span>",
+   "tags": [
+    "<span class=\"readout\">",
+    "<strong>",
+    "</strong>",
+    "<span id=\"covarianceMatrix\">",
+    "</span>",
+    "</span>",
+    "<span class=\"readout\">",
+    "<strong>",
+    "</strong>",
+    "<span id=\"ellipseAngle\">",
+    "</span>",
+    "</span>",
+    "<span class=\"readout\">",
+    "<strong>",
+    "</strong>",
+    "<span id=\"majorSpread\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@What to notice.@@T1@@ The dots are random samples from the current\n          distribution. The nested ellipses are contour lines at 1, 1.8, 2.45, and 3.1 standard\n          deviations (Mahalanobis distance). When &rho;=0, the ellipses are axis-aligned &mdash;\n          the axes of the ellipse line up with the coordinate axes. As |&rho;| increases toward 1,\n          the ellipses tilt and narrow. At &rho;&approx;&plusmn;1, all the mass concentrates near\n          a line, and the two variables become nearly deterministic functions of each other.": {
+   "zh": "@@T0@@值得注意之处。@@T1@@ 散点为当前分布的随机样本。嵌套椭圆是 1、1.8、2.45 与 3.1 个标准差（马氏距离）处的等值线。当 &rho;=0 时，椭圆与坐标轴对齐 &mdash; 椭圆各轴与坐标轴重合。随着 |&rho;| 增大趋近于 1，椭圆发生倾斜并变窄。当 &rho;&approx;&plusmn;1 时，全部概率质量集中于一条直线附近，两个变量彼此近乎成为确定性的函数。",
+   "src": "<strong>What to notice.</strong> The dots are random samples from the current\n          distribution. The nested ellipses are contour lines at 1, 1.8, 2.45, and 3.1 standard\n          deviations (Mahalanobis distance). When &rho;=0, the ellipses are axis-aligned &mdash;\n          the axes of the ellipse line up with the coordinate axes. As |&rho;| increases toward 1,\n          the ellipses tilt and narrow. At &rho;&approx;&plusmn;1, all the mass concentrates near\n          a line, and the two variables become nearly deterministic functions of each other.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Eigenvalue interpretation.@@T1@@ The covariance matrix &Sigma; can be\n          decomposed as &Sigma;&nbsp;=&nbsp;Q&Lambda;Q@@T2@@T@@T3@@, where Q is a rotation matrix\n          (the eigenvectors) and &Lambda; is diagonal (the eigenvalues). The eigenvectors give\n          the directions of the ellipse axes. The eigenvalues give the variances along those\n          axes. This decomposition is the reason the bivariate normal &ldquo;looks like&rdquo; an\n          axis-aligned Gaussian that has been rotated: because that is exactly what it is.": {
+   "zh": "@@T0@@特征值解释。@@T1@@ 协方差矩阵 &Sigma; 可分解为 &Sigma;&nbsp;=&nbsp;Q&Lambda;Q@@T2@@T@@T3@@，其中 Q 为旋转矩阵（特征向量），&Lambda; 为对角矩阵（特征值）。特征向量给出椭圆各轴的方向，特征值给出沿这些轴的方差。这一分解正是二元正态分布 &ldquo;看起来像&rdquo; 一个被旋转过的轴对齐高斯分布的原因：因为它本就恰恰如此。",
+   "src": "<strong>Eigenvalue interpretation.</strong> The covariance matrix &Sigma; can be\n          decomposed as &Sigma;&nbsp;=&nbsp;Q&Lambda;Q<sup>T</sup>, where Q is a rotation matrix\n          (the eigenvectors) and &Lambda; is diagonal (the eigenvalues). The eigenvectors give\n          the directions of the ellipse axes. The eigenvalues give the variances along those\n          axes. This decomposition is the reason the bivariate normal &ldquo;looks like&rdquo; an\n          axis-aligned Gaussian that has been rotated: because that is exactly what it is.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<sup>",
+    "</sup>"
+   ]
+  },
+  "Concrete examples": {
+   "zh": "具体例子",
+   "src": "Concrete examples",
+   "tags": []
+  },
+  "@@T0@@Hours studied vs. exam score@@T1@@ (&rho;&approx;0.7): more study time is associated with higher scores, but not perfectly &mdash; the ellipse is tilted upward but still has substantial width.": {
+   "zh": "@@T0@@学习时长与考试成绩@@T1@@（&rho;&approx;0.7）：学习时间越长，成绩往往越高，但并非完全如此 &mdash; 椭圆向上倾斜，但仍具有相当的宽度。",
+   "src": "<strong>Hours studied vs. exam score</strong> (&rho;&approx;0.7): more study time is associated with higher scores, but not perfectly &mdash; the ellipse is tilted upward but still has substantial width.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Speed vs. travel time@@T1@@ (&rho;&approx;&minus;0.8): faster speeds mean shorter trips, producing a downward tilt.": {
+   "zh": "@@T0@@速度与行程时间@@T1@@（&rho;&approx;&minus;0.8）：速度越快，行程越短，因而呈向下倾斜。",
+   "src": "<strong>Speed vs. travel time</strong> (&rho;&approx;&minus;0.8): faster speeds mean shorter trips, producing a downward tilt.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@GPS latitude vs. longitude on a road@@T1@@: the uncertainty along the road is much larger than across it, producing a very narrow ellipse aligned with the road direction.": {
+   "zh": "@@T0@@道路上 GPS 的纬度与经度@@T1@@：沿道路方向的不确定性远大于垂直于道路方向的不确定性，因而形成一个与道路方向对齐的很窄的椭圆。",
+   "src": "<strong>GPS latitude vs. longitude on a road</strong>: the uncertainty along the road is much larger than across it, producing a very narrow ellipse aligned with the road direction.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Manufacturing width vs. thickness@@T1@@ (&rho;&approx;0.9): if the production line drifts, both measurements drift together, so the ellipse is narrow and tilted.": {
+   "zh": "@@T0@@制造中的宽度与厚度@@T1@@（&rho;&approx;0.9）：若生产线发生漂移，两个测量值将一同漂移，故椭圆又窄又倾斜。",
+   "src": "<strong>Manufacturing width vs. thickness</strong> (&rho;&approx;0.9): if the production line drifts, both measurements drift together, so the ellipse is narrow and tilted.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Independent (&rho;=0)": {
+   "zh": "独立（&rho;=0）",
+   "src": "Independent (&rho;=0)",
+   "tags": []
+  },
+  "Positive &rho;": {
+   "zh": "正 &rho;",
+   "src": "Positive &rho;",
+   "tags": []
+  },
+  "Negative &rho;": {
+   "zh": "负 &rho;",
+   "src": "Negative &rho;",
+   "tags": []
+  },
+  "Near-perfect correlation": {
+   "zh": "近乎完全相关",
+   "src": "Near-perfect correlation",
+   "tags": []
+  },
+  "Study habits": {
+   "zh": "学习习惯",
+   "src": "Study habits",
+   "tags": []
+  },
+  "Budget": {
+   "zh": "预算",
+   "src": "Budget",
+   "tags": []
+  },
+  "Road GPS": {
+   "zh": "道路 GPS",
+   "src": "Road GPS",
+   "tags": []
+  },
+  "@@T0@@III.@@T1@@ Sampling: turning a distribution into actual data": {
+   "zh": "@@T0@@III.@@T1@@ 采样：将分布转化为真实数据",
+   "src": "<span class=\"num\">III.</span> Sampling: turning a distribution into actual data",
+   "tags": [
+    "<span class=\"num\">",
+    "</span>"
+   ]
+  },
+  "Knowing the formula for a distribution is one thing. Being able to generate actual\n          draws from it is another. In practice, every Monte Carlo simulation, every Bayesian\n          posterior sample, and every generative model relies on being able to sample efficiently.\n          For the multivariate normal, the algorithm is elegant and relies on a single idea:\n          @@T0@@start with something simple and transform it.@@T1@@": {
+   "zh": "知道一个分布的公式是一回事，能够由它生成真实抽样则是另一回事。在实践中，每一次蒙特卡洛模拟、每一个贝叶斯后验样本，以及每一个生成模型，都依赖于高效采样的能力。对多元正态分布而言，其算法优雅简洁，且仅依赖一个核心思想：@@T0@@从简单的对象出发，再对其作变换。@@T1@@",
+   "src": "Knowing the formula for a distribution is one thing. Being able to generate actual\n          draws from it is another. In practice, every Monte Carlo simulation, every Bayesian\n          posterior sample, and every generative model relies on being able to sample efficiently.\n          For the multivariate normal, the algorithm is elegant and relies on a single idea:\n          <strong>start with something simple and transform it.</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Draw@@T1@@ a vector @@T2@@z@@T3@@ of independent standard normals &mdash; each component is an independent N(0,1). This gives you a spherical distribution centered at the origin.": {
+   "zh": "@@T0@@抽取@@T1@@ 一个由相互独立的标准正态变量构成的向量 @@T2@@z@@T3@@ &mdash; 其每个分量都是独立的 N(0,1)。由此得到一个以原点为中心的球状分布。",
+   "src": "<strong>Draw</strong> a vector <code>z</code> of independent standard normals &mdash; each component is an independent N(0,1). This gives you a spherical distribution centered at the origin.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@Find@@T1@@ a matrix @@T2@@L@@T3@@ such that @@T4@@LL@@T5@@T@@T6@@ = &Sigma;@@T7@@. This is the @@T8@@Cholesky decomposition@@T9@@ of the covariance matrix &mdash; it exists whenever &Sigma; is positive definite, which is always the case for a legitimate covariance matrix.": {
+   "zh": "@@T0@@求@@T1@@ 矩阵 @@T2@@L@@T3@@ 使其满足 @@T4@@LL@@T5@@T@@T6@@ = &Sigma;@@T7@@。此即协方差矩阵的@@T8@@ Cholesky 分解@@T9@@ &mdash; 只要 &Sigma; 正定便存在，而对一个合法的协方差矩阵而言这始终成立。",
+   "src": "<strong>Find</strong> a matrix <code>L</code> such that <code>LL<sup>T</sup> = &Sigma;</code>. This is the <em>Cholesky decomposition</em> of the covariance matrix &mdash; it exists whenever &Sigma; is positive definite, which is always the case for a legitimate covariance matrix.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "<sup>",
+    "</sup>",
+    "</code>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Compute@@T1@@ @@T2@@x = &mu; + Lz@@T3@@. The multiplication by L stretches and rotates the spherical distribution into the correct elliptical shape, and adding &mu; shifts it to the right location.": {
+   "zh": "@@T0@@计算@@T1@@ @@T2@@x = &mu; + Lz@@T3@@。乘以 L 将球状分布拉伸并旋转为正确的椭圆形状，再加上 &mu; 将其平移至正确位置。",
+   "src": "<strong>Compute</strong> <code>x = &mu; + Lz</code>. The multiplication by L stretches and rotates the spherical distribution into the correct elliptical shape, and adding &mu; shifts it to the right location.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@Why does this work?@@T1@@ If @@T2@@z@@T3@@ has covariance\n          @@T4@@I@@T5@@, then @@T6@@Lz@@T7@@ has covariance\n          @@T8@@L &middot; I &middot; L@@T9@@T@@T10@@ = LL@@T11@@T@@T12@@ = &Sigma;@@T13@@. That is\n          the entire proof. The linearity of expectations gives us the correct mean, and the\n          covariance transformation rule gives us the correct spread. This is why linear algebra\n          and probability fit together so naturally.": {
+   "zh": "@@T0@@为什么这样做有效？@@T1@@ 若 @@T2@@z@@T3@@ 的协方差为 @@T4@@I@@T5@@，则 @@T6@@Lz@@T7@@ 的协方差为 @@T8@@L &middot; I &middot; L@@T9@@T@@T10@@ = LL@@T11@@T@@T12@@ = &Sigma;@@T13@@。这就是全部证明。期望的线性性给出正确的均值，协方差变换法则给出正确的离散程度。这正是线性代数与概率论如此自然地相契合的原因。",
+   "src": "<strong>Why does this work?</strong> If <code>z</code> has covariance\n          <code>I</code>, then <code>Lz</code> has covariance\n          <code>L &middot; I &middot; L<sup>T</sup> = LL<sup>T</sup> = &Sigma;</code>. That is\n          the entire proof. The linearity of expectations gives us the correct mean, and the\n          covariance transformation rule gives us the correct spread. This is why linear algebra\n          and probability fit together so naturally.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "<sup>",
+    "</sup>",
+    "<sup>",
+    "</sup>",
+    "</code>"
+   ]
+  },
+  "The figure below draws actual samples from the bivariate normal you configured in\n          Section&nbsp;II. Each time you hit &ldquo;Redraw,&rdquo; a fresh set of independent\n          standard normals is generated and transformed through the Cholesky factor. Notice how\n          the sample mean and sample covariance fluctuate from draw to draw, especially at small\n          sample sizes. This is @@T0@@sampling variability@@T1@@, and it is the fundamental reason\n          why statistical estimation is needed at all.": {
+   "zh": "下图从你在第&nbsp;II&nbsp;节中配置的二元正态分布中抽取真实样本。每次点击 &ldquo;重新抽样&rdquo;，都会生成一组新的独立标准正态变量，并经 Cholesky 因子变换。注意样本均值与样本协方差如何随每次抽样而波动，在样本量较小时尤为明显。这就是@@T0@@抽样变异性@@T1@@，也是统计估计之所以必要的最根本原因。",
+   "src": "The figure below draws actual samples from the bivariate normal you configured in\n          Section&nbsp;II. Each time you hit &ldquo;Redraw,&rdquo; a fresh set of independent\n          standard normals is generated and transformed through the Cholesky factor. Notice how\n          the sample mean and sample covariance fluctuate from draw to draw, especially at small\n          sample sizes. This is <em>sampling variability</em>, and it is the fundamental reason\n          why statistical estimation is needed at all.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Sample count": {
+   "zh": "样本数量",
+   "src": "Sample count",
+   "tags": []
+  },
+  "Redraw sample": {
+   "zh": "重新抽样",
+   "src": "Redraw sample",
+   "tags": []
+  },
+  "@@T0@@Draw #1@@T1@@": {
+   "zh": "@@T0@@第 1 次抽样@@T1@@",
+   "src": "<span class=\"draw-status\" id=\"samplingDrawStatus\">Draw #1</span>",
+   "tags": [
+    "<span class=\"draw-status\" id=\"samplingDrawStatus\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@@@T1@@Sample mean@@T2@@ @@T3@@@@T4@@@@T5@@\n            @@T6@@@@T7@@Sample cov@@T8@@ @@T9@@@@T10@@@@T11@@\n            @@T12@@@@T13@@": {
+   "zh": "@@T0@@@@T1@@样本均值@@T2@@ @@T3@@@@T4@@@@T5@@\n            @@T6@@@@T7@@样本协方差@@T8@@ @@T9@@@@T10@@@@T11@@\n            @@T12@@@@T13@@",
+   "src": "<span class=\"readout\"><strong>Sample mean</strong> <span id=\"samplingMean\"></span></span>\n            <span class=\"readout\"><strong>Sample cov</strong> <span id=\"samplingCovariance\"></span></span>\n            <span class=\"readout-text\" id=\"samplingPreview\"></span>",
+   "tags": [
+    "<span class=\"readout\">",
+    "<strong>",
+    "</strong>",
+    "<span id=\"samplingMean\">",
+    "</span>",
+    "</span>",
+    "<span class=\"readout\">",
+    "<strong>",
+    "</strong>",
+    "<span id=\"samplingCovariance\">",
+    "</span>",
+    "</span>",
+    "<span class=\"readout-text\" id=\"samplingPreview\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@What to notice.@@T1@@\n          @@T2@@At n=20, the sample estimates can be way off.@@T3@@\n          @@T4@@At n=300, they settle down close to the true parameters. This convergence is the law of large numbers in action.@@T5@@\n          Try setting the count to 20 and hitting Redraw several times. You will see the sample\n          mean jump around and the sample covariance matrix change noticeably between draws.\n          Then set it to 300 and do the same &mdash; the estimates become much more stable.\n          The rate of convergence is roughly proportional to @@T6@@1/&radic;n@@T7@@.": {
+   "zh": "@@T0@@值得注意之处。@@T1@@\n          @@T2@@当 n=20 时，样本估计值可能偏离甚远。@@T3@@\n          @@T4@@当 n=300 时，它们稳定下来并接近真实参数。这种收敛正是大数定律的体现。@@T5@@\n          试着把样本数量设为 20 并多次点击重新抽样。你会看到样本均值来回跳动，样本协方差矩阵在相邻抽样间变化明显。\n          然后设为 300 重复同样的操作 &mdash; 估计值会稳定得多。\n          收敛速率大致与 @@T6@@1/&radic;n@@T7@@ 成正比。",
+   "src": "<strong>What to notice.</strong>\n          <span id=\"samplingNarrative\">At n=20, the sample estimates can be way off.</span>\n          <span id=\"samplingDetail\">At n=300, they settle down close to the true parameters. This convergence is the law of large numbers in action.</span>\n          Try setting the count to 20 and hitting Redraw several times. You will see the sample\n          mean jump around and the sample covariance matrix change noticeably between draws.\n          Then set it to 300 and do the same &mdash; the estimates become much more stable.\n          The rate of convergence is roughly proportional to <code>1/&radic;n</code>.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<span id=\"samplingNarrative\">",
+    "</span>",
+    "<span id=\"samplingDetail\">",
+    "</span>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@IV.@@T1@@ Estimation: fitting parameters from observed points": {
+   "zh": "@@T0@@IV.@@T1@@ 估计：由观测点拟合参数",
+   "src": "<span class=\"num\">IV.</span> Estimation: fitting parameters from observed points",
+   "tags": [
+    "<span class=\"num\">",
+    "</span>"
+   ]
+  },
+  "In practice, you rarely know &mu; and &Sigma; &mdash; you have to estimate them from\n          data. For the Gaussian, the maximum-likelihood estimates have a beautifully simple form:\n          the sample mean is the average of the data points, and the sample covariance is the\n          average of the outer products of the centered data.": {
+   "zh": "在实践中，你极少已知 &mu; 与 &Sigma; &mdash; 必须从数据中估计它们。对于高斯分布，最大似然估计具有极其简洁的形式：样本均值即数据点的平均，样本协方差即中心化数据外积的平均。",
+   "src": "In practice, you rarely know &mu; and &Sigma; &mdash; you have to estimate them from\n          data. For the Gaussian, the maximum-likelihood estimates have a beautifully simple form:\n          the sample mean is the average of the data points, and the sample covariance is the\n          average of the outer products of the centered data.",
+   "tags": []
+  },
+  "@@T0@@What the outer product does.@@T1@@ For each data point, the term\n          @@T2@@(x@@T3@@i@@T4@@&minus;&mu;&#x0302;)(x@@T5@@i@@T6@@&minus;&mu;&#x0302;)@@T7@@T@@T8@@@@T9@@\n          is a 2&times;2 matrix. Its (1,1) entry is the squared x-deviation. Its (2,2) entry is\n          the squared y-deviation. Its off-diagonal entries are the product of the x- and\n          y-deviations. Averaging these over all data points gives you the sample variances on the\n          diagonal and the sample covariance off the diagonal. There is no black box here &mdash;\n          it is literally averaging squared deviations.": {
+   "zh": "@@T0@@外积的作用。@@T1@@ 对每个数据点，项 @@T2@@(x@@T3@@i@@T4@@&minus;&mu;&#x0302;)(x@@T5@@i@@T6@@&minus;&mu;&#x0302;)@@T7@@T@@T8@@@@T9@@ 是一个 2&times;2 矩阵。其 (1,1) 元素为 x 方向偏差的平方，(2,2) 元素为 y 方向偏差的平方，非对角元素则为 x 与 y 方向偏差之积。对所有数据点取平均，对角线即得样本方差，非对角线即得样本协方差。此处并无黑箱 &mdash; 它字面上就是在对偏差平方取平均。",
+   "src": "<strong>What the outer product does.</strong> For each data point, the term\n          <code>(x<sub>i</sub>&minus;&mu;&#x0302;)(x<sub>i</sub>&minus;&mu;&#x0302;)<sup>T</sup></code>\n          is a 2&times;2 matrix. Its (1,1) entry is the squared x-deviation. Its (2,2) entry is\n          the squared y-deviation. Its off-diagonal entries are the product of the x- and\n          y-deviations. Averaging these over all data points gives you the sample variances on the\n          diagonal and the sample covariance off the diagonal. There is no black box here &mdash;\n          it is literally averaging squared deviations.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sup>",
+    "</sup>",
+    "</code>"
+   ]
+  },
+  "@@T0@@Bias note.@@T1@@ The MLE divides by n, which gives a biased estimate of the\n          covariance. The unbiased version divides by n&minus;1 (Bessel&rsquo;s correction). For\n          large n the difference is negligible. For small n, the bias is usually the least of\n          your worries.": {
+   "zh": "@@T0@@关于偏差的说明。@@T1@@ 最大似然估计除以 n，得到的是协方差的有偏估计。无偏版本则除以 n&minus;1（贝塞尔校正）。当 n 较大时二者差异可忽略。当 n 较小时，偏差通常是最不值得担心的问题。",
+   "src": "<strong>Bias note.</strong> The MLE divides by n, which gives a biased estimate of the\n          covariance. The unbiased version divides by n&minus;1 (Bessel&rsquo;s correction). For\n          large n the difference is negligible. For small n, the bias is usually the least of\n          your worries.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The figure below shows a small toy dataset. The solid ellipse is the fitted Gaussian\n          using the sample mean and covariance. The dashed ellipse is the true distribution that\n          generated the data. @@T0@@Click anywhere inside the plot to add new data\n          points@@T1@@ and watch the fitted ellipse adjust in real time. Adding points near the\n          center stabilizes the estimates; adding outliers can tilt the ellipse dramatically.": {
+   "zh": "下图展示一个小型玩具数据集。实线椭圆是使用样本均值与样本协方差拟合出的高斯分布，虚线椭圆则是生成该数据的真实分布。@@T0@@在图中任意位置点击即可添加新的数据点@@T1@@，并实时观察拟合椭圆的变化。在中心附近添加点会使估计更稳定；添加离群点则可能令椭圆大幅倾斜。",
+   "src": "The figure below shows a small toy dataset. The solid ellipse is the fitted Gaussian\n          using the sample mean and covariance. The dashed ellipse is the true distribution that\n          generated the data. <strong>Click anywhere inside the plot to add new data\n          points</strong> and watch the fitted ellipse adjust in real time. Adding points near the\n          center stabilizes the estimates; adding outliers can tilt the ellipse dramatically.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Current: sleep and quiz score@@T1@@\n            @@T2@@More sleep tends to come with better quiz scores.@@T3@@": {
+   "zh": "@@T0@@当前：睡眠与测验成绩@@T1@@\n            @@T2@@睡眠越多，测验成绩往往越好。@@T3@@",
+   "src": "<span id=\"datasetTitle\" class=\"dataset-label\">Current: sleep and quiz score</span>\n            <span id=\"datasetDescription\" class=\"readout-text\">More sleep tends to come with better quiz scores.</span>",
+   "tags": [
+    "<span id=\"datasetTitle\" class=\"dataset-label\">",
+    "</span>",
+    "<span id=\"datasetDescription\" class=\"readout-text\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@@@T1@@n@@T2@@ = @@T3@@18@@T4@@@@T5@@\n            @@T6@@@@T7@@Est. mean@@T8@@ @@T9@@@@T10@@@@T11@@\n            @@T12@@@@T13@@Est. cov@@T14@@ @@T15@@@@T16@@@@T17@@\n            @@T18@@The fitted ellipse should roughly follow the data&rsquo;s orientation.@@T19@@": {
+   "zh": "@@T0@@@@T1@@n@@T2@@ = @@T3@@18@@T4@@@@T5@@\n            @@T6@@@@T7@@估计均值@@T8@@ @@T9@@@@T10@@@@T11@@\n            @@T12@@@@T13@@估计协方差@@T14@@ @@T15@@@@T16@@@@T17@@\n            @@T18@@拟合椭圆应大致跟随数据的走向。@@T19@@",
+   "src": "<span class=\"readout\"><strong>n</strong> = <span id=\"datasetSize\">18</span></span>\n            <span class=\"readout\"><strong>Est. mean</strong> <span id=\"estimatedMean\"></span></span>\n            <span class=\"readout\"><strong>Est. cov</strong> <span id=\"estimatedCovariance\"></span></span>\n            <span class=\"readout-text\" id=\"datasetTakeaway\">The fitted ellipse should roughly follow the data&rsquo;s orientation.</span>",
+   "tags": [
+    "<span class=\"readout\">",
+    "<strong>",
+    "</strong>",
+    "<span id=\"datasetSize\">",
+    "</span>",
+    "</span>",
+    "<span class=\"readout\">",
+    "<strong>",
+    "</strong>",
+    "<span id=\"estimatedMean\">",
+    "</span>",
+    "</span>",
+    "<span class=\"readout\">",
+    "<strong>",
+    "</strong>",
+    "<span id=\"estimatedCovariance\">",
+    "</span>",
+    "</span>",
+    "<span class=\"readout-text\" id=\"datasetTakeaway\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@What to notice.@@T1@@ With 10&ndash;15 points, the fitted ellipse is often\n          visibly tilted away from the true one. With 50+ points it becomes a close match. Try\n          clicking a cluster of points far from the current mean &mdash; you will see the mean\n          get pulled toward the new cluster and the covariance expand to cover the wider spread.\n          This is exactly what happens in practice when your data contains subpopulations or\n          outliers.": {
+   "zh": "@@T0@@值得注意之处。@@T1@@ 在 10&ndash;15 个点时，拟合椭圆常明显偏离真实椭圆。在 50 个点以上时，二者已相当接近。试着在远离当前均值处点击出一簇点 &mdash; 你会看到均值被拉向新点簇，协方差也随之扩大以覆盖更宽的离散范围。当数据包含若干子总体或离群点时，实践中发生的正是这种情况。",
+   "src": "<strong>What to notice.</strong> With 10&ndash;15 points, the fitted ellipse is often\n          visibly tilted away from the true one. With 50+ points it becomes a close match. Try\n          clicking a cluster of points far from the current mean &mdash; you will see the mean\n          get pulled toward the new cluster and the covariance expand to cover the wider spread.\n          This is exactly what happens in practice when your data contains subpopulations or\n          outliers.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Datasets:@@T1@@": {
+   "zh": "@@T0@@数据集：@@T1@@",
+   "src": "<strong>Datasets:</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Sleep &amp; quiz": {
+   "zh": "睡眠与测验",
+   "src": "Sleep &amp; quiz",
+   "tags": []
+  },
+  "Budget &amp; cash": {
+   "zh": "预算与现金",
+   "src": "Budget &amp; cash",
+   "tags": []
+  },
+  "Road position": {
+   "zh": "道路位置",
+   "src": "Road position",
+   "tags": []
+  },
+  "Undo": {
+   "zh": "撤销",
+   "src": "Undo",
+   "tags": []
+  },
+  "Reset": {
+   "zh": "重置",
+   "src": "Reset",
+   "tags": []
+  },
+  "@@T0@@V.@@T1@@ Marginals: projecting away one axis": {
+   "zh": "@@T0@@V.@@T1@@ 边缘分布：投影掉一个坐标轴",
+   "src": "<span class=\"num\">V.</span> Marginals: projecting away one axis",
+   "tags": [
+    "<span class=\"num\">",
+    "</span>"
+   ]
+  },
+  "A @@T0@@marginal distribution@@T1@@ answers the question: if I completely ignore one of\n          the two coordinates, what does the remaining coordinate look like on its own? Formally,\n          you integrate (sum) the joint density over the coordinate you want to forget:": {
+   "zh": "@@T0@@边缘分布@@T1@@ 回答的问题是：若我完全忽略两个坐标中的一个，余下的坐标单独看来是什么样子？形式上，你对想要遗忘的那个坐标方向对联合密度积分（求和）：",
+   "src": "A <em>marginal distribution</em> answers the question: if I completely ignore one of\n          the two coordinates, what does the remaining coordinate look like on its own? Formally,\n          you integrate (sum) the joint density over the coordinate you want to forget:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "For the Gaussian, this integration has a remarkable result: the marginal is itself\n          Gaussian, and its parameters are simply the corresponding entries from the mean vector\n          and the diagonal of the covariance matrix. You do not need &rho; to compute the\n          marginal. The marginal of X depends only on &mu;@@T0@@x@@T1@@ and\n          &sigma;@@T2@@x@@T3@@&sup2;. The marginal of Y depends only on &mu;@@T4@@y@@T5@@ and\n          &sigma;@@T6@@y@@T7@@&sup2;.": {
+   "zh": "对高斯分布而言，这一积分有一个引人注目的结果：边缘分布本身仍是高斯分布，其参数恰为均值向量中对应的分量与协方差矩阵对角线上的对应元素。计算边缘分布无需 &rho;。X 的边缘分布仅依赖 &mu;@@T0@@x@@T1@@ 与 &sigma;@@T2@@x@@T3@@&sup2;；Y 的边缘分布仅依赖 &mu;@@T4@@y@@T5@@ 与 &sigma;@@T6@@y@@T7@@&sup2;。",
+   "src": "For the Gaussian, this integration has a remarkable result: the marginal is itself\n          Gaussian, and its parameters are simply the corresponding entries from the mean vector\n          and the diagonal of the covariance matrix. You do not need &rho; to compute the\n          marginal. The marginal of X depends only on &mu;<sub>x</sub> and\n          &sigma;<sub>x</sub>&sup2;. The marginal of Y depends only on &mu;<sub>y</sub> and\n          &sigma;<sub>y</sub>&sup2;.",
+   "tags": [
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "@@T0@@This is counterintuitive.@@T1@@ You might expect that if two variables are\n          correlated, the marginal of one should somehow reflect that correlation. It does not.\n          Correlation controls the @@T2@@shape@@T3@@ of the joint distribution &mdash; it determines\n          how the ellipse tilts &mdash; but when you project that ellipse onto a single axis,\n          the shadow has the same width regardless of the tilt. Try it: go back to\n          @@T4@@Section&nbsp;II@@T5@@, change &rho; while keeping &sigma;@@T6@@x@@T7@@\n          and &sigma;@@T8@@y@@T9@@ fixed, and watch the marginal curves below stay unchanged.": {
+   "zh": "@@T0@@这与直觉相悖。@@T1@@ 你或许会以为，若两个变量相关，其中一个的边缘分布应在某种程度上反映这种相关性。事实并非如此。相关性掌控的是联合分布的@@T2@@形状@@T3@@ &mdash; 它决定椭圆如何倾斜 &mdash; 但当把这个椭圆投影到单一坐标轴上时，无论倾斜程度如何，阴影的宽度都相同。不妨一试：回到 @@T4@@第&nbsp;II&nbsp;节@@T5@@，在保持 &sigma;@@T6@@x@@T7@@ 与 &sigma;@@T8@@y@@T9@@ 不变的情况下改变 &rho;，观察下方的边缘分布曲线保持不变。",
+   "src": "<strong>This is counterintuitive.</strong> You might expect that if two variables are\n          correlated, the marginal of one should somehow reflect that correlation. It does not.\n          Correlation controls the <em>shape</em> of the joint distribution &mdash; it determines\n          how the ellipse tilts &mdash; but when you project that ellipse onto a single axis,\n          the shadow has the same width regardless of the tilt. Try it: go back to\n          <a href=\"#two-d\">Section&nbsp;II</a>, change &rho; while keeping &sigma;<sub>x</sub>\n          and &sigma;<sub>y</sub> fixed, and watch the marginal curves below stay unchanged.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<a href=\"#two-d\">",
+    "</a>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "Geometrically, the marginal is the &ldquo;shadow&rdquo; of the 2D distribution\n          projected onto one axis. Imagine shining a light straight down onto the xy-plane and\n          looking at the resulting silhouette on the x-axis. The shape of that silhouette is the\n          x-marginal. No matter how you tilt the ellipse, as long as its horizontal extent stays\n          the same, the shadow stays the same.": {
+   "zh": "从几何上看，边缘分布是二维分布投影到单一坐标轴上的 &ldquo;影子&rdquo;。设想有一束光垂直照射到 xy 平面上，观察 x 轴上形成的轮廓。该轮廓的形状即 x 的边缘分布。无论你如何倾斜椭圆，只要其水平方向的范围不变，影子便不变。",
+   "src": "Geometrically, the marginal is the &ldquo;shadow&rdquo; of the 2D distribution\n          projected onto one axis. Imagine shining a light straight down onto the xy-plane and\n          looking at the resulting silhouette on the x-axis. The shape of that silhouette is the\n          x-marginal. No matter how you tilt the ellipse, as long as its horizontal extent stays\n          the same, the shadow stays the same.",
+   "tags": []
+  },
+  "X marginal (top projection)": {
+   "zh": "X 的边缘分布（顶部投影）",
+   "src": "X marginal (top projection)",
+   "tags": []
+  },
+  "X ~ N(0.00, 1.20&sup2;)": {
+   "zh": "X ~ N(0.00, 1.20&sup2;)（X 的边缘分布）",
+   "src": "X ~ N(0.00, 1.20&sup2;)",
+   "tags": []
+  },
+  "Joint model": {
+   "zh": "联合模型",
+   "src": "Joint model",
+   "tags": []
+  },
+  "@@T0@@@@T1@@\n            @@T2@@@@T3@@\n            @@T4@@Changing &rho; rotates the joint ellipse, but the marginal curves do not change width.@@T5@@": {
+   "zh": "@@T0@@@@T1@@\n            @@T2@@@@T3@@\n            @@T4@@改变 &rho; 会旋转联合椭圆，但边缘分布曲线的宽度不变。@@T5@@",
+   "src": "<span class=\"readout\" id=\"marginalXMath\"></span>\n            <span class=\"readout\" id=\"marginalYMath\"></span>\n            <span class=\"readout-text\" id=\"marginalCorrelationNote\">Changing &rho; rotates the joint ellipse, but the marginal curves do not change width.</span>",
+   "tags": [
+    "<span class=\"readout\" id=\"marginalXMath\">",
+    "</span>",
+    "<span class=\"readout\" id=\"marginalYMath\">",
+    "</span>",
+    "<span class=\"readout-text\" id=\"marginalCorrelationNote\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Why this matters.@@T1@@ In many applications, you observe only one variable\n          at a time. If you are looking at a patient&rsquo;s blood pressure without knowing their\n          cholesterol, you are looking at a marginal. The marginal tells you about the spread of\n          that one variable in isolation, but it throws away all information about how the\n          variables relate. That relationship information is exactly what conditionals recover.": {
+   "zh": "@@T0@@为何这一点重要。@@T1@@ 在许多应用中，你一次只能观测到一个变量。若你查看的是某位患者的血压而不知其胆固醇水平，你看到的便是边缘分布。边缘分布告诉你该变量在孤立状态下的离散程度，却丢弃了全部关于变量间关系的信息。而条件分布所恢复的，恰恰正是这些关系信息。",
+   "src": "<strong>Why this matters.</strong> In many applications, you observe only one variable\n          at a time. If you are looking at a patient&rsquo;s blood pressure without knowing their\n          cholesterol, you are looking at a marginal. The marginal tells you about the spread of\n          that one variable in isolation, but it throws away all information about how the\n          variables relate. That relationship information is exactly what conditionals recover.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@VI.@@T1@@ Conditionals: the Gaussian version of &ldquo;given that&rdquo;": {
+   "zh": "@@T0@@VI.@@T1@@ 条件分布：高斯版本的 &ldquo;在给定…之下&rdquo;",
+   "src": "<span class=\"num\">VI.</span> Conditionals: the Gaussian version of &ldquo;given that&rdquo;",
+   "tags": [
+    "<span class=\"num\">",
+    "</span>"
+   ]
+  },
+  "A @@T0@@conditional distribution@@T1@@ answers a much sharper question than the marginal:\n          if I @@T2@@know@@T3@@ that X takes a specific value x@@T4@@0@@T5@@, what can I say about Y?\n          For the Gaussian, the answer is again Gaussian, with two specific changes:": {
+   "zh": "@@T0@@条件分布@@T1@@ 回答的问题比边缘分布尖锐得多：若我@@T2@@已知@@T3@@ X 取某一特定值 x@@T4@@0@@T5@@，那么关于 Y 我能说些什么？对高斯分布而言，答案仍是高斯分布，但有两点具体变化：",
+   "src": "A <em>conditional distribution</em> answers a much sharper question than the marginal:\n          if I <em>know</em> that X takes a specific value x<sub>0</sub>, what can I say about Y?\n          For the Gaussian, the answer is again Gaussian, with two specific changes:",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "\\[\n            Y \\mid X = x_0\n            \\;\\sim\\;\n            \\mathcal{N}\\!\\left(\n              \\underbrace{\\mu_y + \\rho\\,\\frac{\\sigma_y}{\\sigma_x}(x_0 - \\mu_x)}_{\\text{conditional mean}},\\;\\;\n              \\underbrace{(1-\\rho^2)\\,\\sigma_y^2}_{\\text{conditional variance}}\n            \\right)\n          \\]": {
+   "zh": "\\[\n            Y \\mid X = x_0\n            \\;\\sim\\;\n            \\mathcal{N}\\!\\left(\n              \\underbrace{\\mu_y + \\rho\\,\\frac{\\sigma_y}{\\sigma_x}(x_0 - \\mu_x)}_{\\text{条件均值}},\\;\\;\n              \\underbrace{(1-\\rho^2)\\,\\sigma_y^2}_{\\text{条件方差}}\n            \\right)\n          \\]",
+   "src": "\\[\n            Y \\mid X = x_0\n            \\;\\sim\\;\n            \\mathcal{N}\\!\\left(\n              \\underbrace{\\mu_y + \\rho\\,\\frac{\\sigma_y}{\\sigma_x}(x_0 - \\mu_x)}_{\\text{conditional mean}},\\;\\;\n              \\underbrace{(1-\\rho^2)\\,\\sigma_y^2}_{\\text{conditional variance}}\n            \\right)\n          \\]",
+   "tags": []
+  },
+  "@@T0@@The conditional mean shifts.@@T1@@ It does not stay at &mu;@@T2@@y@@T3@@.\n          Instead, it moves by an amount proportional to how far x@@T4@@0@@T5@@ is from\n          &mu;@@T6@@x@@T7@@, scaled by the regression coefficient\n          &rho;&sigma;@@T8@@y@@T9@@/&sigma;@@T10@@x@@T11@@. This is @@T12@@exactly@@T13@@ the slope\n          of the least-squares regression line of Y on X. The conditional mean traces out a\n          straight line as x@@T14@@0@@T15@@ varies &mdash; and that line is the regression line.": {
+   "zh": "@@T0@@条件均值发生平移。@@T1@@ 它不再停留在 &mu;@@T2@@y@@T3@@，而是移动一段与 x@@T4@@0@@T5@@ 偏离 &mu;@@T6@@x@@T7@@ 的程度成正比的量，并由回归系数 &rho;&sigma;@@T8@@y@@T9@@/&sigma;@@T10@@x@@T11@@ 缩放。这@@T12@@恰好@@T13@@ 就是 Y 对 X 的最小二乘回归直线的斜率。随着 x@@T14@@0@@T15@@ 变化，条件均值描出一条直线 &mdash; 而这条直线正是回归直线。",
+   "src": "<strong>The conditional mean shifts.</strong> It does not stay at &mu;<sub>y</sub>.\n          Instead, it moves by an amount proportional to how far x<sub>0</sub> is from\n          &mu;<sub>x</sub>, scaled by the regression coefficient\n          &rho;&sigma;<sub>y</sub>/&sigma;<sub>x</sub>. This is <em>exactly</em> the slope\n          of the least-squares regression line of Y on X. The conditional mean traces out a\n          straight line as x<sub>0</sub> varies &mdash; and that line is the regression line.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<em>",
+    "</em>",
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "@@T0@@The conditional variance shrinks.@@T1@@ It is reduced from\n          &sigma;@@T2@@y@@T3@@&sup2; to (1&minus;&rho;&sup2;)&sigma;@@T4@@y@@T5@@&sup2;. The\n          factor (1&minus;&rho;&sup2;) is the fraction of variance in Y that is @@T6@@not@@T7@@\n          explained by X. When &rho;=0, no variance is explained and the conditional equals the\n          marginal. When |&rho;|=1, all variance is explained and the conditional collapses to a\n          point &mdash; if you know X exactly, you know Y exactly.": {
+   "zh": "@@T0@@条件方差收缩。@@T1@@ 它由 &sigma;@@T2@@y@@T3@@&sup2; 缩减为 (1&minus;&rho;&sup2;)&sigma;@@T4@@y@@T5@@&sup2;。因子 (1&minus;&rho;&sup2;) 是 Y 的方差中@@T6@@未@@T7@@被 X 解释的比例。当 &rho;=0 时，没有方差被解释，条件分布等于边缘分布。当 |&rho;|=1 时，全部方差均被解释，条件分布退化为一个点 &mdash; 若你精确已知 X，便精确已知 Y。",
+   "src": "<strong>The conditional variance shrinks.</strong> It is reduced from\n          &sigma;<sub>y</sub>&sup2; to (1&minus;&rho;&sup2;)&sigma;<sub>y</sub>&sup2;. The\n          factor (1&minus;&rho;&sup2;) is the fraction of variance in Y that is <em>not</em>\n          explained by X. When &rho;=0, no variance is explained and the conditional equals the\n          marginal. When |&rho;|=1, all variance is explained and the conditional collapses to a\n          point &mdash; if you know X exactly, you know Y exactly.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Connection to R&sup2;.@@T1@@ In linear regression, R&sup2; is the proportion\n          of variance explained by the predictor. For a bivariate normal, R&sup2;&nbsp;=&nbsp;&rho;&sup2;.\n          The conditional variance is (1&minus;R&sup2;) times the marginal variance. So the entire\n          machinery of simple linear regression is already hiding inside the bivariate normal &mdash;\n          the conditional distribution is literally what regression computes.": {
+   "zh": "@@T0@@与 R&sup2; 的联系。@@T1@@ 在线性回归中，R&sup2; 是被预测变量解释的方差比例。对二元正态分布而言，R&sup2;&nbsp;=&nbsp;&rho;&sup2;。条件方差等于 (1&minus;R&sup2;) 乘以边缘方差。因此，简单线性回归的全部机制其实早已潜藏于二元正态分布之中 &mdash; 条件分布字面上就是回归所计算的对象。",
+   "src": "<strong>Connection to R&sup2;.</strong> In linear regression, R&sup2; is the proportion\n          of variance explained by the predictor. For a bivariate normal, R&sup2;&nbsp;=&nbsp;&rho;&sup2;.\n          The conditional variance is (1&minus;R&sup2;) times the marginal variance. So the entire\n          machinery of simple linear regression is already hiding inside the bivariate normal &mdash;\n          the conditional distribution is literally what regression computes.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The figure below adds two slice lines to the joint distribution: a vertical slice at\n          x@@T0@@0@@T1@@ (which reveals Y|X) and a horizontal slice at y@@T2@@0@@T3@@ (which\n          reveals X|Y). Drag the slice lines or use the sliders. Compare each conditional curve\n          to its marginal (shown in teal): the conditional is @@T4@@always@@T5@@ narrower or equal,\n          never wider.": {
+   "zh": "下图在联合分布上添加了两条切片线：x@@T0@@0@@T1@@ 处的竖直切片（揭示 Y|X）与 y@@T2@@0@@T3@@ 处的水平切片（揭示 X|Y）。拖动切片线或使用滑块。将每条条件曲线与其边缘分布（以青色显示）比较：条件分布@@T4@@总是@@T5@@ 更窄或相等，绝不会更宽。",
+   "src": "The figure below adds two slice lines to the joint distribution: a vertical slice at\n          x<sub>0</sub> (which reveals Y|X) and a horizontal slice at y<sub>0</sub> (which\n          reveals X|Y). Drag the slice lines or use the sliders. Compare each conditional curve\n          to its marginal (shown in teal): the conditional is <em>always</em> narrower or equal,\n          never wider.",
+   "tags": [
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Vertical slice x@@T0@@0@@T1@@": {
+   "zh": "竖直切片 x@@T0@@0@@T1@@",
+   "src": "Vertical slice x<sub>0</sub>",
+   "tags": [
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "Horizontal slice y@@T0@@0@@T1@@": {
+   "zh": "水平切片 y@@T0@@0@@T1@@",
+   "src": "Horizontal slice y<sub>0</sub>",
+   "tags": [
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "X marginal @@T0@@&mdash;@@T1@@ &amp; X|Y conditional @@T2@@&mdash;@@T3@@": {
+   "zh": "X 边缘分布 @@T0@@&mdash;@@T1@@ 与 X|Y 条件分布 @@T2@@&mdash;@@T3@@",
+   "src": "X marginal <span class=\"color-teal\">&mdash;</span> &amp; X|Y conditional <span class=\"color-gold\">&mdash;</span>",
+   "tags": [
+    "<span class=\"color-teal\">",
+    "</span>",
+    "<span class=\"color-gold\">",
+    "</span>"
+   ]
+  },
+  "Teal: X marginal. Gold: X | Y = 0.00.": {
+   "zh": "青色：X 边缘分布。金色：X | Y = 0.00。",
+   "src": "Teal: X marginal. Gold: X | Y = 0.00.",
+   "tags": []
+  },
+  "Slice readout": {
+   "zh": "切片读数",
+   "src": "Slice readout",
+   "tags": []
+  },
+  "Gold: X|Y. Coral: Y|X.": {
+   "zh": "金色：X|Y。珊瑚色：Y|X。",
+   "src": "Gold: X|Y. Coral: Y|X.",
+   "tags": []
+  },
+  "@@T0@@@@T1@@\n            @@T2@@@@T3@@\n            @@T4@@@@T5@@\n            @@T6@@Marginals keep their width. Conditionals get narrower as |&rho;| grows.@@T7@@": {
+   "zh": "@@T0@@@@T1@@\n            @@T2@@@@T3@@\n            @@T4@@@@T5@@\n            @@T6@@边缘分布保持其宽度。随着 |&rho;| 增大，条件分布变得更窄。@@T7@@",
+   "src": "<span class=\"readout\" id=\"xConditionalFormula\"></span>\n            <span class=\"readout\" id=\"yConditionalFormula\"></span>\n            <span class=\"readout\" id=\"shrinkageFormula\"></span>\n            <span class=\"readout-text\" id=\"jointSummary\">Marginals keep their width. Conditionals get narrower as |&rho;| grows.</span>",
+   "tags": [
+    "<span class=\"readout\" id=\"xConditionalFormula\">",
+    "</span>",
+    "<span class=\"readout\" id=\"yConditionalFormula\">",
+    "</span>",
+    "<span class=\"readout\" id=\"shrinkageFormula\">",
+    "</span>",
+    "<span class=\"readout-text\" id=\"jointSummary\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@What to notice.@@T1@@ Move x@@T2@@0@@T3@@ to +2 standard deviations with\n          high positive &rho;. The conditional mean of Y jumps well above &mu;@@T4@@y@@T5@@, and\n          the conditional curve becomes noticeably narrower than the marginal. Now set &rho;=0.\n          The conditional becomes identical to the marginal: observing X tells you nothing about Y.\n          This is the operational definition of independence for Gaussian variables.": {
+   "zh": "@@T0@@值得注意之处。@@T1@@ 在 &rho; 为高正值时把 x@@T2@@0@@T3@@ 移到 +2 个标准差处。Y 的条件均值跃升至远高于 &mu;@@T4@@y@@T5@@ 的位置，条件曲线也变得明显比边缘分布更窄。现在令 &rho;=0。条件分布与边缘分布变得完全相同：观测 X 对推断 Y 毫无帮助。这就是高斯变量独立性的操作性定义。",
+   "src": "<strong>What to notice.</strong> Move x<sub>0</sub> to +2 standard deviations with\n          high positive &rho;. The conditional mean of Y jumps well above &mu;<sub>y</sub>, and\n          the conditional curve becomes noticeably narrower than the marginal. Now set &rho;=0.\n          The conditional becomes identical to the marginal: observing X tells you nothing about Y.\n          This is the operational definition of independence for Gaussian variables.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "@@T0@@The closure property.@@T1@@ The fact that conditioning a Gaussian on a subset\n          of variables produces another Gaussian is the single most important algebraic property\n          of this family. It is the reason Kalman filters work (prediction + update are both\n          Gaussian operations), the reason Gaussian processes produce closed-form posteriors, and\n          the reason Bayesian linear regression has an exact solution. Every time you see a model\n          that says &ldquo;assume the data is Gaussian,&rdquo; this closure property is usually\n          the real motivation.": {
+   "zh": "@@T0@@封闭性。@@T1@@ 将高斯分布关于某一部分变量取条件后得到的仍是高斯分布，这是该分布族最重要的代数性质。它是 Kalman 滤波得以成立的原因（预测与更新皆为高斯运算），是高斯过程能给出闭式后验的原因，也是贝叶斯线性回归拥有精确解的原因。每当你看到一个模型说 &ldquo;假设数据服从高斯分布&rdquo; 时，这一封闭性通常才是其真正的动机。",
+   "src": "<strong>The closure property.</strong> The fact that conditioning a Gaussian on a subset\n          of variables produces another Gaussian is the single most important algebraic property\n          of this family. It is the reason Kalman filters work (prediction + update are both\n          Gaussian operations), the reason Gaussian processes produce closed-form posteriors, and\n          the reason Bayesian linear regression has an exact solution. Every time you see a model\n          that says &ldquo;assume the data is Gaussian,&rdquo; this closure property is usually\n          the real motivation.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Equal spreads, high &rho;": {
+   "zh": "离散度相等，&rho; 较高",
+   "src": "Equal spreads, high &rho;",
+   "tags": []
+  },
+  "Very tight conditional": {
+   "zh": "条件分布极窄",
+   "src": "Very tight conditional",
+   "tags": []
+  },
+  "Independent (no information gain)": {
+   "zh": "独立（无信息增益）",
+   "src": "Independent (no information gain)",
+   "tags": []
+  },
+  "@@T0@@VI&frac12;.@@T1@@ Three myths students consistently fall for": {
+   "zh": "@@T0@@VI&frac12;.@@T1@@ 学生屡屡中招的三个误区",
+   "src": "<span class=\"num\">VI&frac12;.</span> Three myths students consistently fall for",
+   "tags": [
+    "<span class=\"num\">",
+    "</span>"
+   ]
+  },
+  "The Gaussian is so well-behaved that students often generalise its properties to\n          probability at large. Three of those generalisations are wrong; here is the\n          short corrective.": {
+   "zh": "高斯分布性质过于良好，以致学生常将其性质推广到一般概率论。其中三种推广是错误的，下面给出简要纠正。",
+   "src": "The Gaussian is so well-behaved that students often generalise its properties to\n          probability at large. Three of those generalisations are wrong; here is the\n          short corrective.",
+   "tags": []
+  },
+  "Myth 1 — Uncorrelated means independent": {
+   "zh": "误区 1 —— 不相关即独立",
+   "src": "Myth 1 — Uncorrelated means independent",
+   "tags": []
+  },
+  "@@T0@@True only for jointly Gaussian variables.@@T1@@ For other distributions,\n            zero correlation just means no @@T2@@linear@@T3@@ relationship. Take Y = X@@T4@@2@@T5@@\n            with X &sim; N(0,1): cov(X, Y) = E[X@@T6@@3@@T7@@] = 0, but Y is a deterministic\n            function of X — the dependence is total. The Gaussian is special: for it, and only\n            for it, zero correlation forces independence.": {
+   "zh": "@@T0@@仅对联合高斯变量成立。@@T1@@ 对其他分布而言，零相关仅意味着不存在@@T2@@线性@@T3@@关系。取 Y = X@@T4@@2@@T5@@，其中 X &sim; N(0,1)：cov(X, Y) = E[X@@T6@@3@@T7@@] = 0，但 Y 是 X 的确定性函数 —— 依赖关系是完全的。高斯分布之所以特殊：仅对它而言，零相关才强制推出独立。",
+   "src": "<strong>True only for jointly Gaussian variables.</strong> For other distributions,\n            zero correlation just means no <em>linear</em> relationship. Take Y = X<sup>2</sup>\n            with X &sim; N(0,1): cov(X, Y) = E[X<sup>3</sup>] = 0, but Y is a deterministic\n            function of X — the dependence is total. The Gaussian is special: for it, and only\n            for it, zero correlation forces independence.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<sup>",
+    "</sup>",
+    "<sup>",
+    "</sup>"
+   ]
+  },
+  "Myth 2 — Marginals determine the joint": {
+   "zh": "误区 2 —— 边缘分布决定联合分布",
+   "src": "Myth 2 — Marginals determine the joint",
+   "tags": []
+  },
+  "@@T0@@The marginals are not enough; you also need the covariance.@@T1@@ A\n            joint Gaussian with &rho; = 0.8 and one with &rho; = &minus;0.8 have @@T2@@identical@@T3@@\n            marginal distributions of X and of Y. The marginals are projections (shadows)\n            of the joint onto each axis; the shadow loses all information about @@T4@@how@@T5@@\n            the two variables co-vary. This is why we cannot recover a 2D distribution from\n            two 1D histograms.": {
+   "zh": "@@T0@@仅有边缘分布还不够，你还需要协方差。@@T1@@ &rho; = 0.8 的联合高斯分布与 &rho; = &minus;0.8 的联合高斯分布，其 X 与 Y 的边缘分布@@T2@@完全相同@@T3@@。边缘分布是联合分布向各坐标轴所作的投影（影子）；影子丢失了全部关于两个变量@@T4@@如何@@T5@@协同变化的信息。这正是我们无法由两个一维直方图还原出二维分布的原因。",
+   "src": "<strong>The marginals are not enough; you also need the covariance.</strong> A\n            joint Gaussian with &rho; = 0.8 and one with &rho; = &minus;0.8 have <em>identical</em>\n            marginal distributions of X and of Y. The marginals are projections (shadows)\n            of the joint onto each axis; the shadow loses all information about <em>how</em>\n            the two variables co-vary. This is why we cannot recover a 2D distribution from\n            two 1D histograms.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Myth 3 — Conditioning always reduces uncertainty": {
+   "zh": "误区 3 —— 取条件总能降低不确定性",
+   "src": "Myth 3 — Conditioning always reduces uncertainty",
+   "tags": []
+  },
+  "@@T0@@True for Gaussians (and many well-behaved distributions); not a universal law.@@T1@@\n            For a bivariate normal, conditional variance &le; marginal variance always —\n            it is exactly (1 &minus; &rho;@@T2@@2@@T3@@)&sigma;@@T4@@2@@T5@@. But in general\n            probability, conditioning on a variable can @@T6@@increase@@T7@@ the variance of\n            another (Simpson&rsquo;s paradox is the headline example). Don&rsquo;t carry\n            the Gaussian intuition into non-Gaussian settings unchecked.": {
+   "zh": "@@T0@@对高斯分布（以及许多性质良好的分布）成立；但并非普适规律。@@T1@@ 对二元正态分布而言，条件方差 &le; 边缘方差恒成立 —— 它恰为 (1 &minus; &rho;@@T2@@2@@T3@@)&sigma;@@T4@@2@@T5@@。但在一般概率论中，对某个变量取条件反而可能@@T6@@增大@@T7@@ 另一个变量的方差（辛普森悖论是最典型的例子）。切勿不经检验便把高斯分布的直觉带入非高斯情形。",
+   "src": "<strong>True for Gaussians (and many well-behaved distributions); not a universal law.</strong>\n            For a bivariate normal, conditional variance &le; marginal variance always —\n            it is exactly (1 &minus; &rho;<sup>2</sup>)&sigma;<sup>2</sup>. But in general\n            probability, conditioning on a variable can <em>increase</em> the variance of\n            another (Simpson&rsquo;s paradox is the headline example). Don&rsquo;t carry\n            the Gaussian intuition into non-Gaussian settings unchecked.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<sup>",
+    "</sup>",
+    "<sup>",
+    "</sup>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Each of these is worth remembering by name, because each one corresponds to a\n          real bug students introduce when modelling. The first two motivate the\n          covariance matrix (the joint structure is not redundant with the marginals).\n          The third motivates careful reasoning whenever you condition on a non-Gaussian\n          covariate.": {
+   "zh": "这三条都值得按名称记牢，因为每一条都对应着学生建模时确实会引入的错误。前两条为协方差矩阵提供了动机（联合结构并非与边缘分布冗余）。第三条则提示：每当对一个非高斯协变量取条件时，都需谨慎推理。",
+   "src": "Each of these is worth remembering by name, because each one corresponds to a\n          real bug students introduce when modelling. The first two motivate the\n          covariance matrix (the joint structure is not redundant with the marginals).\n          The third motivates careful reasoning whenever you condition on a non-Gaussian\n          covariate.",
+   "tags": []
+  },
+  "@@T0@@VII.@@T1@@ Summary and connections": {
+   "zh": "@@T0@@VII.@@T1@@ 小结与联系",
+   "src": "<span class=\"num\">VII.</span> Summary and connections",
+   "tags": [
+    "<span class=\"num\">",
+    "</span>"
+   ]
+  },
+  "Density is not probability": {
+   "zh": "密度不是概率",
+   "src": "Density is not probability",
+   "tags": []
+  },
+  "The value of the density at a point is a relative likelihood, not a probability. Probability is area under the curve between two values. The density can exceed 1.": {
+   "zh": "某点处密度的取值是相对可能性，而非概率。概率是两点之间曲线下的面积。密度可以大于 1。",
+   "src": "The value of the density at a point is a relative likelihood, not a probability. Probability is area under the curve between two values. The density can exceed 1.",
+   "tags": []
+  },
+  "Two parameters control everything in 1D": {
+   "zh": "一维中两个参数掌控一切",
+   "src": "Two parameters control everything in 1D",
+   "tags": []
+  },
+  "&mu; sets the center, &sigma; sets the width. The 68-95-99.7 rule gives you quick probability estimates without computing any integrals.": {
+   "zh": "&mu; 决定中心，&sigma; 决定宽度。68-95-99.7 法则让你无需计算任何积分即可快速估算概率。",
+   "src": "&mu; sets the center, &sigma; sets the width. The 68-95-99.7 rule gives you quick probability estimates without computing any integrals.",
+   "tags": []
+  },
+  "The covariance matrix is the whole story in 2D": {
+   "zh": "二维中协方差矩阵就是全部",
+   "src": "The covariance matrix is the whole story in 2D",
+   "tags": []
+  },
+  "Diagonal entries are variances. The off-diagonal entry is the covariance. The eigenvalues and eigenvectors of &Sigma; directly give you the ellipse shape and orientation.": {
+   "zh": "对角线元素是方差，非对角元素是协方差。&Sigma; 的特征值与特征向量直接给出椭圆的形状与朝向。",
+   "src": "Diagonal entries are variances. The off-diagonal entry is the covariance. The eigenvalues and eigenvectors of &Sigma; directly give you the ellipse shape and orientation.",
+   "tags": []
+  },
+  "Sampling = transform a standard normal": {
+   "zh": "采样 = 变换标准正态分布",
+   "src": "Sampling = transform a standard normal",
+   "tags": []
+  },
+  "Draw z ~ N(0,I), compute x = &mu; + Lz where LL@@T0@@T@@T1@@ = &Sigma;. The Cholesky factor L does the stretching and rotating. This is how every Monte Carlo sampler generates multivariate normals.": {
+   "zh": "抽取 z ~ N(0,I)，计算 x = &mu; + Lz，其中 LL@@T0@@T@@T1@@ = &Sigma;。Cholesky 因子 L 负责拉伸与旋转。每一个蒙特卡洛采样器都以这种方式生成多元正态样本。",
+   "src": "Draw z ~ N(0,I), compute x = &mu; + Lz where LL<sup>T</sup> = &Sigma;. The Cholesky factor L does the stretching and rotating. This is how every Monte Carlo sampler generates multivariate normals.",
+   "tags": [
+    "<sup>",
+    "</sup>"
+   ]
+  },
+  "MLE is just averaging": {
+   "zh": "最大似然估计不过是取平均",
+   "src": "MLE is just averaging",
+   "tags": []
+  },
+  "The maximum-likelihood mean is the sample average. The maximum-likelihood covariance is the average outer product of centered observations. No gradient descent, no iteration &mdash; just summation.": {
+   "zh": "最大似然均值即样本平均。最大似然协方差即中心化观测值外积的平均。无需梯度下降，无需迭代 &mdash; 只需求和。",
+   "src": "The maximum-likelihood mean is the sample average. The maximum-likelihood covariance is the average outer product of centered observations. No gradient descent, no iteration &mdash; just summation.",
+   "tags": []
+  },
+  "Marginals ignore correlation": {
+   "zh": "边缘分布忽略相关性",
+   "src": "Marginals ignore correlation",
+   "tags": []
+  },
+  "The marginal of X depends only on &mu;@@T0@@x@@T1@@ and &sigma;@@T2@@x@@T3@@&sup2;, no matter how strong the correlation. Marginals are projections, and projections discard relationship information.": {
+   "zh": "无论相关性多强，X 的边缘分布仅依赖 &mu;@@T0@@x@@T1@@ 与 &sigma;@@T2@@x@@T3@@&sup2;。边缘分布是投影，而投影会丢弃关系信息。",
+   "src": "The marginal of X depends only on &mu;<sub>x</sub> and &sigma;<sub>x</sub>&sup2;, no matter how strong the correlation. Marginals are projections, and projections discard relationship information.",
+   "tags": [
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "Conditionals are regression": {
+   "zh": "条件分布即回归",
+   "src": "Conditionals are regression",
+   "tags": []
+  },
+  "Conditioning on X=x@@T0@@0@@T1@@ gives a Gaussian for Y whose mean follows the regression line and whose variance is (1&minus;&rho;&sup2;)&sigma;@@T2@@y@@T3@@&sup2;. The conditional distribution @@T4@@is@@T5@@ what linear regression computes.": {
+   "zh": "对 X=x@@T0@@0@@T1@@ 取条件得到 Y 的高斯分布，其均值沿回归直线变化，方差为 (1&minus;&rho;&sup2;)&sigma;@@T2@@y@@T3@@&sup2;。条件分布@@T4@@正是@@T5@@ 线性回归所计算的对象。",
+   "src": "Conditioning on X=x<sub>0</sub> gives a Gaussian for Y whose mean follows the regression line and whose variance is (1&minus;&rho;&sup2;)&sigma;<sub>y</sub>&sup2;. The conditional distribution <em>is</em> what linear regression computes.",
+   "tags": [
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Closure is the real superpower": {
+   "zh": "封闭性才是真正的超能力",
+   "src": "Closure is the real superpower",
+   "tags": []
+  },
+  "Marginals, conditionals, and linear combinations of Gaussians are all Gaussian. This closure property is why the family dominates: Kalman filters, Gaussian processes, Bayesian linear regression, and factor analysis all rely on it.": {
+   "zh": "高斯分布经边缘化、取条件以及线性组合后仍为高斯分布。这一封闭性正是该分布族占据主导地位的原因：Kalman 滤波、高斯过程、贝叶斯线性回归与因子分析皆依赖于此。",
+   "src": "Marginals, conditionals, and linear combinations of Gaussians are all Gaussian. This closure property is why the family dominates: Kalman filters, Gaussian processes, Bayesian linear regression, and factor analysis all rely on it.",
+   "tags": []
+  },
+  "Where to go from here": {
+   "zh": "后续方向",
+   "src": "Where to go from here",
+   "tags": []
+  },
+  "@@T0@@Higher dimensions.@@T1@@ Everything above generalizes directly: &mu; becomes\n          a d-dimensional vector, &Sigma; becomes a d&times;d matrix, contours become\n          ellipsoids. Marginals and conditionals remain Gaussian with the same formulas (just\n          involving submatrices of &Sigma;).": {
+   "zh": "@@T0@@更高维。@@T1@@ 上述一切均可直接推广：&mu; 变为 d 维向量，&Sigma; 变为 d&times;d 矩阵，等值线变为椭球面。边缘分布与条件分布仍为高斯分布，公式形式相同（只是涉及 &Sigma; 的子矩阵）。",
+   "src": "<strong>Higher dimensions.</strong> Everything above generalizes directly: &mu; becomes\n          a d-dimensional vector, &Sigma; becomes a d&times;d matrix, contours become\n          ellipsoids. Marginals and conditionals remain Gaussian with the same formulas (just\n          involving submatrices of &Sigma;).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Gaussian processes.@@T1@@ A GP is a distribution over @@T2@@functions@@T3@@,\n          defined by the property that any finite collection of function values is jointly\n          Gaussian. Conditioning on observed data points is exactly the conditional formula from\n          Section&nbsp;VI, applied to a potentially infinite-dimensional covariance structure.": {
+   "zh": "@@T0@@高斯过程。@@T1@@ GP 是定义在@@T2@@函数@@T3@@ 之上的分布，其定义性质为：任意有限个函数值构成的集合服从联合高斯分布。对已观测数据点取条件，正是第&nbsp;VI&nbsp;节中的条件分布公式应用于潜在无穷维协方差结构的结果。",
+   "src": "<strong>Gaussian processes.</strong> A GP is a distribution over <em>functions</em>,\n          defined by the property that any finite collection of function values is jointly\n          Gaussian. Conditioning on observed data points is exactly the conditional formula from\n          Section&nbsp;VI, applied to a potentially infinite-dimensional covariance structure.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Kalman filters.@@T1@@ The state of a linear dynamical system at each time\n          step is Gaussian. The predict step is a marginal (project forward in time). The update\n          step is a conditional (incorporate a new measurement). Both operations stay Gaussian,\n          which is why the Kalman filter is exact and efficient.": {
+   "zh": "@@T0@@Kalman 滤波。@@T1@@ 线性动力系统在每个时间步的状态服从高斯分布。预测步是边缘化（向时间前方投影），更新步是取条件（纳入新的观测）。两种运算都保持高斯性，这正是 Kalman 滤波既精确又高效的原因。",
+   "src": "<strong>Kalman filters.</strong> The state of a linear dynamical system at each time\n          step is Gaussian. The predict step is a marginal (project forward in time). The update\n          step is a conditional (incorporate a new measurement). Both operations stay Gaussian,\n          which is why the Kalman filter is exact and efficient.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Maximum entropy.@@T1@@ Among all distributions with a given mean and\n          covariance, the Gaussian has the highest entropy &mdash; it makes the fewest additional\n          assumptions. This is the information-theoretic justification for using Gaussians as\n          default models of uncertainty.": {
+   "zh": "@@T0@@最大熵。@@T1@@ 在均值与协方差给定的所有分布中，高斯分布的熵最大 &mdash; 它作出的额外假设最少。这就是以高斯分布作为不确定性默认模型的信息论依据。",
+   "src": "<strong>Maximum entropy.</strong> Among all distributions with a given mean and\n          covariance, the Gaussian has the highest entropy &mdash; it makes the fewest additional\n          assumptions. This is the information-theoretic justification for using Gaussians as\n          default models of uncertainty.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "1D normal distribution": {
+   "zh": "一维正态分布",
+   "src": "1D normal distribution",
+   "tags": []
+  },
+  "2D Gaussian contour and samples": {
+   "zh": "二维高斯等值线与样本",
+   "src": "2D Gaussian contour and samples",
+   "tags": []
+  },
+  "Samples from the multivariate normal": {
+   "zh": "来自多元正态分布的样本",
+   "src": "Samples from the multivariate normal",
+   "tags": []
+  },
+  "Toy dataset with fitted Gaussian; click to add points": {
+   "zh": "附带拟合高斯分布的玩具数据集；点击以添加数据点",
+   "src": "Toy dataset with fitted Gaussian; click to add points",
+   "tags": []
+  },
+  "Toy dataset": {
+   "zh": "玩具数据集",
+   "src": "Toy dataset",
+   "tags": []
+  },
+  "X marginal": {
+   "zh": "X 边缘分布",
+   "src": "X marginal",
+   "tags": []
+  },
+  "Joint density with marginals": {
+   "zh": "带边缘分布的联合密度",
+   "src": "Joint density with marginals",
+   "tags": []
+  },
+  "Y marginal": {
+   "zh": "Y 边缘分布",
+   "src": "Y marginal",
+   "tags": []
+  },
+  "X marginal and conditional": {
+   "zh": "X 的边缘分布与条件分布",
+   "src": "X marginal and conditional",
+   "tags": []
+  },
+  "Joint density with conditional slices": {
+   "zh": "带条件切片的联合密度",
+   "src": "Joint density with conditional slices",
+   "tags": []
+  },
+  "Y marginal and conditional": {
+   "zh": "Y 的边缘分布与条件分布",
+   "src": "Y marginal and conditional",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "认识多元正态分布",
+  "tagline": "从一条钟形曲线到点云、边缘分布与切片",
+  "summary": "一篇叙述式讲解，从普通的钟形曲线出发，经由例子、采样、参数学习、边缘分布与条件切片逐步构建二维高斯分布。",
+  "difficulty": "中级",
+  "collection": "概率与统计推断",
+  "highlights": [
+   "在进入二维点云之前，先从一张实时的一维钟形曲线开始。",
+   "观察协方差如何把圆形团块变为倾斜椭圆，以及特征向量如何揭示其自然轴。",
+   "从多元正态分布中抽取真实样本，并观察估计值在每次抽样间的抖动。",
+   "由点直接估计均值向量与协方差矩阵，从而将高斯分布拟合回玩具数据集。",
+   "使用同步的边缘分布与条件分布视图，观察观测一个坐标后哪些信息被遗忘、哪些变得更为清晰。",
+   "以一组紧凑的要点收束全文，将几何、概率与条件化联系在一起。"
+  ],
+  "tags": [
+   "概率",
+   "统计",
+   "高斯分布",
+   "交互式"
+  ]
+ },
+ "js": {
+  "Probability that X falls between [[[0]]] and [[[1]]].": {
+   "zh": "X 落在 [[[0]]] 与 [[[1]]] 之间的概率。",
+   "exprs": [
+    "${a.toFixed(2)}",
+    "${b.toFixed(2)}"
+   ],
+   "tags": [],
+   "src": "Probability that X falls between ${a.toFixed(2)} and ${b.toFixed(2)}."
+  },
+  "\\Sigma =\n      \\begin{bmatrix}\n        [[[0]]] & [[[1]]] \\\\\n        [[[2]]] & [[[3]]]\n      \\end{bmatrix}": {
+   "zh": "\\Sigma =\n      \\begin{bmatrix}\n        [[[0]]] & [[[1]]] \\\\\n        [[[2]]] & [[[3]]]\n      \\end{bmatrix} （协方差矩阵）",
+   "exprs": [
+    "${formatFixed(twoDState.sigmaX ** 2)}",
+    "${formatFixed(covXY)}",
+    "${formatFixed(covXY)}",
+    "${formatFixed(twoDState.sigmaY ** 2)}"
+   ],
+   "tags": [],
+   "src": "\\Sigma =\n      \\begin{bmatrix}\n        ${formatFixed(twoDState.sigmaX ** 2)} & ${formatFixed(covXY)} \\\\\n        ${formatFixed(covXY)} & ${formatFixed(twoDState.sigmaY ** 2)}\n      \\end{bmatrix}"
+  },
+  "\\begin{aligned}\n      Z &= \\begin{bmatrix} X \\\\ Y \\end{bmatrix},\n      \\qquad\n      Z \\sim \\mathcal{N}(\\mu, \\Sigma) \\\\\n      \\mu &= \\begin{bmatrix}\n        [[[0]]] \\\\\n        [[[1]]]\n      \\end{bmatrix} \\\\\n      \\Sigma &=\n      \\begin{bmatrix}\n        [[[2]]] & [[[3]]] \\\\\n        [[[4]]] & [[[5]]]\n      \\end{bmatrix}\n    \\end{aligned}": {
+   "zh": "\\begin{aligned}\n      Z &= \\begin{bmatrix} X \\\\ Y \\end{bmatrix},\n      \\qquad\n      Z \\sim \\mathcal{N}(\\mu, \\Sigma) \\\\\n      \\mu &= \\begin{bmatrix}\n        [[[0]]] \\\\\n        [[[1]]]\n      \\end{bmatrix} \\\\\n      \\Sigma &=\n      \\begin{bmatrix}\n        [[[2]]] & [[[3]]] \\\\\n        [[[4]]] & [[[5]]]\n      \\end{bmatrix}\n    \\end{aligned} （均值向量与协方差矩阵）",
+   "exprs": [
+    "${formatFixed(twoDState.muX)}",
+    "${formatFixed(twoDState.muY)}",
+    "${formatFixed(twoDState.sigmaX ** 2)}",
+    "${formatFixed(covXY)}",
+    "${formatFixed(covXY)}",
+    "${formatFixed(twoDState.sigmaY ** 2)}"
+   ],
+   "tags": [],
+   "src": "\\begin{aligned}\n      Z &= \\begin{bmatrix} X \\\\ Y \\end{bmatrix},\n      \\qquad\n      Z \\sim \\mathcal{N}(\\mu, \\Sigma) \\\\\n      \\mu &= \\begin{bmatrix}\n        ${formatFixed(twoDState.muX)} \\\\\n        ${formatFixed(twoDState.muY)}\n      \\end{bmatrix} \\\\\n      \\Sigma &=\n      \\begin{bmatrix}\n        ${formatFixed(twoDState.sigmaX ** 2)} & ${formatFixed(covXY)} \\\\\n        ${formatFixed(covXY)} & ${formatFixed(twoDState.sigmaY ** 2)}\n      \\end{bmatrix}\n    \\end{aligned}"
+  },
+  "\\hat{\\mu}_{\\mathrm{sample}} =\n      \\begin{bmatrix}\n        [[[0]]] \\\\\n        [[[1]]]\n      \\end{bmatrix}": {
+   "zh": "\\hat{\\mu}_{\\mathrm{sample}} =\n      \\begin{bmatrix}\n        [[[0]]] \\\\\n        [[[1]]]\n      \\end{bmatrix} （样本均值）",
+   "exprs": [
+    "${formatFixed(stats.meanX)}",
+    "${formatFixed(stats.meanY)}"
+   ],
+   "tags": [],
+   "src": "\\hat{\\mu}_{\\mathrm{sample}} =\n      \\begin{bmatrix}\n        ${formatFixed(stats.meanX)} \\\\\n        ${formatFixed(stats.meanY)}\n      \\end{bmatrix}"
+  },
+  "\\hat{\\Sigma}_{\\mathrm{sample}} =\n      \\begin{bmatrix}\n        [[[0]]] & [[[1]]] \\\\\n        [[[2]]] & [[[3]]]\n      \\end{bmatrix}": {
+   "zh": "\\hat{\\Sigma}_{\\mathrm{sample}} =\n      \\begin{bmatrix}\n        [[[0]]] & [[[1]]] \\\\\n        [[[2]]] & [[[3]]]\n      \\end{bmatrix} （样本协方差）",
+   "exprs": [
+    "${formatFixed(stats.covXX)}",
+    "${formatFixed(stats.covXY)}",
+    "${formatFixed(stats.covXY)}",
+    "${formatFixed(stats.covYY)}"
+   ],
+   "tags": [],
+   "src": "\\hat{\\Sigma}_{\\mathrm{sample}} =\n      \\begin{bmatrix}\n        ${formatFixed(stats.covXX)} & ${formatFixed(stats.covXY)} \\\\\n        ${formatFixed(stats.covXY)} & ${formatFixed(stats.covYY)}\n      \\end{bmatrix}"
+  },
+  "Draw #[[[0]]] from the current Gaussian with n = [[[1]]]": {
+   "zh": "对当前高斯分布进行第 [[[0]]] 次抽样，n = [[[1]]]",
+   "exprs": [
+    "${samplingState.drawId}",
+    "${samplingState.count}"
+   ],
+   "tags": [],
+   "src": "Draw #${samplingState.drawId} from the current Gaussian with n = ${samplingState.count}"
+  },
+  "This draw puts the sample center [[[0]]] units from the true mean and estimates rho as [[[1]]] instead of [[[2]]].": {
+   "zh": "本次抽样中，样本中心距真实均值 [[[0]]] 个单位，&rho; 的估计值为 [[[1]]]，而真值为 [[[2]]]。",
+   "exprs": [
+    "${formatFixed(meanDelta)}",
+    "${formatFixed(sampleRho)}",
+    "${formatFixed(twoDState.rho)}"
+   ],
+   "tags": [],
+   "src": "This draw puts the sample center ${formatFixed(meanDelta)} units from the true mean and estimates rho as ${formatFixed(sampleRho)} instead of ${formatFixed(twoDState.rho)}."
+  },
+  "First sampled points: [[[0]]]": {
+   "zh": "首批采样点：[[[0]]]",
+   "exprs": [
+    "${formatPointList(points, 6)}"
+   ],
+   "tags": [],
+   "src": "First sampled points: ${formatPointList(points, 6)}"
+  },
+  "\\hat{\\mu} =\n      \\begin{bmatrix}\n        [[[0]]] \\\\\n        [[[1]]]\n      \\end{bmatrix}": {
+   "zh": "\\hat{\\mu} =\n      \\begin{bmatrix}\n        [[[0]]] \\\\\n        [[[1]]]\n      \\end{bmatrix} （估计均值）",
+   "exprs": [
+    "${formatFixed(dataset.stats.meanX)}",
+    "${formatFixed(dataset.stats.meanY)}"
+   ],
+   "tags": [],
+   "src": "\\hat{\\mu} =\n      \\begin{bmatrix}\n        ${formatFixed(dataset.stats.meanX)} \\\\\n        ${formatFixed(dataset.stats.meanY)}\n      \\end{bmatrix}"
+  },
+  "\\hat{\\Sigma} =\n      \\begin{bmatrix}\n        [[[0]]] & [[[1]]] \\\\\n        [[[2]]] & [[[3]]]\n      \\end{bmatrix}": {
+   "zh": "\\hat{\\Sigma} =\n      \\begin{bmatrix}\n        [[[0]]] & [[[1]]] \\\\\n        [[[2]]] & [[[3]]]\n      \\end{bmatrix} （估计协方差）",
+   "exprs": [
+    "${formatFixed(dataset.stats.covXX)}",
+    "${formatFixed(dataset.stats.covXY)}",
+    "${formatFixed(dataset.stats.covXY)}",
+    "${formatFixed(dataset.stats.covYY)}"
+   ],
+   "tags": [],
+   "src": "\\hat{\\Sigma} =\n      \\begin{bmatrix}\n        ${formatFixed(dataset.stats.covXX)} & ${formatFixed(dataset.stats.covXY)} \\\\\n        ${formatFixed(dataset.stats.covXY)} & ${formatFixed(dataset.stats.covYY)}\n      \\end{bmatrix}"
+  },
+  "Current toy dataset: [[[0]]]": {
+   "zh": "当前玩具数据集：[[[0]]]",
+   "exprs": [
+    "${dataset.title}"
+   ],
+   "tags": [],
+   "src": "Current toy dataset: ${dataset.title}"
+  },
+  "Click-added points are included immediately. Recent points: [[[0]]]": {
+   "zh": "点击添加的点会立即纳入。最近的点：[[[0]]]",
+   "exprs": [
+    "${formatPointList(dataset.points.slice(-6), 6)}"
+   ],
+   "tags": [],
+   "src": "Click-added points are included immediately. Recent points: ${formatPointList(dataset.points.slice(-6), 6)}"
+  },
+  "First points: [[[0]]]": {
+   "zh": "首批数据点：[[[0]]]",
+   "exprs": [
+    "${formatPointList(dataset.points)}"
+   ],
+   "tags": [],
+   "src": "First points: ${formatPointList(dataset.points)}"
+  },
+  "[[[0]]] observed points ([[[1]]] added by you)": {
+   "zh": "[[[0]]] 个观测点（其中 [[[1]]] 个由你添加）",
+   "exprs": [
+    "${dataset.points.length}",
+    "${dataset.addedCount}"
+   ],
+   "tags": [],
+   "src": "${dataset.points.length} observed points (${dataset.addedCount} added by you)"
+  },
+  "[[[0]]] observed points": {
+   "zh": "[[[0]]] 个观测点",
+   "exprs": [
+    "${dataset.points.length}"
+   ],
+   "tags": [],
+   "src": "${dataset.points.length} observed points"
+  },
+  "You added [[[0]]] point[[[1]]]. Watch how the fitted mean and ellipse move toward the new evidence.": {
+   "zh": "你添加了 [[[0]]] 个点[[[1]]]。观察拟合均值与椭圆如何向新的证据移动。",
+   "exprs": [
+    "${dataset.addedCount}",
+    "${dataset.addedCount === 1 ? '' : 's'}"
+   ],
+   "tags": [],
+   "src": "You added ${dataset.addedCount} point${dataset.addedCount === 1 ? '' : 's'}. Watch how the fitted mean and ellipse move toward the new evidence."
+  },
+  "X \\sim \\mathcal{N}\\!\\left([[[0]]], [[[1]]]\\right)": {
+   "zh": "X \\sim \\mathcal{N}\\!\\left([[[0]]], [[[1]]]\\right) （X 的边缘分布）",
+   "exprs": [
+    "${formatFixed(twoDState.muX)}",
+    "${formatFixed(twoDState.sigmaX ** 2)}"
+   ],
+   "tags": [],
+   "src": "X \\sim \\mathcal{N}\\!\\left(${formatFixed(twoDState.muX)}, ${formatFixed(twoDState.sigmaX ** 2)}\\right)"
+  },
+  "Y \\sim \\mathcal{N}\\!\\left([[[0]]], [[[1]]]\\right)": {
+   "zh": "Y \\sim \\mathcal{N}\\!\\left([[[0]]], [[[1]]]\\right) （Y 的边缘分布）",
+   "exprs": [
+    "${formatFixed(twoDState.muY)}",
+    "${formatFixed(twoDState.sigmaY ** 2)}"
+   ],
+   "tags": [],
+   "src": "Y \\sim \\mathcal{N}\\!\\left(${formatFixed(twoDState.muY)}, ${formatFixed(twoDState.sigmaY ** 2)}\\right)"
+  },
+  "Even with rho = [[[0]]], the teal marginals ignore the tilt and only read the diagonal entries of the covariance matrix.": {
+   "zh": "即便 rho = [[[0]]]，青色边缘分布仍忽略倾斜，只读取协方差矩阵的对角线元素。",
+   "exprs": [
+    "${formatFixed(twoDState.rho)}"
+   ],
+   "tags": [],
+   "src": "Even with rho = ${formatFixed(twoDState.rho)}, the teal marginals ignore the tilt and only read the diagonal entries of the covariance matrix."
+  },
+  "Teal: X ~ N([[[0]]], [[[1]]]). Gold: X | Y = [[[2]]] ~ N([[[3]]], [[[4]]]).": {
+   "zh": "青色：X ~ N([[[0]]], [[[1]]])。金色：X | Y = [[[2]]] ~ N([[[3]]], [[[4]]])。",
+   "exprs": [
+    "${formatFixed(twoDState.muX)}",
+    "${formatFixed(twoDState.sigmaX ** 2)}",
+    "${formatFixed(info.observedY)}",
+    "${formatFixed(info.xConditionalMu)}",
+    "${formatFixed(info.xConditionalSigma ** 2)}"
+   ],
+   "tags": [],
+   "src": "Teal: X ~ N(${formatFixed(twoDState.muX)}, ${formatFixed(twoDState.sigmaX ** 2)}). Gold: X | Y = ${formatFixed(info.observedY)} ~ N(${formatFixed(info.xConditionalMu)}, ${formatFixed(info.xConditionalSigma ** 2)})."
+  },
+  "\\begin{aligned}\n      X &\\sim \\mathcal{N}\\!\\left([[[0]]], [[[1]]]\\right) \\\\\n      X \\mid Y=[[[2]]] &\\sim \\mathcal{N}\\!\\left([[[3]]], [[[4]]]\\right)\n    \\end{aligned}": {
+   "zh": "\\begin{aligned}\n      X &\\sim \\mathcal{N}\\!\\left([[[0]]], [[[1]]]\\right) \\\\\n      X \\mid Y=[[[2]]] &\\sim \\mathcal{N}\\!\\left([[[3]]], [[[4]]]\\right)\n    \\end{aligned} （X 的边缘分布与条件分布）",
+   "exprs": [
+    "${formatFixed(twoDState.muX)}",
+    "${formatFixed(twoDState.sigmaX ** 2)}",
+    "${formatFixed(info.observedY)}",
+    "${formatFixed(info.xConditionalMu)}",
+    "${formatFixed(info.xConditionalSigma ** 2)}"
+   ],
+   "tags": [],
+   "src": "\\begin{aligned}\n      X &\\sim \\mathcal{N}\\!\\left(${formatFixed(twoDState.muX)}, ${formatFixed(twoDState.sigmaX ** 2)}\\right) \\\\\n      X \\mid Y=${formatFixed(info.observedY)} &\\sim \\mathcal{N}\\!\\left(${formatFixed(info.xConditionalMu)}, ${formatFixed(info.xConditionalSigma ** 2)}\\right)\n    \\end{aligned}"
+  },
+  "\\begin{aligned}\n      Y &\\sim \\mathcal{N}\\!\\left([[[0]]], [[[1]]]\\right) \\\\\n      Y \\mid X=[[[2]]] &\\sim \\mathcal{N}\\!\\left([[[3]]], [[[4]]]\\right)\n    \\end{aligned}": {
+   "zh": "\\begin{aligned}\n      Y &\\sim \\mathcal{N}\\!\\left([[[0]]], [[[1]]]\\right) \\\\\n      Y \\mid X=[[[2]]] &\\sim \\mathcal{N}\\!\\left([[[3]]], [[[4]]]\\right)\n    \\end{aligned} （Y 的边缘分布与条件分布）",
+   "exprs": [
+    "${formatFixed(twoDState.muY)}",
+    "${formatFixed(twoDState.sigmaY ** 2)}",
+    "${formatFixed(info.observedX)}",
+    "${formatFixed(info.yConditionalMu)}",
+    "${formatFixed(info.yConditionalSigma ** 2)}"
+   ],
+   "tags": [],
+   "src": "\\begin{aligned}\n      Y &\\sim \\mathcal{N}\\!\\left(${formatFixed(twoDState.muY)}, ${formatFixed(twoDState.sigmaY ** 2)}\\right) \\\\\n      Y \\mid X=${formatFixed(info.observedX)} &\\sim \\mathcal{N}\\!\\left(${formatFixed(info.yConditionalMu)}, ${formatFixed(info.yConditionalSigma ** 2)}\\right)\n    \\end{aligned}"
+  },
+  "\\frac{\\sigma_{X \\mid Y}}{\\sigma_X}\n      =\n      \\frac{\\sigma_{Y \\mid X}}{\\sigma_Y}\n      =\n      \\sqrt{1-\\rho^2}\n      =\n      [[[0]]]": {
+   "zh": "\\frac{\\sigma_{X \\mid Y}}{\\sigma_X}\n      =\n      \\frac{\\sigma_{Y \\mid X}}{\\sigma_Y}\n      =\n      \\sqrt{1-\\rho^2}\n      =\n      [[[0]]] （条件标准差与边缘标准差之比）",
+   "exprs": [
+    "${formatFixed(info.shrinkFactor)}"
+   ],
+   "tags": [],
+   "src": "\\frac{\\sigma_{X \\mid Y}}{\\sigma_X}\n      =\n      \\frac{\\sigma_{Y \\mid X}}{\\sigma_Y}\n      =\n      \\sqrt{1-\\rho^2}\n      =\n      ${formatFixed(info.shrinkFactor)}"
+  },
+  "Var(Y) = [[[0]]] &rarr; Var(Y&thinsp;|&thinsp;X) = [[[1]]] ": {
+   "zh": "Var(Y) = [[[0]]] &rarr; Var(Y&thinsp;|&thinsp;X) = [[[1]]] Var(Y) = [[[0]]] &rarr; Var(Y&thinsp;|&thinsp;X) = [[[1]]] （方差由边缘缩减为条件） （方差由边缘缩减为条件）",
+   "exprs": [
+    "${formatFixed(varMarginal)}",
+    "${formatFixed(varConditional)}"
+   ],
+   "tags": [],
+   "src": "Var(Y) = ${formatFixed(varMarginal)} &rarr; Var(Y&thinsp;|&thinsp;X) = ${formatFixed(varConditional)} "
+  },
+  "&nbsp;([[[0]]]% of Y&rsquo;s variance is explained by observing X)": {
+   "zh": "&nbsp;（观测 X 可解释 Y 方差的 [[[0]]]%）",
+   "exprs": [
+    "${percentReduction}"
+   ],
+   "tags": [],
+   "src": "&nbsp;(${percentReduction}% of Y&rsquo;s variance is explained by observing X)"
+  },
+  "At rho = [[[0]]], both conditionals are narrower than their marginals by the same factor, and their means slide linearly with the slice lines.": {
+   "zh": "当 rho = [[[0]]] 时，两个条件分布均以相同因子窄于各自的边缘分布，且其均值随切片线线性移动。",
+   "exprs": [
+    "${formatFixed(twoDState.rho)}"
+   ],
+   "tags": [],
+   "src": "At rho = ${formatFixed(twoDState.rho)}, both conditionals are narrower than their marginals by the same factor, and their means slide linearly with the slice lines."
+  },
+  "Drag the coral vertical line to set @@T0@@x@@T1@@0@@T2@@ = [[[0]]]@@T3@@ and watch the coral conditional on the right shift to @@T4@@[[[1]]]@@T5@@. Drag the gold horizontal line to set @@T6@@y@@T7@@0@@T8@@ = [[[2]]]@@T9@@ and watch the gold conditional on the top shift to @@T10@@[[[3]]]@@T11@@.": {
+   "zh": "拖动珊瑚色竖直线设定 @@T0@@x@@T1@@0@@T2@@ = [[[0]]]@@T3@@，观察右侧的珊瑚色条件分布平移至 @@T4@@[[[1]]]@@T5@@。拖动金色水平线设定 @@T6@@y@@T7@@0@@T8@@ = [[[2]]]@@T9@@，观察顶部的金色条件分布平移至 @@T10@@[[[3]]]@@T11@@。",
+   "exprs": [
+    "${formatFixed(info.observedX)}",
+    "${formatFixed(info.yConditionalMu)}",
+    "${formatFixed(info.observedY)}",
+    "${formatFixed(info.xConditionalMu)}"
+   ],
+   "tags": [
+    "<code>",
+    "<sub>",
+    "</sub>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "<sub>",
+    "</sub>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ],
+   "src": "Drag the coral vertical line to set <code>x<sub>0</sub> = ${formatFixed(info.observedX)}</code> and watch the coral conditional on the right shift to <code>${formatFixed(info.yConditionalMu)}</code>. Drag the gold horizontal line to set <code>y<sub>0</sub> = ${formatFixed(info.observedY)}</code> and watch the gold conditional on the top shift to <code>${formatFixed(info.xConditionalMu)}</code>."
+  },
+  "Sleep and quiz score": {
+   "zh": "睡眠与测验成绩",
+   "exprs": [],
+   "tags": [],
+   "src": "Sleep and quiz score"
+  },
+  "A small classroom-style dataset where more sleep tends to come with better quiz scores, but there is still a lot of scatter.": {
+   "zh": "一个小型课堂式数据集：睡眠越多，测验成绩往往越好，但仍存在相当大的散布。",
+   "exprs": [],
+   "tags": [],
+   "src": "A small classroom-style dataset where more sleep tends to come with better quiz scores, but there is still a lot of scatter."
+  },
+  "Even with only a handful of points, the fitted ellipse usually recovers the main upward trend.": {
+   "zh": "即便只有寥寥数个点，拟合椭圆通常也能恢复主要的上升趋势。",
+   "exprs": [],
+   "tags": [],
+   "src": "Even with only a handful of points, the fitted ellipse usually recovers the main upward trend."
+  },
+  "Budget and leftover cash": {
+   "zh": "预算与剩余现金",
+   "exprs": [],
+   "tags": [],
+   "src": "Budget and leftover cash"
+  },
+  "A toy household-budget dataset where higher planned spending tends to leave less cash at the end of the month.": {
+   "zh": "一个玩具式家庭预算数据集：计划支出越高，月末结余的现金往往越少。",
+   "exprs": [],
+   "tags": [],
+   "src": "A toy household-budget dataset where higher planned spending tends to leave less cash at the end of the month."
+  },
+  "The negative tilt appears quickly because the tradeoff is visible even in a small sample.": {
+   "zh": "负向倾斜很快显现，因为这一权衡即便在小样本中也可辨。",
+   "exprs": [],
+   "tags": [],
+   "src": "The negative tilt appears quickly because the tradeoff is visible even in a small sample."
+  },
+  "Road position uncertainty": {
+   "zh": "道路位置不确定性",
+   "exprs": [],
+   "tags": [],
+   "src": "Road position uncertainty"
+  },
+  "A tracking dataset for an object moving along a road, where position along the road is much more uncertain than position across it.": {
+   "zh": "一个用于追踪沿道路运动物体的数据集：沿道路方向的位置远比垂直于道路方向的位置更不确定。",
+   "exprs": [],
+   "tags": [],
+   "src": "A tracking dataset for an object moving along a road, where position along the road is much more uncertain than position across it."
+  },
+  "The estimated covariance reveals the long-and-thin uncertainty direction even when the raw coordinates look messy.": {
+   "zh": "即便原始坐标看起来杂乱，估计出的协方差仍能揭示那条细长的不确定性方向。",
+   "exprs": [],
+   "tags": [],
+   "src": "The estimated covariance reveals the long-and-thin uncertainty direction even when the raw coordinates look messy."
+  },
+  "The sample cloud is settling around the target ellipse.": {
+   "zh": "样本点云正在目标椭圆附近趋于稳定。",
+   "exprs": [],
+   "tags": [],
+   "src": "The sample cloud is settling around the target ellipse."
+  },
+  "The overall tilt is visible, but this draw still has noticeable wobble.": {
+   "zh": "整体倾斜已可见，但本次抽样仍有明显的抖动。",
+   "exprs": [],
+   "tags": [],
+   "src": "The overall tilt is visible, but this draw still has noticeable wobble."
+  },
+  "A small sample can look more extreme than the true Gaussian.": {
+   "zh": "小样本看起来可能比真实高斯分布更极端。",
+   "exprs": [],
+   "tags": [],
+   "src": "A small sample can look more extreme than the true Gaussian."
+  },
+  "With rho near zero, the joint cloud is axis-aligned, so the marginals feel almost obvious.": {
+   "zh": "当 rho 接近零时，联合点云与坐标轴对齐，边缘分布因而显得几乎理所当然。",
+   "exprs": [],
+   "tags": [],
+   "src": "With rho near zero, the joint cloud is axis-aligned, so the marginals feel almost obvious."
+  },
+  "readout readout--reduction": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": "readout readout--reduction"
+  },
+  "With almost zero correlation, the conditionals nearly sit on top of the marginals.": {
+   "zh": "当相关性几乎为零时，条件分布几乎与边缘分布重合。",
+   "exprs": [],
+   "tags": [],
+   "src": "With almost zero correlation, the conditionals nearly sit on top of the marginals."
+  }
+ }
+}

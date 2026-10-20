@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>无标签的视觉预训练</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>无标签的视觉预训练</h1>
+        <p class="abstract">
+          将同一图像的两个增强视图拉近，把其余一切推远；或者掩蔽图像 75% 的部分并预测其余内容。这两种无需标签的方案为所有现代视觉骨干网络提供预训练。下文包含：一个实时对比学习实验，你可对图像施加增强、观察其嵌入几乎不变，并直接从相似度矩阵读出 InfoNCE 损失 &mdash; 此外还有一个掩码-重建的 MAE 演示。
+        </p>
+        <div class="byline">
+          <span>约 20 分钟</span>
+          <span>计算机视觉 &middot; 自监督 &middot; 预训练</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>为何我们不再从零开始训练</h2>
+        <p>
+          ImageNet 有 120 万张带标注图像。而一个典型的应用视觉任务，乐观估计也只有几千个带标注样本。在如此规模上从零训练一个 ViT-Base 会严重过拟合。而在规模大得多的<em>无标注</em>图像池（数百万张，易于采集；稍加巧思可达数十亿张）上进行自监督预训练，得到的骨干网络只需极少量的标注微调即可使用。
+        </p>
+        <p>
+          文中每种方案都构造一个<strong>代理任务</strong>：一个看似有监督、但其标签可直接从图像本身免费获得的目标。有两大流派占据主导。<strong>对比式</strong>方法（SimCLR、MoCo、CLIP）使同一图像两个视图的表示相互一致，同时与其他图像不一致。<strong>生成式</strong>方法（MAE、BEiT）隐藏图像的一部分并要求重建。我们将为每一种构建实时演示。
+        </p>
+        <div class="callout callout--key">
+          <strong>一句话概括。</strong>
+          把无标注数据的算力花在自监督代理任务上，把标注预算留给真正需要标签的部分（任务头，有时是贯穿骨干网络的轻量 LoRA）。
+        </div>
+      </section>
+
+      <section class="step-section" id="contrastive">
+        <div class="step-badge">第 1 步</div>
+        <h2>对比学习与 InfoNCE 损失</h2>
+        <p>
+          取一张图像，对它生成两个随机增强的<em>视图</em>（裁剪、
+          翻转、色彩抖动、模糊）。将二者送入编码器得到嵌入 $z_i$ 与 $z_j$。这两个视图来自同一图像，
+          因此构成一个<strong>正样本对</strong>，其嵌入
+          应当彼此接近。批中<em>其余</em>每一张图像都是
+          <strong>负样本</strong>，应当相距较远。InfoNCE 损失
+          将其转化为一个 softmax 分类问题 &mdash; 「$2N$ 个视图之中，
+          哪一个才是我的正样本？」：
+        </p>
+        <div class="math-block">
+          $$
+          \mathcal{L}_{i} = -\log
+          \frac{\exp\!\big(\operatorname{sim}(z_i, z_j)/\tau\big)}
+               {\sum_{k=1}^{2N}\mathbb{1}[k\neq i]\,\exp\!\big(\operatorname{sim}(z_i, z_k)/\tau\big)}
+          $$
+        </div>
+        <p>
+          $\operatorname{sim}(a,b)=\tfrac{a\cdot b}{\lVert a\rVert\,\lVert b\rVert}$ 是余弦相似度，$\tau$ 是温度（越小表示负样本越难、对比越锐利）。分子将正样本对拉近；分母则与批中每一个负样本相抗衡 &mdash; 这正是<strong>SimCLR 需要大批量</strong>（约 4k&ndash;8k）以便见到足够多负样本的原因，也是 MoCo 以动量更新的队列取代批内负样本的原因。
+        </p>
+
+        <div class="lab" id="sim-lab">
+          <div class="lab-controls">
+            <div class="ctrl">
+              <label>裁剪 + 噪声强度 <span class="ctrl-val" id="sim-aug-val">0.35</span></label>
+              <input type="range" id="sim-aug" min="0" max="1" step="0.01" value="0.35" />
+            </div>
+            <div class="ctrl">
+              <label>色彩抖动强度 <span class="ctrl-val" id="sim-color-val">0.65</span></label>
+              <input type="range" id="sim-color" min="0" max="1" step="0.01" value="0.65" />
+            </div>
+            <div class="ctrl">
+              <label>温度 $\tau$ <span class="ctrl-val" id="sim-temp-val">0.20</span></label>
+              <input type="range" id="sim-temp" min="0.05" max="0.5" step="0.01" value="0.20" />
+            </div>
+            <button class="action-btn action-btn--ghost" id="sim-reroll">重新采样视图</button>
+          </div>
+
+          <div class="lab-top">
+            <div class="lab-views">
+              <div class="lab-view">
+                <div class="panel-label">锚点图像</div>
+                <canvas id="sim-orig" width="112" height="112"></canvas>
+              </div>
+              <div class="lab-arrow" aria-hidden="true">
+                <span>增强</span>&nbsp;&rarr;
+              </div>
+              <div class="lab-view">
+                <div class="panel-label">视图 A &nbsp;（正样本）</div>
+                <canvas id="sim-viewA" width="112" height="112"></canvas>
+              </div>
+              <div class="lab-view">
+                <div class="panel-label">视图 B &nbsp;（正样本）</div>
+                <canvas id="sim-viewB" width="112" height="112"></canvas>
+              </div>
+            </div>
+            <figure class="lab-scatter">
+              <canvas id="sim-scatter" width="300" height="300"></canvas>
+              <figcaption>嵌入空间。每个点表示一个视图的二维嵌入；橙色连线连接两个锚点视图。方向编码朝向，到中心的距离编码编码器的置信程度。</figcaption>
+            </figure>
+          </div>
+
+          <figure class="lab-matrix">
+            <canvas id="sim-matrix" width="366" height="366"></canvas>
+            <figcaption>所有 $2N=8$ 个视图（4 张图像 &times; 2 个视图）的余弦相似度矩阵。橙色方格为正样本对；InfoNCE 希望它们是所在行中最亮的元素。</figcaption>
+          </figure>
+
+          <div class="stat-strip">
+            <div class="stat-pill stat-pill--warm">
+              <span class="stat-label">正样本相似度</span>
+              <span class="stat-value" id="sim-pos">&mdash;</span>
+            </div>
+            <div class="stat-pill stat-pill--accent">
+              <span class="stat-label">负样本平均相似度</span>
+              <span class="stat-value" id="sim-neg">&mdash;</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-label">InfoNCE 损失（锚点）</span>
+              <span class="stat-value" id="sim-loss">&mdash;</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-label">正样本是否最近？</span>
+              <span class="stat-value" id="sim-nn">&mdash;</span>
+            </div>
+          </div>
+
+          <div class="callout callout--think">
+            <strong>两个旋钮，两条经验。</strong>
+            将<em>色彩抖动</em>调到最大：两个视图在颜色上大相径庭，但正样本相似度却几乎不下降，正样本对仍是所在行最亮的单元。这里的编码器在构造上就是色盲的 &mdash; 这正是 InfoNCE 所训练的<em>不变性</em>。现在再调大<em>裁剪 + 噪声</em>：增强过度时视图会丢失其共享结构，正样本点向中心漂移，相似度崩塌，最终某个负样本胜出 &mdash; 损失随之骤升。良好的增强既强烈又保持结构。
+          </div>
+        </div>
+        <p>
+          增强方式本身就构成了全部归纳偏置：网络被迫为两个视图产生相同的嵌入，因此它学到的特征<em>对一切被你增强的变换保持不变</em>。随机裁剪 + 色彩抖动 + 高斯模糊是标准方案；去掉其中任何一项都会损失 5&ndash;10 个 ImageNet 线性探测点。
+        </p>
+      </section>
+
+      <section class="step-section" id="mae">
+        <div class="step-badge">第 2 步</div>
+        <h2>MAE 方案 &mdash; 掩蔽与重建</h2>
+        <p>
+          掩码自编码器（He 等，2022）是在规模上可行且最简单的生成式方案。将图像划分为补丁，随机掩蔽很大一部分（标志性数字为 75%），仅将<em>可见</em>补丁送入 ViT 编码器，并要求一个小型解码器重建被掩蔽的补丁。损失为像素空间的均方误差，且仅在被掩蔽的补丁上计算：
+        </p>
+        <div class="math-block">
+          $$
+          \mathcal{L}_{\text{MAE}} = \frac{1}{|\mathcal{M}|}
+          \sum_{p\,\in\,\mathcal{M}} \big\lVert \hat{x}_p - x_p \big\rVert^2,
+          \qquad \mathcal{M} = \text{masked patches}
+          $$
+        </div>
+        <p>
+          这种非对称设计 &mdash; 编码器只看到 25% 的补丁，解码器则看到全集并带有被掩蔽补丁的占位符 &mdash; 正是其高效的原因。在 ImageNet-1k 上预训练在 8 块 GPU 上不到一天即可完成。拖动掩码比例，观察当存留补丁减少时重建质量如何下降：
+        </p>
+        <div class="train-controls">
+          <label>掩码比例 &nbsp;<span id="mae-ratio-val">0.75</span> <input type="range" id="mae-ratio" min="0.05" max="0.95" step="0.05" value="0.75"></label>
+          <button class="action-btn action-btn--ghost" id="mae-reroll">新图像</button>
+        </div>
+        <div class="ssl-grid">
+          <div class="ssl-panel">
+            <div class="panel-label">原始图像</div>
+            <canvas id="mae-orig" width="224" height="224"></canvas>
+          </div>
+          <div class="ssl-panel">
+            <div class="panel-label">掩码输入（编码器所见）</div>
+            <canvas id="mae-masked" width="224" height="224"></canvas>
+          </div>
+          <div class="ssl-panel">
+            <div class="panel-label">重建结果（解码器输出）</div>
+            <canvas id="mae-recon" width="224" height="224"></canvas>
+          </div>
+        </div>
+        <div class="panel-meta" id="mae-mse" style="text-align:center;">&mdash;</div>
+        <div class="callout callout--think">
+          <strong>本演示能展示与不能展示的内容。</strong>
+          我们并未在你的浏览器中运行真正的 ViT；所谓「重建」是对可见补丁的智能插值（大致相当于 MAE 解码器在平滑场景上收敛到的结果）。真实 MAE 对自然图像的重建会保留全局结构，但会模糊细节纹理 &mdash; 与你在此处提高掩码比例时所见到的定性行为相同。
+        </div>
+      </section>
+
+      <section class="step-section" id="dino">
+        <div class="step-badge">第 3 步</div>
+        <h2>DINO 与无标签的自蒸馏</h2>
+        <p>
+          DINO（Caron 等，2021）与 DINOv2（Oquab 等，2023）是使用最广的非对比式方案。学生网络必须在一张图像的另一个视图上匹配教师网络的预测；教师网络是学生网络的<em>指数移动平均</em>：
+        </p>
+        <div class="math-block">
+          $$
+          \mathcal{L}_{\text{DINO}} = -\sum_x p_t(x)\,\log p_s(x),
+          \quad
+          p_t = \operatorname{softmax}\!\Big(\tfrac{f_t(x)-c}{\tau_t}\Big),
+          \quad
+          p_s = \operatorname{softmax}\!\Big(\tfrac{f_s(x)}{\tau_s}\Big)
+          $$
+        </div>
+        <p>关键在于防止坍塌 &mdash; 即两个网络都预测一个常量。有两个稳定机制：</p>
+        <ul class="explanation-list">
+          <li><strong>中心化。</strong> 在 softmax 之前从教师输出中减去一个滑动均值 $c$。这消除了「总是预测同一向量」这一容易落入的吸引子。</li>
+          <li><strong>锐化。</strong> 教师温度 $\tau_t \ll \tau_s$。教师的分布比学生更锐利，迫使学生作出高置信度的预测。</li>
+        </ul>
+        <p>
+          DINOv2 加入了 Sinkhorn-Knopp 中心化、iBOT 式的补丁级损失（学生还必须在被掩蔽的补丁上匹配教师），并使用了经过精心筛选的预训练数据。由此得到的特征在<em>空间上</em>组织良好，这正是 DINOv2 成为当前任何下游分割或检测任务默认选择的原因。
+        </p>
+      </section>
+
+      <section class="step-section" id="jepa">
+        <div class="step-badge">第 4 步</div>
+        <h2>JEPA &mdash; 预测特征而非像素</h2>
+        <p>
+          MAE 将容量花在预测像素上：像素空间的损失会因细节纹理预测错误而惩罚模型，这对下游语义并无助益。联合嵌入预测架构（I-JEPA、V-JEPA；LeCun 等，2022&ndash;24）通过在<em>特征</em>空间中进行预测来绕开这一点：
+        </p>
+        <div class="math-block">
+          $$
+          \mathcal{L}_{\text{JEPA}} =
+          \big\lVert\, g\!\big(f(x_{\text{context}}),\, \ell_{\text{target}}\big)
+          - \operatorname{sg}\!\big[f(x_{\text{target}})\big] \,\big\rVert^2
+          $$
+        </div>
+        <p>
+          上下文与目标都经过（同一个）编码器 $f$。一个小型预测器 $g$ 由上下文的嵌入加上目标位置编码 $\ell_{\text{target}}$ 来预测目标的特征嵌入；$\operatorname{sg}[\cdot]$ 表示停止梯度。由于跳过像素预测，JEPA 将参数用于对下游任务有用的表示，并以仅相当于 MAE 一小部分的计算量在线性探测基准上日益具有竞争力。
+        </p>
+      </section>
+
+      <section class="step-section" id="families">
+        <div class="step-badge">第 5 步</div>
+        <h2>自监督学习方案的四大家族</h2>
+        <div class="examples-table-wrap">
+          <table class="examples-table">
+            <thead><tr><th>家族</th><th>代理任务</th><th>代表方法</th><th>擅长学习的方面</th><th>困难之处</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>对比式</strong></td>
+                <td>将同一图像的增强视图拉近；把其余视图推远</td>
+                <td>SimCLR、MoCo、CLIP</td>
+                <td>判别性特征，可迁移至分类</td>
+                <td>需要超大批量；在稠密任务上较弱</td>
+              </tr>
+              <tr>
+                <td><strong>蒸馏式</strong></td>
+                <td>在不同视图上匹配教师（通常是学生的 EMA）</td>
+                <td>DINO、DINOv2、iBOT</td>
+                <td>稠密特征强；下游分割任务的当前最优</td>
+                <td>训练稳定性较难把握（中心化、锐化）</td>
+              </tr>
+              <tr>
+                <td><strong>生成式</strong></td>
+                <td>重建被掩蔽的像素 / 词元</td>
+                <td>MAE、SimMIM、BEiT</td>
+                <td>样本效率高；适用于任何模态</td>
+                <td>线性探测准确率低于 DINO/CLIP</td>
+              </tr>
+              <tr>
+                <td><strong>预测式</strong></td>
+                <td>预测被掩蔽区域的<em>特征</em>，而非像素</td>
+                <td>I-JEPA、V-JEPA、V-JEPA 2</td>
+                <td>效率很高；侧重语义特征</td>
+                <td>较新；工具与方案仍在成熟中</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          一条实用的经验法则：对于偏分类性质的任务以及规模较小的标注微调集，优先选择 DINOv2 或 CLIP。对于稠密预测、分割，或任何空间细节至关重要的任务，优先选择 DINOv2 或 MAE。对于非常规模态（热成像、卫星、高光谱），MAE 最易于改造适配。
+        </p>
+      </section>
+
+      <section class="step-section" id="probe">
+        <div class="step-badge">第 6 步</div>
+        <h2>其重要性所在：线性探测效率</h2>
+        <p>
+          评估预训练最干净的方式是冻结骨干网络，并在小规模标注集上训练单一线性头。该「标注数据量-准确率」曲线的斜率即体现自监督学习的价值。下方是一条合成曲线，随标注比例增大，对比<em>随机初始化</em>与<em>自监督预训练</em>的表现。
+        </p>
+        <div class="ssl-figure">
+          <canvas id="probe-canvas" width="880" height="320"></canvas>
+          <figcaption>合成示意。真实的 ImageNet 线性探测数据（Caron 等，2021）：DINO 在 1% 标注下约 78%，而随机初始化约为 10%。</figcaption>
+        </div>
+      </section>
+
+      <section class="step-section" id="augment">
+        <div class="step-badge">第 7 步</div>
+        <h2>将增强视为先验的视角</h2>
+        <p>
+          在任何非生成式自监督方案中，最重要的单一旋钮就是增强集合，原因已由上文对比实验具体呈现：损失迫使两个增强视图产生相同的表示，因此网络学到的<em>特征对一切被你增强的变换保持不变</em>。而凡是你未施加增强的方面，模型便可自由地加以依赖。
+        </p>
+        <ul class="explanation-list">
+          <li><strong>随机裁剪。</strong> 局部性与尺度不变性。去掉它会使 ImageNet 线性探测下降约 25 个点。</li>
+          <li><strong>色彩抖动。</strong> 颜色不变性。对于颜色不可靠的自然图像至关重要。</li>
+          <li><strong>高斯模糊。</strong> 纹理不变性。当目标任务关注形状而非纹理时尤其有帮助。</li>
+          <li><strong>曝光反转 / 随机灰度化。</strong> 用于 DINO；进一步削弱颜色作为捷径的作用。</li>
+          <li><strong>哪些方面<em>不应</em>增强。</strong> 如果你的下游任务关注某一属性（医学扫描中的旋转、遥感中的精确像素强度），那么<em>不要</em>通过增强将其抹去 &mdash; 模型会习得忽略恰好是你所需的那一点。</li>
+        </ul>
+        <div class="callout callout--key">
+          <strong>经验总结。</strong>
+          你的增强集合<em>就是</em>你的归纳偏置。请审慎选择，并在面对每一种新模态时重新审视它。
+        </div>
+      </section>
+
+      <section class="step-section" id="recipes">
+        <div class="step-badge">第 8 步</div>
+        <h2>实用方案</h2>
+        <ul class="explanation-list">
+          <li><strong>自定义模态的预训练。</strong> 如果你的领域（热成像、医学、卫星、高光谱、显微成像）与 ImageNet 差异很大，现成骨干网络的帮助有限。在数万至数十万张域内无标注图像上预训练 MAE；再用你实际拥有的数百个标签进行微调。</li>
+          <li><strong>对公开骨干网络进行持续预训练。</strong> 成本更低：从 DINOv2 或 CLIP 权重出发，在域内数据上做一次短时的 MAE 式持续预训练，然后微调。你既获得大规模预训练的通用性，又实现了模态对齐。</li>
+          <li><strong>微调之前先做线性探测。</strong> 始终先用单一线性头评估冻结的骨干网络。若线性探测结果不佳，微调通常也难以挽回。</li>
+          <li><strong>视觉-语言对齐。</strong> 在（图像，标题）对上做 CLIP 式训练，可获得零样本分类与自由文本检索能力。标题无需高质量 &mdash; 网页噪声数据已足够。</li>
+          <li><strong>不要重复造轮子。</strong> 在 2026 年，公开的 DINOv2、CLIP 与 SAM 骨干网络已能满足大多数「我需要一个强大的视觉编码器」的需求。只有当你的领域没有任何公开骨干网络可用时，才从零预训练。</li>
+        </ul>
+        <div class="callout callout--think">
+          <strong>最终结论。</strong>
+          应用视觉中最困难的部分不是训练，而是标注。自监督预训练让无标注数据的汪洋大海承担繁重的工作，从而使标注人员只需处理那些本质上离不开人类判断的部分。
+        </div>
+      </section>
+
+      <section class="step-section" id="reading">
+        <div class="step-badge">尾声</div>
+        <h2>阅读清单</h2>
+        <ul class="explanation-list">
+          <li><strong>Chen, Kornblith, Norouzi, Hinton (2020)</strong> &mdash; <em>SimCLR。</em> 即上文对比学习实验。</li>
+          <li><strong>He 等 (2020)</strong> &mdash; <em>MoCo。</em> 负样本的动量队列。</li>
+          <li><strong>Caron 等 (2021)</strong> &mdash; <em>DINO。</em></li>
+          <li><strong>He, Chen, Xie, Li, Doll&aacute;r, Girshick (2022)</strong> &mdash; <em>Masked Autoencoders Are Scalable Vision Learners (MAE)。</em></li>
+          <li><strong>Assran 等 (2023)</strong> &mdash; <em>I-JEPA。</em></li>
+          <li><strong>Oquab 等 (2023)</strong> &mdash; <em>DINOv2。</em> 当前占主导地位的自监督骨干网络。</li>
+          <li><strong>Bardes 等 (2024)</strong> &mdash; <em>V-JEPA。</em> 向视频的扩展。</li>
+        </ul>
+      </section>
+
+      <footer class="article-footer">ES 667 深度学习讲解系列的一部分 &middot; 计算机视觉 &middot; 自监督预训练</footer>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

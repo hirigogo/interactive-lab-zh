@@ -1,0 +1,634 @@
+{
+ "slug": "quantize-prune",
+ "units": {
+  "Quantization &amp; Pruning, Side by Side": {
+   "zh": "量化与剪枝：并排对比",
+   "src": "Quantization &amp; Pruning, Side by Side",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Two ways to shrink a model. Quantization reduces bit-width\n          per weight; pruning zeroes weights out entirely. Slide\n          both, see accuracy hold, then crack at predictable\n          thresholds.": {
+   "zh": "缩小模型的两种途径。量化降低每个权重的位宽；\n          剪枝则将权重直接置零。同时滑动二者，\n          观察精度如何保持，又如何在可预期的\n          阈值处崩塌。",
+   "src": "Two ways to shrink a model. Quantization reduces bit-width\n          per weight; pruning zeroes weights out entirely. Slide\n          both, see accuracy hold, then crack at predictable\n          thresholds.",
+   "tags": []
+  },
+  "@@T0@@~18 min@@T1@@\n          @@T2@@Compression &middot; Edge ML@@T3@@": {
+   "zh": "@@T0@@约 18 分钟@@T1@@\n          @@T2@@模型压缩 &middot; 边缘机器学习@@T3@@",
+   "src": "<span>~18 min</span>\n          <span>Compression &middot; Edge ML</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "The compression menu": {
+   "zh": "模型压缩的方案清单",
+   "src": "The compression menu",
+   "tags": []
+  },
+  "@@T0@@Quantization.@@T1@@ Replace 32-bit floats with\n            fewer bits (16, 8, 4, 2, 1). 2× to 32× smaller; faster\n            inference; accuracy varies. Two recipes:\n            @@T2@@post-training quantization (PTQ)@@T3@@ applies\n            after training (cheap, sometimes lossy);\n            @@T4@@quantization-aware training (QAT)@@T5@@ simulates the\n            rounding during training (recovers most of the loss).": {
+   "zh": "@@T0@@量化。@@T1@@ 用更少的位（16、8、4、2、1）\n            替代 32 位浮点数。模型缩小 2 至 32 倍；推理更快；\n            精度则视情况而定。两种方案：\n            @@T2@@训练后量化（PTQ）@@T3@@ 在训练之后施加\n            （代价低，有时有损）；\n            @@T4@@量化感知训练（QAT）@@T5@@ 在训练过程中模拟\n            舍入（可挽回大部分损失）。",
+   "src": "<strong>Quantization.</strong> Replace 32-bit floats with\n            fewer bits (16, 8, 4, 2, 1). 2× to 32× smaller; faster\n            inference; accuracy varies. Two recipes:\n            <em>post-training quantization (PTQ)</em> applies\n            after training (cheap, sometimes lossy);\n            <em>quantization-aware training (QAT)</em> simulates the\n            rounding during training (recovers most of the loss).",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Pruning.@@T1@@ Zero out weights below some\n            magnitude threshold; remove them. Two flavours:\n            @@T2@@unstructured@@T3@@ (random sparsity, needs sparse\n            kernels to actually speed up) and @@T4@@structured@@T5@@\n            (drop whole channels / heads / blocks, plays well with\n            standard kernels).": {
+   "zh": "@@T0@@剪枝。@@T1@@ 将幅值低于某个阈值的\n            权重置零并移除。两种类型：\n            @@T2@@非结构化@@T3@@（稀疏位置随机，需要稀疏\n            核才能真正加速）与 @@T4@@结构化@@T5@@\n            （整块地丢弃通道 / 头 / 模块，与标准核\n            配合良好）。",
+   "src": "<strong>Pruning.</strong> Zero out weights below some\n            magnitude threshold; remove them. Two flavours:\n            <em>unstructured</em> (random sparsity, needs sparse\n            kernels to actually speed up) and <em>structured</em>\n            (drop whole channels / heads / blocks, plays well with\n            standard kernels).",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Knowledge distillation@@T1@@ (separate\n            @@T2@@article@@T3@@)\n            trains a small student to imitate a large teacher.\n            Complementary to both above.": {
+   "zh": "@@T0@@知识蒸馏@@T1@@（另见\n            @@T2@@专文@@T3@@）\n            训练一个小的学生模型去模仿大的教师模型。\n            与前两者互补。",
+   "src": "<strong>Knowledge distillation</strong> (separate\n            <a href=\"../knowledge-distillation/index.html\">article</a>)\n            trains a small student to imitate a large teacher.\n            Complementary to both above.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<a href=\"../knowledge-distillation/index.html\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@Low-rank / LoRA factorisation.@@T1@@ Replace a\n            $W$ with $BA$ where $\\mathrm{rank}(BA) \\ll \\mathrm{rank}(W)$.\n            Adapts to less-than-full-rank weight matrices.": {
+   "zh": "@@T0@@低秩 / LoRA 分解。@@T1@@ 将\n            $W$ 替换为 $BA$，其中 $\\mathrm{rank}(BA) \\ll \\mathrm{rank}(W)$。\n            适用于非满秩的权重矩阵。",
+   "src": "<strong>Low-rank / LoRA factorisation.</strong> Replace a\n            $W$ with $BA$ where $\\mathrm{rank}(BA) \\ll \\mathrm{rank}(W)$.\n            Adapts to less-than-full-rank weight matrices.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Mixed precision.@@T1@@ Most layers int8;\n            a few sensitive layers FP16. The 2026 production default.": {
+   "zh": "@@T0@@混合精度。@@T1@@ 大多数层用 int8；\n            少数敏感层用 FP16。这是 2026 年的生产默认做法。",
+   "src": "<strong>Mixed precision.</strong> Most layers int8;\n            a few sensitive layers FP16. The 2026 production default.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 1½": {
+   "zh": "第 1½ 步",
+   "src": "Step 1½",
+   "tags": []
+  },
+  "Quantization, with the math you actually need": {
+   "zh": "量化：你真正需要的数学",
+   "src": "Quantization, with the math you actually need",
+   "tags": []
+  },
+  "The simplest scheme — affine (asymmetric) uniform quantisation\n          — maps a float tensor $x \\in [x_{\\min}, x_{\\max}]$ to a\n          $b$-bit integer:": {
+   "zh": "最简单的方案 &mdash; 仿射（非对称）均匀量化\n          &mdash; 将浮点张量 $x \\in [x_{\\min}, x_{\\max}]$ 映射为\n          $b$ 位整数：",
+   "src": "The simplest scheme — affine (asymmetric) uniform quantisation\n          — maps a float tensor $x \\in [x_{\\min}, x_{\\max}]$ to a\n          $b$-bit integer:",
+   "tags": []
+  },
+  "where $s$ is the scale and $z$ the zero-point. Dequantisation:\n          $\\hat x = s \\cdot (q - z)$. Round-trip error per element is\n          uniformly distributed in $[-s/2, s/2]$, with variance $s^2 /\n          12$. Halving the bit-width halves $\\log_2(\\text{levels})$ —\n          so each bit saves $\\sim$1× memory and adds $\\sim$6 dB of\n          quantisation noise.": {
+   "zh": "其中 $s$ 为缩放因子，$z$ 为零点。反量化：\n          $\\hat x = s \\cdot (q - z)$。每个元素的往返误差\n          均匀分布于 $[-s/2, s/2]$，方差为 $s^2 /\n          12$。位宽减半意味着 $\\log_2(\\text{level})$ 减半 &mdash;\n          因此每减少一位可节省 $\\sim$1 倍内存，并增加 $\\sim$6 dB 的\n          量化噪声。",
+   "src": "where $s$ is the scale and $z$ the zero-point. Dequantisation:\n          $\\hat x = s \\cdot (q - z)$. Round-trip error per element is\n          uniformly distributed in $[-s/2, s/2]$, with variance $s^2 /\n          12$. Halving the bit-width halves $\\log_2(\\text{levels})$ —\n          so each bit saves $\\sim$1× memory and adds $\\sim$6 dB of\n          quantisation noise.",
+   "tags": []
+  },
+  "Two practical choices that matter more than they sound:": {
+   "zh": "两个实际选择，其重要性超出其表面所述：",
+   "src": "Two practical choices that matter more than they sound:",
+   "tags": []
+  },
+  "@@T0@@Symmetric vs asymmetric.@@T1@@ Symmetric forces\n            $z = 0$, so $\\hat x = sq$ — saves a subtraction per multiply,\n            at the cost of wasting half the range when $x$ is one-sided\n            (e.g. ReLU activations). Most weight quantisers are\n            symmetric; many activation quantisers are asymmetric.": {
+   "zh": "@@T0@@对称 vs 非对称。@@T1@@ 对称量化强制\n            $z = 0$，故 $\\hat x = sq$ &mdash; 每次乘法可省去一次减法，\n            代价是当 $x$ 单侧分布时（如 ReLU 激活）\n            浪费一半的取值范围。多数权重量化器是\n            对称的；许多激活量化器则是非对称的。",
+   "src": "<strong>Symmetric vs asymmetric.</strong> Symmetric forces\n            $z = 0$, so $\\hat x = sq$ — saves a subtraction per multiply,\n            at the cost of wasting half the range when $x$ is one-sided\n            (e.g. ReLU activations). Most weight quantisers are\n            symmetric; many activation quantisers are asymmetric.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Per-tensor vs per-channel.@@T1@@ Per-tensor uses\n            one $s$ for the whole weight matrix; per-channel uses one\n            $s_c$ per output channel. Per-channel costs nothing extra\n            at inference (the scale folds into the bias) and is\n            essential for matrices with wide cross-channel dynamic\n            range. Default everywhere in 2024+.": {
+   "zh": "@@T0@@逐张量 vs 逐通道。@@T1@@ 逐张量对整个权重矩阵\n            使用同一个 $s$；逐通道则为每个输出通道使用一个\n            $s_c$。逐通道在推理时不增加额外代价\n            （缩放因子可并入偏置），对于跨通道动态范围较大的\n            矩阵而言不可或缺。2024 年以来已是各处的默认做法。",
+   "src": "<strong>Per-tensor vs per-channel.</strong> Per-tensor uses\n            one $s$ for the whole weight matrix; per-channel uses one\n            $s_c$ per output channel. Per-channel costs nothing extra\n            at inference (the scale folds into the bias) and is\n            essential for matrices with wide cross-channel dynamic\n            range. Default everywhere in 2024+.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Outliers.@@T1@@ A single 100× outlier weight\n            stretches the range and crushes the resolution of all\n            other weights. Per-channel hides this for weights;\n            @@T2@@activation@@T3@@ outliers (one large attention head in\n            an LLM) are why SmoothQuant exists.": {
+   "zh": "@@T0@@离群值。@@T1@@ 单个 100 倍于常态的权重\n            就会拉大取值范围，压垮其余所有\n            权重的分辨率。逐通道量化对权重隐藏了这一问题；\n            而 @@T2@@激活@@T3@@ 的离群值（大语言模型中某个很大的\n            注意力头）正是 SmoothQuant 存在的原因。",
+   "src": "<strong>Outliers.</strong> A single 100× outlier weight\n            stretches the range and crushes the resolution of all\n            other weights. Per-channel hides this for weights;\n            <em>activation</em> outliers (one large attention head in\n            an LLM) are why SmoothQuant exists.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Live: slide bits and sparsity": {
+   "zh": "实时演示：滑动位宽与稀疏度",
+   "src": "Live: slide bits and sparsity",
+   "tags": []
+  },
+  "A trained 2-hidden-layer MLP on a 3-class 2-D dataset.\n          The base weights are trained to convergence; we apply\n          quantization (PTQ) and magnitude-pruning at inference time\n          and report the accuracy.": {
+   "zh": "一个已在三分类二维数据集上训练好的含两个隐藏层的 MLP。\n          基础权重已训练至收敛；我们在推理时施加\n          量化（PTQ）与幅值剪枝，\n          并报告准确率。",
+   "src": "A trained 2-hidden-layer MLP on a 3-class 2-D dataset.\n          The base weights are trained to convergence; we apply\n          quantization (PTQ) and magnitude-pruning at inference time\n          and report the accuracy.",
+   "tags": []
+  },
+  "quantization bits &nbsp;@@T0@@8@@T1@@": {
+   "zh": "量化位宽 &nbsp;@@T0@@8@@T1@@",
+   "src": "quantization bits &nbsp;<span id=\"qp-bits-val\">8</span>",
+   "tags": [
+    "<span id=\"qp-bits-val\">",
+    "</span>"
+   ]
+  },
+  "pruning ratio &nbsp;@@T0@@0.00@@T1@@": {
+   "zh": "剪枝比例 &nbsp;@@T0@@0.00@@T1@@",
+   "src": "pruning ratio &nbsp;<span id=\"qp-prune-val\">0.00</span>",
+   "tags": [
+    "<span id=\"qp-prune-val\">",
+    "</span>"
+   ]
+  },
+  "recipe": {
+   "zh": "方案",
+   "src": "recipe",
+   "tags": []
+  },
+  "PTQ (post-training)": {
+   "zh": "PTQ（训练后）",
+   "src": "PTQ (post-training)",
+   "tags": []
+  },
+  "QAT (simulated during retraining)": {
+   "zh": "QAT（重训练期间模拟）",
+   "src": "QAT (simulated during retraining)",
+   "tags": []
+  },
+  "New data": {
+   "zh": "新数据",
+   "src": "New data",
+   "tags": []
+  },
+  "@@T0@@size @@T1@@—@@T2@@@@T3@@\n          @@T4@@acc @@T5@@—@@T6@@@@T7@@": {
+   "zh": "@@T0@@大小 @@T1@@—@@T2@@@@T3@@\n          @@T4@@准确率 @@T5@@—@@T6@@@@T7@@",
+   "src": "<span class=\"train-stat\">size <strong id=\"qp-size\">—</strong></span>\n          <span class=\"train-stat\">acc <strong id=\"qp-acc\">—</strong></span>",
+   "tags": [
+    "<span class=\"train-stat\">",
+    "<strong id=\"qp-size\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"qp-acc\">",
+    "</strong>",
+    "</span>"
+   ]
+  },
+  "Original FP32 model": {
+   "zh": "原始 FP32 模型",
+   "src": "Original FP32 model",
+   "tags": []
+  },
+  "Compressed model": {
+   "zh": "压缩后的模型",
+   "src": "Compressed model",
+   "tags": []
+  },
+  "Size-vs-accuracy curve": {
+   "zh": "大小-精度曲线",
+   "src": "Size-vs-accuracy curve",
+   "tags": []
+  },
+  "Weight distribution (FP32 → quantised grid; pruned → 0)": {
+   "zh": "权重分布（FP32 → 量化网格；被剪枝 → 0）",
+   "src": "Weight distribution (FP32 → quantised grid; pruned → 0)",
+   "tags": []
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "The thresholds you should know": {
+   "zh": "你应当了解的阈值",
+   "src": "The thresholds you should know",
+   "tags": []
+  },
+  "@@T0@@int8 with PTQ.@@T1@@ Modern CNNs and small LLMs\n            lose &lt; 1% accuracy. Cheap. The default first try.": {
+   "zh": "@@T0@@int8 配合 PTQ。@@T1@@ 现代 CNN 与小型大语言模型\n            的精度损失 &lt; 1%。代价低。是默认的首选尝试。",
+   "src": "<strong>int8 with PTQ.</strong> Modern CNNs and small LLMs\n            lose &lt; 1% accuracy. Cheap. The default first try.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@int8 with QAT.@@T1@@ Recovers the remaining\n            &lt; 0.5%; sometimes @@T2@@better@@T3@@ than FP32 because\n            quantization noise acts as regularisation.": {
+   "zh": "@@T0@@int8 配合 QAT。@@T1@@ 可挽回剩余的\n            &lt; 0.5% 损失；有时甚至 @@T2@@优于@@T3@@ FP32，因为\n            量化噪声起到了正则化的作用。",
+   "src": "<strong>int8 with QAT.</strong> Recovers the remaining\n            &lt; 0.5%; sometimes <em>better</em> than FP32 because\n            quantization noise acts as regularisation.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@int4 (PTQ).@@T1@@ 1-3% drop on most CNNs;\n            substantial on LLMs without GPTQ / AWQ / SmoothQuant\n            tricks. Activation outliers are the dominant problem.": {
+   "zh": "@@T0@@int4（PTQ）。@@T1@@ 在多数 CNN 上下滑 1&ndash;3%；\n            若不借助 GPTQ / AWQ / SmoothQuant 等\n            技巧，在大语言模型上损失显著。激活离群值是主要问题。",
+   "src": "<strong>int4 (PTQ).</strong> 1-3% drop on most CNNs;\n            substantial on LLMs without GPTQ / AWQ / SmoothQuant\n            tricks. Activation outliers are the dominant problem.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@int4 (QAT or GPTQ-style).@@T1@@ Most LLMs run\n            at int4 in production in 2026 with ~0.5% perplexity\n            increase.": {
+   "zh": "@@T0@@int4（QAT 或 GPTQ 式）。@@T1@@ 2026 年大多数\n            大语言模型在生产中以 int4 运行，困惑度\n            上升约 0.5%。",
+   "src": "<strong>int4 (QAT or GPTQ-style).</strong> Most LLMs run\n            at int4 in production in 2026 with ~0.5% perplexity\n            increase.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@int2 / binary.@@T1@@ Big quality drops. Used\n            in specialised hardware (NPUs, ASICs) where the size win\n            is worth the accuracy loss.": {
+   "zh": "@@T0@@int2 / 二值。@@T1@@ 质量大幅下降。用于\n            专用硬件（NPU、ASIC），在这些场景中\n            体积上的收益值得付出精度上的代价。",
+   "src": "<strong>int2 / binary.</strong> Big quality drops. Used\n            in specialised hardware (NPUs, ASICs) where the size win\n            is worth the accuracy loss.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Magnitude pruning, unstructured, 50%.@@T1@@\n            Most networks tolerate ~50% sparsity with negligible\n            accuracy loss. Above ~80% the decision boundary cracks.": {
+   "zh": "@@T0@@幅值剪枝，非结构化，50%。@@T1@@\n            多数网络可容忍约 50% 的稀疏度而精度损失可忽略。\n            超过约 80% 后决策边界开始崩塌。",
+   "src": "<strong>Magnitude pruning, unstructured, 50%.</strong>\n            Most networks tolerate ~50% sparsity with negligible\n            accuracy loss. Above ~80% the decision boundary cracks.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Structured pruning (whole heads / channels).@@T1@@\n            Stricter limit; ~25-35% before quality drops, but real\n            speed-up on commodity hardware.": {
+   "zh": "@@T0@@结构化剪枝（整头 / 整通道）。@@T1@@\n            限制更严；约 25&ndash;35% 后质量开始下滑，但在\n            通用硬件上能带来真正的加速。",
+   "src": "<strong>Structured pruning (whole heads / channels).</strong>\n            Stricter limit; ~25-35% before quality drops, but real\n            speed-up on commodity hardware.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Mixed precision (FP16 / FP8).@@T1@@ Modern\n            training and inference default. NVIDIA H100 / B200 FP8;\n            Apple Silicon FP16; Tensor cores need FP16 or BF16.": {
+   "zh": "@@T0@@混合精度（FP16 / FP8）。@@T1@@ 现代\n            训练与推理的默认做法。NVIDIA H100 / B200 用 FP8；\n            Apple Silicon 用 FP16；Tensor Core 需要 FP16 或 BF16。",
+   "src": "<strong>Mixed precision (FP16 / FP8).</strong> Modern\n            training and inference default. NVIDIA H100 / B200 FP8;\n            Apple Silicon FP16; Tensor cores need FP16 or BF16.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 3½": {
+   "zh": "第 3½ 步",
+   "src": "Step 3½",
+   "tags": []
+  },
+  "GPTQ, AWQ, SmoothQuant — the LLM quantisation family": {
+   "zh": "GPTQ、AWQ、SmoothQuant &mdash; 大语言模型量化一族",
+   "src": "GPTQ, AWQ, SmoothQuant — the LLM quantisation family",
+   "tags": []
+  },
+  "Naively running PTQ on a 70B LLM at int4 obliterates accuracy. Three techniques restore most of it; all are post-training, all are calibration-driven (use a few hundred unlabelled prompts), and all ship in popular runtimes.": {
+   "zh": "对 700 亿参数的大语言模型以 int4 朴素运行 PTQ 会彻底摧毁精度。有三种技术可挽回其中大部分；它们都是训练后方法，都以校准为驱动（使用数百条无标注提示词），并且都已内置在流行的运行时中。",
+   "src": "Naively running PTQ on a 70B LLM at int4 obliterates accuracy. Three techniques restore most of it; all are post-training, all are calibration-driven (use a few hundred unlabelled prompts), and all ship in popular runtimes.",
+   "tags": []
+  },
+  "@@T0@@GPTQ@@T1@@ (Frantar et&nbsp;al., 2022). Quantise columns of a weight matrix one at a time, propagating the residual error into the remaining (still-float) columns via a Hessian update. Close in spirit to Optimal Brain Quantisation. Quantises a 70B model to int4 in a few hours on one GPU; near-FP16 perplexity at int4.": {
+   "zh": "@@T0@@GPTQ@@T1@@（Frantar 等人，2022）。逐列量化权重矩阵，\n            并通过 Hessian 更新将残差误差传播到其余（仍为浮点的）列中。\n            其思路与最优脑量化（OBQ）相近。可在单张 GPU 上于数小时内\n            将 700 亿参数模型量化为 int4；int4 下的困惑度接近 FP16。",
+   "src": "<strong>GPTQ</strong> (Frantar et&nbsp;al., 2022). Quantise columns of a weight matrix one at a time, propagating the residual error into the remaining (still-float) columns via a Hessian update. Close in spirit to Optimal Brain Quantisation. Quantises a 70B model to int4 in a few hours on one GPU; near-FP16 perplexity at int4.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@AWQ@@T1@@ (Lin et&nbsp;al., 2023). Scale weights and activations @@T2@@before@@T3@@ quantising so the most \"salient\" weights (those interacting with large-magnitude activations) get more resolution. Cheaper than GPTQ; often matches or beats it for int4 LLMs.": {
+   "zh": "@@T0@@AWQ@@T1@@（Lin 等人，2023）。在量化 @@T2@@之前@@T3@@ 先对权重与激活进行缩放，\n            使最“显著”的权重（即那些与大数值激活相互作用的权重）获得更高的分辨率。\n            比 GPTQ 更廉价；对于 int4 大语言模型常能与之持平或更优。",
+   "src": "<strong>AWQ</strong> (Lin et&nbsp;al., 2023). Scale weights and activations <em>before</em> quantising so the most \"salient\" weights (those interacting with large-magnitude activations) get more resolution. Cheaper than GPTQ; often matches or beats it for int4 LLMs.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@SmoothQuant@@T1@@ (Xiao et&nbsp;al., 2022). Migrates the quantisation difficulty from activations to weights — multiply weights by $s$, divide activations by $s$, equivalent computation, much better quantisation behaviour. The fix for activation-outlier-driven failures.": {
+   "zh": "@@T0@@SmoothQuant@@T1@@（Xiao 等人，2022）。将量化的难度\n            从激活迁移到权重 &mdash; 权重乘以 $s$，激活除以 $s$，\n            计算等价，但量化表现大为改善。它是\n            针对激活离群值所致失效的修复方案。",
+   "src": "<strong>SmoothQuant</strong> (Xiao et&nbsp;al., 2022). Migrates the quantisation difficulty from activations to weights — multiply weights by $s$, divide activations by $s$, equivalent computation, much better quantisation behaviour. The fix for activation-outlier-driven failures.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@K/V cache quantisation.@@T1@@ Beyond weights, the KV cache dominates LLM memory at long context. INT8 K/V cache is now a default in vLLM, llama.cpp; FP8 K/V is appearing in 2025+.": {
+   "zh": "@@T0@@K/V 缓存量化。@@T1@@ 除权重之外，KV 缓存在长上下文下\n            占据大语言模型显存的主要部分。INT8 K/V 缓存现已成为\n            vLLM、llama.cpp 的默认做法；FP8 K/V 自 2025 年起开始出现。",
+   "src": "<strong>K/V cache quantisation.</strong> Beyond weights, the KV cache dominates LLM memory at long context. INT8 K/V cache is now a default in vLLM, llama.cpp; FP8 K/V is appearing in 2025+.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@The 2026 LLM quantisation recipe.@@T1@@\n          For inference: @@T2@@weights at int4 via AWQ or GPTQ, activations at int8 via SmoothQuant, K/V cache at int8@@T3@@. Total: ~4× memory reduction vs fp16 with &lt; 1% perplexity hit on most 7B–70B chat models.": {
+   "zh": "@@T0@@2026 年的大语言模型量化方案。@@T1@@\n          用于推理：@@T2@@权重经 AWQ 或 GPTQ 量化为 int4，激活经 SmoothQuant 量化为 int8，K/V 缓存为 int8@@T3@@。总计：相对于 fp16 显存减少约 4 倍，而在多数 7B&ndash;70B 对话模型上困惑度损失 &lt; 1%。",
+   "src": "<strong>The 2026 LLM quantisation recipe.</strong>\n          For inference: <em>weights at int4 via AWQ or GPTQ, activations at int8 via SmoothQuant, K/V cache at int8</em>. Total: ~4× memory reduction vs fp16 with &lt; 1% perplexity hit on most 7B–70B chat models.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Lottery ticket — pruning's surprise": {
+   "zh": "彩票假说 &mdash; 剪枝带来的意外",
+   "src": "Lottery ticket — pruning's surprise",
+   "tags": []
+  },
+  "Frankle &amp; Carbin (2019) showed that within a dense\n          random-initialisation network, there exists a small\n          subnetwork (a \"winning ticket\") that, when trained from the\n          @@T0@@same@@T1@@ initial weights, matches or beats the dense\n          network's accuracy. The recipe:": {
+   "zh": "Frankle &amp; Carbin（2019）表明，在一个稠密的\n          随机初始化网络中，存在一个小的子网络\n          （即“中奖彩票”），当它从 @@T0@@相同的@@T1@@ 初始权重\n          开始训练时，其精度可与稠密网络持平甚至更优。\n          其做法如下：",
+   "src": "Frankle &amp; Carbin (2019) showed that within a dense\n          random-initialisation network, there exists a small\n          subnetwork (a \"winning ticket\") that, when trained from the\n          <em>same</em> initial weights, matches or beats the dense\n          network's accuracy. The recipe:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Train dense network. Save initial weights.": {
+   "zh": "训练稠密网络。保存初始权重。",
+   "src": "Train dense network. Save initial weights.",
+   "tags": []
+  },
+  "Prune by magnitude (e.g., bottom 80%).": {
+   "zh": "按幅值剪枝（例如剪去最小的 80%）。",
+   "src": "Prune by magnitude (e.g., bottom 80%).",
+   "tags": []
+  },
+  "Reset surviving weights to their initial values.": {
+   "zh": "将存活的权重重置为其初始值。",
+   "src": "Reset surviving weights to their initial values.",
+   "tags": []
+  },
+  "Retrain. Often hits the same accuracy as the dense\n            network.": {
+   "zh": "重新训练。通常能达到与稠密网络\n            相同的精度。",
+   "src": "Retrain. Often hits the same accuracy as the dense\n            network.",
+   "tags": []
+  },
+  "(Iterate; \"iterative magnitude pruning\" finds smaller\n            tickets.)": {
+   "zh": "（可迭代；“迭代幅值剪枝”能找出更小的\n            中奖彩票。）",
+   "src": "(Iterate; \"iterative magnitude pruning\" finds smaller\n            tickets.)",
+   "tags": []
+  },
+  "@@T0@@What it tells us.@@T1@@\n          Most weights in a trained network are unused; pruning\n          finds the useful subset. @@T2@@Initialization@@T3@@ matters\n          — random init plus pruning fails; matched init plus\n          pruning succeeds. This is a clue to the implicit bias of\n          SGD that mainstream theory still hasn't fully explained.": {
+   "zh": "@@T0@@它告诉了我们什么。@@T1@@\n          训练好的网络中大多数权重并未被使用；剪枝\n          找出其中有用的子集。@@T2@@初始化@@T3@@ 至关重要\n          &mdash; 随机初始化加剪枝会失败；匹配的初始化加\n          剪枝则能成功。这是关于 SGD 隐式偏置的一条线索，\n          主流理论至今尚未完全解释清楚。",
+   "src": "<strong>What it tells us.</strong>\n          Most weights in a trained network are unused; pruning\n          finds the useful subset. <em>Initialization</em> matters\n          — random init plus pruning fails; matched init plus\n          pruning succeeds. This is a clue to the implicit bias of\n          SGD that mainstream theory still hasn't fully explained.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Practical stack for shipping a small model": {
+   "zh": "部署小模型的实用技术栈",
+   "src": "Practical stack for shipping a small model",
+   "tags": []
+  },
+  "@@T0@@Start big.@@T1@@ Train the largest model your\n            data supports; you'll compress later.": {
+   "zh": "@@T0@@从大做起。@@T1@@ 训练你的数据所能支撑的\n            最大模型；之后再压缩。",
+   "src": "<strong>Start big.</strong> Train the largest model your\n            data supports; you'll compress later.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Distil into a smaller architecture.@@T1@@\n            See the @@T2@@KD article@@T3@@;\n            a smaller student that imitates the teacher's softmax\n            often beats a same-size from-scratch model.": {
+   "zh": "@@T0@@蒸馏到更小的架构。@@T1@@\n            参见 @@T2@@知识蒸馏一文@@T3@@；\n            模仿教师模型 softmax 输出的较小学生模型，\n            往往胜过同等规模但从零训练的模型。",
+   "src": "<strong>Distil into a smaller architecture.</strong>\n            See the <a href=\"../knowledge-distillation/index.html\">KD article</a>;\n            a smaller student that imitates the teacher's softmax\n            often beats a same-size from-scratch model.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<a href=\"../knowledge-distillation/index.html\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@Apply structured pruning@@T1@@ for real\n            speed-up on commodity hardware. 25-35% drop without quality loss.": {
+   "zh": "@@T0@@施加结构化剪枝@@T1@@ 以在通用硬件上\n            获得真正的加速。剪去 25&ndash;35% 而无质量损失。",
+   "src": "<strong>Apply structured pruning</strong> for real\n            speed-up on commodity hardware. 25-35% drop without quality loss.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@QAT at int8@@T1@@ as the production target.\n            Validate on a calibrated test set (see\n            @@T2@@calibration@@T3@@).": {
+   "zh": "@@T0@@以 int8 的 QAT@@T1@@ 作为生产目标。\n            在校准过的测试集上验证（参见\n            @@T2@@校准@@T3@@）。",
+   "src": "<strong>QAT at int8</strong> as the production target.\n            Validate on a calibrated test set (see\n            <a href=\"../calibration/index.html\">calibration</a>).",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<a href=\"../calibration/index.html\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@Optional: int4 with GPTQ / AWQ@@T1@@ for big\n            LLMs where memory is the bottleneck.": {
+   "zh": "@@T0@@可选：对大语言模型使用\n            GPTQ / AWQ 的 int4@@T1@@，适用于显存成为瓶颈的场景。",
+   "src": "<strong>Optional: int4 with GPTQ / AWQ</strong> for big\n            LLMs where memory is the bottleneck.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Profile + iterate.@@T1@@ Almost all \"the model\n            is too slow\" complaints are actually data-pipeline / I/O\n            problems, not the model. Always profile first.": {
+   "zh": "@@T0@@性能剖析 + 迭代。@@T1@@ 几乎所有“模型\n            太慢”的抱怨实际上都是数据流水线 / I/O\n            问题，而非模型本身。务必先做性能剖析。",
+   "src": "<strong>Profile + iterate.</strong> Almost all \"the model\n            is too slow\" complaints are actually data-pipeline / I/O\n            problems, not the model. Always profile first.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Deployment runtimes:@@T1@@ ONNX Runtime,\n            TensorRT-LLM, llama.cpp, MLC-LLM, Core ML, TFLite. Each\n            ships its own quantization tools and has its own\n            production gotchas.": {
+   "zh": "@@T0@@部署运行时：@@T1@@ ONNX Runtime、\n            TensorRT-LLM、llama.cpp、MLC-LLM、Core ML、TFLite。各自\n            都附带自己的量化工具，也各有自己的\n            生产陷阱。",
+   "src": "<strong>Deployment runtimes:</strong> ONNX Runtime,\n            TensorRT-LLM, llama.cpp, MLC-LLM, Core ML, TFLite. Each\n            ships its own quantization tools and has its own\n            production gotchas.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Structured sparsity that actually speeds up hardware": {
+   "zh": "能真正加速硬件的结构化稀疏",
+   "src": "Structured sparsity that actually speeds up hardware",
+   "tags": []
+  },
+  "Unstructured 90% sparsity rarely speeds up inference on a GPU — the dense matmul kernel still runs over the zeros. Two patterns the hardware actually likes:": {
+   "zh": "非结构化 90% 稀疏在 GPU 上很少能加速推理 &mdash; 稠密的矩阵乘法核仍会在这些零上运行。有两种硬件真正喜欢的模式：",
+   "src": "Unstructured 90% sparsity rarely speeds up inference on a GPU — the dense matmul kernel still runs over the zeros. Two patterns the hardware actually likes:",
+   "tags": []
+  },
+  "@@T0@@2:4 sparsity.@@T1@@ NVIDIA Ampere+ supports a hardware-accelerated 2:4 structured sparsity: every group of 4 consecutive weights has at most 2 non-zero. Effective 50% sparsity with ~2× speed-up at no accuracy loss after fine-tune. Now the default for production inference.": {
+   "zh": "@@T0@@2:4 稀疏。@@T1@@ NVIDIA Ampere 及之后的架构支持\n            硬件加速的 2:4 结构化稀疏：每 4 个连续权重中\n            至多有 2 个非零。在微调后无精度损失的前提下，\n            有效稀疏度为 50%，加速约 2 倍。现已成为生产推理的默认做法。",
+   "src": "<strong>2:4 sparsity.</strong> NVIDIA Ampere+ supports a hardware-accelerated 2:4 structured sparsity: every group of 4 consecutive weights has at most 2 non-zero. Effective 50% sparsity with ~2× speed-up at no accuracy loss after fine-tune. Now the default for production inference.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Block / N:M sparsity.@@T1@@ Larger blocks of zeros line up with tensor-core tile sizes. Block-sparse attention, block-sparse MLP are how 2024–2026 MoEs and sparse-attention transformers (Mixtral, Llama 4) get cheap forward passes.": {
+   "zh": "@@T0@@块 / N:M 稀疏。@@T1@@ 更大的零块与 tensor core 的分块尺寸相契合。块稀疏注意力、块稀疏 MLP 正是 2024&ndash;2026 年间 MoE 与稀疏注意力 Transformer（Mixtral、Llama 4）获得廉价前向传播的方式。",
+   "src": "<strong>Block / N:M sparsity.</strong> Larger blocks of zeros line up with tensor-core tile sizes. Block-sparse attention, block-sparse MLP are how 2024–2026 MoEs and sparse-attention transformers (Mixtral, Llama 4) get cheap forward passes.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Head / channel pruning.@@T1@@ Drop whole attention heads or feed-forward channels. Trivially speeds up but coarser; tools: HuggingFace @@T2@@optimum@@T3@@, @@T4@@nn_pruning@@T5@@.": {
+   "zh": "@@T0@@头 / 通道剪枝。@@T1@@ 整块地丢弃注意力头或前馈通道。加速直接但粒度更粗；工具：HuggingFace @@T2@@optimum@@T3@@、@@T4@@nn_pruning@@T5@@。",
+   "src": "<strong>Head / channel pruning.</strong> Drop whole attention heads or feed-forward channels. Trivially speeds up but coarser; tools: HuggingFace <code>optimum</code>, <code>nn_pruning</code>.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Step 7": {
+   "zh": "第 7 步",
+   "src": "Step 7",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "参考文献",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Jacob et&nbsp;al. (2018)@@T1@@ &mdash; @@T2@@Quantization and training of neural networks for efficient integer-arithmetic-only inference.@@T3@@ The Google paper that defined modern int8 quantisation.": {
+   "zh": "@@T0@@Jacob 等人（2018）@@T1@@ &mdash; @@T2@@Quantization and training of neural networks for efficient integer-arithmetic-only inference.@@T3@@ 定义了现代 int8 量化的谷歌论文。",
+   "src": "<strong>Jacob et&nbsp;al. (2018)</strong> &mdash; <em>Quantization and training of neural networks for efficient integer-arithmetic-only inference.</em> The Google paper that defined modern int8 quantisation.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Frantar, Ashkboos, Hoefler, Alistarh (2022)@@T1@@ &mdash; @@T2@@GPTQ: Accurate post-training quantization for generative pre-trained transformers.@@T3@@": {
+   "zh": "@@T0@@Frantar, Ashkboos, Hoefler, Alistarh（2022）@@T1@@ &mdash; @@T2@@GPTQ: Accurate post-training quantization for generative pre-trained transformers.@@T3@@",
+   "src": "<strong>Frantar, Ashkboos, Hoefler, Alistarh (2022)</strong> &mdash; <em>GPTQ: Accurate post-training quantization for generative pre-trained transformers.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Lin et&nbsp;al. (2023)@@T1@@ &mdash; @@T2@@AWQ: Activation-aware Weight Quantization.@@T3@@": {
+   "zh": "@@T0@@Lin 等人（2023）@@T1@@ &mdash; @@T2@@AWQ: Activation-aware Weight Quantization.@@T3@@",
+   "src": "<strong>Lin et&nbsp;al. (2023)</strong> &mdash; <em>AWQ: Activation-aware Weight Quantization.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Xiao et&nbsp;al. (2022)@@T1@@ &mdash; @@T2@@SmoothQuant.@@T3@@": {
+   "zh": "@@T0@@Xiao 等人（2022）@@T1@@ &mdash; @@T2@@SmoothQuant.@@T3@@",
+   "src": "<strong>Xiao et&nbsp;al. (2022)</strong> &mdash; <em>SmoothQuant.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Frankle &amp; Carbin (2019)@@T1@@ &mdash; @@T2@@The Lottery Ticket Hypothesis.@@T3@@": {
+   "zh": "@@T0@@Frankle &amp; Carbin（2019）@@T1@@ &mdash; @@T2@@The Lottery Ticket Hypothesis.@@T3@@",
+   "src": "<strong>Frankle &amp; Carbin (2019)</strong> &mdash; <em>The Lottery Ticket Hypothesis.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Han, Mao, Dally (2016)@@T1@@ &mdash; @@T2@@Deep Compression.@@T3@@ The combined pruning + quantisation + Huffman paper.": {
+   "zh": "@@T0@@Han, Mao, Dally（2016）@@T1@@ &mdash; @@T2@@Deep Compression.@@T3@@ 将剪枝、量化与 Huffman 编码相结合的论文。",
+   "src": "<strong>Han, Mao, Dally (2016)</strong> &mdash; <em>Deep Compression.</em> The combined pruning + quantisation + Huffman paper.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Mishra, Latorre, Pool, Stosic, Stosic, Venkatesh, Yu, Micikevicius (2021)@@T1@@ &mdash; the 2:4 hardware-sparsity paper.": {
+   "zh": "@@T0@@Mishra, Latorre, Pool, Stosic, Stosic, Venkatesh, Yu, Micikevicius（2021）@@T1@@ &mdash; 关于 2:4 硬件稀疏的论文。",
+   "src": "<strong>Mishra, Latorre, Pool, Stosic, Stosic, Venkatesh, Yu, Micikevicius (2021)</strong> &mdash; the 2:4 hardware-sparsity paper.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "量化与剪枝：并排对比",
+  "tagline": "将模型压缩至 int8 / int4 / 稀疏 &mdash; 并精确观察精度在何处跌落悬崖",
+  "summary": "在二维分类玩具任务上运行的实时网络：将量化位宽从 16 滑至 1，剪枝比例从 0% 滑至 95%。观察精度随模型大小的变化。随后逐一讲解 PTQ、QAT 与彩票假说，并说明每种技术的合理代价与收益。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "训练一个小型 MLP；用量化滑块从 FP16 一直滑到 1 位权重；给出每个位宽下的精度。",
+   "幅值剪枝比例滑块；观察决策边界仅在稀疏度超过约 80% 后才开始崩塌。",
+   "大小-精度曲线，标注出 PTQ、QAT 与结构化剪枝的位置。",
+   "彩票假说面板：剪枝 + 重置 + 重训练；观察子网络训练得与原始网络一样好。"
+  ],
+  "tags": [
+   "量化",
+   "剪枝",
+   "模型压缩",
+   "边缘计算",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

@@ -1,0 +1,925 @@
+{
+ "slug": "hash-tables",
+ "units": {
+  "Hash Tables, Collision by Collision": {
+   "zh": "哈希表：逐次冲突解析",
+   "src": "Hash Tables, Collision by Collision",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Hash tables look magical from outside: average $O(1)$\n          lookup, no ordering, used in every dictionary and cache.\n          Inside, the magic is collision resolution. Insert keys\n          into a small table and watch them collide; switch between\n          chaining and three open-addressing strategies; watch the\n          load factor creep up and the lookups slow down.": {
+   "zh": "哈希表从外面看充满魔力：平均 $O(1)$\n          查找、无顺序，被用于每一个字典与缓存。\n          而在内部，这种魔力源自冲突解析。把键插入一张小表中，观察它们如何冲突；\n          在链式法与三种开放寻址策略之间切换；观察负载因子逐渐升高、查找逐渐变慢。",
+   "src": "Hash tables look magical from outside: average $O(1)$\n          lookup, no ordering, used in every dictionary and cache.\n          Inside, the magic is collision resolution. Insert keys\n          into a small table and watch them collide; switch between\n          chaining and three open-addressing strategies; watch the\n          load factor creep up and the lookups slow down.",
+   "tags": []
+  },
+  "@@T0@@~15 min@@T1@@\n          @@T2@@Data structures &middot; Hashing &middot; Cache@@T3@@": {
+   "zh": "@@T0@@约 15 分钟@@T1@@\n          @@T2@@数据结构 &middot; 哈希 &middot; 缓存@@T3@@",
+   "src": "<span>~15 min</span>\n          <span>Data structures &middot; Hashing &middot; Cache</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "The pigeonhole problem": {
+   "zh": "鸽巢问题",
+   "src": "The pigeonhole problem",
+   "tags": []
+  },
+  "A hash table maps a key — any key — to a slot in a fixed\n          array. The mapping is a hash function $h(\\text{key}) \\mod\n          m$ for table size $m$. The whole machine depends on this\n          mapping being approximately uniform.": {
+   "zh": "哈希表把一个键——任意一个键——映射到固定数组中的某个槽位。\n          该映射是一个哈希函数 $h(\\text{key}) \\mod\n          m$，其中 $m$ 为表的大小。整个机制都依赖于该映射近似均匀。",
+   "src": "A hash table maps a key — any key — to a slot in a fixed\n          array. The mapping is a hash function $h(\\text{key}) \\mod\n          m$ for table size $m$. The whole machine depends on this\n          mapping being approximately uniform.",
+   "tags": []
+  },
+  "It can't be uniform @@T0@@and@@T1@@ injective: there are\n          infinitely many possible keys and only $m$ slots. So two\n          different keys will eventually hash to the same slot. The\n          question is what you do when they do.": {
+   "zh": "它不可能既均匀@@T0@@又@@T1@@单射：可能的键有无穷多个，\n          而槽位只有 $m$ 个。因此两个不同的键最终会哈希到同一槽位。\n          问题在于，当这种情况发生时你该如何处理。",
+   "src": "It can't be uniform <em>and</em> injective: there are\n          infinitely many possible keys and only $m$ slots. So two\n          different keys will eventually hash to the same slot. The\n          question is what you do when they do.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Two big families of answers:": {
+   "zh": "答案分为两大族：",
+   "src": "Two big families of answers:",
+   "tags": []
+  },
+  "@@T0@@Separate chaining.@@T1@@ Each slot owns a\n            list. Colliding keys append to the list. Lookup walks\n            the list. Simple to reason about; touches non-local\n            memory.": {
+   "zh": "@@T0@@分离链接法。@@T1@@ 每个槽位拥有一个链表。\n            冲突的键被追加到该链表上。查找时遍历该链表。\n            易于推理；但会访问非连续的内存。",
+   "src": "<strong>Separate chaining.</strong> Each slot owns a\n            list. Colliding keys append to the list. Lookup walks\n            the list. Simple to reason about; touches non-local\n            memory.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Open addressing.@@T1@@ The colliding key\n            @@T2@@probes@@T3@@ for the next empty slot in the array\n            itself. The probing strategy (linear, quadratic, random,\n            robin hood) is the design choice. Cache-friendly; more\n            subtle.": {
+   "zh": "@@T0@@开放寻址法。@@T1@@ 冲突的键会在数组\n            自身之中@@T2@@探测@@T3@@下一个空槽位。探测策略\n            （线性、二次、随机、robin hood）正是设计上的选择。\n            对缓存友好；但更为微妙。",
+   "src": "<strong>Open addressing.</strong> The colliding key\n            <em>probes</em> for the next empty slot in the array\n            itself. The probing strategy (linear, quadratic, random,\n            robin hood) is the design choice. Cache-friendly; more\n            subtle.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Below: a small 16-slot table you can insert into. Switch\n          between strategies and watch the same insertion produce\n          very different layouts.": {
+   "zh": "下面是一张可插入的 16 槽小表。在策略之间切换，\n          观察同样的插入操作如何产生截然不同的布局。",
+   "src": "Below: a small 16-slot table you can insert into. Switch\n          between strategies and watch the same insertion produce\n          very different layouts.",
+   "tags": []
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "Insert, watch, probe": {
+   "zh": "插入、观察、探测",
+   "src": "Insert, watch, probe",
+   "tags": []
+  },
+  "strategy": {
+   "zh": "策略",
+   "src": "strategy",
+   "tags": []
+  },
+  "separate chaining": {
+   "zh": "分离链接法",
+   "src": "separate chaining",
+   "tags": []
+  },
+  "linear probing": {
+   "zh": "线性探测",
+   "src": "linear probing",
+   "tags": []
+  },
+  "quadratic probing": {
+   "zh": "二次探测",
+   "src": "quadratic probing",
+   "tags": []
+  },
+  "robin hood (linear)": {
+   "zh": "robin hood（线性）",
+   "src": "robin hood (linear)",
+   "tags": []
+  },
+  "hash": {
+   "zh": "哈希",
+   "src": "hash",
+   "tags": []
+  },
+  "FNV-1a (decent)": {
+   "zh": "FNV-1a（尚可）",
+   "src": "FNV-1a (decent)",
+   "tags": []
+  },
+  "first-letter (adversarial)": {
+   "zh": "首字母（对抗性）",
+   "src": "first-letter (adversarial)",
+   "tags": []
+  },
+  "insert": {
+   "zh": "插入",
+   "src": "insert",
+   "tags": []
+  },
+  "add": {
+   "zh": "添加",
+   "src": "add",
+   "tags": []
+  },
+  "find": {
+   "zh": "查找",
+   "src": "find",
+   "tags": []
+  },
+  "delete": {
+   "zh": "删除",
+   "src": "delete",
+   "tags": []
+  },
+  "burst 10 random": {
+   "zh": "连插 10 个随机键",
+   "src": "burst 10 random",
+   "tags": []
+  },
+  "clear": {
+   "zh": "清空",
+   "src": "clear",
+   "tags": []
+  },
+  "@@T0@@@@T1@@@@T2@@empty@@T3@@\n          @@T4@@@@T5@@@@T6@@occupied@@T7@@\n          @@T8@@@@T9@@@@T10@@probing@@T11@@\n          @@T12@@@@T13@@@@T14@@just inserted@@T15@@\n          @@T16@@@@T17@@@@T18@@tombstone@@T19@@\n          @@T20@@@@T21@@@@T22@@robin-hood evict@@T23@@": {
+   "zh": "@@T0@@@@T1@@@@T2@@空@@T3@@\n          @@T4@@@@T5@@@@T6@@已占用@@T7@@\n          @@T8@@@@T9@@@@T10@@探测中@@T11@@\n          @@T12@@@@T13@@@@T14@@刚刚插入@@T15@@\n          @@T16@@@@T17@@@@T18@@墓碑@@T19@@\n          @@T20@@@@T21@@@@T22@@robin-hood 驱逐@@T23@@",
+   "src": "<span><span class=\"legend-sw\" style=\"background: var(--slot-empty);\"></span>empty</span>\n          <span><span class=\"legend-sw\" style=\"background: rgba(44,111,183,0.20);\"></span>occupied</span>\n          <span><span class=\"legend-sw\" style=\"background: var(--slot-prob);\"></span>probing</span>\n          <span><span class=\"legend-sw\" style=\"background: var(--slot-active);\"></span>just inserted</span>\n          <span><span class=\"legend-sw\" style=\"background: var(--slot-tomb);\"></span>tombstone</span>\n          <span><span class=\"legend-sw\" style=\"background: var(--slot-rich);\"></span>robin-hood evict</span>",
+   "tags": [
+    "<span>",
+    "<span class=\"legend-sw\" style=\"background: var(--slot-empty);\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"legend-sw\" style=\"background: rgba(44,111,183,0.20);\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"legend-sw\" style=\"background: var(--slot-prob);\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"legend-sw\" style=\"background: var(--slot-active);\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"legend-sw\" style=\"background: var(--slot-tomb);\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"legend-sw\" style=\"background: var(--slot-rich);\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@size m@@T1@@\n            @@T2@@16@@T3@@": {
+   "zh": "@@T0@@表大小 m@@T1@@\n            @@T2@@16@@T3@@",
+   "src": "<span class=\"s-label\">size m</span>\n            <span class=\"s-value\" id=\"ht-size\">16</span>",
+   "tags": [
+    "<span class=\"s-label\">",
+    "</span>",
+    "<span class=\"s-value\" id=\"ht-size\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@load factor α@@T1@@\n            @@T2@@0.00@@T3@@": {
+   "zh": "@@T0@@负载因子 α@@T1@@\n            @@T2@@0.00@@T3@@",
+   "src": "<span class=\"s-label\">load factor α</span>\n            <span class=\"s-value\" id=\"ht-load\">0.00</span>",
+   "tags": [
+    "<span class=\"s-label\">",
+    "</span>",
+    "<span class=\"s-value\" id=\"ht-load\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@avg probe length@@T1@@\n            @@T2@@0.0@@T3@@": {
+   "zh": "@@T0@@平均探测长度@@T1@@\n            @@T2@@0.0@@T3@@",
+   "src": "<span class=\"s-label\">avg probe length</span>\n            <span class=\"s-value\" id=\"ht-probe\">0.0</span>",
+   "tags": [
+    "<span class=\"s-label\">",
+    "</span>",
+    "<span class=\"s-value\" id=\"ht-probe\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@n keys@@T1@@\n            @@T2@@0@@T3@@": {
+   "zh": "@@T0@@键数 n@@T1@@\n            @@T2@@0@@T3@@",
+   "src": "<span class=\"s-label\">n keys</span>\n            <span class=\"s-value\" id=\"ht-count\">0</span>",
+   "tags": [
+    "<span class=\"s-label\">",
+    "</span>",
+    "<span class=\"s-value\" id=\"ht-count\">",
+    "</span>"
+   ]
+  },
+  "enter a key and press add.": {
+   "zh": "输入一个键并按下添加。",
+   "src": "enter a key and press add.",
+   "tags": []
+  },
+  "Things to try:": {
+   "zh": "可以尝试：",
+   "src": "Things to try:",
+   "tags": []
+  },
+  "Insert \"cat\", \"dog\", \"ant\", \"bat\", \"ape\", \"dot\" with\n            FNV-1a + linear probing. Watch the average probe length\n            stay near 1. Now switch the hash to first-letter and\n            re-insert — every key hashes to its first letter, so\n            \"ant\", \"ape\" pile up on one slot.": {
+   "zh": "用 FNV-1a + 线性探测插入 \"cat\"、\"dog\"、\"ant\"、\"bat\"、\"ape\"、\"dot\"。\n            观察平均探测长度保持在 1 附近。现在把哈希切换为首字母并\n            重新插入——每个键都哈希到其首字母，\n            于是 \"ant\"、\"ape\" 堆积在同一个槽位上。",
+   "src": "Insert \"cat\", \"dog\", \"ant\", \"bat\", \"ape\", \"dot\" with\n            FNV-1a + linear probing. Watch the average probe length\n            stay near 1. Now switch the hash to first-letter and\n            re-insert — every key hashes to its first letter, so\n            \"ant\", \"ape\" pile up on one slot.",
+   "tags": []
+  },
+  "Switch to chaining with the bad hash and burst 10\n            random keys. The chains grow on a few slots; lookup\n            becomes linear in chain length.": {
+   "zh": "切换到分离链接法并配合糟糕的哈希，连插 10 个随机键。\n            链在少数几个槽位上增长；查找的代价与链长成线性关系。",
+   "src": "Switch to chaining with the bad hash and burst 10\n            random keys. The chains grow on a few slots; lookup\n            becomes linear in chain length.",
+   "tags": []
+  },
+  "Switch to robin-hood probing. Insert keys with a high\n            load factor; watch keys that arrived early get\n            @@T0@@evicted@@T1@@ toward later slots when a key with a\n            longer probe distance arrives.": {
+   "zh": "切换到 robin-hood 探测。在高负载因子下插入键；\n            观察当某个探测距离更长的键到来时，早期到达的键\n            如何被@@T0@@驱逐@@T1@@到更靠后的槽位。",
+   "src": "Switch to robin-hood probing. Insert keys with a high\n            load factor; watch keys that arrived early get\n            <em>evicted</em> toward later slots when a key with a\n            longer probe distance arrives.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Delete a key from a linear-probed table. A tombstone\n            (gray) remains — a normal \"empty\" would break the\n            search chain for keys that probed past this slot.": {
+   "zh": "从线性探测的表中删除一个键。会留下一个墓碑（灰色）——\n            若标记为普通的“空”，就会破坏那些探测时经过此槽位的键的\n            搜索链。",
+   "src": "Delete a key from a linear-probed table. A tombstone\n            (gray) remains — a normal \"empty\" would break the\n            search chain for keys that probed past this slot.",
+   "tags": []
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "What makes a hash function good": {
+   "zh": "什么使哈希函数变得优秀",
+   "src": "What makes a hash function good",
+   "tags": []
+  },
+  "Two properties matter:": {
+   "zh": "有两条性质至关重要：",
+   "src": "Two properties matter:",
+   "tags": []
+  },
+  "@@T0@@Uniformity.@@T1@@ Each slot should be\n            equally likely. A bad hash function (like \"first letter\")\n            clusters keys; a good one spreads them.": {
+   "zh": "@@T0@@均匀性。@@T1@@ 每个槽位被选中的概率\n            应当相等。糟糕的哈希函数（如“首字母”）会使键聚集；\n            好的哈希函数则会把它们分散开。",
+   "src": "<strong>Uniformity.</strong> Each slot should be\n            equally likely. A bad hash function (like \"first letter\")\n            clusters keys; a good one spreads them.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Avalanche.@@T1@@ One-bit changes in the\n            input should flip about half the bits of the output.\n            Modern hash functions (FNV-1a, MurmurHash, xxHash,\n            CityHash, SipHash) are designed for this.": {
+   "zh": "@@T0@@雪崩效应。@@T1@@ 输入中一位的变化\n            应当让输出约一半的位发生翻转。现代哈希函数\n            （FNV-1a、MurmurHash、xxHash、CityHash、SipHash）正是为此而设计。",
+   "src": "<strong>Avalanche.</strong> One-bit changes in the\n            input should flip about half the bits of the output.\n            Modern hash functions (FNV-1a, MurmurHash, xxHash,\n            CityHash, SipHash) are designed for this.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "For non-cryptographic hashes — FNV-1a, Murmur — the\n          attacker model is \"no attacker, just uniform-ish inputs\".\n          Fast, good enough. For inputs an attacker controls\n          (HTTP headers, JSON keys, network payloads), you need a\n          @@T0@@keyed@@T1@@ hash with a random secret: @@T2@@SipHash@@T3@@\n          is the standard. Without it, an attacker who knows your\n          hash function can synthesise keys that all map to one\n          slot, turning your $O(1)$ table into an $O(n^2)$ DoS.": {
+   "zh": "对于非密码学哈希——FNV-1a、Murmur——其威胁模型是\n          “没有攻击者，只有近似均匀的输入”。速度快、足够好。\n          对于攻击者可控的输入（HTTP 头部、JSON 键、网络载荷），\n          你需要一种带随机密钥的@@T0@@带密钥@@T1@@哈希：@@T2@@SipHash@@T3@@\n          是标准选择。没有它，一个知道你所使用哈希函数的攻击者\n          就能合成出全部映射到同一槽位的键，把你 $O(1)$ 的表变成 $O(n^2)$ 的拒绝服务攻击。",
+   "src": "For non-cryptographic hashes — FNV-1a, Murmur — the\n          attacker model is \"no attacker, just uniform-ish inputs\".\n          Fast, good enough. For inputs an attacker controls\n          (HTTP headers, JSON keys, network payloads), you need a\n          <em>keyed</em> hash with a random secret: <strong>SipHash</strong>\n          is the standard. Without it, an attacker who knows your\n          hash function can synthesise keys that all map to one\n          slot, turning your $O(1)$ table into an $O(n^2)$ DoS.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Hash flooding.@@T1@@\n          The \"first-letter\" bad hash above is a toy version of\n          a real 2003 attack on PHP, Perl, ASP.NET and the JVM. The\n          fix every language eventually adopted is process-random\n          hash seeding (so two runs of the same program see\n          different hash values) and SipHash for user-controlled\n          input. If you're writing a server in 2026, your runtime\n          probably already does this.": {
+   "zh": "@@T0@@哈希泛洪。@@T1@@\n          上面那个“首字母”糟糕哈希，是 2003 年针对 PHP、Perl、ASP.NET 与 JVM 的\n          真实攻击的玩具版本。各种语言最终采用的修复方案是\n          进程随机哈希种子（使同一程序的两次运行看到\n          不同的哈希值），以及针对用户可控输入使用 SipHash。\n          如果你在 2026 年编写服务器，你的运行时大概已经做到了这一点。",
+   "src": "<strong>Hash flooding.</strong>\n          The \"first-letter\" bad hash above is a toy version of\n          a real 2003 attack on PHP, Perl, ASP.NET and the JVM. The\n          fix every language eventually adopted is process-random\n          hash seeding (so two runs of the same program see\n          different hash values) and SipHash for user-controlled\n          input. If you're writing a server in 2026, your runtime\n          probably already does this.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Separate chaining — the simple one": {
+   "zh": "分离链接法——简单的一种",
+   "src": "Separate chaining — the simple one",
+   "tags": []
+  },
+  "Each slot points to a linked list (or small array) of all\n          keys hashing there. Insert: prepend to the list.\n          Lookup: walk the list.": {
+   "zh": "每个槽位指向一个链表（或小数组），其中存放所有哈希到该位置\n          的键。插入：前插到链表头部。\n          查找：遍历该链表。",
+   "src": "Each slot points to a linked list (or small array) of all\n          keys hashing there. Insert: prepend to the list.\n          Lookup: walk the list.",
+   "tags": []
+  },
+  "With a uniform hash, the expected chain length is\n          $\\alpha = n/m$ — the load factor. Lookup is $O(1 + \\alpha)$\n          on average. Even at $\\alpha = 5$ (a heavily loaded table),\n          you're walking lists of about 5 nodes — far from $O(n)$.": {
+   "zh": "在均匀哈希下，期望链长为\n          $\\alpha = n/m$——即负载因子。平均查找代价为 $O(1 + \\alpha)$。\n          即使在 $\\alpha = 5$（负载很重的表）时，\n          你也只是遍历约 5 个节点的链表——远非 $O(n)$。",
+   "src": "With a uniform hash, the expected chain length is\n          $\\alpha = n/m$ — the load factor. Lookup is $O(1 + \\alpha)$\n          on average. Even at $\\alpha = 5$ (a heavily loaded table),\n          you're walking lists of about 5 nodes — far from $O(n)$.",
+   "tags": []
+  },
+  "What chaining gives up: cache locality. Each list node is\n          a heap allocation; walking it is a cache miss. On modern\n          hardware where main-memory latency is 100× L1, this is\n          the difference between a fast hash table and a slow one.": {
+   "zh": "分离链接法所牺牲的是：缓存局部性。每个链表节点都是\n          一次堆分配；遍历它就是一次缓存未命中。在现代硬件上，\n          主存延迟是 L1 的 100 倍，这正是一张快速哈希表与一张缓慢哈希表\n          之间的差别。",
+   "src": "What chaining gives up: cache locality. Each list node is\n          a heap allocation; walking it is a cache miss. On modern\n          hardware where main-memory latency is 100× L1, this is\n          the difference between a fast hash table and a slow one.",
+   "tags": []
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Open addressing — the fast one": {
+   "zh": "开放寻址法——快速的一种",
+   "src": "Open addressing — the fast one",
+   "tags": []
+  },
+  "Store every key directly in the array. On collision, probe\n          along a sequence of slots until you find empty space.\n          The whole table fits in contiguous memory; lookups touch\n          one cache line.": {
+   "zh": "把每个键直接存储在数组中。发生冲突时，沿着一个槽位序列\n          探测，直到找到空位为止。整张表位于连续内存中；\n          每次查找只触及一条缓存行。",
+   "src": "Store every key directly in the array. On collision, probe\n          along a sequence of slots until you find empty space.\n          The whole table fits in contiguous memory; lookups touch\n          one cache line.",
+   "tags": []
+  },
+  "Three classic probe sequences:": {
+   "zh": "三种经典的探测序列：",
+   "src": "Three classic probe sequences:",
+   "tags": []
+  },
+  "@@T0@@Linear probing.@@T1@@ $h_i = (h(k) + i)\n            \\bmod m$. Cache-perfect. Suffers @@T2@@primary clustering@@T3@@:\n            a run of occupied slots tends to grow because any key\n            hashing inside the run probes its end. Once $\\alpha\n            \\gtrsim 0.7$, performance degrades sharply.": {
+   "zh": "@@T0@@线性探测。@@T1@@ $h_i = (h(k) + i)\n            \\bmod m$。缓存表现完美。但存在@@T2@@一次聚集@@T3@@问题：\n            一段连续被占用的槽位趋于不断增长，因为任何哈希到该段内部\n            的键都会探测到它的末端。一旦 $\\alpha\n            \\gtrsim 0.7$，性能便急剧下降。",
+   "src": "<strong>Linear probing.</strong> $h_i = (h(k) + i)\n            \\bmod m$. Cache-perfect. Suffers <em>primary clustering</em>:\n            a run of occupied slots tends to grow because any key\n            hashing inside the run probes its end. Once $\\alpha\n            \\gtrsim 0.7$, performance degrades sharply.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Quadratic probing.@@T1@@ $h_i = (h(k) +\n            c_1 i + c_2 i^2) \\bmod m$. Breaks primary clustering\n            but introduces @@T2@@secondary clustering@@T3@@: keys with\n            the same initial hash follow identical probe sequences.\n            Slightly less cache-friendly than linear.": {
+   "zh": "@@T0@@二次探测。@@T1@@ $h_i = (h(k) +\n            c_1 i + c_2 i^2) \\bmod m$。它打破了一次聚集，\n            却引入了@@T2@@二次聚集@@T3@@：初始哈希相同的键\n            遵循完全相同的探测序列。缓存友好性略逊于线性探测。",
+   "src": "<strong>Quadratic probing.</strong> $h_i = (h(k) +\n            c_1 i + c_2 i^2) \\bmod m$. Breaks primary clustering\n            but introduces <em>secondary clustering</em>: keys with\n            the same initial hash follow identical probe sequences.\n            Slightly less cache-friendly than linear.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Double hashing.@@T1@@ $h_i = (h_1(k) + i \\,\n            h_2(k)) \\bmod m$ with a second independent hash. Avoids\n            both clustering issues; pays a second hash computation\n            per probe.": {
+   "zh": "@@T0@@双重哈希。@@T1@@ $h_i = (h_1(k) + i \\,\n            h_2(k)) \\bmod m$，其中使用第二个独立的哈希。它同时避免了\n            两种聚集问题；代价是每次探测要额外计算一次哈希。",
+   "src": "<strong>Double hashing.</strong> $h_i = (h_1(k) + i \\,\n            h_2(k)) \\bmod m$ with a second independent hash. Avoids\n            both clustering issues; pays a second hash computation\n            per probe.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "All open-addressing strategies break down before $\\alpha\n          = 1$ (you cannot insert into a full table — there's\n          literally no empty slot). They typically resize when $\\alpha$\n          crosses a threshold (0.5, 0.75, or 0.9 depending on the\n          variant). Resize means: allocate a 2× table, rehash every\n          key, free the old one. Amortised $O(1)$ per insert; a\n          single slow insert when the resize fires.": {
+   "zh": "所有开放寻址策略在 $\\alpha = 1$ 之前就会失效\n          （你无法向一张满表插入——因为确实没有空槽位）。\n          它们通常在 $\\alpha$ 越过某个阈值（依变体不同为 0.5、0.75 或 0.9）时扩容。\n          扩容意味着：分配一张 2 倍大小的表，对所有键重新哈希，释放旧表。\n          每次插入的均摊代价为 $O(1)$；扩容触发时会有一次较慢的插入。",
+   "src": "All open-addressing strategies break down before $\\alpha\n          = 1$ (you cannot insert into a full table — there's\n          literally no empty slot). They typically resize when $\\alpha$\n          crosses a threshold (0.5, 0.75, or 0.9 depending on the\n          variant). Resize means: allocate a 2× table, rehash every\n          key, free the old one. Amortised $O(1)$ per insert; a\n          single slow insert when the resize fires.",
+   "tags": []
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Robin Hood hashing — take from the rich": {
+   "zh": "Robin Hood 哈希——劫富济贫",
+   "src": "Robin Hood hashing — take from the rich",
+   "tags": []
+  },
+  "Linear probing with one twist: when a new key probes past\n          an existing one, compare their @@T0@@displacement@@T1@@\n          (probe count). If the incumbent's displacement is shorter\n          than the newcomer's would be at this slot, @@T2@@swap them@@T3@@\n          — kick the incumbent out and continue probing with it.\n          Hence the name: take from the rich (low-displacement keys)\n          and give to the poor (high-displacement keys).": {
+   "zh": "线性探测加一个巧思：当新键探测经过一个已有键时，\n          比较二者的@@T0@@位移@@T1@@（探测次数）。若原住键的位移\n          比新来键在此槽位应有的位移更短，就@@T2@@交换二者@@T3@@\n          ——把原住键踢出，带着它继续探测。\n          名称由此而来：劫掠富有者（低位移的键），\n          补给贫穷者（高位移的键）。",
+   "src": "Linear probing with one twist: when a new key probes past\n          an existing one, compare their <em>displacement</em>\n          (probe count). If the incumbent's displacement is shorter\n          than the newcomer's would be at this slot, <em>swap them</em>\n          — kick the incumbent out and continue probing with it.\n          Hence the name: take from the rich (low-displacement keys)\n          and give to the poor (high-displacement keys).",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The point: it equalises probe distances. After many\n          inserts, every key's probe distance is within a constant\n          factor of the average. Variance shrinks dramatically.\n          Worst-case lookup time becomes proportional to the\n          @@T0@@maximum@@T1@@ displacement, which under uniform\n          hashing is $O(\\log n)$ rather than the $O(\\sqrt n)$ of\n          plain linear probing at high load factors.": {
+   "zh": "其要点在于：它使各键的探测距离趋于均等。经过大量插入之后，\n          每个键的探测距离都落在平均值的一个常数倍以内。方差急剧缩小。\n          最坏情况查找时间与@@T0@@最大@@T1@@位移成正比，\n          在均匀哈希下为 $O(\\log n)$，而非高负载因子下\n          普通线性探测的 $O(\\sqrt n)$。",
+   "src": "The point: it equalises probe distances. After many\n          inserts, every key's probe distance is within a constant\n          factor of the average. Variance shrinks dramatically.\n          Worst-case lookup time becomes proportional to the\n          <em>maximum</em> displacement, which under uniform\n          hashing is $O(\\log n)$ rather than the $O(\\sqrt n)$ of\n          plain linear probing at high load factors.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Robin-hood hashing is the default in modern\n          fast-hash-table libraries (Rust's @@T0@@HashMap@@T1@@ via\n          hashbrown until recently; Boost's @@T2@@flat_map@@T3@@;\n          Google's @@T4@@absl::flat_hash_map@@T5@@) precisely\n          because it makes high load factors viable.": {
+   "zh": "Robin-hood 哈希是现代快速哈希表库的默认选择\n          （Rust 的 @@T0@@HashMap@@T1@@ 直到最近都经由\n          hashbrown 采用它；Boost 的 @@T2@@flat_map@@T3@@；\n          Google 的 @@T4@@absl::flat_hash_map@@T5@@），\n          原因正是它使高负载因子变得可行。",
+   "src": "Robin-hood hashing is the default in modern\n          fast-hash-table libraries (Rust's <code>HashMap</code> via\n          hashbrown until recently; Boost's <code>flat_map</code>;\n          Google's <code>absl::flat_hash_map</code>) precisely\n          because it makes high load factors viable.",
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "The cheat sheet": {
+   "zh": "速查表",
+   "src": "The cheat sheet",
+   "tags": []
+  },
+  "avg lookup": {
+   "zh": "平均查找",
+   "src": "avg lookup",
+   "tags": []
+  },
+  "worst lookup": {
+   "zh": "最坏查找",
+   "src": "worst lookup",
+   "tags": []
+  },
+  "memory": {
+   "zh": "内存",
+   "src": "memory",
+   "tags": []
+  },
+  "cache": {
+   "zh": "缓存",
+   "src": "cache",
+   "tags": []
+  },
+  "typical $\\alpha_\\text{max}$": {
+   "zh": "典型 $\\alpha_\\text{max}$",
+   "src": "typical $\\alpha_\\text{max}$",
+   "tags": []
+  },
+  "chaining": {
+   "zh": "分离链接法",
+   "src": "chaining",
+   "tags": []
+  },
+  "$O(n)$ (degenerate)": {
+   "zh": "$O(n)$（退化情形）",
+   "src": "$O(n)$ (degenerate)",
+   "tags": []
+  },
+  "$m + n$ + node ptrs": {
+   "zh": "$m + n$ + 节点指针",
+   "src": "$m + n$ + node ptrs",
+   "tags": []
+  },
+  "poor": {
+   "zh": "较差",
+   "src": "poor",
+   "tags": []
+  },
+  "easy (unlink)": {
+   "zh": "容易（断开链接）",
+   "src": "easy (unlink)",
+   "tags": []
+  },
+  "$\\alpha$ unbounded": {
+   "zh": "$\\alpha$ 无上界",
+   "src": "$\\alpha$ unbounded",
+   "tags": []
+  },
+  "$O(\\sqrt n)$ at high $\\alpha$": {
+   "zh": "高 $\\alpha$ 时为 $O(\\sqrt n)$",
+   "src": "$O(\\sqrt n)$ at high $\\alpha$",
+   "tags": []
+  },
+  "excellent": {
+   "zh": "极佳",
+   "src": "excellent",
+   "tags": []
+  },
+  "tombstones": {
+   "zh": "墓碑标记",
+   "src": "tombstones",
+   "tags": []
+  },
+  "good": {
+   "zh": "良好",
+   "src": "good",
+   "tags": []
+  },
+  "robin hood": {
+   "zh": "robin hood 哈希",
+   "src": "robin hood",
+   "tags": []
+  },
+  "$m$ + 1 byte/slot": {
+   "zh": "$m$ + 每槽 1 字节",
+   "src": "$m$ + 1 byte/slot",
+   "tags": []
+  },
+  "backshift": {
+   "zh": "回移删除",
+   "src": "backshift",
+   "tags": []
+  },
+  "cuckoo (2 tables)": {
+   "zh": "cuckoo（两张表）",
+   "src": "cuckoo (2 tables)",
+   "tags": []
+  },
+  "$O(1)$ worst": {
+   "zh": "最坏 $O(1)$",
+   "src": "$O(1)$ worst",
+   "tags": []
+  },
+  "easy": {
+   "zh": "容易",
+   "src": "easy",
+   "tags": []
+  },
+  "Step 7": {
+   "zh": "第 7 步",
+   "src": "Step 7",
+   "tags": []
+  },
+  "The advanced wing": {
+   "zh": "进阶分支",
+   "src": "The advanced wing",
+   "tags": []
+  },
+  "@@T0@@Cuckoo hashing.@@T1@@ Each key has two\n            candidate slots (via two independent hashes). On\n            collision, evict the incumbent and re-place it at\n            @@T2@@its@@T3@@ other slot. Continue. Worst-case $O(1)$\n            lookup; insertions can loop if the load is too high,\n            in which case rehash with new functions.": {
+   "zh": "@@T0@@Cuckoo 哈希。@@T1@@ 每个键有两个\n            候选槽位（经由两个独立哈希）。发生冲突时，驱逐原住键，\n            把它重新放到其@@T2@@另一个@@T3@@槽位。如此继续。\n            最坏情况查找为 $O(1)$；若负载过高，插入可能陷入循环，\n            此时需用新的哈希函数重新哈希。",
+   "src": "<strong>Cuckoo hashing.</strong> Each key has two\n            candidate slots (via two independent hashes). On\n            collision, evict the incumbent and re-place it at\n            <em>its</em> other slot. Continue. Worst-case $O(1)$\n            lookup; insertions can loop if the load is too high,\n            in which case rehash with new functions.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Hopscotch hashing.@@T1@@ Like linear\n            probing but every key is guaranteed to live in a\n            neighbourhood of $H$ slots near its home position.\n            Lookup probes at most $H$ slots (a single cache line).": {
+   "zh": "@@T0@@Hopscotch 哈希。@@T1@@ 与线性探测类似，\n            但保证每个键都位于其初始位置附近的 $H$ 个槽位邻域内。\n            查找最多探测 $H$ 个槽位（即一条缓存行）。",
+   "src": "<strong>Hopscotch hashing.</strong> Like linear\n            probing but every key is guaranteed to live in a\n            neighbourhood of $H$ slots near its home position.\n            Lookup probes at most $H$ slots (a single cache line).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Swiss tables@@T1@@ (Google's\n            @@T2@@absl::flat_hash_map@@T3@@). 1 byte of metadata\n            per slot stores a 7-bit hash signature plus\n            empty/full/tombstone. Probing scans 16 metadata bytes\n            with SIMD at a time, comparing signatures before\n            touching the key. Order-of-magnitude speedup on real\n            workloads.": {
+   "zh": "@@T0@@Swiss tables@@T1@@（Google 的\n            @@T2@@absl::flat_hash_map@@T3@@）。每个槽位用 1 字节元数据\n            存储一个 7 位的哈希签名以及\n            空/满/墓碑状态。探测时用 SIMD 一次扫描 16 字节元数据，\n            先比较签名再触及键本身。在真实工作负载上可带来\n            一个数量级的加速。",
+   "src": "<strong>Swiss tables</strong> (Google's\n            <code>absl::flat_hash_map</code>). 1 byte of metadata\n            per slot stores a 7-bit hash signature plus\n            empty/full/tombstone. Probing scans 16 metadata bytes\n            with SIMD at a time, comparing signatures before\n            touching the key. Order-of-magnitude speedup on real\n            workloads.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@Consistent hashing.@@T1@@ Distributed hash\n            tables (Cassandra, DynamoDB, every CDN) need to\n            survive nodes joining and leaving without rehashing\n            @@T2@@everything@@T3@@. Consistent hashing maps keys and\n            nodes to the same ring; each key goes to its\n            nearest-clockwise node. Adding a node moves only\n            $O(n / N)$ keys.": {
+   "zh": "@@T0@@一致性哈希。@@T1@@ 分布式哈希表\n            （Cassandra、DynamoDB、每一个 CDN）需要在节点加入与离开时\n            存活，而无须重新哈希@@T2@@所有@@T3@@内容。一致性哈希把键与\n            节点映射到同一个环上；每个键归入其顺时针方向最近的节点。\n            增加一个节点只移动 $O(n / N)$ 个键。",
+   "src": "<strong>Consistent hashing.</strong> Distributed hash\n            tables (Cassandra, DynamoDB, every CDN) need to\n            survive nodes joining and leaving without rehashing\n            <em>everything</em>. Consistent hashing maps keys and\n            nodes to the same ring; each key goes to its\n            nearest-clockwise node. Adding a node moves only\n            $O(n / N)$ keys.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Bloom filters.@@T1@@ When you don't need\n            to store the keys themselves, just answer \"have I seen\n            this?\". $k$ hashes + a bit array; constant memory,\n            constant lookup, never false negatives, controllable\n            false positives. Probabilistic relatives:\n            count-min sketch, HyperLogLog.": {
+   "zh": "@@T0@@布隆过滤器。@@T1@@ 当你不需要存储键本身，\n            只需回答“我见过这个吗？”时。$k$ 个哈希加一个位数组；\n            内存恒定、查找恒定、绝无假阴性，假阳性可控制。\n            其概率型亲属包括：count-min sketch、HyperLogLog。",
+   "src": "<strong>Bloom filters.</strong> When you don't need\n            to store the keys themselves, just answer \"have I seen\n            this?\". $k$ hashes + a bit array; constant memory,\n            constant lookup, never false negatives, controllable\n            false positives. Probabilistic relatives:\n            count-min sketch, HyperLogLog.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Perfect hashing.@@T1@@ If the key set is\n            fixed in advance (a compiler's keyword table, a\n            language's reserved words), you can construct a hash\n            function with @@T2@@zero@@T3@@ collisions. Two-level\n            schemes (FKS, CHD) achieve this in expected $O(n)$\n            construction time.": {
+   "zh": "@@T0@@完美哈希。@@T1@@ 若键集合事先固定\n            （编译器的关键字表、语言的保留字），你可以构造一个\n            @@T2@@零@@T3@@冲突的哈希函数。两级方案（FKS、CHD）可在期望 $O(n)$\n            的构造时间内实现这一点。",
+   "src": "<strong>Perfect hashing.</strong> If the key set is\n            fixed in advance (a compiler's keyword table, a\n            language's reserved words), you can construct a hash\n            function with <em>zero</em> collisions. Two-level\n            schemes (FKS, CHD) achieve this in expected $O(n)$\n            construction time.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 8": {
+   "zh": "第 8 步",
+   "src": "Step 8",
+   "tags": []
+  },
+  "Sharp edges": {
+   "zh": "尖锐之处",
+   "src": "Sharp edges",
+   "tags": []
+  },
+  "@@T0@@Delete in open addressing is hard.@@T1@@\n            Marking a slot \"empty\" breaks probe chains.\n            @@T2@@Tombstones@@T3@@ say \"was occupied; keep probing\".\n            Tombstones accumulate; eventually every probe scans them\n            all. You either rehash periodically or use\n            @@T4@@backshift deletion@@T5@@ (robin-hood compatible)\n            which slides subsequent keys into the gap.": {
+   "zh": "@@T0@@开放寻址中的删除很棘手。@@T1@@\n            把一个槽位标记为“空”会破坏探测链。\n            @@T2@@墓碑@@T3@@表示“此处曾被占用；请继续探测”。\n            墓碑会不断累积；最终每次探测都要扫描全部墓碑。\n            你要么定期重新哈希，要么使用\n            @@T4@@回移删除@@T5@@（与 robin-hood 兼容），\n            它把后续的键滑入空缺之中。",
+   "src": "<strong>Delete in open addressing is hard.</strong>\n            Marking a slot \"empty\" breaks probe chains.\n            <em>Tombstones</em> say \"was occupied; keep probing\".\n            Tombstones accumulate; eventually every probe scans them\n            all. You either rehash periodically or use\n            <em>backshift deletion</em> (robin-hood compatible)\n            which slides subsequent keys into the gap.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Iterating order is not defined.@@T1@@ Hash\n            tables make no ordering promises. If you need\n            \"iterate in insertion order\" (Python's @@T2@@dict@@T3@@\n            since 3.7), the implementation maintains an extra\n            ordered list alongside the table. Don't rely on\n            iteration order in other languages.": {
+   "zh": "@@T0@@遍历顺序未定义。@@T1@@ 哈希表\n            不做出任何顺序承诺。若你需要\n            “按插入顺序遍历”（Python 自 3.7 起的 @@T2@@dict@@T3@@），\n            其实现会在表旁维护一个额外的有序列表。\n            在其他语言中不要依赖遍历顺序。",
+   "src": "<strong>Iterating order is not defined.</strong> Hash\n            tables make no ordering promises. If you need\n            \"iterate in insertion order\" (Python's <code>dict</code>\n            since 3.7), the implementation maintains an extra\n            ordered list alongside the table. Don't rely on\n            iteration order in other languages.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@Resizing is amortised, not worst-case.@@T1@@\n            A single insert that triggers a 2× resize costs $O(n)$.\n            Most production systems instead use\n            @@T2@@incremental rehashing@@T3@@ (Redis): on each\n            operation, move a few entries from the old table to\n            the new one until the migration finishes.": {
+   "zh": "@@T0@@扩容是均摊的，而非最坏情况。@@T1@@\n            一次触发 2 倍扩容的插入代价为 $O(n)$。\n            多数生产系统改用@@T2@@增量式重新哈希@@T3@@（Redis）：\n            在每次操作中，把少量条目从旧表搬到新表，\n            直至迁移完成。",
+   "src": "<strong>Resizing is amortised, not worst-case.</strong>\n            A single insert that triggers a 2× resize costs $O(n)$.\n            Most production systems instead use\n            <em>incremental rehashing</em> (Redis): on each\n            operation, move a few entries from the old table to\n            the new one until the migration finishes.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Cache lines, not slots.@@T1@@ Modern hash\n            table benchmarks are dominated by L1 cache hits/misses.\n            A \"slow\" hash table with bad asymptotics can be 3×\n            faster than a \"fast\" one with better asymptotics if\n            its probes touch fewer cache lines. Benchmark on\n            realistic data; never on uniform random integers.": {
+   "zh": "@@T0@@关键在缓存行，而非槽位。@@T1@@ 现代哈希表\n            基准测试主要由 L1 缓存命中/未命中决定。\n            一张渐近性质糟糕的“慢”哈希表，若其探测触及的缓存行更少，\n            可能比一张渐近性质更好的“快”表快 3 倍。\n            请在真实数据上做基准测试；绝不要用均匀随机整数。",
+   "src": "<strong>Cache lines, not slots.</strong> Modern hash\n            table benchmarks are dominated by L1 cache hits/misses.\n            A \"slow\" hash table with bad asymptotics can be 3×\n            faster than a \"fast\" one with better asymptotics if\n            its probes touch fewer cache lines. Benchmark on\n            realistic data; never on uniform random integers.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Equality and hash must agree.@@T1@@ If two\n            objects are equal, they must hash to the same value.\n            Override @@T2@@__hash__@@T3@@ but not @@T4@@__eq__@@T5@@\n            (or vice versa) and you get a silent data-loss bug\n            that takes weeks to find.": {
+   "zh": "@@T0@@相等性与哈希必须一致。@@T1@@ 若两个对象\n            相等，它们必须哈希到同一个值。\n            只重写 @@T2@@__hash__@@T3@@ 而不重写 @@T4@@__eq__@@T5@@\n            （或反之），你就会得到一个隐蔽的数据丢失 bug，\n            需要数周才能发现。",
+   "src": "<strong>Equality and hash must agree.</strong> If two\n            objects are equal, they must hash to the same value.\n            Override <code>__hash__</code> but not <code>__eq__</code>\n            (or vice versa) and you get a silent data-loss bug\n            that takes weeks to find.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Step 9": {
+   "zh": "第 9 步",
+   "src": "Step 9",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "阅读清单",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Knuth, TAOCP Vol&nbsp;3, §6.4.@@T1@@ Hashing.\n            Where most of the modern variants are first analysed.": {
+   "zh": "@@T0@@Knuth, TAOCP Vol&nbsp;3, §6.4.@@T1@@ 哈希。\n            多数现代变体最早在此得到分析。",
+   "src": "<strong>Knuth, TAOCP Vol&nbsp;3, §6.4.</strong> Hashing.\n            Where most of the modern variants are first analysed.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Pagh &amp; Rodler, 2001@@T1@@ &mdash;\n            @@T2@@Cuckoo Hashing.@@T3@@": {
+   "zh": "@@T0@@Pagh &amp; Rodler, 2001@@T1@@ &mdash;\n            @@T2@@《Cuckoo Hashing》@@T3@@",
+   "src": "<strong>Pagh &amp; Rodler, 2001</strong> &mdash;\n            <em>Cuckoo Hashing.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Celis, Larson, Munro, 1985@@T1@@ &mdash;\n            @@T2@@Robin Hood Hashing.@@T3@@ The original paper, before\n            it became fashionable thirty years later.": {
+   "zh": "@@T0@@Celis, Larson, Munro, 1985@@T1@@ &mdash;\n            @@T2@@《Robin Hood Hashing》@@T3@@。原始论文，\n            在三十年后它变得流行之前便已问世。",
+   "src": "<strong>Celis, Larson, Munro, 1985</strong> &mdash;\n            <em>Robin Hood Hashing.</em> The original paper, before\n            it became fashionable thirty years later.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Aumasson &amp; Bernstein, 2012@@T1@@ &mdash;\n            @@T2@@SipHash: a fast short-input PRF.@@T3@@ The default\n            keyed hash for hash-table security.": {
+   "zh": "@@T0@@Aumasson &amp; Bernstein, 2012@@T1@@ &mdash;\n            @@T2@@《SipHash: a fast short-input PRF》@@T3@@。\n            哈希表安全领域默认使用的带密钥哈希。",
+   "src": "<strong>Aumasson &amp; Bernstein, 2012</strong> &mdash;\n            <em>SipHash: a fast short-input PRF.</em> The default\n            keyed hash for hash-table security.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Maier, Sanders, Dementiev, 2019@@T1@@ &mdash;\n            @@T2@@Concurrent Hash Tables: Fast and General(?).@@T3@@\n            Survey of lock-free / wait-free hash table\n            implementations.": {
+   "zh": "@@T0@@Maier, Sanders, Dementiev, 2019@@T1@@ &mdash;\n            @@T2@@《Concurrent Hash Tables: Fast and General(?)》@@T3@@。\n            对无锁 / 无等待哈希表实现的综述。",
+   "src": "<strong>Maier, Sanders, Dementiev, 2019</strong> &mdash;\n            <em>Concurrent Hash Tables: Fast and General(?).</em>\n            Survey of lock-free / wait-free hash table\n            implementations.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Karger et&nbsp;al., 1997@@T1@@ &mdash;\n            @@T2@@Consistent Hashing and Random Trees.@@T3@@ The\n            foundation of distributed key-value stores.": {
+   "zh": "@@T0@@Karger et&nbsp;al., 1997@@T1@@ &mdash;\n            @@T2@@《Consistent Hashing and Random Trees》@@T3@@。\n            分布式键值存储的基石。",
+   "src": "<strong>Karger et&nbsp;al., 1997</strong> &mdash;\n            <em>Consistent Hashing and Random Trees.</em> The\n            foundation of distributed key-value stores.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Google abseil / SwissTable design doc.@@T1@@\n            How to use SIMD to scan metadata 16 bytes at a time —\n            the model for modern fast hash tables.": {
+   "zh": "@@T0@@Google abseil / SwissTable 设计文档。@@T1@@\n            如何用 SIMD 一次扫描 16 字节元数据——\n            现代快速哈希表的范本。",
+   "src": "<strong>Google abseil / SwissTable design doc.</strong>\n            How to use SIMD to scan metadata 16 bytes at a time —\n            the model for modern fast hash tables.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "word or number": {
+   "zh": "单词或数字",
+   "src": "word or number",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "哈希表：逐次冲突解析",
+  "tagline": "分离链接、开放寻址、robin hood——看清键究竟落在何处",
+  "summary": "哈希表从外面看充满魔力：平均 O(1) 查找、无顺序，被用于每一个字典、集合与缓存。而在内部，这种魔力源自冲突解析。把键插入一张小哈希数组并观察它们如何冲突；在链式法与三种开放寻址策略（线性、二次、robin hood）之间切换；观察负载因子逐渐升高、查找逐渐变慢。",
+  "difficulty": "入门",
+  "collection": "数据结构",
+  "highlights": [
+   "在交互中把键插入一张小哈希表；观察它们在四种策略下如何冲突与消解。",
+   "在分离链接法、线性探测、二次探测与 robin-hood 哈希之间切换。",
+   "负载因子仪表与平均探测长度计数器，让 O(1) 均摊的结论变得具体。",
+   "观察一个退化的哈希函数如何在对抗性键上把 O(1) 变成 O(n)——以及哈希随机化为何能击败它。",
+   "当需要更强的最坏情况保证或分布式保证时，可参考 cuckoo、hopscotch 与一致性哈希。"
+  ],
+  "tags": [
+   "哈希表",
+   "哈希",
+   "开放寻址",
+   "Robin Hood",
+   "交互式"
+  ]
+ },
+ "js": {
+  "switched strategy to @@T0@@[[[0]]]@@T1@@. table cleared.": {
+   "zh": "已切换策略至 @@T0@@[[[0]]]@@T1@@。表已清空。",
+   "exprs": [
+    "${s}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "switched strategy to <strong>${s}</strong>. table cleared."
+  },
+  "switched hash to @@T0@@[[[0]]]@@T1@@. existing keys keep their slots; new inserts use the new hash.": {
+   "zh": "已切换哈希至 @@T0@@[[[0]]]@@T1@@。已有键保留其槽位；新的插入使用新哈希。",
+   "exprs": [
+    "${e.target.value}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "switched hash to <strong>${e.target.value}</strong>. existing keys keep their slots; new inserts use the new hash."
+  },
+  "@@T0@@[[[0]]]@@T1@@ already in table (at slot [[[1]]]).": {
+   "zh": "@@T0@@[[[0]]]@@T1@@ 已在表中（位于槽位 [[[1]]]）。",
+   "exprs": [
+    "${k}",
+    "${r.idx}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "<strong>${k}</strong> already in table (at slot ${r.idx})."
+  },
+  "table full — cannot insert @@T0@@[[[0]]]@@T1@@. clear or resize.": {
+   "zh": "表已满——无法插入 @@T0@@[[[0]]]@@T1@@。请清空或扩容。",
+   "exprs": [
+    "${k}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "table full — cannot insert <strong>${k}</strong>. clear or resize."
+  },
+  ", probed [[[0]]] slots": {
+   "zh": "，探测了 [[[0]]] 个槽位",
+   "exprs": [
+    "${r.probes}"
+   ],
+   "tags": [],
+   "src": ", probed ${r.probes} slots"
+  },
+  "inserted @@T0@@[[[0]]]@@T1@@ (hash → slot [[[1]]]) at slot @@T2@@[[[2]]]@@T3@@[[[3]]].": {
+   "zh": "已插入 @@T0@@[[[0]]]@@T1@@（哈希 → 槽位 [[[1]]]），落在槽位 @@T2@@[[[2]]]@@T3@@[[[3]]]。",
+   "exprs": [
+    "${k}",
+    "${h0}",
+    "${r.idx}",
+    "${probeStr}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "inserted <strong>${k}</strong> (hash → slot ${h0}) at slot <strong>${r.idx}</strong>${probeStr}."
+  },
+  "found @@T0@@[[[0]]]@@T1@@ at slot @@T2@@[[[1]]]@@T3@@ in [[[2]]] probe[[[3]]].": {
+   "zh": "在 [[[2]]] 次探测[[[3]]]内于槽位 @@T2@@[[[1]]]@@T3@@ 找到 @@T0@@[[[0]]]@@T1@@。",
+   "exprs": [
+    "${k}",
+    "${r.idx}",
+    "${r.probes}",
+    "${r.probes === 1 ? '' : 's'}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "found <strong>${k}</strong> at slot <strong>${r.idx}</strong> in ${r.probes} probe${r.probes === 1 ? '' : 's'}."
+  },
+  "@@T0@@[[[0]]]@@T1@@ not in table (walked [[[1]]] probe[[[2]]]).": {
+   "zh": "@@T0@@[[[0]]]@@T1@@ 不在表中（遍历了 [[[1]]] 次探测[[[2]]]）。",
+   "exprs": [
+    "${k}",
+    "${r.probes}",
+    "${r.probes === 1 ? '' : 's'}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "<strong>${k}</strong> not in table (walked ${r.probes} probe${r.probes === 1 ? '' : 's'})."
+  },
+  "@@T0@@[[[0]]]@@T1@@ not in table.": {
+   "zh": "@@T0@@[[[0]]]@@T1@@ 不在表中。",
+   "exprs": [
+    "${k}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "<strong>${k}</strong> not in table."
+  },
+  "inserted [[[0]]] random keys via @@T0@@[[[1]]]@@T1@@.": {
+   "zh": "已通过 @@T0@@[[[1]]]@@T1@@ 插入 [[[0]]] 个随机键。",
+   "exprs": [
+    "${inserted}",
+    "${STATE.strategy}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "inserted ${inserted} random keys via <strong>${STATE.strategy}</strong>."
+  },
+  " has-items": {
+   "zh": " has-items（含元素状态类）",
+   "exprs": [],
+   "tags": [],
+   "src": " has-items"
+  },
+  " probing": {
+   "zh": " probing（探测状态类）",
+   "exprs": [],
+   "tags": [],
+   "src": " probing"
+  },
+  "table cleared.": {
+   "zh": "表已清空。",
+   "exprs": [],
+   "tags": [],
+   "src": "table cleared."
+  }
+ }
+}

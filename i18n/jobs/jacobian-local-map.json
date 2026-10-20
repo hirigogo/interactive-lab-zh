@@ -1,0 +1,249 @@
+{
+ "slug": "jacobian-local-map",
+ "units": {
+  "The Jacobian is a Local Warp": {
+   "zh": "雅可比矩阵是一次局部形变",
+   "src": "The Jacobian is a Local Warp",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer &middot; Calculus Toolkit": {
+   "zh": "交互式讲解 &middot; 微积分工具箱",
+   "src": "Interactive Explainer &middot; Calculus Toolkit",
+   "tags": []
+  },
+  "A nonlinear map bends space in complicated ways. But zoom into any one point\n      and the bending straightens out: locally the map just stretches and rotates,\n      exactly as its Jacobian matrix says. Watch a tiny circle around your chosen\n      point turn into an ellipse &mdash; and watch that ellipse match what the\n      Jacobian predicts.": {
+   "zh": "一个非线性映射以复杂的方式弯曲空间。但放大到任何一个点，\n      弯曲便变得平直：在局部，该映射只是拉伸与旋转，\n      恰如它的雅可比矩阵所言。观察你所选点周围的一个微小圆\n      如何变成一个椭圆&mdash;并观察该椭圆与\n      雅可比矩阵所预测的如何吻合。",
+   "src": "A nonlinear map bends space in complicated ways. But zoom into any one point\n      and the bending straightens out: locally the map just stretches and rotates,\n      exactly as its Jacobian matrix says. Watch a tiny circle around your chosen\n      point turn into an ellipse &mdash; and watch that ellipse match what the\n      Jacobian predicts.",
+   "tags": []
+  },
+  "@@T0@@~9 min@@T1@@\n      @@T2@@Deep Learning &middot; Calculus &middot; Linear Algebra@@T3@@": {
+   "zh": "@@T0@@约 9 分钟@@T1@@\n      @@T2@@深度学习 &middot; 微积分 &middot; 线性代数@@T3@@",
+   "src": "<span>~9 min</span>\n      <span>Deep Learning &middot; Calculus &middot; Linear Algebra</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "The best linear picture of a map": {
+   "zh": "映射的最佳线性图景",
+   "src": "The best linear picture of a map",
+   "tags": []
+  },
+  "A map $F:\\mathbb{R}^2 \\to \\mathbb{R}^2$ sends $(x,y)$ to\n      $\\big(F_1(x,y),\\, F_2(x,y)\\big)$. Its Jacobian at a point is the matrix of all\n      four partial derivatives &mdash; the multi-output, multi-input generalization\n      of $f'(x_0)$:": {
+   "zh": "一个映射 $F:\\mathbb{R}^2 \\to \\mathbb{R}^2$ 把 $(x,y)$ 映到\n      $\\big(F_1(x,y),\\, F_2(x,y)\\big)$。它在某点处的雅可比矩阵由全部\n      四个偏导数构成&mdash;即 $f'(x_0)$ 在多输出、多输入情形下的推广：",
+   "src": "A map $F:\\mathbb{R}^2 \\to \\mathbb{R}^2$ sends $(x,y)$ to\n      $\\big(F_1(x,y),\\, F_2(x,y)\\big)$. Its Jacobian at a point is the matrix of all\n      four partial derivatives &mdash; the multi-output, multi-input generalization\n      of $f'(x_0)$:",
+   "tags": []
+  },
+  "That approximation is the whole story. Near the base point, a small\n      displacement $\\Delta$ is mapped by @@T0@@multiplying@@T1@@ it by $J$ &mdash; a\n      linear stretch-and-rotate. So the little circle of displacements around the\n      point becomes an ellipse: $J$ applied to a circle.": {
+   "zh": "这一近似就是全部要义。在基点附近，一个微小的\n      位移 $\\Delta$ 被@@T0@@乘以@@T1@@ $J$ 所映射&mdash;即一次\n      线性的拉伸与旋转。因此该点周围微小的位移圆\n      变成一个椭圆：$J$ 作用在一个圆上。",
+   "src": "That approximation is the whole story. Near the base point, a small\n      displacement $\\Delta$ is mapped by <em>multiplying</em> it by $J$ &mdash; a\n      linear stretch-and-rotate. So the little circle of displacements around the\n      point becomes an ellipse: $J$ applied to a circle.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Lab": {
+   "zh": "实验台",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Circle in, ellipse out": {
+   "zh": "输入是圆，输出是椭圆",
+   "src": "Circle in, ellipse out",
+   "tags": []
+  },
+  "Left is input space; right is output space, both drawn at the same scale. The\n      orange circle around $(x_0,y_0)$ is carried through the true nonlinear map to\n      the solid orange loop on the right. The blue dashed ellipse is the\n      @@T0@@prediction@@T1@@ from the Jacobian alone, $F(x_0) + J\\cdot(\\text{circle})$.\n      Shrink the radius and the two lock together &mdash; that is local linearity.": {
+   "zh": "左侧是输入空间；右侧是输出空间，二者按相同的尺度绘制。\n      $(x_0,y_0)$ 周围的橙色圆经过真实的非线性映射，成为\n      右侧实线的橙色闭合曲线。蓝色虚线椭圆则是\n      仅由雅可比矩阵给出的@@T0@@预测@@T1@@，即 $F(x_0) + J\\cdot(\\text{circle})$。\n      缩小半径，二者便彼此贴合&mdash;这就是局部线性性。",
+   "src": "Left is input space; right is output space, both drawn at the same scale. The\n      orange circle around $(x_0,y_0)$ is carried through the true nonlinear map to\n      the solid orange loop on the right. The blue dashed ellipse is the\n      <em>prediction</em> from the Jacobian alone, $F(x_0) + J\\cdot(\\text{circle})$.\n      Shrink the radius and the two lock together &mdash; that is local linearity.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Parabolic fold": {
+   "zh": "抛物折痕",
+   "src": "Parabolic fold",
+   "tags": []
+  },
+  "Swirl": {
+   "zh": "旋涡",
+   "src": "Swirl",
+   "tags": []
+  },
+  "Base @@T0@@$x_0$ = @@T1@@0.60@@T2@@@@T3@@": {
+   "zh": "基点 @@T0@@$x_0$ = @@T1@@0.60@@T2@@@@T3@@",
+   "src": "Base <span>$x_0$ = <span id=\"x0Val\">0.60</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"x0Val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Base @@T0@@$y_0$ = @@T1@@0.50@@T2@@@@T3@@": {
+   "zh": "基点 @@T0@@$y_0$ = @@T1@@0.50@@T2@@@@T3@@",
+   "src": "Base <span>$y_0$ = <span id=\"y0Val\">0.50</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"y0Val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Warp strength @@T0@@$s$ = @@T1@@0.50@@T2@@@@T3@@": {
+   "zh": "形变强度 @@T0@@$s$ = @@T1@@0.50@@T2@@@@T3@@",
+   "src": "Warp strength <span>$s$ = <span id=\"warpVal\">0.50</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"warpVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Circle radius @@T0@@$r$ = @@T1@@0.70@@T2@@@@T3@@": {
+   "zh": "圆半径 @@T0@@$r$ = @@T1@@0.70@@T2@@@@T3@@",
+   "src": "Circle radius <span>$r$ = <span id=\"radVal\">0.70</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"radVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Input space. Orange circle + its two coloured radii (the $x$ and $y$ directions) around the draggable base point.": {
+   "zh": "输入空间。橙色圆及其两条彩色半径（即 $x$ 与 $y$ 方向）围绕可拖动的基点。",
+   "src": "Input space. Orange circle + its two coloured radii (the $x$ and $y$ directions) around the draggable base point.",
+   "tags": []
+  },
+  "Output space. Solid orange = true image of the circle; blue dashed = Jacobian's ellipse; arrows are the columns of $J$.": {
+   "zh": "输出空间。橙色实线 = 圆的真实像；蓝色虚线 = 雅可比矩阵给出的椭圆；箭头是 $J$ 的各列。",
+   "src": "Output space. Solid orange = true image of the circle; blue dashed = Jacobian's ellipse; arrows are the columns of $J$.",
+   "tags": []
+  },
+  "@@T0@@Jacobian $J(x_0, y_0)$@@T1@@": {
+   "zh": "@@T0@@雅可比矩阵 $J(x_0, y_0)$@@T1@@",
+   "src": "<span class=\"stat-label\">Jacobian $J(x_0, y_0)$</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@$\\det J$ (area scale)@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@$\\det J$（面积缩放因子）@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">$\\det J$ (area scale)</span>\n        <span class=\"stat-value\" id=\"detVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"detVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Ellipse vs. true gap@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@椭圆与真实像的差距@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Ellipse vs. true gap</span>\n        <span class=\"stat-value\" id=\"gapVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"gapVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Watch the gap number.@@T1@@ With a big radius the solid orange loop\n      bulges away from the blue ellipse &mdash; the linear model is wrong far from the\n      point. Slide the radius toward zero and the gap collapses: the true image and\n      $J\\cdot(\\text{circle})$ become indistinguishable. The Jacobian is the map, but\n      only in the small.": {
+   "zh": "@@T0@@留意差距的数值。@@T1@@ 半径较大时，橙色实线闭合曲线\n      会向外鼓起、偏离蓝色椭圆&mdash;线性模型在远离\n      该点处是错的。将半径滑向零，差距便坍缩：真实像与\n      $J\\cdot(\\text{circle})$ 变得难以区分。雅可比矩阵就是该映射，但\n      仅在微小尺度上如此。",
+   "src": "<strong>Watch the gap number.</strong> With a big radius the solid orange loop\n      bulges away from the blue ellipse &mdash; the linear model is wrong far from the\n      point. Slide the radius toward zero and the gap collapses: the true image and\n      $J\\cdot(\\text{circle})$ become indistinguishable. The Jacobian is the map, but\n      only in the small.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "回报",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Stretch, rotate, and the chain rule": {
+   "zh": "拉伸、旋转与链式法则",
+   "src": "Stretch, rotate, and the chain rule",
+   "tags": []
+  },
+  "The two columns of $J$ are where the unit $x$- and $y$-vectors land &mdash; the\n      orange and blue arrows on the right. They span the ellipse. Their\n      determinant is the factor by which $J$ scales area: $|\\det J| > 1$ expands,\n      $< 1$ contracts, and $\\det J = 0$ collapses the ellipse to a line (the map\n      folds, and is locally non-invertible).": {
+   "zh": "$J$ 的两列就是单位 $x$ 与 $y$ 向量所落之处&mdash;即\n      右侧的橙色与蓝色箭头。它们张成该椭圆。它们的\n      行列式是 $J$ 缩放面积的因子：$|\\det J| > 1$ 表示扩张，\n      $< 1$ 表示收缩，而 $\\det J = 0$ 把椭圆坍缩成一条直线（映射\n      发生折叠，且局部不可逆）。",
+   "src": "The two columns of $J$ are where the unit $x$- and $y$-vectors land &mdash; the\n      orange and blue arrows on the right. They span the ellipse. Their\n      determinant is the factor by which $J$ scales area: $|\\det J| > 1$ expands,\n      $< 1$ contracts, and $\\det J = 0$ collapses the ellipse to a line (the map\n      folds, and is locally non-invertible).",
+   "tags": []
+  },
+  "@@T0@@Backprop is Jacobian products.@@T1@@ A deep network is a long composition of maps; its overall Jacobian is the product of each layer's Jacobian. Reverse-mode autodiff just multiplies these matrices right-to-left, reusing vectors instead of forming the full matrices.": {
+   "zh": "@@T0@@反向传播就是雅可比矩阵的乘积。@@T1@@ 深度网络是映射的一长串复合；其整体雅可比矩阵是各层雅可比矩阵的乘积。反向模式自动微分只是把这些矩阵自右向左相乘，复用向量而非构造完整的矩阵。",
+   "src": "<strong>Backprop is Jacobian products.</strong> A deep network is a long composition of maps; its overall Jacobian is the product of each layer's Jacobian. Reverse-mode autodiff just multiplies these matrices right-to-left, reusing vectors instead of forming the full matrices.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Circle to ellipse is the singular-value story.@@T1@@ The ellipse's axis lengths are the singular values of $J$. When one is tiny, gradients through that layer nearly vanish; when one is huge, they explode. Same picture, different stakes.": {
+   "zh": "@@T0@@圆变成椭圆正是奇异值的故事。@@T1@@ 椭圆各轴的长度就是 $J$ 的奇异值。当某个奇异值很小时，穿过该层的梯度几乎消失；当某个很大时，梯度会爆炸。同样的图景，不同的利害。",
+   "src": "<strong>Circle to ellipse is the singular-value story.</strong> The ellipse's axis lengths are the singular values of $J$. When one is tiny, gradients through that layer nearly vanish; when one is huge, they explode. Same picture, different stakes.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@It is $f'$, promoted.@@T1@@ One input, one output: $J$ is the number $f'(x_0)$. Same input and output dimension: $J$ is a square matrix. The definition never changed &mdash; only the shapes did.": {
+   "zh": "@@T0@@它就是升格后的 $f'$。@@T1@@ 单输入、单输出时：$J$ 就是数 $f'(x_0)$。输入与输出维度相同时：$J$ 是一个方阵。定义从未改变&mdash;改变的只有形状。",
+   "src": "<strong>It is $f'$, promoted.</strong> One input, one output: $J$ is the number $f'(x_0)$. Same input and output dimension: $J$ is a square matrix. The definition never changed &mdash; only the shapes did.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@The toolkit, assembled.@@T1@@ A derivative is a local line; a gradient\n      stacks partial slopes into the steepest direction; a Jacobian stacks whole\n      gradients into a local linear map. Every one is the same move &mdash; replace a\n      curve by its best line &mdash; and together they are the calculus that makes\n      gradient-based learning possible.": {
+   "zh": "@@T0@@工具箱，集齐了。@@T1@@ 导数是局部的直线；梯度\n      把各个偏斜率汇成最陡方向；雅可比矩阵则把整个\n      梯度汇成一个局部线性映射。每一个都是同一招&mdash;用\n      最佳直线取代曲线&mdash;而它们合在一起，正是使\n      基于梯度的学习成为可能的微积分。",
+   "src": "<strong>The toolkit, assembled.</strong> A derivative is a local line; a gradient\n      stacks partial slopes into the steepest direction; a Jacobian stacks whole\n      gradients into a local linear map. Every one is the same move &mdash; replace a\n      curve by its best line &mdash; and together they are the calculus that makes\n      gradient-based learning possible.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 3: Calculus Toolkit": {
+   "zh": "ES 667 深度学习讲解系列之一 &middot; 第 3 讲：微积分工具箱",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 3: Calculus Toolkit",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "雅可比矩阵是一次局部形变",
+  "tagline": "在某点附近，非线性映射的表现如同它的雅可比矩阵 —— 一个圆变成一个椭圆",
+  "summary": "从 R2 到 R2 的非线性映射 F 会弯曲空间，但放大之后，这种弯曲会变得平直，成为由雅可比矩阵给出的线性拉伸与旋转。并排的输入与输出面板展示可拖动基点周围的一个小圆经过真实映射后的像，紧挨着雅可比矩阵所预测的椭圆。缩小半径，二者便重合；放大半径，差距便显现。实时的 2x2 雅可比矩阵、作为面积缩放因子的行列式，以及以箭头绘制的各列，将这幅图景与奇异值、梯度爆炸/消失以及作为矩阵乘积的链式法则联系起来。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "拖动基点，观察输入空间中的一个小圆经过真实的非线性映射后在输出空间中变为椭圆。",
+   "叠加雅可比矩阵所预测的椭圆，看到随着半径缩小，它与真实像吻合得越来越好。",
+   "读取实时的 2x2 雅可比矩阵，其各列以箭头绘制 —— 即 x 与 y 方向的像。",
+   "观察 det J 作为局部面积缩放因子，以及一个量化线性化在何处失效的差距读数。",
+   "把圆到椭圆的过程与奇异值、梯度消失/爆炸，以及作为雅可比矩阵之积的链式法则联系起来。"
+  ],
+  "tags": [
+   "微积分",
+   "雅可比矩阵",
+   "线性代数",
+   "反向传播",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

@@ -1,0 +1,257 @@
+{
+ "slug": "diffusion-denoise",
+ "units": {
+  "Diffusion · Forward Noise &amp; Reverse Denoise": {
+   "zh": "扩散 · 前向加噪与逆向去噪",
+   "src": "Diffusion · Forward Noise &amp; Reverse Denoise",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "A diffusion model learns to reverse a noising process. Drag the timestep slider — watch a 2D shape dissolve into Gaussian. Press \"reverse\" — watch noise reassemble back into the shape. Every modern image generator rides this idea.": {
+   "zh": "扩散模型学习如何逆转一个加噪过程。拖动时间步滑块——观察一个二维形状如何溶解为高斯噪声。按下“逆向”——观察噪声如何重新组装回该形状。所有现代图像生成器都沿用这一思想。",
+   "src": "A diffusion model learns to reverse a noising process. Drag the timestep slider — watch a 2D shape dissolve into Gaussian. Press \"reverse\" — watch noise reassemble back into the shape. Every modern image generator rides this idea.",
+   "tags": []
+  },
+  "@@T0@@~9 min@@T1@@@@T2@@Deep Learning · Diffusion · DDPM@@T3@@": {
+   "zh": "@@T0@@约 9 分钟@@T1@@@@T2@@深度学习 · 扩散 · DDPM@@T3@@",
+   "src": "<span>~9 min</span><span>Deep Learning · Diffusion · DDPM</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "The forward process is fixed: repeatedly add small Gaussian noise until the data becomes indistinguishable from N(0, I). The reverse process is learned: a neural network predicts how much noise was added at each step, so you can subtract it and work your way back.": {
+   "zh": "前向过程是固定的：反复加入少量高斯噪声，直至数据与 N(0, I) 无法区分。逆向过程则是学得的：神经网络预测每一步加入了多少噪声，从而可以把它减掉，一步步回溯。",
+   "src": "The forward process is fixed: repeatedly add small Gaussian noise until the data becomes indistinguishable from N(0, I). The reverse process is learned: a neural network predicts how much noise was added at each step, so you can subtract it and work your way back.",
+   "tags": []
+  },
+  "The playground": {
+   "zh": "演练场",
+   "src": "The playground",
+   "tags": []
+  },
+  "Timestep t:": {
+   "zh": "时间步 t：",
+   "src": "Timestep t:",
+   "tags": []
+  },
+  "Schedule:": {
+   "zh": "噪声调度：",
+   "src": "Schedule:",
+   "tags": []
+  },
+  "linear": {
+   "zh": "线性",
+   "src": "linear",
+   "tags": []
+  },
+  "cosine": {
+   "zh": "余弦",
+   "src": "cosine",
+   "tags": []
+  },
+  "▶ Reverse animate": {
+   "zh": "▶ 逆向动画",
+   "src": "▶ Reverse animate",
+   "tags": []
+  },
+  "@@T0@@α̅_t: @@T1@@1.000@@T2@@@@T3@@\n        @@T4@@Signal ratio √α̅_t: @@T5@@1.00@@T6@@@@T7@@\n        @@T8@@Noise ratio √(1−α̅_t): @@T9@@0.00@@T10@@@@T11@@": {
+   "zh": "@@T0@@α̅_t： @@T1@@1.000@@T2@@@@T3@@\n        @@T4@@信号比例 √α̅_t： @@T5@@1.00@@T6@@@@T7@@\n        @@T8@@噪声比例 √(1−α̅_t)： @@T9@@0.00@@T10@@@@T11@@",
+   "src": "<span>α̅_t: <b id=\"alpha\">1.000</b></span>\n        <span>Signal ratio √α̅_t: <b id=\"signal\">1.00</b></span>\n        <span>Noise ratio √(1−α̅_t): <b id=\"noise\">0.00</b></span>",
+   "tags": [
+    "<span>",
+    "<b id=\"alpha\">",
+    "</b>",
+    "</span>",
+    "<span>",
+    "<b id=\"signal\">",
+    "</b>",
+    "</span>",
+    "<span>",
+    "<b id=\"noise\">",
+    "</b>",
+    "</span>"
+   ]
+  },
+  "The closed-form forward step": {
+   "zh": "前向步的闭式表达",
+   "src": "The closed-form forward step",
+   "tags": []
+  },
+  "Because Gaussians compose under noise-addition, you can sample x_t directly from x_0 without stepping through — huge training speedup. α̅_t is a cumulative product of noise-retention factors; it goes from ~1 at t=0 to ~0 at t=T.": {
+   "zh": "由于高斯分布在加噪下可复合，你可以直接从 x_0 采样出 x_t，而无需逐时间步推进——这带来巨大的训练加速。α̅_t 是噪声保留因子的累积乘积；它从 t=0 时的约 1 降至 t=T 时的约 0。",
+   "src": "Because Gaussians compose under noise-addition, you can sample x_t directly from x_0 without stepping through — huge training speedup. α̅_t is a cumulative product of noise-retention factors; it goes from ~1 at t=0 to ~0 at t=T.",
+   "tags": []
+  },
+  "The training objective · DDPM loss": {
+   "zh": "训练目标 · DDPM 损失",
+   "src": "The training objective · DDPM loss",
+   "tags": []
+  },
+  "Sample a random clean image, a random timestep, and a random noise ε. Compute x_t. Ask the network to predict ε. That's the entire loss. Simple, stable, and works better than everything else.": {
+   "zh": "随机采样一个干净图像、一个随机时间步与一个随机噪声 ε。计算 x_t。要求网络预测 ε。这就是全部的损失。简单、稳定，而且比其余一切方案都更有效。",
+   "src": "Sample a random clean image, a random timestep, and a random noise ε. Compute x_t. Ask the network to predict ε. That's the entire loss. Simple, stable, and works better than everything else.",
+   "tags": []
+  },
+  "The reverse process · where the magic lives": {
+   "zh": "逆向过程 · 奥秘所在",
+   "src": "The reverse process · where the magic lives",
+   "tags": []
+  },
+  "Reversing diffusion means: given $x_t$ (noisy) and the timestep $t$, predict $x_{t-1}$ (slightly less noisy). The exact reverse is intractable, but Ho et al. (2020) show that for small enough noise steps it's well-approximated by a Gaussian:": {
+   "zh": "逆转扩散意味着：给定 $x_t$（含噪）与时间步 $t$，预测 $x_{t-1}$（噪声略少）。精确的逆过程难以求解，但 Ho 等人（2020）表明，当噪声步足够小时，它可被一个高斯分布良好近似：",
+   "src": "Reversing diffusion means: given $x_t$ (noisy) and the timestep $t$, predict $x_{t-1}$ (slightly less noisy). The exact reverse is intractable, but Ho et al. (2020) show that for small enough noise steps it's well-approximated by a Gaussian:",
+   "tags": []
+  },
+  "And — the algebraic punchline — once you have $\\epsilon_\\theta$, the predicted noise, the mean of that Gaussian has a closed form:": {
+   "zh": "而关键的代数结论是——一旦你有了预测噪声 $\\epsilon_\\theta$，该高斯分布的均值就有闭式解：",
+   "src": "And — the algebraic punchline — once you have $\\epsilon_\\theta$, the predicted noise, the mean of that Gaussian has a closed form:",
+   "tags": []
+  },
+  "That's why DDPM's loss is just \"predict the noise\" — once $\\epsilon_\\theta$ is good, the reverse mean is automatic.\n      The variance $\\Sigma_\\theta$ is either fixed to $\\beta_t$ (DDPM) or learned (Nichol &amp; Dhariwal 2021).": {
+   "zh": "这正是为何 DDPM 的损失就是“预测噪声”——一旦 $\\epsilon_\\theta$ 足够好，逆向均值便自动得到。方差 $\\Sigma_\\theta$ 要么固定为 $\\beta_t$（DDPM），要么被学习（Nichol 与 Dhariwal 2021）。",
+   "src": "That's why DDPM's loss is just \"predict the noise\" — once $\\epsilon_\\theta$ is good, the reverse mean is automatic.\n      The variance $\\Sigma_\\theta$ is either fixed to $\\beta_t$ (DDPM) or learned (Nichol &amp; Dhariwal 2021).",
+   "tags": []
+  },
+  "DDIM · skip steps without quality loss": {
+   "zh": "DDIM · 在无质量损失的前提下跳步",
+   "src": "DDIM · skip steps without quality loss",
+   "tags": []
+  },
+  "DDPM sampling is $T$ network calls (typically 1000) per image. DDIM (Song et al., 2020) shows that a @@T0@@non-Markovian@@T1@@ reverse process can take just 25–50 steps with the same trained model:": {
+   "zh": "DDPM 采样每张图像需要 $T$ 次网络调用（通常为 1000 次）。DDIM（Song 等人，2020）表明，一个@@T0@@非马尔可夫@@T1@@的逆向过程在同一个已训练模型上只需 25–50 步：",
+   "src": "DDPM sampling is $T$ network calls (typically 1000) per image. DDIM (Song et al., 2020) shows that a <em>non-Markovian</em> reverse process can take just 25–50 steps with the same trained model:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "where $\\hat x_0 = (x_t - \\sqrt{1 - \\bar\\alpha_t}\\,\\epsilon_\\theta) / \\sqrt{\\bar\\alpha_t}$ is the model's current estimate of the clean image. Set $\\Delta = T/N$; you get $N$-step sampling. Quality survives well even at $N = 25$. The successors (DPM-Solver, UniPC) push the floor below 10 steps.": {
+   "zh": "其中 $\\hat x_0 = (x_t - \\sqrt{1 - \\bar\\alpha_t}\\,\\epsilon_\\theta) / \\sqrt{\\bar\\alpha_t}$ 是模型对干净图像的当前估计。令 $\\Delta = T/N$，便得到 $N$ 步采样。即便在 $N = 25$ 时质量也保持得很好。其后续方法（DPM-Solver、UniPC）把下限进一步压到 10 步以内。",
+   "src": "where $\\hat x_0 = (x_t - \\sqrt{1 - \\bar\\alpha_t}\\,\\epsilon_\\theta) / \\sqrt{\\bar\\alpha_t}$ is the model's current estimate of the clean image. Set $\\Delta = T/N$; you get $N$-step sampling. Quality survives well even at $N = 25$. The successors (DPM-Solver, UniPC) push the floor below 10 steps.",
+   "tags": []
+  },
+  "Classifier-free guidance · the conditioning lever": {
+   "zh": "无分类器引导 · 条件控制的杠杆",
+   "src": "Classifier-free guidance · the conditioning lever",
+   "tags": []
+  },
+  "How do diffusion models know what to generate? They train on $(x, c)$ pairs where $c$ is a class label or text embedding, and the noise predictor takes $c$ as an extra input. At inference, the famous trick (Ho &amp; Salimans, 2021):": {
+   "zh": "扩散模型如何知道该生成什么？它们在 $(x, c)$ 对上训练，其中 $c$ 是类别标签或文本嵌入，噪声预测器把 $c$ 作为额外输入。在推理时，那个著名技巧（Ho 与 Salimans，2021）是：",
+   "src": "How do diffusion models know what to generate? They train on $(x, c)$ pairs where $c$ is a class label or text embedding, and the noise predictor takes $c$ as an extra input. At inference, the famous trick (Ho &amp; Salimans, 2021):",
+   "tags": []
+  },
+  "Compute the noise prediction with the condition $c$ @@T0@@and@@T1@@ without (an empty / \"null\" condition the model also saw during training). Extrapolate beyond the conditional prediction by $w$. Large $w$ → strongly on-prompt but less diverse; $w \\approx 7$ is the Stable-Diffusion default. The\n      @@T2@@CFG scale visualiser@@T3@@ shows this on a 2D toy.": {
+   "zh": "分别计算带条件 $c$ 与@@T0@@不带@@T1@@条件（模型在训练时也见过的一个空 / “空条件”）的噪声预测。在条件预测之外按 $w$ 外推。$w$ 大 → 强烈贴合提示但多样性下降；$w \\approx 7$ 是 Stable Diffusion 的默认值。@@T2@@CFG 尺度可视化器@@T3@@在一个二维玩具示例上展示了这一点。",
+   "src": "Compute the noise prediction with the condition $c$ <em>and</em> without (an empty / \"null\" condition the model also saw during training). Extrapolate beyond the conditional prediction by $w$. Large $w$ → strongly on-prompt but less diverse; $w \\approx 7$ is the Stable-Diffusion default. The\n      <a href=\"../cfg-scale-visualizer/index.html\">CFG scale visualiser</a> shows this on a 2D toy.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<a href=\"../cfg-scale-visualizer/index.html\">",
+    "</a>"
+   ]
+  },
+  "What changed between DDPM (2020) and today": {
+   "zh": "从 DDPM（2020）到今天发生了什么变化",
+   "src": "What changed between DDPM (2020) and today",
+   "tags": []
+  },
+  "@@T0@@Latent diffusion (Stable Diffusion, 2022).@@T1@@ Run the diffusion in a small VAE latent (64×64) instead of pixels (512×512). 64× cheaper, same quality.": {
+   "zh": "@@T0@@潜空间扩散（Stable Diffusion，2022）。@@T1@@ 在小型的 VAE 潜空间（64×64）中而非像素空间（512×512）中运行扩散。便宜 64 倍，质量相同。",
+   "src": "<strong>Latent diffusion (Stable Diffusion, 2022).</strong> Run the diffusion in a small VAE latent (64×64) instead of pixels (512×512). 64× cheaper, same quality.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Velocity / v-prediction.@@T1@@ Predict $v_t = \\sqrt{\\bar\\alpha_t}\\,\\epsilon - \\sqrt{1-\\bar\\alpha_t}\\,x_0$ rather than $\\epsilon$ directly. Better numerical behaviour, used in Imagen, Stable Diffusion 3.": {
+   "zh": "@@T0@@速度 / v-预测。@@T1@@ 直接预测 $v_t = \\sqrt{\\bar\\alpha_t}\\,\\epsilon - \\sqrt{1-\\bar\\alpha_t}\\,x_0$，而非 $\\epsilon$。数值行为更好，用于 Imagen、Stable Diffusion 3。",
+   "src": "<strong>Velocity / v-prediction.</strong> Predict $v_t = \\sqrt{\\bar\\alpha_t}\\,\\epsilon - \\sqrt{1-\\bar\\alpha_t}\\,x_0$ rather than $\\epsilon$ directly. Better numerical behaviour, used in Imagen, Stable Diffusion 3.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Flow-matching / rectified flow.@@T1@@ Reformulate as an ODE; train to predict the velocity field. SD3, AuraFlow. Cleaner theory, faster inference.": {
+   "zh": "@@T0@@流匹配 / 整流流。@@T1@@ 重新表述为一个常微分方程；训练以预测速度场。SD3、AuraFlow。理论更干净，推理更快。",
+   "src": "<strong>Flow-matching / rectified flow.</strong> Reformulate as an ODE; train to predict the velocity field. SD3, AuraFlow. Cleaner theory, faster inference.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Consistency models (2023).@@T1@@ Distil a slow diffusion into a 1-step generator. Single-step sampling at usable quality.": {
+   "zh": "@@T0@@一致性模型（2023）。@@T1@@ 把一个缓慢的扩散模型蒸馏成单步生成器。以可用的质量实现单步采样。",
+   "src": "<strong>Consistency models (2023).</strong> Distil a slow diffusion into a 1-step generator. Single-step sampling at usable quality.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Score-based view (Song &amp; Ermon, 2019).@@T1@@ Same model, equivalent formulation as score $\\nabla_x \\log p_t(x)$. The SDE / ODE perspective subsumes DDPM.": {
+   "zh": "@@T0@@基于分数的视角（Song 与 Ermon，2019）。@@T1@@ 同一模型可等价表述为分数 $\\nabla_x \\log p_t(x)$。SDE / ODE 的视角涵盖了 DDPM。",
+   "src": "<strong>Score-based view (Song &amp; Ermon, 2019).</strong> Same model, equivalent formulation as score $\\nabla_x \\log p_t(x)$. The SDE / ODE perspective subsumes DDPM.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Conditioning via cross-attention.@@T1@@ Stable Diffusion uses cross-attention into the UNet to attend to a CLIP-encoded prompt; see the\n        @@T2@@U-Net article's diffusion section@@T3@@.": {
+   "zh": "@@T0@@通过交叉注意力施加条件。@@T1@@ Stable Diffusion 使用指向 UNet 的交叉注意力来关注经 CLIP 编码的提示；参见@@T2@@ U-Net 一文的扩散章节@@T3@@。",
+   "src": "<strong>Conditioning via cross-attention.</strong> Stable Diffusion uses cross-attention into the UNet to attend to a CLIP-encoded prompt; see the\n        <a href=\"../unet/index.html#step-5\">U-Net article's diffusion section</a>.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<a href=\"../unet/index.html#step-5\">",
+    "</a>"
+   ]
+  },
+  "Companion: @@T0@@CFG scale visualiser@@T1@@ · @@T2@@text diffusion@@T3@@ · @@T4@@U-Net inside diffusion@@T5@@.": {
+   "zh": "配套文章：@@T0@@CFG 尺度可视化器@@T1@@ · @@T2@@文本扩散@@T3@@ · @@T4@@扩散中的 U-Net@@T5@@。",
+   "src": "Companion: <a href=\"../cfg-scale-visualizer/index.html\">CFG scale visualiser</a> · <a href=\"../text-diffusion/index.html\">text diffusion</a> · <a href=\"../unet/index.html\">U-Net inside diffusion</a>.",
+   "tags": [
+    "<a href=\"../cfg-scale-visualizer/index.html\">",
+    "</a>",
+    "<a href=\"../text-diffusion/index.html\">",
+    "</a>",
+    "<a href=\"../unet/index.html\">",
+    "</a>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "扩散 · 前向加噪与逆向去噪",
+  "tagline": "观察一个二维形状溶解为高斯噪声，再重新组装回自身",
+  "summary": "DDPM 在 T 个步骤中把数据污染为噪声，并学习逆转这一污染过程。拖动时间步滑块，观察一个二维分布（螺旋）溶解为各向同性高斯；再按下“逆向”，观察它重新组装。这就是 Stable Diffusion 背后的直觉，一步一步呈现。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "把时间步 t 从 0 滑到 1000；观察一个二维形状溶解为噪声。",
+   "噪声调度切换：线性 vs 余弦。",
+   "“逆向”按钮把去噪过程从纯噪声动画演示回原形状。",
+   "理解前向的闭式表达：x_t = √(α̅_t) x_0 + √(1−α̅_t) ε。",
+   "为何扩散战胜了 GAN：训练稳定、样本多样、似然强。"
+  ],
+  "tags": [
+   "扩散",
+   "DDPM",
+   "生成式",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

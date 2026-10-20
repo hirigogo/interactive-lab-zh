@@ -1,0 +1,336 @@
+{
+ "slug": "norm-comparison",
+ "units": {
+  "BatchNorm vs LayerNorm vs GroupNorm vs InstanceNorm": {
+   "zh": "BatchNorm 与 LayerNorm、GroupNorm、InstanceNorm 之比较",
+   "src": "BatchNorm vs LayerNorm vs GroupNorm vs InstanceNorm",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Four normalization layers, one equation shape: subtract a mean, divide by a\n      standard deviation. The @@T0@@only@@T1@@ thing that changes is @@T2@@which slice\n      of the activation tensor@@T3@@ the mean and variance are pooled over. That\n      single design choice is why BatchNorm ruled CNNs, LayerNorm rules Transformers,\n      and GroupNorm rescued small-batch training. Pick a norm below and watch exactly\n      which elements share one statistic.": {
+   "zh": "四种归一化层，共享同一种方程形式：减去均值，再除以标准差。\n      唯一的差别在于@@T0@@均值与方差是在激活张量的哪一@@T1@@@@T2@@切片@@T3@@上进行池化。\n      正是这一设计选择，使得 BatchNorm 主宰了 CNN、LayerNorm 主宰了 Transformer，\n      而 GroupNorm 拯救了小批量训练。在下方选择一种归一化，\n      观察究竟哪些元素共享同一个统计量。",
+   "src": "Four normalization layers, one equation shape: subtract a mean, divide by a\n      standard deviation. The <em>only</em> thing that changes is <strong>which slice\n      of the activation tensor</strong> the mean and variance are pooled over. That\n      single design choice is why BatchNorm ruled CNNs, LayerNorm rules Transformers,\n      and GroupNorm rescued small-batch training. Pick a norm below and watch exactly\n      which elements share one statistic.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@~12 min@@T1@@\n      @@T2@@Normalization &middot; CNNs &middot; Transformers@@T3@@": {
+   "zh": "@@T0@@约 12 分钟@@T1@@\n      @@T2@@归一化 &middot; CNN &middot; Transformer@@T3@@",
+   "src": "<span>~12 min</span>\n      <span>Normalization &middot; CNNs &middot; Transformers</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "One equation, four slices": {
+   "zh": "一个方程，四种切片",
+   "src": "One equation, four slices",
+   "tags": []
+  },
+  "Take a batch of activations shaped $(N, C, H, W)$ &mdash; $N$ examples, $C$\n      channels, and an $H\\times W$ spatial map per channel. Every normalization layer\n      applies the same transform to each element, then a learned scale $\\gamma$ and\n      shift $\\beta$:": {
+   "zh": "取一批形状为 $(N, C, H, W)$ 的激活值——$N$ 个样本、$C$ 个\n      通道，每个通道对应一张 $H\\times W$ 的空间图。每一种归一化层\n      都对每个元素施加相同的变换，随后再乘以可学习的缩放 $\\gamma$ 与\n      平移 $\\beta$：",
+   "src": "Take a batch of activations shaped $(N, C, H, W)$ &mdash; $N$ examples, $C$\n      channels, and an $H\\times W$ spatial map per channel. Every normalization layer\n      applies the same transform to each element, then a learned scale $\\gamma$ and\n      shift $\\beta$:",
+   "tags": []
+  },
+  "The mean $\\mu$ and variance $\\sigma^2$ are what differ. Each method sums over a\n      different set of axes &mdash; a different @@T0@@slice@@T1@@ of the tensor &mdash;\n      and therefore produces a different number of independent statistics:": {
+   "zh": "差别在于均值 $\\mu$ 与方差 $\\sigma^2$。每种方法在不同的坐标轴集合上求和\n      &mdash; 即张量的不同@@T0@@切片@@T1@@ &mdash;\n      因而产生数量不同的独立统计量：",
+   "src": "The mean $\\mu$ and variance $\\sigma^2$ are what differ. Each method sums over a\n      different set of axes &mdash; a different <em>slice</em> of the tensor &mdash;\n      and therefore produces a different number of independent statistics:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@BatchNorm@@T1@@ &middot; pool over $N, H, W$ &mdash; one $(\\mu,\\sigma^2)$ @@T2@@per channel@@T3@@.": {
+   "zh": "@@T0@@BatchNorm@@T1@@ &middot; 在 $N, H, W$ 上池化 &mdash; 每个通道一组 $(\\mu,\\sigma^2)$@@T2@@@@T3@@。",
+   "src": "<strong>BatchNorm</strong> &middot; pool over $N, H, W$ &mdash; one $(\\mu,\\sigma^2)$ <em>per channel</em>.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@LayerNorm@@T1@@ &middot; pool over $C, H, W$ &mdash; one @@T2@@per sample@@T3@@.": {
+   "zh": "@@T0@@LayerNorm@@T1@@ &middot; 在 $C, H, W$ 上池化 &mdash; 每个样本一组@@T2@@@@T3@@。",
+   "src": "<strong>LayerNorm</strong> &middot; pool over $C, H, W$ &mdash; one <em>per sample</em>.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@InstanceNorm@@T1@@ &middot; pool over $H, W$ &mdash; one @@T2@@per (sample, channel)@@T3@@.": {
+   "zh": "@@T0@@InstanceNorm@@T1@@ &middot; 在 $H, W$ 上池化 &mdash; 每个（样本, 通道）一组@@T2@@@@T3@@。",
+   "src": "<strong>InstanceNorm</strong> &middot; pool over $H, W$ &mdash; one <em>per (sample, channel)</em>.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@GroupNorm@@T1@@ &middot; pool over a channel group $+\\,H, W$ &mdash; one @@T2@@per (sample, group)@@T3@@.": {
+   "zh": "@@T0@@GroupNorm@@T1@@ &middot; 在一个通道组 $+\\,H, W$ 上池化 &mdash; 每个（样本, 组）一组@@T2@@@@T3@@。",
+   "src": "<strong>GroupNorm</strong> &middot; pool over a channel group $+\\,H, W$ &mdash; one <em>per (sample, group)</em>.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Lab": {
+   "zh": "实验台",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Which elements share one statistic?": {
+   "zh": "哪些元素共享同一个统计量？",
+   "src": "Which elements share one statistic?",
+   "tags": []
+  },
+  "Below is one activation tensor. Rows are the $N$ examples in the batch, columns\n      are the $C$ channels, and each little tile is that channel's $H\\times W$ spatial\n      map (here $2\\times2$). Choose a normalization scheme &mdash; the highlighted cells\n      are @@T0@@exactly the elements averaged together for one@@T1@@ $(\\mu,\\sigma^2)$.\n      @@T2@@Click any tile@@T3@@ to move the reference cell and see which slice it belongs to.": {
+   "zh": "下面是一个激活张量。行表示批中的 $N$ 个样本，列表示 $C$ 个通道，\n      每个小方块则是该通道的 $H\\times W$ 空间图（此处为 $2\\times2$）。\n      选择一种归一化方案 &mdash; 高亮单元格正是\n      @@T0@@为同一个@@T1@@ $(\\mu,\\sigma^2)$ 一起求平均的那些元素。\n      @@T2@@点击任意方块@@T3@@ 即可移动参考单元，并查看它属于哪个切片。",
+   "src": "Below is one activation tensor. Rows are the $N$ examples in the batch, columns\n      are the $C$ channels, and each little tile is that channel's $H\\times W$ spatial\n      map (here $2\\times2$). Choose a normalization scheme &mdash; the highlighted cells\n      are <strong>exactly the elements averaged together for one</strong> $(\\mu,\\sigma^2)$.\n      <em>Click any tile</em> to move the reference cell and see which slice it belongs to.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "BatchNorm@@T0@@over N, H, W@@T1@@": {
+   "zh": "BatchNorm@@T0@@在 N, H, W 上@@T1@@",
+   "src": "BatchNorm<span class=\"sub\">over N, H, W</span>",
+   "tags": [
+    "<span class=\"sub\">",
+    "</span>"
+   ]
+  },
+  "LayerNorm@@T0@@over C, H, W@@T1@@": {
+   "zh": "LayerNorm@@T0@@在 C, H, W 上@@T1@@",
+   "src": "LayerNorm<span class=\"sub\">over C, H, W</span>",
+   "tags": [
+    "<span class=\"sub\">",
+    "</span>"
+   ]
+  },
+  "GroupNorm@@T0@@over group, H, W@@T1@@": {
+   "zh": "GroupNorm@@T0@@在组、H, W 上@@T1@@",
+   "src": "GroupNorm<span class=\"sub\">over group, H, W</span>",
+   "tags": [
+    "<span class=\"sub\">",
+    "</span>"
+   ]
+  },
+  "InstanceNorm@@T0@@over H, W@@T1@@": {
+   "zh": "InstanceNorm@@T0@@在 H, W 上@@T1@@",
+   "src": "InstanceNorm<span class=\"sub\">over H, W</span>",
+   "tags": [
+    "<span class=\"sub\">",
+    "</span>"
+   ]
+  },
+  "Batch size $N$ @@T0@@4@@T1@@": {
+   "zh": "批量大小 $N$ @@T0@@4@@T1@@",
+   "src": "Batch size $N$ <span id=\"nVal\">4</span>",
+   "tags": [
+    "<span id=\"nVal\">",
+    "</span>"
+   ]
+  },
+  "Channels $C$ @@T0@@6@@T1@@": {
+   "zh": "通道数 $C$ @@T0@@6@@T1@@",
+   "src": "Channels $C$ <span id=\"cVal\">6</span>",
+   "tags": [
+    "<span id=\"cVal\">",
+    "</span>"
+   ]
+  },
+  "Channels / group $G$ @@T0@@3@@T1@@": {
+   "zh": "每组的通道数 $G$ @@T0@@3@@T1@@",
+   "src": "Channels / group $G$ <span id=\"gVal\">3</span>",
+   "tags": [
+    "<span id=\"gVal\">",
+    "</span>"
+   ]
+  },
+  "Each tile is a channel's 2&times;2 spatial map. Blue tiles are pooled into one mean &amp; variance.": {
+   "zh": "每个方块是一个通道的 2&times;2 空间图。蓝色方块被池化为同一个均值与方差。",
+   "src": "Each tile is a channel's 2&times;2 spatial map. Blue tiles are pooled into one mean &amp; variance.",
+   "tags": []
+  },
+  "@@T0@@@@T1@@@@T2@@ averaged together (one $\\mu,\\sigma^2$)@@T3@@\n      @@T4@@@@T5@@@@T6@@ other elements@@T7@@\n      @@T8@@@@T9@@@@T10@@ reference cell &middot; click to move@@T11@@": {
+   "zh": "@@T0@@@@T1@@@@T2@@ 一起求平均（同一个 $\\mu,\\sigma^2$）@@T3@@\n      @@T4@@@@T5@@@@T6@@ 其他元素@@T7@@\n      @@T8@@@@T9@@@@T10@@ 参考单元 &middot; 点击以移动@@T11@@",
+   "src": "<span class=\"chip\"><span class=\"sw\" style=\"background:#2c6fb7\"></span> averaged together (one $\\mu,\\sigma^2$)</span>\n      <span class=\"chip\"><span class=\"sw\" style=\"background:#c9c2b6\"></span> other elements</span>\n      <span class=\"chip\"><span class=\"sw-ring\"></span> reference cell &middot; click to move</span>",
+   "tags": [
+    "<span class=\"chip\">",
+    "<span class=\"sw\" style=\"background:#2c6fb7\">",
+    "</span>",
+    "</span>",
+    "<span class=\"chip\">",
+    "<span class=\"sw\" style=\"background:#c9c2b6\">",
+    "</span>",
+    "</span>",
+    "<span class=\"chip\">",
+    "<span class=\"sw-ring\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Mean $\\mu$ of highlighted@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@高亮部分的均值 $\\mu$@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Mean $\\mu$ of highlighted</span>\n        <span class=\"stat-value\" id=\"meanVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"meanVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Variance $\\sigma^2$ of highlighted@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@高亮部分的方差 $\\sigma^2$@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Variance $\\sigma^2$ of highlighted</span>\n        <span class=\"stat-value\" id=\"varVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"varVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Elements pooled@@T1@@\n        @@T2@@&mdash;@@T3@@\n        @@T4@@&mdash;@@T5@@": {
+   "zh": "@@T0@@被池化的元素数@@T1@@\n        @@T2@@&mdash;@@T3@@\n        @@T4@@&mdash;@@T5@@",
+   "src": "<span class=\"stat-label\">Elements pooled</span>\n        <span class=\"stat-value\" id=\"cntVal\">&mdash;</span>\n        <span class=\"stat-sub\" id=\"cntSub\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"cntVal\">",
+    "</span>",
+    "<span class=\"stat-sub\" id=\"cntSub\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Try this.@@T1@@ Keep the reference tile fixed and flip between\n      @@T2@@BatchNorm@@T3@@ and @@T4@@LayerNorm@@T5@@. Watch the mean pill: BatchNorm pools a\n      whole channel across the batch, so its statistic barely moves when you click a\n      different sample &mdash; but LayerNorm re-computes a fresh mean for @@T6@@each@@T7@@\n      sample, so it jumps. That batch-vs-sample split is the entire story: BatchNorm\n      couples examples together (great with big batches, fragile with tiny ones);\n      LayerNorm treats every example alone (perfect for variable-length Transformer\n      sequences). Now drag $G$ under GroupNorm from $1$ up to $C$ &mdash; at $G=1$ it\n      @@T8@@is@@T9@@ InstanceNorm, and at $G=C$ it @@T10@@is@@T11@@ LayerNorm.": {
+   "zh": "@@T0@@试试这个。@@T1@@ 固定参考方块，在\n      @@T2@@BatchNorm@@T3@@ 与 @@T4@@LayerNorm@@T5@@ 之间来回切换。观察均值指示器：\n      BatchNorm 在整个批上对一个完整通道做池化，所以当你点击另一个样本时，\n      其统计量几乎不动——而 LayerNorm 会为@@T6@@每个@@T7@@样本重新计算一个\n      全新的均值，因此它会跃变。这种批与样本之分正是全部要点：BatchNorm\n      把各样本耦合在一起（大批量时极佳，小批量时脆弱）；\n      LayerNorm 则让每个样本各自独立（对变长的 Transformer\n      序列而言再合适不过）。现在把 GroupNorm 下的 $G$ 从 $1$ 拖到 $C$——当 $G=1$ 时它\n      @@T8@@就是@@T9@@ InstanceNorm，当 $G=C$ 时它 @@T10@@就是@@T11@@ LayerNorm。",
+   "src": "<strong>Try this.</strong> Keep the reference tile fixed and flip between\n      <em>BatchNorm</em> and <em>LayerNorm</em>. Watch the mean pill: BatchNorm pools a\n      whole channel across the batch, so its statistic barely moves when you click a\n      different sample &mdash; but LayerNorm re-computes a fresh mean for <em>each</em>\n      sample, so it jumps. That batch-vs-sample split is the entire story: BatchNorm\n      couples examples together (great with big batches, fragile with tiny ones);\n      LayerNorm treats every example alone (perfect for variable-length Transformer\n      sequences). Now drag $G$ under GroupNorm from $1$ up to $C$ &mdash; at $G=1$ it\n      <em>is</em> InstanceNorm, and at $G=C$ it <em>is</em> LayerNorm.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "回报",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Why each wins where it wins": {
+   "zh": "各自为何在其擅长的场合取胜",
+   "src": "Why each wins where it wins",
+   "tags": []
+  },
+  "@@T0@@CNNs with large batches &middot; BatchNorm.@@T1@@ A channel is a\n        repeated feature detector applied at every spatial location and every image, so\n        $N\\!\\cdot\\!H\\!\\cdot\\!W$ samples give a stable estimate of its mean. The catch:\n        the statistic depends on the @@T2@@whole batch@@T3@@, so a batch of 2&ndash;4 (common\n        in detection/segmentation) makes it noisy, and train vs eval must swap in running\n        averages.": {
+   "zh": "@@T0@@大批量 CNN &middot; BatchNorm。@@T1@@ 一个通道是一个\n        在每个空间位置、每张图像上重复应用的特征检测器，因此\n        $N\\!\\cdot\\!H\\!\\cdot\\!W$ 个样本能给出其均值的稳定估计。问题在于：\n        该统计量依赖于@@T2@@整个批@@T3@@，所以批大小为 2&ndash;4 时（在\n        检测/分割中很常见）它会变得噪声很大，而且训练与评估之间必须切换为\n        滑动平均。",
+   "src": "<strong>CNNs with large batches &middot; BatchNorm.</strong> A channel is a\n        repeated feature detector applied at every spatial location and every image, so\n        $N\\!\\cdot\\!H\\!\\cdot\\!W$ samples give a stable estimate of its mean. The catch:\n        the statistic depends on the <em>whole batch</em>, so a batch of 2&ndash;4 (common\n        in detection/segmentation) makes it noisy, and train vs eval must swap in running\n        averages.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Transformers &amp; RNNs &middot; LayerNorm.@@T1@@ Sequence lengths\n        vary and batches can be size 1, so @@T2@@no batch dependence@@T3@@ is essential.\n        LayerNorm normalizes each token's feature vector on its own &mdash; identical\n        behaviour at train and eval, no running stats.": {
+   "zh": "@@T0@@Transformer 与 RNN &middot; LayerNorm。@@T1@@ 序列长度\n        各异，批量大小可能为 1，因此@@T2@@不依赖批@@T3@@至关重要。\n        LayerNorm 各自独立地归一化每个词元的特征向量——\n        训练与评估时行为完全一致，无需滑动统计量。",
+   "src": "<strong>Transformers &amp; RNNs &middot; LayerNorm.</strong> Sequence lengths\n        vary and batches can be size 1, so <em>no batch dependence</em> is essential.\n        LayerNorm normalizes each token's feature vector on its own &mdash; identical\n        behaviour at train and eval, no running stats.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Small-batch vision &middot; GroupNorm.@@T1@@ It keeps LayerNorm's\n        batch-independence but splits channels into groups, recovering some of the\n        per-channel structure BatchNorm exploited. It matches BatchNorm's accuracy on\n        ImageNet at batch size 2, where BatchNorm collapses.": {
+   "zh": "@@T0@@小批量视觉 &middot; GroupNorm。@@T1@@ 它保留了 LayerNorm 的\n        批独立性，但把通道分为若干组，从而恢复了 BatchNorm 所利用的\n        部分逐通道结构。在批大小为 2 时，它在 ImageNet 上能达到与\n        BatchNorm 相当的准确率，而后者此时已经崩溃。",
+   "src": "<strong>Small-batch vision &middot; GroupNorm.</strong> It keeps LayerNorm's\n        batch-independence but splits channels into groups, recovering some of the\n        per-channel structure BatchNorm exploited. It matches BatchNorm's accuracy on\n        ImageNet at batch size 2, where BatchNorm collapses.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Style transfer &middot; InstanceNorm.@@T1@@ Normalizing each image\n        and channel independently strips out per-image contrast and colour statistics\n        &mdash; exactly the \"style\" you then want to repaint, which is why it is the\n        default in style-transfer and many GAN generators.": {
+   "zh": "@@T0@@风格迁移 &middot; InstanceNorm。@@T1@@ 分别独立地归一化每张图像\n        与每个通道，会剥离掉逐图像的对比度与色彩统计量 &mdash;\n        而这些恰恰是你随后想要重新绘制的“风格”，这正是它成为\n        风格迁移与许多 GAN 生成器默认选择的原因。",
+   "src": "<strong>Style transfer &middot; InstanceNorm.</strong> Normalizing each image\n        and channel independently strips out per-image contrast and colour statistics\n        &mdash; exactly the \"style\" you then want to repaint, which is why it is the\n        default in style-transfer and many GAN generators.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@And RMSNorm?@@T1@@ The modern Transformer favourite is just LayerNorm\n      with the mean-centering dropped: $\\hat{x} = \\gamma \\cdot x / \\sqrt{\\overline{x^2} + \\epsilon}$.\n      Same slice as LayerNorm (across $C$), but it skips subtracting $\\mu$ &mdash; one\n      fewer statistic and one fewer parameter for near-identical accuracy. Every method\n      here is a variation on the same question you were just clicking through:\n      @@T2@@over which axes do we pool?@@T3@@": {
+   "zh": "@@T0@@那 RMSNorm 呢？@@T1@@ 这位现代 Transformer 的宠儿其实只是\n      去掉了均值中心化的 LayerNorm：$\\hat{x} = \\gamma \\cdot x / \\sqrt{\\overline{x^2} + \\epsilon}$。\n      切片与 LayerNorm 相同（在 $C$ 上），但它省去了减去 $\\mu$ 的步骤——\n      少一个统计量、少一个参数，而准确率几乎相同。这里的每一种方法，\n      都是你刚才一路点击所探讨的同一个问题的变体：\n      @@T2@@我们究竟在哪些坐标轴上做池化？@@T3@@",
+   "src": "<strong>And RMSNorm?</strong> The modern Transformer favourite is just LayerNorm\n      with the mean-centering dropped: $\\hat{x} = \\gamma \\cdot x / \\sqrt{\\overline{x^2} + \\epsilon}$.\n      Same slice as LayerNorm (across $C$), but it skips subtracting $\\mu$ &mdash; one\n      fewer statistic and one fewer parameter for near-identical accuracy. Every method\n      here is a variation on the same question you were just clicking through:\n      <em>over which axes do we pool?</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Normalization": {
+   "zh": "ES 667 深度学习讲解系列之一 &middot; 归一化",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Normalization",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "BatchNorm 与 LayerNorm、RMSNorm 之比较",
+  "tagline": "三种归一化，一个张量——看清每一种究竟在什么之上求平均。",
+  "summary": "选择一个四维张量（批量、通道、高度、宽度）或一个序列（批量、长度、维度）。在 BN / LN / RMSNorm 之间切换。高亮会显示每种方法究竟在哪一切片上求平均。这对理解为何 BN 主宰 CNN 而 LayerNorm 主宰 Transformer、以及为何 RMSNorm 是现代简化方案至关重要。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "悬停于张量之上，查看每种归一化在哪个切片上求平均。",
+   "比较 BN 在训练/评估之间的差异（滑动统计量）与 LN 在批上的对称性。",
+   "切换 RMSNorm，观察去掉均值中心化会带来什么变化。"
+  ],
+  "tags": [
+   "归一化",
+   "BatchNorm",
+   "LayerNorm",
+   "RMSNorm",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

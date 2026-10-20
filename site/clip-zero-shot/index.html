@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CLIP 与零样本分类：从嵌入出发</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>CLIP 与零样本分类：从嵌入出发</h1>
+        <p class="abstract">
+          2021 年，OpenAI 的 CLIP 模型做到了此前任何图像分类器都未能做到的事：它可以判断一张照片究竟是「一只鹦鹉的照片」还是「一块滑板的照片」，<em>而无需在这些类别上进行任何微调</em>。本页在你的浏览器中运行真实的 CLIP-ViT-B/32，把你输入的任意标签与你的照片一同嵌入到共享空间中，并逐步展示每一次余弦相似度与 softmax 计算。
+        </p>
+        <div class="byline">
+          <span>约 18 分钟</span>
+          <span>深度学习 &middot; 视觉-语言 &middot; 真实 CLIP</span>
+        </div>
+      </header>
+
+      <!-- ─── 前言 ─── -->
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>零样本的思想</h2>
+        <p>
+          普通的图像分类器拥有固定的输出头：1,000 个 ImageNet 类别、80 个 COCO 类别，诸如此类。你无法向它询问「一只正在吃寿司的捕鸟蛛的照片」，因为它没有对应的输出单元。
+        </p>
+        <p>
+          CLIP 完全绕开了输出头。它转而训练两个编码器——一个用于图像，一个用于文本——使得相匹配的配对在共享的 512 维向量空间中彼此靠近。在推理时，你把图像编码一次，把任意一组候选标签编码为文本，然后直接选取余弦相似度最接近的那个标签。模型完全不知道你会询问哪些标签；这正是「零样本」的含义所在。
+        </p>
+        <p>
+          OpenAI 在从网络上抓取的 4 亿个图文对上训练 CLIP，使用的是一种简单的对比损失：在一个大批次内，正确的（图像，标题）配对应具有高相似度，而每一个错误配对应具有低相似度。训练完成后，嵌入空间已足够有意义，以至于<em>任意</em>一条标题都可以作为类别原型。
+        </p>
+
+        <h3>
+          选择一张照片
+          <span class="model-status is-loading" id="model-status">
+            <span class="dot"></span><span id="model-status-text">正在加载 CLIP&hellip;</span>
+          </span>
+        </h3>
+        <p style="font-family: var(--sans); color: var(--muted); font-size: 0.9rem;">
+          模型（约 150&nbsp;MB）下载一次后会缓存到浏览器的 IndexedDB 中。在典型网络连接下，首次加载约需 20-40&nbsp;秒。
+        </p>
+
+        <div class="photo-picker">
+          <label class="upload-zone" id="upload-zone" for="photo-input">
+            <strong>将照片拖放到此处，或点击上传。</strong>
+            <small>本地运行。支持任意 JPEG 或 PNG。</small>
+            <div class="button-row" style="margin:0.4rem 0 0;">
+              <button class="action-btn action-btn--small" id="webcam-btn" type="button">使用摄像头</button>
+            </div>
+            <input type="file" id="photo-input" accept="image/*" />
+          </label>
+          <div>
+            <div class="sample-grid" id="sample-grid"></div>
+            <p style="font-family: var(--sans); color: var(--muted); font-size: 0.8rem; margin: 0.5rem 0 0;">
+              六张 CC 授权的素材照片。
+            </p>
+          </div>
+        </div>
+
+        <div class="progress-bar"><div class="progress-bar-fill" id="progress-bar-fill"></div></div>
+        <div class="progress-file" id="progress-file"></div>
+
+        <div class="interactive-figure">
+          <div class="image-stage-wrap">
+            <canvas id="preludeCanvas" class="image-canvas" width="480" height="480"></canvas>
+          </div>
+          <figcaption id="prelude-caption">加载中…</figcaption>
+        </div>
+
+        <div class="stat-strip">
+          <div class="stat-pill">
+            <span class="stat-label">模型</span>
+            <span class="stat-value" style="font-size: 0.92rem;">CLIP-ViT-B/32</span>
+          </div>
+          <div class="stat-pill stat-pill--image">
+            <span class="stat-label">共享维度</span>
+            <span class="stat-value">512</span>
+          </div>
+          <div class="stat-pill stat-pill--warm">
+            <span class="stat-label">推理时间</span>
+            <span class="stat-value" id="inference-ms">—</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── 步骤 1 ─── -->
+      <section class="step-section" id="step-1">
+        <div class="step-badge">步骤 1</div>
+        <h2>两个编码器，一个共享空间</h2>
+        <p>
+          CLIP 并非单一网络，而是两个网络。视觉编码器是一个 Vision Transformer（或 ResNet，取决于具体变体）；文本编码器是一个小型 Transformer。二者各自把输入映射为单个 512 维向量。所有奇妙之处都发生在这个共享的 512 维空间中。
+        </p>
+        <div class="math-block" id="math-encoders"></div>
+        <p>
+          两个向量在最终投影后都经过 $\ell_2$ 归一化，因此它们位于单位超球面上。二者之间的距离由余弦相似度度量——等价地，即它们的点积——取值范围从 $-1$（完全相反）到 $+1$（完全相同）。
+        </p>
+
+        <h3>你的图像，经由视觉编码器</h3>
+        <p>
+          下方的 512 个数值是 CLIP 视觉编码器对你当前照片的真实输出。如果你更换照片，整个向量都会随之改变。
+        </p>
+        <div class="embedding-display" id="image-embedding-preview">
+          正在等待模型&hellip;
+        </div>
+      </section>
+
+      <!-- ─── 步骤 2 ─── -->
+      <section class="step-section" id="step-2">
+        <div class="step-badge">步骤 2</div>
+        <h2>你的标签，经由文本编码器</h2>
+        <p>
+          输入任意内容。CLIP 会对每个标签进行分词，把词元送入其文本 Transformer，再输出另一个 512 维向量。这些向量即成为你的<em>类别原型</em>。在共享空间中与你的图像最接近的那个原型即胜出。
+        </p>
+
+        <h3>提示模板</h3>
+        <p>
+          CLIP 是在标题而非裸类别名称上训练的。把标签包裹进一个自然语调的模板（例如「a photo of a {label}」）通常能得到比单独使用标签好得多的文本向量。切换模板以作比较：
+        </p>
+        <div class="template-row" id="template-row">
+          <button class="mode-button is-active" data-template="photo">一张 {} 的照片</button>
+          <button class="mode-button" data-template="picture">一幅 {} 的图片</button>
+          <button class="mode-button" data-template="image">一张 {} 的图像</button>
+          <button class="mode-button" data-template="bare">{}（裸标签）</button>
+        </div>
+
+        <h3>编辑候选标签</h3>
+        <p>
+          每一行都是一个独立候选。右侧显示实时相似度与 softmax 概率。
+        </p>
+        <div class="label-editor" id="label-editor"></div>
+        <div class="button-row">
+          <button class="action-btn action-btn--small action-btn--ghost" id="btn-add-label">+ 添加标签</button>
+          <button class="action-btn action-btn--small action-btn--ghost" id="btn-reset-labels">重置为默认值</button>
+        </div>
+
+        <h3>第一个文本原型（供参考）</h3>
+        <div class="embedding-display" id="text-embedding-preview">
+          正在等待标签&hellip;
+        </div>
+      </section>
+
+      <!-- ─── 步骤 3 ─── -->
+      <section class="step-section" id="step-3">
+        <div class="step-badge">步骤 3</div>
+        <h2>余弦相似度：唯一真正重要的运算</h2>
+        <p>
+          由于两个向量都是单位范数，点积<em>就是</em>余弦相似度：
+        </p>
+        <div class="math-block" id="math-cosine"></div>
+        <p>
+          每个标签一次点积。512 次乘法与 511 次加法，再乘以标签数量。这就是 CLIP 中零样本分类的全部开销。
+        </p>
+
+        <h3>原始相似度（softmax 之前）</h3>
+        <div id="raw-sim-table" class="examples-table-wrap"></div>
+
+        <div class="callout">
+          <strong>单位归一化为何重要。</strong>
+          CLIP 训练所用的对比损失奖励匹配配对具有高点积，而非匹配配对的点积较低。若不做归一化，模型可以通过让所有配对的相似度在绝对值上都很大来「作弊」。归一化使每个向量处于同一尺度；相似度只关乎方向。
+        </div>
+      </section>
+
+      <!-- ─── 步骤 4 ─── -->
+      <section class="step-section" id="step-4">
+        <div class="step-badge">步骤 4</div>
+        <h2>softmax 与温度</h2>
+        <p>
+          为把相似度得分转换为概率，我们施加一个 softmax。CLIP 用一个学习得到的温度 $\tau \approx 0.01$ 对 logit 进行缩放（等价地，即乘以 $1/\tau \approx 100$）：
+        </p>
+        <div class="math-block" id="math-softmax"></div>
+        <p>
+          这种缩放使 softmax 变得非常尖锐。仅 0.05 的相似度差异就能产生 5&times; 的概率差距。拖动下方的温度滑块以观察效果：$\tau$ 越低，预测越尖锐；$\tau$ 越高，预测越平坦。
+        </p>
+
+        <div class="control-row">
+          <div class="control-block">
+            <label>softmax 温度 <span>&tau; = <span id="tau-val">0.01</span></span></label>
+            <input type="range" id="tau-slider" min="0.005" max="0.2" step="0.001" value="0.01" />
+          </div>
+          <div class="control-block">
+            <label>缩放因子 <span>1/&tau; = <span id="inv-tau-val">100</span></span></label>
+            <p style="font-family: var(--sans); color: var(--muted); font-size: 0.82rem; margin: 0.4rem 0 0;">
+              CLIP 预训练的温度约为 0.01。调高它会使置信度变得平坦，调低它则会使其变得陡峭。
+            </p>
+          </div>
+        </div>
+
+        <h3>实时预测</h3>
+        <div class="bar-chart" id="bar-chart"></div>
+
+        <div class="stat-strip">
+          <div class="stat-pill stat-pill--big stat-pill--warm">
+            <span class="stat-label">最高标签</span>
+            <span class="stat-value" id="top-label" style="font-size: 1.2rem;">—</span>
+          </div>
+          <div class="stat-pill stat-pill--big stat-pill--accent">
+            <span class="stat-label">最高概率</span>
+            <span class="stat-value" id="top-prob">—</span>
+          </div>
+          <div class="stat-pill stat-pill--big">
+            <span class="stat-label">熵（nat）</span>
+            <span class="stat-value" id="entropy">—</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── 步骤 5 ─── -->
+      <section class="step-section" id="step-5">
+        <div class="step-badge">步骤 5</div>
+        <h2>这一切为何能够奏效</h2>
+        <p>
+          一个从未见过你所用标签的模型，却仍能在大多数情况下把它们判断正确。原因在于对比预训练数据的<em>规模与多样性</em>。CLIP 见过来自开放网络的 4 亿个（图像，标题）对，这意味着它见到过：
+        </p>
+        <ul class="explanation-list">
+          <li>描述一只猫的数十种说法（「cat」、「kitten」、「kitty」、「tabby cat」、「a photo of a cat on a rug」……）</li>
+          <li>成千上万只不同的猫，涵盖各种角度与光照。</li>
+          <li>负样本：每一条标题都与许多<em>并非</em>其所描述的图像相配对。</li>
+        </ul>
+        <p>
+          最终，<em>任意</em>一张猫的图像都与<em>任意</em>一条关于猫的合理标题的文本嵌入相接近。这种预训练为你换来一个出奇通用的「图像到语言」相似度函数，它能迁移到未见过的标签集上。
+        </p>
+
+        <div class="reveal-card">
+          <h3>为何 512 维的输出头已足够</h3>
+          <div class="reveal-number">512</div>
+          <p>
+            个维度构成共享空间。这足以容纳数百万个彼此不同的概念，因为嵌入并不需要彼此正交——它们只需按语义相似度<em>聚簇</em>即可。<code>cat</code>、<code>kitten</code> 与 <code>tabby</code> 并不争夺坐标轴；它们彼此堆叠在一起。
+          </p>
+        </div>
+      </section>
+
+      <!-- ─── 步骤 6 ─── -->
+      <section class="step-section" id="step-6">
+        <div class="step-badge">步骤 6</div>
+        <h2>超越分类</h2>
+        <p>
+          零样本分类是 CLIP 最简单的用途。同一个嵌入空间还支撑着：
+        </p>
+        <div class="examples-table-wrap">
+          <table class="examples-table">
+            <thead>
+              <tr><th>任务</th><th>技巧</th><th>示例</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>图像检索</strong></td>
+                <td>嵌入一个文本查询；找出嵌入最接近的图像。</td>
+                <td>在你的照片库中搜索「golden hour landscape」。</td>
+              </tr>
+              <tr>
+                <td><strong>图像 → 文本检索</strong></td>
+                <td>嵌入一张图像；找出嵌入最接近的标题。</td>
+                <td>为无障碍检查建议替代文本。</td>
+              </tr>
+              <tr>
+                <td><strong>扩散模型引导</strong></td>
+                <td>把 CLIP 相似度用作损失，使图像生成器朝提示词方向靠拢。</td>
+                <td>Stable Diffusion 中的无分类器引导。</td>
+              </tr>
+              <tr>
+                <td><strong>开放词汇检测 / 分割</strong></td>
+                <td>用 CLIP 的文本嵌入替换检测器的类别头。</td>
+                <td>OWL-ViT、CLIPSeg、X-Decoder。</td>
+              </tr>
+              <tr>
+                <td><strong>免 OCR 的文档理解</strong></td>
+                <td>嵌入收据、幻灯片、图表；按语义内容检索。</td>
+                <td>论文检索、幻灯片整理。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ─── 步骤 7 ─── -->
+      <section class="step-section" id="step-7">
+        <div class="step-badge">步骤 7</div>
+        <h2>CLIP 会误导你的四个地方</h2>
+        <div class="misconception-grid">
+          <div class="misconception-card">
+            <span class="misconception-icon">误区</span>
+            <p><strong>「CLIP 理解它所分类的东西。」</strong><br />
+              CLIP 学到的是一个相似度函数，而非真值函数。如果有人把「iPod」这个词贴在一个苹果上，它会毫不犹豫地把那张打印标牌称为「iPod」（<em>排版攻击</em>，Goh 等，2021）。它并不推理；它只做匹配。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">误区</span>
+            <p><strong>「零样本意味着无需训练。」</strong><br />
+              有人花了 4 亿个配对以及一个 GPU 集群来训练这些编码器。你免费得到的是<em>对新标签的泛化能力</em>，而不是一顿免费的午餐。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">误区</span>
+            <p><strong>「多加标签只会更好。」</strong><br />
+              额外的近义标签会分散概率质量，损害任何单个标签的得分。额外的垃圾标签会拉扯 softmax，充当噪声。更多并不总是更好；应选择一个聚焦且彼此区分良好的标签集。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">误区</span>
+            <p><strong>「CLIP 没有偏见，因为它不是在标签上训练的。」</strong><br />
+              它是在从网络上抓取的 4 亿条标题上训练的。网络本身的偏见——性别化的职业印象、种族刻板印象、文化盲点——都被烙印其中。许多论文已对此进行探查；部署时务必谨慎。</p>
+          </div>
+        </div>
+
+        <div class="callout callout--think" style="margin-top: 2rem;">
+          <strong>最终要点。</strong>
+          用 CLIP 做零样本分类不过是两次矩阵乘法加上一个 softmax。奇妙之处不在于数学；而在于 4 亿张带标题的图像，它们的结构被蒸馏进了共享嵌入空间。你如今已用自己的照片和自己的标签亲手走过了整条流水线——而所用模型事先确实并不知道你会问什么。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-8">
+        <div class="step-badge">步骤 8</div>
+        <h2>对比训练目标详解</h2>
+        <p>
+          CLIP 在图像与文本之间最小化一个对称的 InfoNCE 损失：
+        </p>
+        <div class="math-block" id="math-clip"></div>
+        <p>
+          $z_i^I = \mathrm{img\_enc}(I_i) / \|\cdot\|_2$ 与 $z_i^T = \mathrm{text\_enc}(T_i) / \|\cdot\|_2$ 是经 L2 归一化的嵌入；$\tau$ 是学习得到的温度（CLIP 中初始化为 $\log(1/0.07)$）。对于一个含 $N$ 个配对的批次，每个 $(I_i, T_i)$ 都是正样本，而其余 $N-1$ 条文本为负样本——对称版本还会把图像视作文本的「标签」。
+        </p>
+        <p>
+          两个在实践中极其重要的实现细节：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>超大批次。</strong> CLIP 以 32,768 的批次大小训练。负样本越多 ⇒ 对比任务越难 ⇒ 表征越好。没有这一点，损失会迅速饱和。</li>
+          <li><strong>图像与文本编码器并不对称。</strong> 图像一侧是 ViT 或 ResNet；文本一侧是 12 层 Transformer。正是投影头（编码器之后的线性层）使这两个嵌入空间真正对齐。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-9">
+        <div class="step-badge">步骤 9</div>
+        <h2>CLIP 家族——后续发展</h2>
+        <ul class="explanation-list">
+          <li><strong>OpenCLIP（LAION，2022）。</strong> 开放权重与开放数据；用 LAION-2B 复现了 CLIP 的性能。</li>
+          <li><strong>SigLIP（Google，2023）。</strong> 用 sigmoid 损失替代 softmax 交叉熵。与批次大小无关；小批次表现更好。SigLIP-2（2024）进一步扩展到多语言与稠密头。</li>
+          <li><strong>EVA-CLIP、MetaCLIP、DFN-CLIP。</strong> 规模扩展与数据筛选的变体。编码器更大、数据过滤更好，零样本 ImageNet 准确率高出约 2–5 个点。</li>
+          <li><strong>CLIPA。</strong> 廉价 CLIP——先在较小分辨率 / 词元数下训练，再以全分辨率微调。训练成本降低约 4×。</li>
+          <li><strong>EVA-02、DINOv2、AIM。</strong> 不带语言对齐的自监督骨干网络；当下游不需要语言时，常<em>用来替代</em> CLIP 的图像编码器。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-10">
+        <div class="step-badge">步骤 10</div>
+        <h2>面向 CLIP 的提示工程</h2>
+        <p>
+          CLIP 的分类准确率对提示措辞的依赖程度令人震惊。「cat」得到一种准确率；「a photo of a cat」高出约 5 个点；「a photo of a cat, a type of pet」又更高。标准配方（Radford 等，2021）：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>提示集成。</strong> 对 80 个提示模板（「一张 {} 的照片」「a blurry photo of a {}」「a low-resolution photo of a {}」……）的文本嵌入取平均。可将 ImageNet 零样本准确率提升约 2 个点。</li>
+          <li><strong>类别名归一化。</strong> 使用最常见的自然语言形式（用「airplane」而非「aeroplane」，用「ant」而非「Formicidae」）。</li>
+          <li><strong>上下文感知提示。</strong> 对于医学 / 科学领域，添加领域前缀（「a photo of a tissue slide showing {}」）。</li>
+          <li><strong>软提示微调（CoOp，2022）。</strong> 用可学习的嵌入替换文本模板，在少量带标注样例上拟合。当模板选择是主要不确定性来源时尤为有用。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-11">
+        <div class="step-badge">步骤 11</div>
+        <h2>参考文献</h2>
+        <ul class="explanation-list">
+          <li><strong>Radford 等（2021）</strong> —— <em>Learning Transferable Visual Models From Natural Language Supervision.</em> CLIP 原始论文。</li>
+          <li><strong>Jia 等（2021）</strong> —— <em>ALIGN.</em> 同期工作，18 亿图文对。</li>
+          <li><strong>Cherti 等（2023）</strong> —— <em>Reproducible Scaling Laws for Contrastive Language-Image Learning.</em> 大规模 OpenCLIP。</li>
+          <li><strong>Zhai 等（2023）</strong> —— <em>SigLIP.</em></li>
+          <li><strong>Zhou 等（2022）</strong> —— <em>CoOp.</em> 面向 CLIP 的软提示微调。</li>
+          <li><strong>Goh 等（2021）</strong> —— <em>Multimodal Neurons in Artificial Neural Networks.</em> 排版攻击论文。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

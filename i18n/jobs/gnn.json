@@ -1,0 +1,560 @@
+{
+ "slug": "gnn",
+ "units": {
+  "Graph Neural Networks, Step by Step": {
+   "zh": "图神经网络：逐步解析",
+   "src": "Graph Neural Networks, Step by Step",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "A 14-node sensor graph; click a node to spike its feature;\n          watch K rounds of message passing diffuse the signal.\n          Toggle aggregation (mean GCN / max / attention GAT) and see\n          the propagation pattern change. Then a logistic head trained\n          on 4 labelled nodes reads off the class.": {
+   "zh": "一个含 14 个节点的传感器图；点击某个节点使其特征产生尖峰；观察 K 轮消息传递如何扩散该信号。切换聚合方式（均值 GCN / 最大值 / 注意力 GAT），观察传播模式随之改变。随后，一个在 4 个已标注节点上训练的逻辑回归头部读出类别。",
+   "src": "A 14-node sensor graph; click a node to spike its feature;\n          watch K rounds of message passing diffuse the signal.\n          Toggle aggregation (mean GCN / max / attention GAT) and see\n          the propagation pattern change. Then a logistic head trained\n          on 4 labelled nodes reads off the class.",
+   "tags": []
+  },
+  "@@T0@@~16 min@@T1@@\n          @@T2@@Graphs &middot; Message Passing &middot; Sensor Networks@@T3@@": {
+   "zh": "@@T0@@约 16 分钟@@T1@@\n          @@T2@@图 &middot; 消息传递 &middot; 传感器网络@@T3@@",
+   "src": "<span>~16 min</span>\n          <span>Graphs &middot; Message Passing &middot; Sensor Networks</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "What problem do GNNs solve?": {
+   "zh": "GNN 解决什么问题？",
+   "src": "What problem do GNNs solve?",
+   "tags": []
+  },
+  "Many applied data sources are graphs, not images or\n          sequences. A network of air-quality sensors with shared\n          weather context. A grid of satellite tiles connected by\n          spatial adjacency. A road network with traffic counters at\n          intersections. The natural inductive bias for these is\n          @@T0@@message passing@@T1@@: a node's prediction should depend\n          on itself and its neighbourhood.": {
+   "zh": "许多应用型数据源是图，而非图像或序列。例如共享天气背景的空气质量传感器网络。由空间邻接关系相连的卫星瓦片网格。在交叉路口设有交通计数器的道路网络。对这类数据而言，自然的归纳偏置是@@T0@@消息传递@@T1@@：一个节点的预测应当取决于其自身及其邻域。",
+   "src": "Many applied data sources are graphs, not images or\n          sequences. A network of air-quality sensors with shared\n          weather context. A grid of satellite tiles connected by\n          spatial adjacency. A road network with traffic counters at\n          intersections. The natural inductive bias for these is\n          <em>message passing</em>: a node's prediction should depend\n          on itself and its neighbourhood.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@The slogan.@@T1@@\n          A GNN is a CNN where the receptive field is set by the\n          graph instead of a square. Each layer is one hop; $K$\n          layers see a $K$-hop neighbourhood.": {
+   "zh": "@@T0@@要旨。@@T1@@GNN 是一种感受野由图而非方形所设定的 CNN。每一层代表一跳；$K$ 层即可看到 $K$ 跳邻域。",
+   "src": "<strong>The slogan.</strong>\n          A GNN is a CNN where the receptive field is set by the\n          graph instead of a square. Each layer is one hop; $K$\n          layers see a $K$-hop neighbourhood.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "One layer of message passing": {
+   "zh": "一层消息传递",
+   "src": "One layer of message passing",
+   "tags": []
+  },
+  "For each node $i$, gather messages from neighbours, aggregate\n          them (sum / mean / max / attention), and combine with the\n          node's own feature through a small MLP. That's the entire\n          recipe. Specific GNNs (GCN, GraphSAGE, GAT, MPNN) differ in\n          how they pick the message function, the aggregator, and the\n          combination.": {
+   "zh": "对每个节点 $i$，从邻居处收集消息，对其聚合（求和 / 均值 / 最大值 / 注意力），再通过一个小型 MLP 与节点自身的特征相结合。这就是全部配方。具体各种 GNN（GCN、GraphSAGE、GAT、MPNN）的区别在于它们如何选取消息函数、聚合器以及组合方式。",
+   "src": "For each node $i$, gather messages from neighbours, aggregate\n          them (sum / mean / max / attention), and combine with the\n          node's own feature through a small MLP. That's the entire\n          recipe. Specific GNNs (GCN, GraphSAGE, GAT, MPNN) differ in\n          how they pick the message function, the aggregator, and the\n          combination.",
+   "tags": []
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Watch a feature spread": {
+   "zh": "观察特征如何扩散",
+   "src": "Watch a feature spread",
+   "tags": []
+  },
+  "Click any node to set its feature to 1 (and clear the rest).\n          Step through 0, 1, 2, 3 rounds of message passing and watch\n          the value diffuse to the neighbourhood, then to the\n          neighbours-of-neighbours.": {
+   "zh": "点击任一节点，将其特征置为 1（并清除其余节点）。逐步经历 0、1、2、3 轮消息传递，观察数值如何扩散至邻域，再扩散至邻居的邻居。",
+   "src": "Click any node to set its feature to 1 (and clear the rest).\n          Step through 0, 1, 2, 3 rounds of message passing and watch\n          the value diffuse to the neighbourhood, then to the\n          neighbours-of-neighbours.",
+   "tags": []
+  },
+  "aggregation": {
+   "zh": "聚合方式",
+   "src": "aggregation",
+   "tags": []
+  },
+  "mean (GCN-flavour)": {
+   "zh": "均值（GCN 风格）",
+   "src": "mean (GCN-flavour)",
+   "tags": []
+  },
+  "max": {
+   "zh": "最大值",
+   "src": "max",
+   "tags": []
+  },
+  "attention (GAT-flavour)": {
+   "zh": "注意力（GAT 风格）",
+   "src": "attention (GAT-flavour)",
+   "tags": []
+  },
+  "rounds K &nbsp;@@T0@@2@@T1@@": {
+   "zh": "轮数 K &nbsp;@@T0@@2@@T1@@",
+   "src": "rounds K &nbsp;<span id=\"gnn-k-val\">2</span>",
+   "tags": [
+    "<span id=\"gnn-k-val\">",
+    "</span>"
+   ]
+  },
+  "Clear features": {
+   "zh": "清除特征",
+   "src": "Clear features",
+   "tags": []
+  },
+  "Reroll graph": {
+   "zh": "重掷图",
+   "src": "Reroll graph",
+   "tags": []
+  },
+  "Click any node to spike its feature. Greens encode the feature value (darker = higher). Edges show the graph; dashed labelled nodes are the 4 supervised seeds for Step 3.": {
+   "zh": "点击任一节点以使其特征产生尖峰。绿色编码特征值（越深表示越高）。边表示图的结构；带虚线标注的节点是第 3 步所用的 4 个监督种子。",
+   "src": "Click any node to spike its feature. Greens encode the feature value (darker = higher). Edges show the graph; dashed labelled nodes are the 4 supervised seeds for Step 3.",
+   "tags": []
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Node classification with 4 labels": {
+   "zh": "使用 4 个标签进行节点分类",
+   "src": "Node classification with 4 labels",
+   "tags": []
+  },
+  "Add a 2-class structure: 4 of the 14 nodes are labelled\n          (red ring vs blue ring). After $K$ rounds of message\n          passing, a logistic head reads each node's representation\n          and predicts a class. The boundary you see emerging is a\n          @@T0@@graph-aware@@T1@@ classifier — neighbours of red seeds\n          tend to be classified red, etc.": {
+   "zh": "加入一个二分类结构：14 个节点中有 4 个被标注（红环与蓝环）。经过 $K$ 轮消息传递后，一个逻辑回归头部读取每个节点的表示并预测类别。你所见到逐渐浮现的边界是一个@@T0@@图感知@@T1@@分类器——红色种子的邻居往往被归为红色，依此类推。",
+   "src": "Add a 2-class structure: 4 of the 14 nodes are labelled\n          (red ring vs blue ring). After $K$ rounds of message\n          passing, a logistic head reads each node's representation\n          and predicts a class. The boundary you see emerging is a\n          <em>graph-aware</em> classifier — neighbours of red seeds\n          tend to be classified red, etc.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The classifier is trained from scratch in your browser at\n          every aggregator change. Crank K up: at K=0 the classifier\n          can only see the 4 labelled nodes' own features and\n          generalises poorly. At K=2 labels propagate to\n          neighbours and the predictions improve. Past K~5 you'll\n          see @@T0@@over-smoothing@@T1@@ — every node's representation\n          looks the same and the classifier collapses to majority\n          class. That's a known GNN failure mode (Li et al., 2018).": {
+   "zh": "每当聚合器发生变化，分类器都会在你的浏览器中从零训练。调高 K：在 K=0 时，分类器只能看到 4 个已标注节点自身的特征，泛化很差。在 K=2 时，标签传播至邻居，预测有所改善。超过 K~5 后你会看到@@T0@@过平滑@@T1@@——每个节点的表示都变得一样，分类器坍缩到多数类。这是 GNN 已知的失效模式（Li 等，2018）。",
+   "src": "The classifier is trained from scratch in your browser at\n          every aggregator change. Crank K up: at K=0 the classifier\n          can only see the 4 labelled nodes' own features and\n          generalises poorly. At K=2 labels propagate to\n          neighbours and the predictions improve. Past K~5 you'll\n          see <em>over-smoothing</em> — every node's representation\n          looks the same and the classifier collapses to majority\n          class. That's a known GNN failure mode (Li et al., 2018).",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 3 ½": {
+   "zh": "第 3 ½ 步",
+   "src": "Step 3 ½",
+   "tags": []
+  },
+  "The oversmoothing curve — and why \"deeper GNN\" usually backfires": {
+   "zh": "过平滑曲线——以及为何「更深的 GNN」通常适得其反",
+   "src": "The oversmoothing curve — and why \"deeper GNN\" usually backfires",
+   "tags": []
+  },
+  "A natural instinct for any neural net: stack more layers,\n          get more capacity. For GNNs this fails badly. After a few\n          message-passing rounds, every node's representation becomes\n          a smoothed average of its receptive field; eventually all\n          nodes look the same and the classifier collapses to majority\n          class (Li et al., 2018; Oono &amp; Suzuki, 2020).": {
+   "zh": "对任何神经网络而言，一种自然的直觉是：叠更多层，获得更大容量。对 GNN 来说，这却惨遭失败。经过若干轮消息传递后，每个节点的表示都变成其感受野的平滑平均；最终所有节点看上去都一样，分类器坍缩到多数类（Li 等，2018；Oono 与 Suzuki，2020）。",
+   "src": "A natural instinct for any neural net: stack more layers,\n          get more capacity. For GNNs this fails badly. After a few\n          message-passing rounds, every node's representation becomes\n          a smoothed average of its receptive field; eventually all\n          nodes look the same and the classifier collapses to majority\n          class (Li et al., 2018; Oono &amp; Suzuki, 2020).",
+   "tags": []
+  },
+  "Below: the same 14-node graph, three aggregators, K from 0\n          to 8. Two metrics tracked: @@T0@@node-classifier accuracy@@T1@@\n          on the unlabelled nodes, and @@T2@@feature variance across\n          nodes@@T3@@ (the textbook oversmoothing diagnostic). Watch\n          accuracy peak around K=2-3 and then collapse as variance\n          shrinks to ~0.": {
+   "zh": "下方：同一个 14 节点图，三种聚合器，K 从 0 到 8。追踪两项指标：未标注节点上的@@T0@@节点分类器准确率@@T1@@，以及@@T2@@节点间的特征方差@@T3@@（教科书式的过平滑诊断量）。观察准确率在 K=2-3 附近达到峰值，随后随方差收缩至约 0 而崩塌。",
+   "src": "Below: the same 14-node graph, three aggregators, K from 0\n          to 8. Two metrics tracked: <strong>node-classifier accuracy</strong>\n          on the unlabelled nodes, and <strong>feature variance across\n          nodes</strong> (the textbook oversmoothing diagnostic). Watch\n          accuracy peak around K=2-3 and then collapse as variance\n          shrinks to ~0.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Solid: classifier accuracy on unlabelled nodes. Dashed: cross-node feature variance (log scale). Three aggregators overlaid.": {
+   "zh": "实线：未标注节点上的分类器准确率。虚线：节点间的特征方差（对数刻度）。三种聚合器叠加显示。",
+   "src": "Solid: classifier accuracy on unlabelled nodes. Dashed: cross-node feature variance (log scale). Three aggregators overlaid.",
+   "tags": []
+  },
+  "@@T0@@The fix.@@T1@@\n          Real GNNs ($\\le$ 2-3 layers in practice) shouldn't go deep.\n          When you need long-range information, use either\n          @@T2@@residual@@T3@@ connections (PairNorm, GCNII), an\n          attention-based aggregator (GAT, GATv2), or a graph\n          transformer with positional encodings. Stacking vanilla\n          GCN past 4 layers almost always hurts.": {
+   "zh": "@@T0@@解决之道。@@T1@@真实的 GNN（实践中 $\\le$ 2-3 层）不应加深。当你需要长程信息时，可使用@@T2@@残差@@T3@@连接（PairNorm、GCNII）、基于注意力的聚合器（GAT、GATv2），或带位置编码的图 Transformer。将朴素 GCN 叠加超过 4 层几乎总是有害的。",
+   "src": "<strong>The fix.</strong>\n          Real GNNs ($\\le$ 2-3 layers in practice) shouldn't go deep.\n          When you need long-range information, use either\n          <em>residual</em> connections (PairNorm, GCNII), an\n          attention-based aggregator (GAT, GATv2), or a graph\n          transformer with positional encodings. Stacking vanilla\n          GCN past 4 layers almost always hurts.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 3¾": {
+   "zh": "第 3¾ 步",
+   "src": "Step 3¾",
+   "tags": []
+  },
+  "Expressivity — the Weisfeiler-Lehman ceiling": {
+   "zh": "表达能力——Weisfeiler-Lehman 上限",
+   "src": "Expressivity — the Weisfeiler-Lehman ceiling",
+   "tags": []
+  },
+  "A natural question: which graphs can a GNN tell apart? The classical answer (Xu et&nbsp;al., 2019; Morris et&nbsp;al., 2019): a message-passing GNN is @@T0@@at most as expressive as@@T1@@ the 1-dimensional Weisfeiler-Lehman graph-isomorphism test (1-WL). That test:": {
+   "zh": "一个自然的问题是：GNN 能区分哪些图？经典答案（Xu 等，2019；Morris 等，2019）：消息传递式 GNN 的@@T0@@表达能力至多相当于@@T1@@一维 Weisfeiler-Lehman 图同构检验（1-WL）。该检验为：",
+   "src": "A natural question: which graphs can a GNN tell apart? The classical answer (Xu et&nbsp;al., 2019; Morris et&nbsp;al., 2019): a message-passing GNN is <em>at most as expressive as</em> the 1-dimensional Weisfeiler-Lehman graph-isomorphism test (1-WL). That test:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Label every node with its degree (or any consistent feature).": {
+   "zh": "用节点的度（或任何一致的特征）为每个节点打上标签。",
+   "src": "Label every node with its degree (or any consistent feature).",
+   "tags": []
+  },
+  "Replace each label with a hash of (own label, multiset of neighbour labels).": {
+   "zh": "将每个标签替换为（自身标签，邻居标签的多重集）的哈希值。",
+   "src": "Replace each label with a hash of (own label, multiset of neighbour labels).",
+   "tags": []
+  },
+  "Repeat. If two graphs ever produce different label multisets, they're not isomorphic.": {
+   "zh": "重复此过程。若两个图在任何时刻产生不同的标签多重集，则它们不同构。",
+   "src": "Repeat. If two graphs ever produce different label multisets, they're not isomorphic.",
+   "tags": []
+  },
+  "1-WL fails on regular graphs with the same degree sequence (e.g. two non-isomorphic 6-cycles). So does any vanilla message-passing GNN. Two ways forward:": {
+   "zh": "1-WL 在具有相同度序列的正则图上会失败（例如两个不同构的 6-环）。任何朴素的消息传递式 GNN 亦然。有两条前进之路：",
+   "src": "1-WL fails on regular graphs with the same degree sequence (e.g. two non-isomorphic 6-cycles). So does any vanilla message-passing GNN. Two ways forward:",
+   "tags": []
+  },
+  "@@T0@@GIN@@T1@@ (Xu et&nbsp;al., 2019) — provably attains the 1-WL bound with the right aggregator: $h_v = \\mathrm{MLP}\\bigl((1+\\epsilon) h_v + \\sum_{u \\in \\mathcal{N}(v)} h_u\\bigr)$. Use this when you suspect graph distinguishability matters.": {
+   "zh": "@@T0@@GIN@@T1@@（Xu 等，2019）——在选取合适的聚合器时可证明地达到 1-WL 上限：$h_v = \\mathrm{MLP}\\bigl((1+\\epsilon) h_v + \\sum_{u \\in \\mathcal{N}(v)} h_u\\bigr)$。当你怀疑图的可区分性至关重要时，请使用它。",
+   "src": "<strong>GIN</strong> (Xu et&nbsp;al., 2019) — provably attains the 1-WL bound with the right aggregator: $h_v = \\mathrm{MLP}\\bigl((1+\\epsilon) h_v + \\sum_{u \\in \\mathcal{N}(v)} h_u\\bigr)$. Use this when you suspect graph distinguishability matters.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Higher-order GNNs / k-WL.@@T1@@ Aggregate over $k$-tuples of nodes instead of single neighbours. More expressive but $O(N^k)$ cost. PPGN, $k$-GNN.": {
+   "zh": "@@T0@@高阶 GNN / k-WL。@@T1@@在节点的 $k$-元组上而非单个邻居上聚合。表达能力更强，但代价为 $O(N^k)$。PPGN、$k$-GNN。",
+   "src": "<strong>Higher-order GNNs / k-WL.</strong> Aggregate over $k$-tuples of nodes instead of single neighbours. More expressive but $O(N^k)$ cost. PPGN, $k$-GNN.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Subgraph GNNs / positional encodings.@@T1@@ Augment each node with structural features (Laplacian eigenvectors, random walk encodings). Cheap and often enough in practice.": {
+   "zh": "@@T0@@子图 GNN / 位置编码。@@T1@@用结构特征（拉普拉斯特征向量、随机游走编码）增强每个节点。代价低廉，实践中往往已足够。",
+   "src": "<strong>Subgraph GNNs / positional encodings.</strong> Augment each node with structural features (Laplacian eigenvectors, random walk encodings). Cheap and often enough in practice.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 3⅞": {
+   "zh": "第 3⅞ 步",
+   "src": "Step 3⅞",
+   "tags": []
+  },
+  "Scaling to million-node graphs": {
+   "zh": "扩展至百万节点规模的图",
+   "src": "Scaling to million-node graphs",
+   "tags": []
+  },
+  "A full-batch GNN forward pass on a graph with $|V|$ nodes and average degree $d$ touches every edge — $O(|V| d)$ memory and compute. Beyond ~10⁶ nodes that's prohibitive. Three escapes:": {
+   "zh": "对含 $|V|$ 个节点、平均度为 $d$ 的图做全批量 GNN 前向传播会触及每一条边——内存与计算量均为 $O(|V| d)$。当节点数超过约 10⁶ 时，这便是难以承受的。有三条出路：",
+   "src": "A full-batch GNN forward pass on a graph with $|V|$ nodes and average degree $d$ touches every edge — $O(|V| d)$ memory and compute. Beyond ~10⁶ nodes that's prohibitive. Three escapes:",
+   "tags": []
+  },
+  "@@T0@@Neighbour sampling@@T1@@ (GraphSAGE, Hamilton et&nbsp;al., 2017). For each target node, sample a fixed number $S$ of neighbours per layer. Cost becomes $O(B \\cdot S^K)$ per batch instead of $O(|V| d)$.": {
+   "zh": "@@T0@@邻居采样@@T1@@（GraphSAGE，Hamilton 等，2017）。对每个目标节点，每层采样固定数目 $S$ 个邻居。每批次的代价变为 $O(B \\cdot S^K)$，而非 $O(|V| d)$。",
+   "src": "<strong>Neighbour sampling</strong> (GraphSAGE, Hamilton et&nbsp;al., 2017). For each target node, sample a fixed number $S$ of neighbours per layer. Cost becomes $O(B \\cdot S^K)$ per batch instead of $O(|V| d)$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Subgraph sampling@@T1@@ (Cluster-GCN, GraphSAINT). Partition or sample subgraphs and train on them; full message passing within, ignoring inter-subgraph edges. Much higher throughput at a small accuracy cost.": {
+   "zh": "@@T0@@子图采样@@T1@@（Cluster-GCN、GraphSAINT）。划分或采样子图并在其上训练；子图内部进行完整的消息传递，忽略子图之间的边。吞吐量大幅提升，准确率仅略有损失。",
+   "src": "<strong>Subgraph sampling</strong> (Cluster-GCN, GraphSAINT). Partition or sample subgraphs and train on them; full message passing within, ignoring inter-subgraph edges. Much higher throughput at a small accuracy cost.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Layer-wise sampling@@T1@@ (FastGCN, LADIES). Sample nodes per layer independently. Variance-reduction tricks (importance sampling) keep gradient bias low.": {
+   "zh": "@@T0@@逐层采样@@T1@@（FastGCN、LADIES）。逐层独立采样节点。方差缩减技巧（重要性采样）可将梯度偏差保持在较低水平。",
+   "src": "<strong>Layer-wise sampling</strong> (FastGCN, LADIES). Sample nodes per layer independently. Variance-reduction tricks (importance sampling) keep gradient bias low.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Frontier methods (2024+):@@T1@@ NeurIPS-era graph transformers with linear-attention; pre-computed positional encodings; GNN distillation into MLP for serving.": {
+   "zh": "@@T0@@前沿方法（2024 年以后）：@@T1@@采用线性注意力的 NeurIPS 时代图 Transformer；预计算的位置编码；为服务端部署而将 GNN 蒸馏为 MLP。",
+   "src": "<strong>Frontier methods (2024+):</strong> NeurIPS-era graph transformers with linear-attention; pre-computed positional encodings; GNN distillation into MLP for serving.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Library defaults: PyG and DGL ship all of the above; the practical first try at scale is GraphSAGE with neighbour sampling $S = 25, 10$ for two layers.": {
+   "zh": "库的默认选择：PyG 与 DGL 均内置上述全部方法；大规模场景下实践中的首试方案是采用邻居采样 $S = 25, 10$ 的两层 GraphSAGE。",
+   "src": "Library defaults: PyG and DGL ship all of the above; the practical first try at scale is GraphSAGE with neighbour sampling $S = 25, 10$ for two layers.",
+   "tags": []
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "The variants worth knowing": {
+   "zh": "值得了解的变体",
+   "src": "The variants worth knowing",
+   "tags": []
+  },
+  "@@T0@@GCN.@@T1@@ Symmetric-normalised mean\n            aggregation. Cheapest, the default first try.": {
+   "zh": "@@T0@@GCN。@@T1@@对称归一化的均值聚合。最廉价，是默认的首试方案。",
+   "src": "<strong>GCN.</strong> Symmetric-normalised mean\n            aggregation. Cheapest, the default first try.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@GraphSAGE.@@T1@@ Neighborhood sampling +\n            mean / LSTM / pooling aggregator. Scales to large graphs.": {
+   "zh": "@@T0@@GraphSAGE。@@T1@@邻域采样 + 均值 / LSTM / 池化聚合器。可扩展至大规模图。",
+   "src": "<strong>GraphSAGE.</strong> Neighborhood sampling +\n            mean / LSTM / pooling aggregator. Scales to large graphs.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@GAT.@@T1@@ Attention over neighbours.\n            Edge weights become learnable and content-dependent\n            &mdash; useful for heterogeneous neighbourhoods.": {
+   "zh": "@@T0@@GAT。@@T1@@在邻居上的注意力。边权变为可学习且依赖于内容——对异构邻域颇为有用。",
+   "src": "<strong>GAT.</strong> Attention over neighbours.\n            Edge weights become learnable and content-dependent\n            &mdash; useful for heterogeneous neighbourhoods.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@MPNN.@@T1@@ The general framework above; any\n            choice of message and aggregator.": {
+   "zh": "@@T0@@MPNN。@@T1@@即上述通用框架；消息与聚合器可任意选择。",
+   "src": "<strong>MPNN.</strong> The general framework above; any\n            choice of message and aggregator.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@GIN.@@T1@@ Provably as expressive as the\n            Weisfeiler-Lehman test &mdash; needed when graph\n            isomorphism actually matters.": {
+   "zh": "@@T0@@GIN。@@T1@@可证明地具有与 Weisfeiler-Lehman 检验同等的表达能力——当图同构确实重要时所需。",
+   "src": "<strong>GIN.</strong> Provably as expressive as the\n            Weisfeiler-Lehman test &mdash; needed when graph\n            isomorphism actually matters.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Graph Transformer.@@T1@@ Self-attention over\n            all nodes (with positional / Laplacian encodings).\n            Computationally heavier; helps for global structure.": {
+   "zh": "@@T0@@图 Transformer。@@T1@@在所有节点上的自注意力（带位置 / 拉普拉斯编码）。计算量更重；对全局结构有帮助。",
+   "src": "<strong>Graph Transformer.</strong> Self-attention over\n            all nodes (with positional / Laplacian encodings).\n            Computationally heavier; helps for global structure.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Where GNNs are the right tool": {
+   "zh": "GNN 适用之处",
+   "src": "Where GNNs are the right tool",
+   "tags": []
+  },
+  "@@T0@@Molecular property prediction.@@T1@@ Atoms = nodes, bonds = edges. GNNs (MPNN, SchNet, DimeNet, ChemProp) routinely top MoleculeNet leaderboards; the inductive bias matches chemistry's locality.": {
+   "zh": "@@T0@@分子性质预测。@@T1@@原子为节点，化学键为边。GNN（MPNN、SchNet、DimeNet、ChemProp）常居 MoleculeNet 排行榜前列；其归纳偏置与化学的局域性相契合。",
+   "src": "<strong>Molecular property prediction.</strong> Atoms = nodes, bonds = edges. GNNs (MPNN, SchNet, DimeNet, ChemProp) routinely top MoleculeNet leaderboards; the inductive bias matches chemistry's locality.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Recommender systems.@@T1@@ User-item bipartite graph; node embeddings learnt by message passing. PinSage (Pinterest), GraphSAGE-based pipelines power production recommenders.": {
+   "zh": "@@T0@@推荐系统。@@T1@@用户-物品二部图；节点嵌入通过消息传递学习。PinSage（Pinterest）、基于 GraphSAGE 的流程支撑着生产级推荐系统。",
+   "src": "<strong>Recommender systems.</strong> User-item bipartite graph; node embeddings learnt by message passing. PinSage (Pinterest), GraphSAGE-based pipelines power production recommenders.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Traffic forecasting.@@T1@@ Road network + traffic counters; spatio-temporal GNNs (DCRNN, STGCN, Graph WaveNet) outperform pure time-series models for citywide forecasting.": {
+   "zh": "@@T0@@交通预测。@@T1@@道路网络 + 交通计数器；时空 GNN（DCRNN、STGCN、Graph WaveNet）在全城范围预测上优于纯时间序列模型。",
+   "src": "<strong>Traffic forecasting.</strong> Road network + traffic counters; spatio-temporal GNNs (DCRNN, STGCN, Graph WaveNet) outperform pure time-series models for citywide forecasting.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Knowledge graphs.@@T1@@ Relational GNNs (R-GCN, CompGCN) for link prediction in heterogeneous knowledge bases.": {
+   "zh": "@@T0@@知识图谱。@@T1@@关系型 GNN（R-GCN、CompGCN）用于异构知识库中的链接预测。",
+   "src": "<strong>Knowledge graphs.</strong> Relational GNNs (R-GCN, CompGCN) for link prediction in heterogeneous knowledge bases.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Power-grid / sensor networks.@@T1@@ Nodes = sensors/stations; edges = physical connections or spatial proximity. GNNs interpolate missing readings, flag anomalous sensors, propagate alerts.": {
+   "zh": "@@T0@@电网 / 传感器网络。@@T1@@节点为传感器 / 站点；边为物理连接或空间邻近关系。GNN 可插补缺失读数、标记异常传感器、传播警报。",
+   "src": "<strong>Power-grid / sensor networks.</strong> Nodes = sensors/stations; edges = physical connections or spatial proximity. GNNs interpolate missing readings, flag anomalous sensors, propagate alerts.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Social and citation networks.@@T1@@ The Cora / Citeseer / Pubmed benchmarks that started the field; still standard baselines.": {
+   "zh": "@@T0@@社交与引文网络。@@T1@@开启该领域的 Cora / Citeseer / Pubmed 基准；至今仍是标准基线。",
+   "src": "<strong>Social and citation networks.</strong> The Cora / Citeseer / Pubmed benchmarks that started the field; still standard baselines.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          If your data has a graph in it, build the GNN before the\n          MLP. The inductive bias is free; the expressive ceiling is\n          higher; and over-smoothing is the only real footgun.": {
+   "zh": "@@T0@@最终结论。@@T1@@若你的数据中含有图结构，请先构建 GNN 而非 MLP。归纳偏置是白得的；表达能力上限更高；而过平滑是唯一真正的隐患。",
+   "src": "<strong>Final takeaway.</strong>\n          If your data has a graph in it, build the GNN before the\n          MLP. The inductive bias is free; the expressive ceiling is\n          higher; and over-smoothing is the only real footgun.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "推荐阅读",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Kipf &amp; Welling (2017)@@T1@@ &mdash; @@T2@@Semi-Supervised Classification with Graph Convolutional Networks.@@T3@@ The GCN paper.": {
+   "zh": "@@T0@@Kipf 与 Welling (2017)@@T1@@ &mdash; @@T2@@Semi-Supervised Classification with Graph Convolutional Networks.@@T3@@GCN 论文。",
+   "src": "<strong>Kipf &amp; Welling (2017)</strong> &mdash; <em>Semi-Supervised Classification with Graph Convolutional Networks.</em> The GCN paper.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Hamilton, Ying, Leskovec (2017)@@T1@@ &mdash; @@T2@@Inductive Representation Learning on Large Graphs.@@T3@@ GraphSAGE.": {
+   "zh": "@@T0@@Hamilton、Ying、Leskovec (2017)@@T1@@ &mdash; @@T2@@Inductive Representation Learning on Large Graphs.@@T3@@GraphSAGE。",
+   "src": "<strong>Hamilton, Ying, Leskovec (2017)</strong> &mdash; <em>Inductive Representation Learning on Large Graphs.</em> GraphSAGE.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Veličković et&nbsp;al. (2018)@@T1@@ &mdash; @@T2@@Graph Attention Networks.@@T3@@": {
+   "zh": "@@T0@@Veličković 等 (2018)@@T1@@ &mdash; @@T2@@Graph Attention Networks.@@T3@@",
+   "src": "<strong>Veličković et&nbsp;al. (2018)</strong> &mdash; <em>Graph Attention Networks.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Xu, Hu, Leskovec, Jegelka (2019)@@T1@@ &mdash; @@T2@@How Powerful are Graph Neural Networks?@@T3@@ GIN + WL connection.": {
+   "zh": "@@T0@@Xu、Hu、Leskovec、Jegelka (2019)@@T1@@ &mdash; @@T2@@How Powerful are Graph Neural Networks?@@T3@@GIN 与 WL 之间的联系。",
+   "src": "<strong>Xu, Hu, Leskovec, Jegelka (2019)</strong> &mdash; <em>How Powerful are Graph Neural Networks?</em> GIN + WL connection.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Li, Han, Wu (2018)@@T1@@ &mdash; the oversmoothing paper.": {
+   "zh": "@@T0@@Li、Han、Wu (2018)@@T1@@ &mdash; 过平滑论文。",
+   "src": "<strong>Li, Han, Wu (2018)</strong> &mdash; the oversmoothing paper.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Hamilton (2020)@@T1@@ — @@T2@@Graph Representation Learning@@T3@@ textbook. Free online.": {
+   "zh": "@@T0@@Hamilton (2020)@@T1@@ — @@T2@@Graph Representation Learning@@T3@@教材。可免费在线阅读。",
+   "src": "<strong>Hamilton (2020)</strong> — <em>Graph Representation Learning</em> textbook. Free online.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@PyG &amp; DGL@@T1@@ — the two production libraries. Both ship every model above and the sampling methods.": {
+   "zh": "@@T0@@PyG 与 DGL@@T1@@ — 两个生产级库。二者均内置上述每一个模型以及各种采样方法。",
+   "src": "<strong>PyG &amp; DGL</strong> — the two production libraries. Both ship every model above and the sampling methods.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "图神经网络：逐步解析",
+  "tagline": "在传感器网络图上进行消息传递——每一轮，观察信号如何扩散",
+  "summary": "一个在你的浏览器中运行的 14 节点传感器图。选择一个节点，加入一个特征尖峰，然后逐步经历 1、2、3 轮消息传递——观察信号如何扩散至邻居与邻居的邻居。切换聚合方式（均值 / 最大值 / 注意力）。贴合实验场景：跨站点空气质量模型、卫星瓦片图。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "在 14 节点图上实时进行消息传递；点击某个节点，使其特征产生尖峰，观察 K 轮扩散。",
+   "聚合方式切换（均值 GCN / 最大值 / 注意力 GAT），传播模式差异清晰可见。",
+   "一个节点分类玩具问题，其逻辑回归头部在 4 个已标注节点上训练。",
+   "贴合实验场景：跨站点空气质量、卫星瓦片图、传感器网络监测。"
+  ],
+  "tags": [
+   "GNN",
+   "消息传递",
+   "图卷积",
+   "传感器网络",
+   "交互式"
+  ]
+ },
+ "js": {
+  "K = [[[0]]] round(s) of [[[1]]] aggregation": {
+   "zh": "K = [[[0]]] 轮 [[[1]]] 聚合",
+   "exprs": [
+    "${STATE.K}",
+    "${STATE.agg}"
+   ],
+   "tags": [],
+   "src": "K = ${STATE.K} round(s) of ${STATE.agg} aggregation"
+  },
+  "Click a node to spike its feature.": {
+   "zh": "点击某个节点以使其特征产生尖峰。",
+   "exprs": [],
+   "tags": [],
+   "src": "Click a node to spike its feature."
+  },
+  "rounds K": {
+   "zh": "轮数 K",
+   "exprs": [],
+   "tags": [],
+   "src": "rounds K"
+  }
+ }
+}

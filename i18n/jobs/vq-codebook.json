@@ -1,0 +1,234 @@
+{
+ "slug": "vq-codebook",
+ "units": {
+  "Vector Quantization (VQ-VAE)": {
+   "zh": "向量量化（VQ-VAE）",
+   "src": "Vector Quantization (VQ-VAE)",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "A plain autoencoder has a @@T0@@continuous@@T1@@ latent &mdash; any point in space is legal.\n      VQ-VAE instead keeps a small learned @@T2@@codebook@@T3@@ of $K$ vectors and forces\n      every encoding to snap to its nearest entry. The latent becomes @@T4@@discrete@@T5@@: an index\n      into a lookup table. Drag the encoding point below and watch it jump to the closest code;\n      drag the codes and watch their territories &mdash; the Voronoi cells &mdash; redraw.": {
+   "zh": "一个朴素的自编码器具有@@T0@@连续的@@T1@@潜变量&mdash;空间中任何一点都是合法的。\n      VQ-VAE 则维护一个由 $K$ 个向量构成的、小的已学习@@T2@@码本@@T3@@，并强制\n      每一次编码都吸附到与之最近的条目。潜变量因此变为@@T4@@离散的@@T5@@：一个\n      查表的索引。拖动下方的编码点，观察它跳向最近的码；\n      拖动各个码，观察它们各自的领地&mdash;即 Voronoi 单元&mdash;如何重绘。",
+   "src": "A plain autoencoder has a <em>continuous</em> latent &mdash; any point in space is legal.\n      VQ-VAE instead keeps a small learned <strong>codebook</strong> of $K$ vectors and forces\n      every encoding to snap to its nearest entry. The latent becomes <em>discrete</em>: an index\n      into a lookup table. Drag the encoding point below and watch it jump to the closest code;\n      drag the codes and watch their territories &mdash; the Voronoi cells &mdash; redraw.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~8 min@@T1@@\n      @@T2@@Deep Learning &middot; Generative Models &middot; Discrete Latents@@T3@@": {
+   "zh": "@@T0@@约 8 分钟@@T1@@\n      @@T2@@深度学习 &middot; 生成模型 &middot; 离散潜变量@@T3@@",
+   "src": "<span>~8 min</span>\n      <span>Deep Learning &middot; Generative Models &middot; Discrete Latents</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "One continuous vector becomes one integer": {
+   "zh": "一个连续向量变成一个整数",
+   "src": "One continuous vector becomes one integer",
+   "tags": []
+  },
+  "The encoder produces a continuous vector $z \\in \\mathbb{R}^d$. Vector quantization replaces\n      it with the nearest of $K$ learned code vectors $e_1, \\dots, e_K$ (the codebook):": {
+   "zh": "编码器产生一个连续向量 $z \\in \\mathbb{R}^d$。向量量化把它\n      替换为 $K$ 个已学习的码向量 $e_1, \\dots, e_K$（即码本）中最近的一个：",
+   "src": "The encoder produces a continuous vector $z \\in \\mathbb{R}^d$. Vector quantization replaces\n      it with the nearest of $K$ learned code vectors $e_1, \\dots, e_K$ (the codebook):",
+   "tags": []
+  },
+  "The decoder then works from $z_q$ alone, so all it ever receives is one of $K$ possible\n      vectors &mdash; equivalently, the single integer $k^{\\star}$. Nearest-neighbour assignment\n      carves the plane into @@T0@@Voronoi cells@@T1@@: every point in a cell shares the same\n      closest code. Quantization is just: @@T2@@which cell did $z$ land in?@@T3@@": {
+   "zh": "随后解码器仅依据 $z_q$ 工作，因此它接收到的永远只是 $K$ 个可能向量中的\n      一个&mdash;等价地说，就是单个整数 $k^{\\star}$。最近邻分配\n      把平面切割成@@T0@@Voronoi 单元@@T1@@：同一单元中的每一点共享同一个\n      最近的码。量化不过是：@@T2@@$z$ 落在了哪一个单元里？@@T3@@",
+   "src": "The decoder then works from $z_q$ alone, so all it ever receives is one of $K$ possible\n      vectors &mdash; equivalently, the single integer $k^{\\star}$. Nearest-neighbour assignment\n      carves the plane into <strong>Voronoi cells</strong>: every point in a cell shares the same\n      closest code. Quantization is just: <em>which cell did $z$ land in?</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Lab": {
+   "zh": "实验台",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Snap to the nearest code": {
+   "zh": "吸附到最近的码",
+   "src": "Snap to the nearest code",
+   "tags": []
+  },
+  "The coloured regions are the Voronoi cells of the codebook; the large ringed dots are the\n      code vectors $e_k$. The dark @@T0@@diamond is the encoding $z$@@T1@@ &mdash;\n      @@T2@@drag it@@T3@@ anywhere and the arrow shows it snapping to $z_q$, the code owning\n      whatever cell it is in. @@T4@@Drag the codes@@T5@@ to move the cell boundaries. Hit\n      @@T6@@Quantize a cloud@@T7@@ to drop a batch of encodings and colour each by the code it is\n      assigned to.": {
+   "zh": "彩色区域是码本的 Voronoi 单元；带环的大点是\n      码向量 $e_k$。深色@@T0@@菱形是编码 $z$@@T1@@ &mdash;\n      @@T2@@把它拖到@@T3@@任意位置，箭头便显示它吸附到 $z_q$，即拥有\n      它所处单元的那个码。@@T4@@拖动各个码@@T5@@ 以移动单元边界。点击\n      @@T6@@量化一片点云@@T7@@ 以投放一批编码，并按每个编码被分配到的码\n      为其着色。",
+   "src": "The coloured regions are the Voronoi cells of the codebook; the large ringed dots are the\n      code vectors $e_k$. The dark <strong>diamond is the encoding $z$</strong> &mdash;\n      <strong>drag it</strong> anywhere and the arrow shows it snapping to $z_q$, the code owning\n      whatever cell it is in. <strong>Drag the codes</strong> to move the cell boundaries. Hit\n      <em>Quantize a cloud</em> to drop a batch of encodings and colour each by the code it is\n      assigned to.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Quantize a cloud": {
+   "zh": "量化一片点云",
+   "src": "Quantize a cloud",
+   "tags": []
+  },
+  "Reset codebook": {
+   "zh": "重置码本",
+   "src": "Reset codebook",
+   "tags": []
+  },
+  "Codebook size @@T0@@$K$ = @@T1@@5@@T2@@@@T3@@": {
+   "zh": "码本大小 @@T0@@$K$ = @@T1@@5@@T2@@@@T3@@",
+   "src": "Codebook size <span>$K$ = <span id=\"kVal\">5</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"kVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Drag the dark diamond ($z$) or any ringed code ($e_k$). The arrow points from $z$ to its\n        quantized value $z_q$ &mdash; the nearest code. Toggle the cloud to see a whole batch\n        assigned at once.": {
+   "zh": "拖动深色菱形（$z$）或任意带环的码（$e_k$）。箭头从 $z$ 指向它的\n        量化值 $z_q$ &mdash;即最近的码。切换点云可看到一整批\n        被一次性分配。",
+   "src": "Drag the dark diamond ($z$) or any ringed code ($e_k$). The arrow points from $z$ to its\n        quantized value $z_q$ &mdash; the nearest code. Toggle the cloud to see a whole batch\n        assigned at once.",
+   "tags": []
+  },
+  "@@T0@@Assigned code $k^{\\star}$@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@分配到的码 $k^{\\star}$@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Assigned code $k^{\\star}$</span>\n        <span class=\"stat-value\" id=\"assignVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"assignVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Quantization error $\\lVert z - z_q\\rVert$@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@量化误差 $\\lVert z - z_q\\rVert$@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Quantization error $\\lVert z - z_q\\rVert$</span>\n        <span class=\"stat-value\" id=\"errVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"errVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Bits to store index $\\log_2 K$@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@存储索引所需的比特数 $\\log_2 K$@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Bits to store index $\\log_2 K$</span>\n        <span class=\"stat-value\" id=\"bitsVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"bitsVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Drag $z$ slowly across a boundary.@@T1@@ The assigned code and the arrow flip the\n      instant you cross into a new cell &mdash; the map from continuous $z$ to discrete $k^{\\star}$\n      is piecewise constant, with jumps exactly at the Voronoi seams. That discreteness is the\n      whole point, and also the reason gradients need a special trick (below).": {
+   "zh": "@@T0@@让 $z$ 缓慢地拖过一条边界。@@T1@@ 你一跨入新的单元，分配到的码与箭头\n      便瞬间翻转&mdash;从连续 $z$ 到离散 $k^{\\star}$ 的映射\n      是分段常值的，其跳变恰好发生在 Voronoi 的接缝处。这种离散性正是\n      关键所在，也是梯度需要特殊技巧（见下文）的原因。",
+   "src": "<strong>Drag $z$ slowly across a boundary.</strong> The assigned code and the arrow flip the\n      instant you cross into a new cell &mdash; the map from continuous $z$ to discrete $k^{\\star}$\n      is piecewise constant, with jumps exactly at the Voronoi seams. That discreteness is the\n      whole point, and also the reason gradients need a special trick (below).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "回报",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "How do you train through a hard argmin?": {
+   "zh": "如何穿过一个硬 argmin 进行训练？",
+   "src": "How do you train through a hard argmin?",
+   "tags": []
+  },
+  "The snap is a non-differentiable step: nudging $z$ within a cell does not change $z_q$ at\n      all, so $\\partial z_q / \\partial z = 0$ almost everywhere. That would block gradients from\n      ever reaching the encoder. VQ-VAE uses the @@T0@@straight-through estimator@@T1@@:\n      on the backward pass, pretend the quantizer was the identity and copy the decoder's gradient\n      straight from $z_q$ onto $z$.": {
+   "zh": "这一吸附是不可微的一步：在一个单元内微调 $z$ 完全不会改变\n      $z_q$，因此 $\\partial z_q / \\partial z = 0$ 几乎处处成立。这会阻断梯度\n      到达编码器。VQ-VAE 使用@@T0@@直通估计器@@T1@@：\n      在反向传播时，假装量化器就是恒等映射，把解码器的梯度\n      直接从 $z_q$ 复制到 $z$ 上。",
+   "src": "The snap is a non-differentiable step: nudging $z$ within a cell does not change $z_q$ at\n      all, so $\\partial z_q / \\partial z = 0$ almost everywhere. That would block gradients from\n      ever reaching the encoder. VQ-VAE uses the <strong>straight-through estimator</strong>:\n      on the backward pass, pretend the quantizer was the identity and copy the decoder's gradient\n      straight from $z_q$ onto $z$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Forward:@@T1@@ the decoder sees the true discrete code $e_{k^{\\star}}$.": {
+   "zh": "@@T0@@前向：@@T1@@ 解码器看到真实的离散码 $e_{k^{\\star}}$。",
+   "src": "<strong>Forward:</strong> the decoder sees the true discrete code $e_{k^{\\star}}$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Backward:@@T1@@ the gradient flows as if $z_q = z$, so the encoder still learns.": {
+   "zh": "@@T0@@反向：@@T1@@ 梯度如同 $z_q = z$ 那样流动，因此编码器仍在学习。",
+   "src": "<strong>Backward:</strong> the gradient flows as if $z_q = z$, so the encoder still learns.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Codebook loss:@@T1@@ extra terms $\\lVert \\operatorname{sg}[z] - e_k \\rVert^2$ and a commitment term $\\beta\\lVert z - \\operatorname{sg}[e_k]\\rVert^2$ pull the code to its assigned encodings and keep the encoder from drifting away.": {
+   "zh": "@@T0@@码本损失：@@T1@@ 额外的项 $\\lVert \\operatorname{sg}[z] - e_k \\rVert^2$ 以及一个承诺项 $\\beta\\lVert z - \\operatorname{sg}[e_k]\\rVert^2$，把码拉向分配给它的编码，并防止编码器漂移离开。",
+   "src": "<strong>Codebook loss:</strong> extra terms $\\lVert \\operatorname{sg}[z] - e_k \\rVert^2$ and a commitment term $\\beta\\lVert z - \\operatorname{sg}[e_k]\\rVert^2$ pull the code to its assigned encodings and keep the encoder from drifting away.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Why discretize at all?@@T1@@ A discrete latent grid is a sequence of integers &mdash;\n      exactly what an autoregressive prior (a PixelCNN or a Transformer) can model. VQ-VAE and its\n      successor VQ-GAN turn images into token grids so that the same machinery used for language can\n      generate pictures. The codebook is the vocabulary.": {
+   "zh": "@@T0@@究竟为何要离散化？@@T1@@ 一个离散的潜变量网格就是一串整数&mdash;\n      正是自回归先验（如 PixelCNN 或 Transformer）所能够建模的对象。VQ-VAE 及其\n      后继者 VQ-GAN 把图像变成词元网格，从而让用于语言的那套机制也能\n      生成图片。码本就是词表。",
+   "src": "<strong>Why discretize at all?</strong> A discrete latent grid is a sequence of integers &mdash;\n      exactly what an autoregressive prior (a PixelCNN or a Transformer) can model. VQ-VAE and its\n      successor VQ-GAN turn images into token grids so that the same machinery used for language can\n      generate pictures. The codebook is the vocabulary.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 20: VAEs &amp; Vector Quantization": {
+   "zh": "ES 667 深度学习讲解系列之一 &middot; 第 20 讲：VAE 与向量量化",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 20: VAEs &amp; Vector Quantization",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "向量量化（VQ-VAE）",
+  "tagline": "把连续潜变量替换为一个已学习的离散码本中最近的条目",
+  "summary": "VQ-VAE 把自编码器的连续潜变量换成离散潜变量：每一次编码都吸附到 K 个已学习码向量中最近的一个，因此潜变量实际上只是一个整数索引。拖动编码点 z，看它跳向最近的码 z_q；拖动各个码，看它们的 Voronoi 领地如何重绘；一次性量化一整片点云，看清分配结果。结尾一节解释直通估计器如何让梯度穿过硬 argmin 回流。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "拖动编码点 z，看吸附箭头跳向 z_q —— 即最近的码向量。",
+   "拖动 K 个码向量，看 Voronoi 单元 —— 每个码的领地 —— 实时重绘。",
+   "一次量化一整片编码点云，每个按其被分配到的码着色。",
+   "读取量化误差，以及存储一个离散索引所需的 log2(K) 比特。",
+   "看清直通估计器如何把梯度从 z_q 复制回 z，使编码器仍能穿过不可微的 argmin 进行学习。"
+  ],
+  "tags": [
+   "VQ-VAE",
+   "码本",
+   "离散潜变量",
+   "生成模型",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

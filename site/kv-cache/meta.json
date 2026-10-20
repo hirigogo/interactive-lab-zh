@@ -1,0 +1,25 @@
+{
+  "slug": "kv-cache",
+  "title": "把 KV 缓存讲明白",
+  "date": "2026-05-23",
+  "tagline": "LLM 推理为何受内存限制——以每个词元的兆字节数来衡量。",
+  "summary": "为什么一个 70B 的 LLM 即使批量为 1 也需要 80GB 的 GPU？不是权重，而是 KV 缓存。拖动模型规模、上下文长度、批量大小与头共享方式（GQA），观察缓存规模如何占据主导。再切换 PagedAttention，看 vLLM 如何夺回容量。",
+  "readingTime": "11 min",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "order": 104,
+  "status": "draft",
+  "tags": [
+    "LLM",
+    "推理",
+    "KV-Cache",
+    "GQA",
+    "vLLM",
+    "交互式"
+  ],
+  "highlights": [
+    "参数量、层数、上下文、批量的滑块——实时显示 KV 缓存的总 GB 数。",
+    "在 MHA、GQA(8) 与 MQA 之间切换——观察各自的内存悬崖。",
+    "PagedAttention 演示：连续分配与分页分配对比，碎片回收。"
+  ]
+}

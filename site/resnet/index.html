@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>残差连接为何有效</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>残差连接为何有效</h1>
+        <p class="abstract">
+          单单一行的 $y = x + F(x)$ 便开启了深达 100 倍的网络。
+          观察普通深层网络的失效模式：64 层的
+          激活图崩塌为噪声；随后加入跳跃连接，
+          再看同一个网络干净地完成训练。包含三个实时实验与一次
+          损失曲面巡览。
+        </p>
+        <div class="byline">
+          <span>约 20 分钟</span>
+          <span>深度学习 &middot; CNN &middot; 优化</span>
+        </div>
+      </header>
+
+      <!-- ─── 前言 ─── -->
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>深度退化问题</h2>
+        <p>
+          在 2015 年 12 月之前，普遍观点认为更深的网络
+          应当泛化得更好 &mdash; 直到你尝试训练一个
+          普通的 50 层 CNN，发现它在 <em>训练</em> 集上竟不如 20 层
+          的版本，测试集就更不必提了。这并非过拟合；
+          而是优化器的失效。He 等人将其称为 <em>退化问题</em>。
+        </p>
+        <p>
+          修复方法仅需一行代码：将每个模块从
+          $y = F(x)$ 改为 $y = F(x) + x$。此时输出为该模块
+          所计算的结果 <em>加上</em> 一份该模块本可忽略的
+          输入副本。这一微小改动使训练 ResNet-152 成为可能，
+          其 ImageNet 级别的精度达到此前所有架构深度的 3 倍，
+          并由此启动了现代深度学习的火箭。
+        </p>
+        <div class="callout callout--key">
+          <strong>一句话概括。</strong>
+          残差模块不必学会正确的输出。它
+          只需学会 <em>残差</em> &mdash; 即叠加在输入之上的
+          小幅修正。若某一层无内容可加，
+          它可以输出零，输入便原封不动地通过。
+        </div>
+      </section>
+
+      <!-- ─── 第 1 步 ─── -->
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>观察无跳跃连接时激活的消亡</h2>
+        <p>
+          下方：一个深度为 $L$ 的小型前馈堆叠。每一层为
+          $h_{l+1} = \tanh(W_l h_l + b_l)$，权重随机初始化。
+          普通版本就是这一递推。残差版本
+          将其替换为 $h_{l+1} = h_l + \tanh(W_l h_l + b_l)$。
+          滑动 $L$，观察各深度处的激活量级。
+        </p>
+        <div class="control-row" style="grid-template-columns: 1fr 1fr;">
+          <div class="control-block">
+            <label>深度 L &nbsp;<span id="act-L-val">32</span> <input type="range" id="act-L" min="2" max="100" step="2" value="32"></label>
+          </div>
+          <div class="control-block">
+            <label>初始化尺度 &nbsp;<span id="act-scale-val">0.6</span> <input type="range" id="act-scale" min="0.05" max="1.5" step="0.05" value="0.6"></label>
+          </div>
+        </div>
+        <div class="resnet-figure">
+          <canvas id="act-canvas" width="880" height="320"></canvas>
+          <figcaption>
+            各层的激活 L₂ 范数。青色实线：残差堆叠。
+            橙色虚线：普通堆叠。普通网络的曲线衰减至零
+            （或爆炸）；残差堆叠则保持有界。
+          </figcaption>
+        </div>
+      </section>
+
+      <!-- ─── 第 2 步 ─── -->
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>梯度流动 &mdash; 同样的故事，方向相反</h2>
+        <p>
+          反向传播将 $\frac{\partial \mathcal{L}}{\partial h_l}$ 计算为一连串
+          矩阵乘积。在普通网络中，链条上的每一环
+          都是某个接近非单位矩阵的 Jacobian 矩阵；它们的乘积
+          迅速崩塌。在残差网络中，Jacobian 为
+          $I + \frac{\partial F}{\partial h_l}$ &mdash; 单位矩阵加上
+          一个小量。单位矩阵起保真作用；“加一个小量”
+          会逐层累加梯度信号，而非将其相乘消去。
+        </p>
+        <div class="math-block" id="math-jacobian"></div>
+        <p>
+          下方：从损失回溯至第 0 层，各深度处的梯度范数。
+          残差网络的曲线大致平坦。普通网络的
+          曲线则呈几何式衰减。
+        </p>
+        <div class="resnet-figure">
+          <canvas id="grad-canvas" width="880" height="320"></canvas>
+          <figcaption>‖∂ℒ/∂h_l‖ 随深度 l 的变化，对数刻度。</figcaption>
+        </div>
+      </section>
+
+      <!-- ─── 第 3 步 ─── -->
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>并排训练二者</h2>
+        <p>
+          相同数据集、相同深度、相同优化器。按下方
+          <em>开始训练</em>；一块画布训练普通网络，
+          另一块训练残差网络。普通版本在 $L \ge 16$ 时
+          明显停滞；残差版本则能干净地训练至
+          大得多的深度。
+        </p>
+        <div class="control-row" style="grid-template-columns: 1fr 1fr;">
+          <div class="control-block">
+            <label>深度 L &nbsp;<span id="train-L-val">12</span> <input type="range" id="train-L" min="2" max="64" step="2" value="12"></label>
+          </div>
+          <div class="control-block">
+            <label>学习率 &nbsp;<span id="train-lr-val">0.05</span> <input type="range" id="train-lr" min="0.005" max="0.3" step="0.005" value="0.05"></label>
+          </div>
+        </div>
+        <div class="train-controls">
+          <button class="action-btn" id="train-toggle">开始训练</button>
+          <button class="action-btn action-btn--ghost" id="train-reset">全部重置</button>
+          <span class="train-stat">步数 <strong id="train-step">0</strong></span>
+          <span class="train-stat">普通网络损失 <strong id="plain-loss">—</strong></span>
+          <span class="train-stat">残差网络损失 <strong id="resid-loss">—</strong></span>
+        </div>
+        <div class="resnet-figure">
+          <canvas id="loss-canvas" width="880" height="280"></canvas>
+          <figcaption>两种架构的训练损失，相同数据、相同学习率。将 L 调至 64，观察差距如何急剧拉开。</figcaption>
+        </div>
+      </section>
+
+      <!-- ─── 第 4 步 ─── -->
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>损失曲面的可视化</h2>
+        <p>
+          Li 等人（2018）表明，残差连接会使
+          损失景观变得平滑。我们渲染一个二维切片：在参数空间中
+          选取两个随机方向，在网格上求损失值，
+          并绘制等高线。普通网络的景观起伏多脊、遍布糟糕的
+          极小值；残差网络的景观则是一个单一的浅碗。
+        </p>
+        <div class="resnet-figure-grid">
+          <div class="resnet-panel">
+            <div class="panel-label">普通网络（L = 24）</div>
+            <canvas id="surface-plain" width="380" height="320"></canvas>
+          </div>
+          <div class="resnet-panel">
+            <div class="panel-label">残差网络（L = 24）</div>
+            <canvas id="surface-resid" width="380" height="320"></canvas>
+          </div>
+        </div>
+        <p style="font-family: var(--sans); color: var(--muted); font-size: 0.95rem; max-width: 68ch;">
+          颜色较浅的区域损失较低。注意普通曲面有
+          多个被脊分隔的盆地；残差曲面则
+          在原点附近有一个宽阔的单一盆地。同一模型类别，
+          仅一行代码之差。
+        </p>
+      </section>
+
+      <!-- ─── 第 5 步 ─── -->
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>迭代式精化 &mdash; 每个模块在做什么</h2>
+        <p>
+          一个有用的心智模型（Greff 等人、Jastrzębski 等人、
+          Veit 等人）：每个残差模块对一个持续演化的表示
+          作出小幅修正。“残差流”将输入
+          原样向前传递；各个模块则是读写的
+          外设，对其施加微调。
+        </p>
+        <div class="math-block" id="math-stream"></div>
+        <p>
+          这恰好也是 Transformer 残差流
+          的图景 &mdash; 注意力与 MLP 模块读取该流，
+          加上自己的贡献，再将其传递下去。机制
+          可解释性研究（Elhage 等人，2021）将这一
+          流视为层与层之间实打实的通信通道。
+        </p>
+        <div class="callout callout--think">
+          <strong>残差模型能做什么而普通堆叠不能。</strong>
+          残差堆叠可以 <em>自行选择</em> 其深度：任何
+          多余的模块只需输出 $\approx 0$，输入
+          便直接通过。普通堆叠则必须充分利用每一层
+          &mdash; 为此优化器还得从零学出一个
+          恒等子网络。
+        </div>
+      </section>
+
+      <!-- ─── 第 6 步 ─── -->
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>各类变体及其启示</h2>
+        <ul class="explanation-list">
+          <li><strong>ResNet-v1。</strong> $y = \mathrm{ReLU}(F(x) + x)$。
+            原始版本，在 ImageNet 上仍然表现强劲。</li>
+          <li><strong>预激活 ResNet。</strong>
+            $y = F(x) + x$，并将 BN→ReLU 置于卷积 <em>之前</em>。
+            梯度流动更干净；适用于极深的堆叠
+            （1000 层以上）。</li>
+          <li><strong>DenseNet。</strong> 将此前所有输出
+            拼接而非相加。参数效率更高，
+            但因内存原因在硬件上略慢。</li>
+          <li><strong>Highway / 门控残差。</strong>
+            $y = T(x) \odot F(x) + (1 - T(x)) \odot x$，其中 $T$ 为可学习的
+            门。ResNet 是其 $T = 1$ 的特例。LSTM 中
+            也有类似的思想。</li>
+          <li><strong>Transformer 的残差。</strong> 每个注意力
+            模块与 MLP 模块都在读写一个残差流。其
+            数学依据与 ResNet 完全相同。</li>
+        </ul>
+        <div class="callout callout--think">
+          <strong>最后总结。</strong>
+          一行代码 &mdash; “并把输入加回来” &mdash; 堪称
+          深度学习中的活字印刷术。若无
+          残差，就没有 ResNet-152，没有 BERT，也没有任何 GPT。每当
+          你堆叠超过约 10 层而它依然正常工作时，
+          你就在使用这一技巧。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-7">
+        <div class="step-badge">第 7 步</div>
+        <h2>残差流视角为何能打通对 Transformer 的理解</h2>
+        <p>
+          现代 Transformer 最好被理解为 <em>残差流</em>（Elhage 等人，2021，Anthropic 可解释性研究）。每一层从高维残差流中读取信息，计算一个增量，再将其写回。第 $\ell$ 层的输出为
+        </p>
+        <div class="math-block" id="math-stream"></div>
+        <p>
+          这一视角带来三点推论：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>各层通过该流进行通信。</strong> 第 12 层能读到第 3 层所写的内容，因为残差流将其原样传递了过来（扣除后续各层所添加的部分）。</li>
+          <li><strong>该流是一个“共享工作区”。</strong> 不同的头 / MLP 各自专精于写入不同“种类”的信息；下游各层读取其中相关的内容。机制可解释性论文识别出了跨越多个层的“归纳头”“后继头”“字母计数回路”。</li>
+          <li><strong>LayerNorm 充当闸门。</strong> 前置归一化的 Transformer（在注意力 / MLP 之前归一化）之所以优于后置归一化，正是因为前置归一化保留了残差的恒等路径。后置归一化的 Transformer 需要预热；前置归一化则不需要。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-8">
+        <div class="step-badge">第 8 步</div>
+        <h2>残差可能带来危害之处</h2>
+        <p>
+          有三种值得了解的失效模式：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>表示秩崩塌。</strong> 堆叠许多增量相近的残差模块，
+            可能把残差流推入一个低秩流形（Dong 等人，2021）。症状：
+            靠后各层的注意力头全部关注同一个词元，收敛缓慢。修复：
+            更强的正则化、深度缩放，或使每个模块倾向于写入
+            不同内容的初始化方式。</li>
+          <li><strong>“自由通道”的过度使用。</strong> 若某个模块持续输出接近零，则参数被浪费；若每个模块都输出很强，则残差流被噪声主导。健康的 Transformer 居于二者之间，但训练期间检查各层输出范数是值得的。</li>
+          <li><strong>跳跃连接的内存代价。</strong> 为完成加法，原始输入必须在整个模块中
+            一直保留；在某些实现中这会使激活内存翻倍。可逆变体
+            （RevNet）在反向传播时重新计算激活；实践中很少需要。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-9">
+        <div class="step-badge">第 9 步</div>
+        <h2>参考文献</h2>
+        <ul class="explanation-list">
+          <li><strong>He, Zhang, Ren, Sun（2015）</strong> &mdash; <em>Deep Residual Learning for Image Recognition.</em> ResNet 的原始论文。</li>
+          <li><strong>He 等人（2016）</strong> &mdash; <em>Identity Mappings in Deep Residual Networks.</em> 预激活变体。</li>
+          <li><strong>Huang 等人（2017）</strong> &mdash; <em>DenseNet.</em></li>
+          <li><strong>Veit, Wilber, Belongie（2016）</strong> &mdash; <em>Residual Networks Behave Like Ensembles of Relatively Shallow Networks.</em> “路径的指数级集成”这一解读。</li>
+          <li><strong>Elhage 等人（2021）</strong> &mdash; <em>A Mathematical Framework for Transformer Circuits.</em> 残差流视角。</li>
+          <li><strong>Dong, Cordonnier, Loukas（2021）</strong> &mdash; <em>Attention is Not All You Need: Pure Attention Loses Rank Doubly Exponentially with Depth.</em></li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

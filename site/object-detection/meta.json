@@ -1,0 +1,27 @@
+{
+  "slug": "object-detection",
+  "title": "基于真实检测器的目标检测",
+  "date": "2026-05-01",
+  "tagline": "上传任意照片，实时运行真实的 COCO-SSD 模型，并审视其每一个决策",
+  "summary": "一个预训练的 COCO-SSD 模型可在你的浏览器中加载并运行于你提供的任意照片。拖出真实标注框以与其预测相比较，扫描置信度阈值，运行 NMS，并绘制精确率–召回率曲线 —— 全部基于真实的检测器输出。",
+  "readingTime": "16 min",
+  "difficulty": "中级",
+  "collection": "计算机视觉",
+  "order": 15,
+  "status": "published",
+  "tags": [
+    "目标检测",
+    "COCO-SSD",
+    "IoU",
+    "NMS",
+    "TensorFlow.js",
+    "计算机视觉",
+    "交互式"
+  ],
+  "highlights": [
+    "通过 TensorFlow.js 在浏览器内加载真正预训练的 SSD-MobileNetV2（COCO）模型 —— 真实的检测结果、真实的置信度。",
+    "上传任意照片、尝试摄像头帧，或从六张图库样例中挑选一张；所有下游数值均实时更新。",
+    "绘制你自己的真实标注框；交并比、精确率、召回率、F1、NMS 与 AP 均针对真实模型输出计算。",
+    "滑动置信度与 NMS-IoU 阈值，观察精确率–召回率曲线重新绘制。"
+  ]
+}

@@ -1,0 +1,195 @@
+{
+ "slug": "makemore-forward",
+ "units": {
+  "A Char-MLP Language Model, Step by Step": {
+   "zh": "字符级 MLP 语言模型，逐步详解",
+   "src": "A Char-MLP Language Model, Step by Step",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "@@T0@@~10 min@@T1@@\n      @@T2@@Deep Learning &middot; Language Models &middot; Backprop@@T3@@": {
+   "zh": "@@T0@@约 10 分钟@@T1@@\n      @@T2@@深度学习 &middot; 语言模型 &middot; 反向传播@@T3@@",
+   "src": "<span>~10 min</span>\n      <span>Deep Learning &middot; Language Models &middot; Backprop</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "The whole model on one line": {
+   "zh": "整个模型浓缩成一行",
+   "src": "The whole model on one line",
+   "tags": []
+  },
+  "This is @@T0@@makemore@@T1@@ in miniature: a vocabulary of $8$ characters, a context of the last\n      $B = 3$ characters, an embedding dimension of $d = 2$, and one hidden layer of width $6$. Every\n      prediction is the same short pipeline:": {
+   "zh": "这是@@T0@@makemore@@T1@@的微缩版：词表包含 $8$ 个字符，上下文取最近 $B = 3$ 个字符，嵌入维度为 $d = 2$，含一个宽度为 $6$ 的隐藏层。每一次预测都走同一条短流水线：",
+   "src": "This is <em>makemore</em> in miniature: a vocabulary of $8$ characters, a context of the last\n      $B = 3$ characters, an embedding dimension of $d = 2$, and one hidden layer of width $6$. Every\n      prediction is the same short pipeline:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The weights below are small fixed numbers (an untrained net), so the run is fully reproducible.\n      Our example: the context is @@T0@@v&nbsp;e&nbsp;e@@T1@@ and the true next character is\n      @@T2@@n@@T3@@ &mdash; the tail of &ldquo;Na&nbsp;v&nbsp;e&nbsp;e&nbsp;@@T4@@n@@T5@@,&rdquo; the name Naveen. Step through it.": {
+   "zh": "下方的权重是一些固定的小数字（一个未经训练的网络），因此整个运行过程完全可复现。我们的例子：上下文是 @@T0@@v&nbsp;e&nbsp;e@@T1@@，真实的下一字符是 @@T2@@n@@T3@@ &mdash;— 即「Na&nbsp;v&nbsp;e&nbsp;e&nbsp;@@T4@@n@@T5@@,」的末尾，也就是名字 Naveen。请逐步走一遍。",
+   "src": "The weights below are small fixed numbers (an untrained net), so the run is fully reproducible.\n      Our example: the context is <code>v&nbsp;e&nbsp;e</code> and the true next character is\n      <code>n</code> &mdash; the tail of &ldquo;Na&nbsp;v&nbsp;e&nbsp;e&nbsp;<b>n</b>,&rdquo; the name Naveen. Step through it.",
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<b>",
+    "</b>"
+   ]
+  },
+  "The Lab": {
+   "zh": "实验",
+   "src": "The Lab",
+   "tags": []
+  },
+  "One forward &amp; backward pass": {
+   "zh": "一次前向与反向传播",
+   "src": "One forward &amp; backward pass",
+   "tags": []
+  },
+  "Press @@T0@@Step@@T1@@ to advance the pipeline, or jump to any stage with the numbered\n      buttons. The strip below tracks where you are; the panel underneath draws that stage in full.": {
+   "zh": "按下 @@T0@@步进@@T1@@ 推进流水线，或用编号按钮跳转到任意阶段。下方那条细带标示你所在的位置；再下面的面板则完整地绘制出该阶段。",
+   "src": "Press <strong>Step</strong> to advance the pipeline, or jump to any stage with the numbered\n      buttons. The strip below tracks where you are; the panel underneath draws that stage in full.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The current stage, drawn with live numbers.": {
+   "zh": "当前阶段，以实时数值绘制。",
+   "src": "The current stage, drawn with live numbers.",
+   "tags": []
+  },
+  "@@T0@@Model&rsquo;s top pick@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@模型的首选@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Model&rsquo;s top pick</span>\n        <span class=\"stat-value\" id=\"topVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"topVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Prob of true char &lsquo;n&rsquo;@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@真实字符 &lsquo;n&rsquo; 的概率@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Prob of true char &lsquo;n&rsquo;</span>\n        <span class=\"stat-value\" id=\"ptrueVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"ptrueVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Loss $-\\log p_{\\text{n}}$@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@损失 $-\\log p_{\\text{n}}$@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Loss $-\\log p_{\\text{n}}$</span>\n        <span class=\"stat-value\" id=\"lossVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"lossVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Watch stage 6.@@T1@@ The gradient on the logits is exactly $p - y$: one negative\n      bar on the true character &lsquo;n&rsquo; (push it up) and positive bars everywhere else (push them\n      down). Trace it back and it reaches the embedding table &mdash; but only rows @@T2@@v@@T3@@ and\n      @@T4@@e@@T5@@ glow. The other six rows were never indexed this step, so their gradient is exactly zero.": {
+   "zh": "@@T0@@留意第 6 阶段。@@T1@@ logit 上的梯度恰好就是 $p - y$：真实字符 &lsquo;n&rsquo; 上有一根负的柱子（要把它推高），其余各处都是正的柱子（要把它们压低）。把它反向追溯，便抵达嵌入表 &mdash;— 但只有第 @@T2@@v@@T3@@ 与第 @@T4@@e@@T5@@ 行亮起。其余六行在这一步从未被索引到，因此它们的梯度恰好为零。",
+   "src": "<strong>Watch stage 6.</strong> The gradient on the logits is exactly $p - y$: one negative\n      bar on the true character &lsquo;n&rsquo; (push it up) and positive bars everywhere else (push them\n      down). Trace it back and it reaches the embedding table &mdash; but only rows <code>v</code> and\n      <code>e</code> glow. The other six rows were never indexed this step, so their gradient is exactly zero.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "收获",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Next-token prediction, end to end": {
+   "zh": "下一词元预测，端到端",
+   "src": "Next-token prediction, end to end",
+   "tags": []
+  },
+  "Every large language model, underneath, is doing what you just stepped through &mdash; only wider,\n      deeper, and with attention in place of a single concatenation. The skeleton is unchanged:": {
+   "zh": "每一个大语言模型，在其底层所做的正是你刚刚逐步走过的这些 &mdash;— 只不过更宽、更深，并且用注意力取代了单次的拼接操作。其骨架并未改变：",
+   "src": "Every large language model, underneath, is doing what you just stepped through &mdash; only wider,\n      deeper, and with attention in place of a single concatenation. The skeleton is unchanged:",
+   "tags": []
+  },
+  "@@T0@@Embed@@T1@@ each context token into a vector by indexing a table $E$.": {
+   "zh": "@@T0@@嵌入@@T1@@：通过索引一张表 $E$，把每个上下文词元变为一个向量。",
+   "src": "<strong>Embed</strong> each context token into a vector by indexing a table $E$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Mix@@T1@@ the context (here: concatenate, then one $\\tanh$ layer) into a hidden state.": {
+   "zh": "@@T0@@混合@@T1@@：把上下文（在此：先拼接，再过一层 $\\tanh$）合并为一个隐藏状态。",
+   "src": "<strong>Mix</strong> the context (here: concatenate, then one $\\tanh$ layer) into a hidden state.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Sparse updates.@@T1@@ Because embeddings are a lookup, one example&rsquo;s gradient\n      only edits the rows it used. Over a whole corpus, characters (or words) that share contexts get\n      nudged in similar directions and drift together &mdash; which is exactly why the embedding\n      geometry ends up meaningful. Embedding &rarr; MLP &rarr; softmax, graded by $p - y$: that is the\n      entire idea of learning to predict the next token.": {
+   "zh": "@@T0@@稀疏更新。@@T1@@ 由于嵌入本质上是一次查表，一个样例的梯度只会修改它所用到的那几行。在整份语料上，共享上下文的字符（或词）会被推向相似的方向并一同漂移 &mdash;— 这正是嵌入的几何结构最终变得有意义的原因。嵌入 &rarr; MLP &rarr; softmax，以 $p - y$ 作为评判：这就是学习预测下一词元的全部思想。",
+   "src": "<strong>Sparse updates.</strong> Because embeddings are a lookup, one example&rsquo;s gradient\n      only edits the rows it used. Over a whole corpus, characters (or words) that share contexts get\n      nudged in similar directions and drift together &mdash; which is exactly why the embedding\n      geometry ends up meaningful. Embedding &rarr; MLP &rarr; softmax, graded by $p - y$: that is the\n      entire idea of learning to predict the next token.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 12: Next-Token Prediction": {
+   "zh": "ES 667 深度学习讲解系列的一部分 &middot; 第 12 讲：下一词元预测",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 12: Next-Token Prediction",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "字符级 MLP 语言模型，逐步详解",
+  "tagline": "一步步走过一个微型字符级 MLP 的一次前向与反向传播",
+  "summary": "一个 makemore 风格的字符级 MLP，被剥离到只剩骨架：8 个字符的词表、3 个字符的上下文、二维嵌入、一个 tanh 隐藏层。按下步进，让一个训练样例依次经过嵌入、拼接、隐藏层、softmax、交叉熵损失与反向传播——所有数值都以固定、可复现的权重实时绘制在画布上。结尾把下一词元学习变得具体可感：梯度 p - y 反向流动，且只修改该样例实际用到的那两行嵌入。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "逐步走过一个微型字符级 MLP 的完整一次前向与反向传播，一阶段一阶段地看，配以实时数值。",
+   "清晰地看到整条流水线：嵌入 → 拼接 → tanh 隐藏层 → softmax → 交叉熵 → 反向传播。",
+   "观察上下文「v, e, e」（来自名字 Naveen）恰好点亮嵌入表的哪两行——「e」被用了两次，其梯度会累积。",
+   "把 softmax 读作一幅柱状图，标出真实的下一字符「n」，并看到损失 -log p_true 作为一个大数字呈现。",
+   "下一词元预测的点睛之笔：梯度 p - y 只更新被查询过的那些嵌入行；其余每一行的梯度都恰好为零。"
+  ],
+  "tags": [
+   "语言模型",
+   "MLP",
+   "反向传播",
+   "softmax",
+   "嵌入",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>位置编码 &mdash;&mdash; 正弦式、RoPE（旋转位置编码）、ALiBi（线性偏置注意力）</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>位置编码 &mdash;&mdash; 正弦式、RoPE（旋转位置编码）、ALiBi（线性偏置注意力）</h1>
+        <p class="abstract">
+          Transformer 的注意力具有置换不变性：<em>「狗咬人」</em>
+          与 <em>「人咬狗」</em> 将产生完全相同的 logit。位置信息必须从别处注入。已有三大类方案胜出；本文在同一套坐标下展示这三者 &mdash;&mdash; 热力图、相似度矩阵、RoPE（旋转位置编码） 旋转、外推曲线。
+        </p>
+        <div class="byline">
+          <span>约 16 分钟</span>
+          <span>Transformer &middot; 长上下文 &middot; 第 14 讲演示</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>注意力为何会遗忘顺序</h2>
+        <p>
+          朴素注意力计算
+          $\text{softmax}(QK^\top / \sqrt d)\, V$。每个输出词元都是对 <em>所有</em> 输入词元的加权和 &mdash;&mdash; 但权重仅取决于 $Q$ 与 $K$ 的
+          <em>内容</em>，而与它们的下标无关。
+          置换输入序列，每一个注意力权重也随之被置换。输出的集合仍然是同一个集合。
+        </p>
+        <p>
+          这一对称性对任何依赖顺序的任务都是致命的，而语言中所有有价值的任务都依赖顺序。已有三类修正方案胜出：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>正弦式</strong>（Vaswani 等，2017）：为每个词元嵌入加上一条固定的波形。成本低，不含可学习参数。</li>
+          <li><strong>RoPE（旋转位置编码）</strong>（Su 等，2021）：将 Q 与 K 按与位置成正比的角旋转。此时点积 $Q_i \cdot K_j$ 仅取决于偏移量 $j - i$。</li>
+          <li><strong>ALiBi（线性偏置注意力）</strong>（Press、Smith、Lewis，2022）：完全跳过嵌入。将线性惩罚 $-m \cdot |i - j|$ 加到注意力分数上。极其简单，外推性能良好。</li>
+        </ul>
+        <p>
+          它们在三个于规模化时至关重要的方面存在差异：参数数量、向比训练时更长序列外推的能力，以及计算成本。下面三节将分别让这些差异变得直观可感。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>正弦式 &mdash;&mdash; 每个维度一个频率</h2>
+        <div class="math-block" id="math-正弦式"></div>
+        <p>
+          选择序列长度与嵌入维度。下方热力图展示完整的位置编码张量：行对应位置 $0, 1, \ldots, L-1$，列对应嵌入维度 $0, 1, \ldots, d-1$。偶数列为正弦，奇数列为余弦。每个维度各有其频率，从 $1$ 到 $1 / 10000$ 按几何级数分布。
+        </p>
+        <div class="controls">
+          <label>序列长度 L
+            <input type="range" id="sin-L" min="8" max="128" value="64" />
+          </label>
+          <span class="ctrl-num" id="sin-L-val">64</span>
+          <label>d_model（模型维度）
+            <input type="range" id="sin-D" min="8" max="64" value="32" step="2" />
+          </label>
+          <span class="ctrl-num" id="sin-D-val">32</span>
+        </div>
+        <div class="stage">
+          <h4>位置编码矩阵（行 = 位置，列 = 嵌入维度）</h4>
+          <canvas id="sin-heatmap"></canvas>
+          <div class="meta">
+            <strong>如何解读该图。</strong>
+            最左侧的列振荡很快（高频，用于区分相邻位置）。最右侧的列振荡很慢（低频，编码宽广的位置区段）。二者共同构成一个「二进制时钟」，使每个位置都有独特的指纹。
+          </div>
+        </div>
+        <p>
+          其核心性质在于：对任意偏移 $k$，$\mathrm{PE}_{\text{pos}+k}$ 都是 $\mathrm{PE}_{\text{pos}}$ 的固定线性函数。因此 transformer 可以通过一个学习得到的线性映射，从绝对编码中<em>恢复出相对位置</em>。这正是最初论证固定正弦式编码能与学习式查表同样有效的原因。
+        </p>
+        <p>
+          下图：每一对位置之间的余弦相似度。对角线为 1（每个位置与自身）；偏离对角线的衰减程度反映了相邻位置的可区分程度。
+        </p>
+        <div class="stage">
+          <h4>位置间余弦相似度矩阵 ⟨PE<sub>i</sub>, PE<sub>j</sub>⟩</h4>
+          <canvas id="sin-sim"></canvas>
+          <div class="meta">
+            取值越高，表示这些位置在注意力看来越相似。对角线附近的平滑衰减正是我们想要的 &mdash;&mdash; 靠近的位置彼此易混淆，相距较远的位置则能被清晰区分。
+          </div>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>RoPE（旋转位置编码） &mdash;&mdash; 以旋转编码位置</h2>
+        <p>
+          正弦式位置编码有一个已知的弱点：它只在嵌入上加一次，注意力层必须耗费容量从该和中恢复相对位置。RoPE（旋转位置编码） 将这一点颠倒过来：它不<em>加</em>位置，而是<em>旋转</em>查询与键。
+        </p>
+        <div class="math-block" id="math-rope"></div>
+        <p>
+          将相邻维度配对为 $(2i, 2i+1)$。对位置 $\text{pos}$，把该二维子向量旋转一个角度
+          $\theta_i = \text{pos} \cdot 10000^{-2i/d}$。于是，位置 $i$ 的旋转后查询与位置 $j$ 的旋转后键之间的点积，便仅成为<em>差值</em> $j - i$ 的函数。
+        </p>
+        <div class="controls">
+          <label>位置 1
+            <input type="range" id="rope-p1" min="0" max="40" value="5" />
+          </label>
+          <span class="ctrl-num" id="rope-p1-val">5</span>
+          <label>位置 2
+            <input type="range" id="rope-p2" min="0" max="40" value="15" />
+          </label>
+          <span class="ctrl-num" id="rope-p2-val">15</span>
+          <label>基频 θ
+            <input type="range" id="rope-base" min="100" max="10000" step="100" value="10000" />
+          </label>
+          <span class="ctrl-num" id="rope-base-val">10000</span>
+        </div>
+        <div class="rope-stage">
+          <div class="stage">
+            <h4>两个旋转后的查询/键向量（一个二维子对）</h4>
+            <canvas id="rope-vectors"></canvas>
+          </div>
+          <div class="stage">
+            <h4>当 i、j 滑动时点积 Q<sub>i</sub> · K<sub>j</sub> 的变化</h4>
+            <canvas id="rope-dotmap"></canvas>
+          </div>
+        </div>
+        <div class="rope-readout" id="rope-readout">
+          —
+        </div>
+        <p>
+          核心结论：将位置 1、2 改为 (5, 15) 或 (20, 30) &mdash;&mdash; 两者偏移量均为 10。点积<em>完全相同</em>。RoPE（旋转位置编码） 已将绝对位置从注意力分数中分离出去，只留下相对位置。
+        </p>
+        <div class="callout">
+          <strong>为何这对长上下文至关重要。</strong>
+          使用纯粹的绝对编码时，每个位置都有各不相同的嵌入。在位置 $0$–$2047$ 上训练、在位置 $4096$ 上测试，则该 $4096$ 的嵌入从未出现过。
+          而使用 RoPE（旋转位置编码） 时，只有<em>相对</em>偏移进入点积。无论绝对位置是 $(0, 100)$ 还是 $(5000, 5100)$，偏移为 100 处的推理表现都相同。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>ALiBi（线性偏置注意力） &mdash;&mdash; 对距离的线性惩罚</h2>
+        <div class="math-block" id="math-alibi"></div>
+        <p>
+          三者中最简单的一种。完全不在嵌入层使用位置编码。将固定偏置 $-m \cdot |i - j|$ 加到注意力分数上，其中斜率 $m$ 按注意力头手工设定（各头之间构成等比数列 &mdash;&mdash; 第 $h$ 个头使用 $m_h = 2^{-8h/H}$）。
+        </p>
+        <p>
+          下方矩阵展示某个头在 32×32 注意力网格上的偏置。选择一个斜率。该偏置恒为负值并随距离增大：它惩罚对远处词元的关注 &mdash;&mdash; 等价地说，它使每个词元偏向关注其邻近词元。
+        </p>
+        <div class="controls">
+          <label>头索引 h
+            <input type="range" id="ali-head" min="0" max="7" value="2" />
+          </label>
+          <span class="ctrl-num" id="ali-head-val">2</span>
+          <span class="ctrl-num" id="ali-slope-val">m = 0.25</span>
+          <label>序列长度
+            <input type="range" id="ali-L" min="16" max="64" value="32" />
+          </label>
+          <span class="ctrl-num" id="ali-L-val">32</span>
+        </div>
+        <div class="two-up">
+          <div class="stage">
+            <h4>ALiBi（线性偏置注意力） 偏置矩阵（因果注意力下为下三角）</h4>
+            <canvas id="ali-bias"></canvas>
+          </div>
+          <div class="stage">
+            <h4>各头斜率安排</h4>
+            <canvas id="ali-slopes"></canvas>
+            <div class="meta">
+              不同的头使用不同的斜率；一些头关注局部上下文（斜率较陡），另一些关注宽泛上下文（斜率较缓）。该安排在训练时即固定，从不参与训练。
+            </div>
+          </div>
+        </div>
+        <p>
+          ALiBi（线性偏置注意力） 的卖点在于外推。偏置矩阵中没有任何量依赖绝对位置 &mdash;&mdash; 只依赖 $|i - j|$。基于长度 2048 训练的模型可部署到长度 16384，其所见相对位置信号毫无退化。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>外推 &mdash;&mdash; 在 2k 上训练，在 32k 上测试</h2>
+        <p>
+          让 RoPE（旋转位置编码） 与 ALiBi（线性偏置注意力） 崭露头角的评测方式：以最大上下文 2048 个词元训练一个 transformer；在 4k、8k、16k、32k 处评估困惑度。凡死记了绝对位置 $0$–$2047$ 的方案，在超过 2048 后便会断崖式下跌。而仅使用相对信息的方案则会平缓退化。
+        </p>
+        <p>
+          下图：三种位置编码方案在一个合成的「相对位置召回」任务上的得分。指标为：模型在训练时（≤ 2k）对距离 $\Delta$ 处某查询的表示，与测试时（至多 32k）相同偏移处的表示之间的余弦相似度。高且平稳为佳；下降则不佳。这些数值重现了 Press 等（2022）的定性发现：
+        </p>
+        <div class="extrap-grid">
+          <div class="extrap-card">
+            <h4 class="h-sin">正弦式</h4>
+            <canvas id="ext-sin"></canvas>
+            <div class="meta">在 0–2k 上训练。超过 2k 后急剧下降 &mdash;&mdash; 模型从未见过位置 4000。</div>
+          </div>
+          <div class="extrap-card">
+            <h4 class="h-rope">RoPE（旋转位置编码）</h4>
+            <canvas id="ext-rope"></canvas>
+            <div class="meta">只有相对偏移起作用；随着角度绕回而逐渐退化。</div>
+          </div>
+          <div class="extrap-card">
+            <h4 class="h-alibi">ALiBi（线性偏置注意力）</h4>
+            <canvas id="ext-alibi"></canvas>
+            <div class="meta">保持平稳。偏置中没有任何量依赖绝对位置。</div>
+          </div>
+        </div>
+        <div class="callout callout--key">
+          <strong>规律。</strong>
+          正弦式编码在超过训练长度后崩溃，因为其高频维度会以模型从未优化过的形式绕回。RoPE（旋转位置编码） 退化，是因为当位置超过
+          $\pi / \theta_{\min}$ 时其旋转角会绕回。ALiBi（线性偏置注意力） 之所以不退化，是因为其 $-m \cdot |i - j|$ 的性质始终不变：在 $\Delta = 10000$ 处，它仍然只是一个略大一些的负偏置。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>何时使用何种方案</h2>
+        <table class="pe-table">
+          <thead>
+            <tr>
+              <th>方案</th>
+              <th>添加位置</th>
+              <th>可学习？</th>
+              <th>相对？</th>
+              <th>可外推？</th>
+              <th>使用者</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>学习式绝对位置</td>
+              <td>词元嵌入</td>
+              <td>是</td>
+              <td>no</td>
+              <td>否（固定查表）</td>
+              <td>BERT、GPT-2</td>
+            </tr>
+            <tr>
+              <td>正弦式</td>
+              <td>词元嵌入</td>
+              <td>no</td>
+              <td>可恢复</td>
+              <td>部分可外推</td>
+              <td>原始 Transformer（Vaswani 2017）</td>
+            </tr>
+            <tr>
+              <td>RoPE（旋转位置编码）</td>
+              <td>Q、K（在注意力内部）</td>
+              <td>no</td>
+              <td>是（在点积中）</td>
+              <td>是（借助 NTK / YaRN 技巧）</td>
+              <td>Llama 系列、PaLM、GPT-NeoX、Mistral</td>
+            </tr>
+            <tr>
+              <td>ALiBi（线性偏置注意力）</td>
+              <td>注意力分数</td>
+              <td>no</td>
+              <td>是（纯相对）</td>
+              <td>是</td>
+              <td>BLOOM、MPT</td>
+            </tr>
+            <tr>
+              <td>T5 式相对位置</td>
+              <td>注意力分数（分桶偏置）</td>
+              <td>是（小规模查表）</td>
+              <td>是</td>
+              <td>部分可外推</td>
+              <td>T5</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          2022 年之后的共识是：<strong>RoPE（旋转位置编码）</strong> 是自回归 LLM 的现代默认选择；当外推能力为首要考虑且模型为单任务时，则倾向于
+          <strong>ALiBi（线性偏置注意力）</strong>。学习式绝对位置属于遗留基线；新模型无人采用。
+        </p>
+        <p>
+          NTK 感知缩放、YaRN 与动态 NTK 都是将经 RoPE（旋转位置编码） 训练的模型扩展至超出其训练长度的技术。它们通过重新缩放基频，使旋转角保持在已见过的范围内。这些方法都并非没有代价 &mdash;&mdash; 总存在某种精度权衡，长上下文基准（LongBench、Needle in a Haystack、RULER）对此有充分记录。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>三个常见误解</h2>
+        <div class="misconception">
+          <div class="m-q">「RoPE（旋转位置编码） 没有参数。」→ 确实如此，但……</div>
+          <div class="m-text">
+            ……旋转基频 $\theta = 10000$ 是一个超参数，选择不当会损害长上下文表现。
+            Llama-3 采用 $\theta = 500{,}000$，以减缓远距离处角度的绕回。NTK 感知缩放可视为在推理时动态地选取 $\theta$。
+          </div>
+        </div>
+        <div class="misconception">
+          <div class="m-q">「ALiBi（线性偏置注意力） 能完美外推到无限上下文。」</div>
+          <div class="m-text">
+            ALiBi（线性偏置注意力） 的退化程度小于正弦式或 RoPE（旋转位置编码），但它确实会退化：模型只见过偏置幅度至多 $2048 \cdot m$ 的注意力分数。超出该范围后，模型的行为依赖于「略大的偏置具有相同定性效果」这一假设 &mdash;&mdash; 这在实践中大致成立，但并不完美。
+          </div>
+        </div>
+        <div class="misconception">
+          <div class="m-q">「位置编码与注意力是解耦的。」</div>
+          <div class="m-text">
+            正弦式编码在注意力看到任何内容之前，仅向嵌入加一次；从这个意义上说它是解耦的。
+            RoPE（旋转位置编码） 位于<em>注意力计算内部</em>（旋转 Q 与 K）。ALiBi（线性偏置注意力） 同样位于<em>注意力内部</em>
+            （对 logit 施加偏置）。趋势一直是将位置信息更深地推入注意力机制之中，而非将其置于外部。
+          </div>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-7">
+        <div class="step-badge">第 7 步</div>
+        <h2>参考文献</h2>
+        <ul class="explanation-list">
+          <li><strong>Vaswani 等，2017</strong> &mdash;&mdash; <em>Attention Is All You Need.</em> 正弦式位置编码，§3.5。</li>
+          <li><strong>Shaw、Uszkoreit、Vaswani，2018</strong> &mdash;&mdash; <em>Self-Attention with Relative Position Representations.</em> 首个位于注意力内部的相对位置方案。</li>
+          <li><strong>Raffel 等，2019（T5）</strong> &mdash;&mdash; 加到注意力分数上的分桶相对位置偏置。</li>
+          <li><strong>Su 等，2021</strong> &mdash;&mdash; <em>RoFormer: Enhanced Transformer with Rotary Position Embedding.</em> 即 RoPE（旋转位置编码） 原始论文。</li>
+          <li><strong>Press、Smith、Lewis，2022</strong> &mdash;&mdash; <em>Train Short, Test Long: Attention with Linear Biases.</em> 即 ALiBi（线性偏置注意力）。</li>
+          <li><strong>Chen 等，2023</strong> &mdash;&mdash; <em>Extending Context Window of Large Language Models via Positional Interpolation.</em> 首个被广泛采用的 RoPE（旋转位置编码） 扩展技巧。</li>
+          <li><strong>Peng 等，2023</strong> &mdash;&mdash; <em>YaRN: Efficient Context Window Extension of Large Language Models.</em></li>
+          <li><strong>bloc97，2023</strong>（LocalLlama 帖子）&mdash;&mdash; <em>NTK-aware scaled RoPE（旋转位置编码）.</em> 由社区发现的修正方案，使长上下文 RoPE（旋转位置编码） 变得实用。</li>
+          <li><strong>Kazemnejad 等，2023</strong> &mdash;&mdash; <em>The Impact of Positional Encoding on Length Generalization in Transformers.</em> 对各类变体的实证比较。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

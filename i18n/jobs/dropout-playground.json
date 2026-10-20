@@ -1,0 +1,425 @@
+{
+ "slug": "dropout-playground",
+ "units": {
+  "Dropout Playground": {
+   "zh": "Dropout 演练场",
+   "src": "Dropout Playground",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Slide the drop probability $p$ and watch a small network flicker. Every\n      forward pass silences a different random subset of hidden units, so every\n      pass is a different sub-network. Over many passes you are training an\n      exponential ensemble with shared weights &mdash; the core intuition behind\n      the most influential regularizer of 2012.": {
+   "zh": "滑动丢弃概率 $p$，观察一个小型网络闪烁变化。每一次\n      前向传播都会随机让不同的隐藏单元子集沉默，因此每一次\n      传播都是不同的子网络。经过多次传播，你实际上是在训练一个\n      共享权重的指数级集成 &mdash; 这正是 2012 年那项最具影响力的\n      正则化方法背后的核心直觉。",
+   "src": "Slide the drop probability $p$ and watch a small network flicker. Every\n      forward pass silences a different random subset of hidden units, so every\n      pass is a different sub-network. Over many passes you are training an\n      exponential ensemble with shared weights &mdash; the core intuition behind\n      the most influential regularizer of 2012.",
+   "tags": []
+  },
+  "@@T0@@~8 min read@@T1@@\n      @@T2@@Deep Learning &middot; Regularization@@T3@@": {
+   "zh": "@@T0@@约 8 分钟阅读@@T1@@\n      @@T2@@深度学习 &middot; 正则化@@T3@@",
+   "src": "<span>~8 min read</span>\n      <span>Deep Learning &middot; Regularization</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "The Idea": {
+   "zh": "核心思想",
+   "src": "The Idea",
+   "tags": []
+  },
+  "Silence neurons at random": {
+   "zh": "随机使神经元沉默",
+   "src": "Silence neurons at random",
+   "tags": []
+  },
+  "Dropout was Hinton's 2012 trick: on every training forward pass, randomly\n      set a fraction of the hidden activations to zero. A unit survives with\n      @@T0@@keep probability@@T1@@ $1-p$ and is dropped with probability $p$. Write\n      the per-unit switch as a Bernoulli variable $m_i$ and the dropped\n      activation as $\\tilde h_i$:": {
+   "zh": "Dropout 是 Hinton 于 2012 年提出的技巧：在每一次训练时的前向传播中，\n      随机将一部分隐藏激活置零。一个单元以 @@T0@@保留概率@@T1@@ $1-p$\n      存活，并以概率 $p$ 被丢弃。将每个单元的开关记为\n      Bernoulli 变量 $m_i$，将丢弃后的激活记为 $\\tilde h_i$：",
+   "src": "Dropout was Hinton's 2012 trick: on every training forward pass, randomly\n      set a fraction of the hidden activations to zero. A unit survives with\n      <em>keep probability</em> $1-p$ and is dropped with probability $p$. Write\n      the per-unit switch as a Bernoulli variable $m_i$ and the dropped\n      activation as $\\tilde h_i$:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Two things are happening at once. The mask $m_i$ zeroes out a random subset\n      of units. The factor $\\tfrac{1}{1-p}$ rescales the survivors so the layer's\n      @@T0@@expected@@T1@@ output does not change &mdash; this is the \"inverted dropout\"\n      convention PyTorch and every modern framework use, and it is exactly why the\n      test-time path can be the plain identity. Play with both effects below.": {
+   "zh": "同时发生了两件事。掩码 $m_i$ 将随机的单元子集置零。\n      因子 $\\tfrac{1}{1-p}$ 对存活单元重新缩放，使该层的\n      @@T0@@期望@@T1@@ 输出保持不变 &mdash; 这就是 PyTorch 及所有现代框架\n      采用的“反向 dropout”约定，也正是测试阶段能够直接使用\n      恒等映射的原因。请在下方体验这两种效应。",
+   "src": "Two things are happening at once. The mask $m_i$ zeroes out a random subset\n      of units. The factor $\\tfrac{1}{1-p}$ rescales the survivors so the layer's\n      <em>expected</em> output does not change &mdash; this is the \"inverted dropout\"\n      convention PyTorch and every modern framework use, and it is exactly why the\n      test-time path can be the plain identity. Play with both effects below.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Lab": {
+   "zh": "演练区",
+   "src": "The Lab",
+   "tags": []
+  },
+  "One mask per forward pass": {
+   "zh": "每次前向传播使用一个掩码",
+   "src": "One mask per forward pass",
+   "tags": []
+  },
+  "A tiny MLP: four inputs, ten hidden units, one output. The hidden\n      activations $h_i$ are fixed (the weights don't change here) &mdash; only the\n      dropout mask is resampled. In @@T0@@train@@T1@@ mode each surviving unit\n      is scaled by $\\tfrac{1}{1-p}$; dropped units and their edges grey out. In\n      @@T2@@eval@@T3@@ mode dropout is off: all units fire, nothing is scaled.": {
+   "zh": "一个小型 MLP：四个输入、十个隐藏单元、一个输出。隐藏层\n      激活 $h_i$ 固定不变（此处权重不改变）&mdash; 只有\n      dropout 掩码被重新采样。在 @@T0@@train@@T1@@ 模式下，每个存活单元\n      被缩放 $\\tfrac{1}{1-p}$ 倍；被丢弃的单元及其连接边变灰。在\n      @@T2@@eval@@T3@@ 模式下 dropout 关闭：所有单元都激活，不做任何缩放。",
+   "src": "A tiny MLP: four inputs, ten hidden units, one output. The hidden\n      activations $h_i$ are fixed (the weights don't change here) &mdash; only the\n      dropout mask is resampled. In <strong>train</strong> mode each surviving unit\n      is scaled by $\\tfrac{1}{1-p}$; dropped units and their edges grey out. In\n      <strong>eval</strong> mode dropout is off: all units fire, nothing is scaled.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Drop probability @@T0@@0.50@@T1@@": {
+   "zh": "丢弃概率 @@T0@@0.50@@T1@@",
+   "src": "Drop probability <span id=\"pVal\">0.50</span>",
+   "tags": [
+    "<span id=\"pVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Mode@@T1@@": {
+   "zh": "@@T0@@模式@@T1@@",
+   "src": "<span class=\"cg-label\">Mode</span>",
+   "tags": [
+    "<span class=\"cg-label\">",
+    "</span>"
+   ]
+  },
+  "Train": {
+   "zh": "训练",
+   "src": "Train",
+   "tags": []
+  },
+  "Eval": {
+   "zh": "评估",
+   "src": "Eval",
+   "tags": []
+  },
+  "Resample mask": {
+   "zh": "重新采样掩码",
+   "src": "Resample mask",
+   "tags": []
+  },
+  "@@T0@@Units kept@@T1@@\n          @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@保留单元数@@T1@@\n          @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Units kept</span>\n          <span class=\"stat-value\" id=\"keptVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"keptVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Scale 1/(1&minus;p)@@T1@@\n          @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@缩放因子 1/(1&minus;p)@@T1@@\n          @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Scale 1/(1&minus;p)</span>\n          <span class=\"stat-value\" id=\"scaleVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"scaleVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Output y (this pass)@@T1@@\n          @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@输出 y（本次传播）@@T1@@\n          @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Output y (this pass)</span>\n          <span class=\"stat-value\" id=\"yPassVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"yPassVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Eval output y*@@T1@@\n          @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@评估输出 y*@@T1@@\n          @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Eval output y*</span>\n          <span class=\"stat-value\" id=\"yEvalVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"yEvalVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Mean over N passes@@T1@@\n          @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@N 次传播的均值@@T1@@\n          @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Mean over N passes</span>\n          <span class=\"stat-value\" id=\"yMeanVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"yMeanVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Try this.@@T1@@ Set $p = 0.5$ and hit @@T2@@Auto@@T3@@. Each frame\n      is a different thinned network, and the per-pass output (blue dots) scatters\n      around the eval output (green line). Watch the running mean (orange) settle\n      onto the green line: inverted scaling keeps the @@T4@@expected@@T5@@ output\n      constant, mask after mask. Now push $p$ toward $0.9$ &mdash; the survivors get\n      scaled up by 10&times;, individual passes swing wildly, but the mean still\n      homes in on $y^{*}$. Flip to @@T6@@Eval@@T7@@ and the flicker stops: one\n      deterministic answer.": {
+   "zh": "@@T0@@试试看。@@T1@@ 取 $p = 0.5$ 并点击 @@T2@@自动@@T3@@。每一帧\n      都是一个不同的稀疏网络，每次传播的输出（蓝点）散布在\n      评估输出（绿线）周围。观察滑动均值（橙色）稳定地\n      落在绿线上：反向缩放使 @@T4@@期望@@T5@@ 输出在一次次掩码之间\n      保持恒定。现在将 $p$ 推向 $0.9$ &mdash; 存活单元被\n      放大 10&times;，单次传播的结果剧烈摆动，但均值仍然\n      趋近于 $y^{*}$。切换到 @@T6@@评估@@T7@@ 模式，闪烁便停止：\n      得到唯一的确定性答案。",
+   "src": "<strong>Try this.</strong> Set $p = 0.5$ and hit <em>Auto</em>. Each frame\n      is a different thinned network, and the per-pass output (blue dots) scatters\n      around the eval output (green line). Watch the running mean (orange) settle\n      onto the green line: inverted scaling keeps the <em>expected</em> output\n      constant, mask after mask. Now push $p$ toward $0.9$ &mdash; the survivors get\n      scaled up by 10&times;, individual passes swing wildly, but the mean still\n      homes in on $y^{*}$. Flip to <em>Eval</em> and the flicker stops: one\n      deterministic answer.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "回报",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Why the 1/(1&minus;p) rescale?": {
+   "zh": "为何要按 1/(1&minus;p) 缩放？",
+   "src": "Why the 1/(1&minus;p) rescale?",
+   "tags": []
+  },
+  "Without rescaling, a layer that keeps only a fraction $1-p$ of its units at\n      train time would fire much weaker than the full layer at test time &mdash; the\n      distributions the next layer sees would not match. Inverted dropout fixes\n      this by construction. Because $\\mathbb{E}[m_i] = 1-p$,": {
+   "zh": "若不进行缩放，一个在训练时仅保留 $1-p$ 比例单元的层，\n      其激活强度会远弱于测试时的完整层 &mdash; 下一层所看到的\n      分布将无法匹配。反向 dropout 从构造上解决了这一问题。\n      由于 $\\mathbb{E}[m_i] = 1-p$，",
+   "src": "Without rescaling, a layer that keeps only a fraction $1-p$ of its units at\n      train time would fire much weaker than the full layer at test time &mdash; the\n      distributions the next layer sees would not match. Inverted dropout fixes\n      this by construction. Because $\\mathbb{E}[m_i] = 1-p$,",
+   "tags": []
+  },
+  "so the expected activation is unchanged, and therefore the expected output is\n      exactly the deterministic eval output:": {
+   "zh": "因此期望激活保持不变，进而期望输出\n      恰好等于确定性的评估输出：",
+   "src": "so the expected activation is unchanged, and therefore the expected output is\n      exactly the deterministic eval output:",
+   "tags": []
+  },
+  "That equality is what the orange running-mean line demonstrates above. The\n      price you pay is variance &mdash; a single masked pass is a noisy estimate of\n      $y^{*}$, and the noise grows sharply as $p \\to 1$:": {
+   "zh": "上述橙色滑动均值曲线正展示了这一等式。你所付出的\n      代价是方差 &mdash; 单次带掩码的传播只是对 $y^{*}$ 的带噪估计，\n      且随着 $p \\to 1$ 噪声急剧增大：",
+   "src": "That equality is what the orange running-mean line demonstrates above. The\n      price you pay is variance &mdash; a single masked pass is a noisy estimate of\n      $y^{*}$, and the noise grows sharply as $p \\to 1$:",
+   "tags": []
+  },
+  "@@T0@@Common bug.@@T1@@ Forgetting @@T2@@model.eval()@@T3@@ at inference\n      leaves dropout on: predictions flicker between runs and probability\n      calibration breaks. The mirror-image bug is calling @@T4@@model.train()@@T5@@\n      but never zeroing gradients &mdash; different failure, same \"why is my model\n      random?\" symptom.": {
+   "zh": "@@T0@@常见错误。@@T1@@ 推理时忘记调用 @@T2@@model.eval()@@T3@@\n      会使得 dropout 保持开启：预测结果在多次运行之间闪烁，\n      概率校准也随之失效。与之镜像的错误是调用了 @@T4@@model.train()@@T5@@\n      却从不将梯度清零 &mdash; 失效方式不同，却有着相同\n      “我的模型为何随机？”的症状。",
+   "src": "<strong>Common bug.</strong> Forgetting <code>model.eval()</code> at inference\n      leaves dropout on: predictions flicker between runs and probability\n      calibration breaks. The mirror-image bug is calling <code>model.train()</code>\n      but never zeroing gradients &mdash; different failure, same \"why is my model\n      random?\" symptom.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Two Intuitions": {
+   "zh": "两种直觉",
+   "src": "Two Intuitions",
+   "tags": []
+  },
+  "Why silencing neurons regularizes": {
+   "zh": "为何使神经元沉默可以正则化",
+   "src": "Why silencing neurons regularizes",
+   "tags": []
+  },
+  "The ensemble view": {
+   "zh": "集成视角",
+   "src": "The ensemble view",
+   "tags": []
+  },
+  "A hidden layer of $N$ units has $2^{N}$ possible on/off masks. Each minibatch\n      trains one randomly-drawn thinned network, but all of them @@T0@@share the same\n      weights@@T1@@. Over training you are implicitly fitting an exponential ensemble\n      for the price of a single model. At test time you drop the mask and use the\n      full network, which approximates the geometric-mean prediction of that whole\n      ensemble &mdash; ensembling for free.": {
+   "zh": "一个含 $N$ 个单元的隐藏层有 $2^{N}$ 种可能的开 / 关掩码。每个迷你批次\n      训练一个随机抽出的稀疏网络，但它们全都 @@T0@@共享同一组\n      权重@@T1@@。在整个训练过程中，你实质上是仅付出单个模型的代价，\n      就拟合了一个指数级规模的集成。在测试时，你去掉掩码并使用\n      完整网络，它近似于整个集成的几何平均预测\n      &mdash; 免费获得了集成效果。",
+   "src": "A hidden layer of $N$ units has $2^{N}$ possible on/off masks. Each minibatch\n      trains one randomly-drawn thinned network, but all of them <em>share the same\n      weights</em>. Over training you are implicitly fitting an exponential ensemble\n      for the price of a single model. At test time you drop the mask and use the\n      full network, which approximates the geometric-mean prediction of that whole\n      ensemble &mdash; ensembling for free.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The co-adaptation view": {
+   "zh": "共适应视角",
+   "src": "The co-adaptation view",
+   "tags": []
+  },
+  "Without dropout, unit $j$ can learn to lean on unit $k$ always being present\n      &mdash; a brittle conspiracy that fits training noise. Since any teammate might\n      vanish on the next pass, dropout forces each unit to be useful on its own and\n      spreads the representation across many units instead of a fragile few. The\n      result is a smoother function that generalizes better.": {
+   "zh": "若无 dropout，单元 $j$ 可能学会依赖单元 $k$ 始终存在\n      &mdash; 这是一种拟合训练噪声的脆弱共谋。由于任何同伴\n      都可能在下次传播中消失，dropout 迫使每个单元自身便有用，\n      并将表示分散到众多单元之中，而非集中在少数脆弱的单元上。\n      其结果是一个更平滑、泛化更好的函数。",
+   "src": "Without dropout, unit $j$ can learn to lean on unit $k$ always being present\n      &mdash; a brittle conspiracy that fits training noise. Since any teammate might\n      vanish on the next pass, dropout forces each unit to be useful on its own and\n      spreads the representation across many units instead of a fragile few. The\n      result is a smoother function that generalizes better.",
+   "tags": []
+  },
+  "In Practice": {
+   "zh": "实践应用",
+   "src": "In Practice",
+   "tags": []
+  },
+  "Where dropout lives in 2026": {
+   "zh": "2026 年 dropout 的适用位置",
+   "src": "Where dropout lives in 2026",
+   "tags": []
+  },
+  "@@T0@@Transformers@@T1@@ &mdash; @@T2@@p = 0.1@@T3@@ after attention and the FFN. Still the default in most training recipes.": {
+   "zh": "@@T0@@Transformer@@T1@@ &mdash; 在注意力与 FFN 之后取 @@T2@@p = 0.1@@T3@@。在多数训练方案中仍是默认做法。",
+   "src": "<strong>Transformers</strong> &mdash; <code>p = 0.1</code> after attention and the FFN. Still the default in most training recipes.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@Modern CNNs@@T1@@ &mdash; usually @@T2@@0@@T3@@. BatchNorm plus heavy augmentation carry the regularization budget.": {
+   "zh": "@@T0@@现代 CNN@@T1@@ &mdash; 通常取 @@T2@@0@@T3@@。正则化的任务由 BatchNorm 加上大量数据增强来承担。",
+   "src": "<strong>Modern CNNs</strong> &mdash; usually <code>0</code>. BatchNorm plus heavy augmentation carry the regularization budget.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@LoRA fine-tuning@@T1@@ &mdash; typically @@T2@@0@@T3@@ or @@T4@@0.05@@T5@@. Adaptation data is scarce, so over-regularizing hurts.": {
+   "zh": "@@T0@@LoRA 微调@@T1@@ &mdash; 通常取 @@T2@@0@@T3@@ 或 @@T4@@0.05@@T5@@。适配数据稀缺，过度正则化会造成损害。",
+   "src": "<strong>LoRA fine-tuning</strong> &mdash; typically <code>0</code> or <code>0.05</code>. Adaptation data is scarce, so over-regularizing hurts.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@Classical MLPs@@T1@@ &mdash; @@T2@@p = 0.5@@T3@@ between hidden layers. The original 2012 regime, and the one in the playground above.": {
+   "zh": "@@T0@@经典 MLP@@T1@@ &mdash; 在各隐藏层之间取 @@T2@@p = 0.5@@T3@@。这是 2012 年的原始设定，也是上方演练场所采用的设定。",
+   "src": "<strong>Classical MLPs</strong> &mdash; <code>p = 0.5</code> between hidden layers. The original 2012 regime, and the one in the playground above.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Variants worth knowing": {
+   "zh": "值得了解的变体",
+   "src": "Variants worth knowing",
+   "tags": []
+  },
+  "@@T0@@SpatialDropout / DropBlock.@@T1@@ Dropping individual pixels does little in CNNs because neighbours are correlated. SpatialDropout drops whole feature maps; DropBlock (Ghiasi et&nbsp;al., 2018) drops contiguous square regions &mdash; both far stronger for conv nets than vanilla dropout.": {
+   "zh": "@@T0@@SpatialDropout / DropBlock。@@T1@@ 在 CNN 中丢弃单个像素收效甚微，因为相邻像素彼此相关。\n      SpatialDropout 丢弃整个特征图；DropBlock（Ghiasi 等人，2018）丢弃连续的方形区域\n      &mdash; 对于卷积网络而言，二者都远比朴素 dropout 更强。",
+   "src": "<strong>SpatialDropout / DropBlock.</strong> Dropping individual pixels does little in CNNs because neighbours are correlated. SpatialDropout drops whole feature maps; DropBlock (Ghiasi et&nbsp;al., 2018) drops contiguous square regions &mdash; both far stronger for conv nets than vanilla dropout.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@DropPath / stochastic depth@@T1@@ (Huang et&nbsp;al., 2016). Randomly drop @@T2@@entire residual blocks@@T3@@. Standard in very deep ResNets, EfficientNet and modern ViTs; it ensembles over network depth.": {
+   "zh": "@@T0@@DropPath / 随机深度@@T1@@（Huang 等人，2016）。随机丢弃 @@T2@@整个残差模块@@T3@@。在极深的 ResNet、EfficientNet 与现代 ViT 中是标准做法；它相当于在网络深度维度上做集成。",
+   "src": "<strong>DropPath / stochastic depth</strong> (Huang et&nbsp;al., 2016). Randomly drop <em>entire residual blocks</em>. Standard in very deep ResNets, EfficientNet and modern ViTs; it ensembles over network depth.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@DropConnect@@T1@@ (Wan et&nbsp;al., 2013). Drop individual weights instead of activations. Higher variance per minibatch; rarely used because plain dropout is cheaper.": {
+   "zh": "@@T0@@DropConnect@@T1@@（Wan 等人，2013）。丢弃单个权重而非激活。每个迷你批次的方差更大；由于朴素 dropout 更廉价，实践中很少使用。",
+   "src": "<strong>DropConnect</strong> (Wan et&nbsp;al., 2013). Drop individual weights instead of activations. Higher variance per minibatch; rarely used because plain dropout is cheaper.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Variational / MC dropout@@T1@@ (Gal &amp; Ghahramani, 2016). Reuse the same mask across time steps, or keep dropout on at inference to sample an approximate posterior for uncertainty.": {
+   "zh": "@@T0@@变分 / MC dropout@@T1@@（Gal &amp; Ghahramani，2016）。在各时间步之间复用同一掩码，或\n      在推理时保持 dropout 开启，以采样一个近似后验来刻画不确定性。",
+   "src": "<strong>Variational / MC dropout</strong> (Gal &amp; Ghahramani, 2016). Reuse the same mask across time steps, or keep dropout on at inference to sample an approximate posterior for uncertainty.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "MC dropout &mdash; dropout for uncertainty": {
+   "zh": "MC dropout &mdash; 用 dropout 刻画不确定性",
+   "src": "MC dropout &mdash; dropout for uncertainty",
+   "tags": []
+  },
+  "Gal &amp; Ghahramani (2016) showed that leaving dropout @@T0@@on@@T1@@ at inference\n      turns a deterministic net into an approximate Bayesian one: each masked pass is\n      a sample from a posterior. Run $K$ forward passes and the spread of predictions\n      is a cheap uncertainty estimate &mdash; exactly the blue-dot scatter above, now\n      read as a posterior rather than as noise to average away.": {
+   "zh": "Gal &amp; Ghahramani（2016）表明，在推理时保持 dropout @@T0@@开启@@T1@@\n      可将一个确定性网络变为近似的贝叶斯网络：每次带掩码的传播都是\n      来自某个后验的一次采样。运行 $K$ 次前向传播，预测结果的散布\n      便是一种廉价的不确定性估计 &mdash; 正是上方的蓝色点散，\n      此时应将其理解为后验，而非需要平均消去的噪声。",
+   "src": "Gal &amp; Ghahramani (2016) showed that leaving dropout <em>on</em> at inference\n      turns a deterministic net into an approximate Bayesian one: each masked pass is\n      a sample from a posterior. Run $K$ forward passes and the spread of predictions\n      is a cheap uncertainty estimate &mdash; exactly the blue-dot scatter above, now\n      read as a posterior rather than as noise to average away.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "It is cheap and easy, but MC-dropout uncertainties are usually under-confident\n      and rarely beat deep ensembles. Treat it as a baseline; reach for ensembles\n      when calibration matters, and pair either with\n      @@T0@@temperature scaling@@T1@@ or\n      @@T2@@conformal prediction@@T3@@ for confidence you\n      can actually act on.": {
+   "zh": "它廉价且简便，但 MC-dropout 给出的不确定性通常偏向欠自信，\n      且很少能胜过深度集成。可将其视为一个基线；当校准至关重要时，\n      应选用集成方法，并将二者之一与\n      @@T0@@温度缩放@@T1@@ 或\n      @@T2@@保形预测@@T3@@ 配合使用，以获得\n      真正可据以行动的可信度。",
+   "src": "It is cheap and easy, but MC-dropout uncertainties are usually under-confident\n      and rarely beat deep ensembles. Treat it as a baseline; reach for ensembles\n      when calibration matters, and pair either with\n      <a href=\"../calibration/index.html\">temperature scaling</a> or\n      <a href=\"../conformal/index.html\">conformal prediction</a> for confidence you\n      can actually act on.",
+   "tags": [
+    "<a href=\"../calibration/index.html\">",
+    "</a>",
+    "<a href=\"../conformal/index.html\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@Reading list.@@T1@@": {
+   "zh": "@@T0@@参考文献。@@T1@@",
+   "src": "<strong>Reading list.</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Srivastava, Hinton, Krizhevsky, Sutskever &amp; Salakhutdinov (2014) &mdash; @@T0@@Dropout: A Simple Way to Prevent Neural Networks from Overfitting.@@T1@@": {
+   "zh": "Srivastava, Hinton, Krizhevsky, Sutskever &amp; Salakhutdinov（2014）&mdash; @@T0@@Dropout: A Simple Way to Prevent Neural Networks from Overfitting.@@T1@@",
+   "src": "Srivastava, Hinton, Krizhevsky, Sutskever &amp; Salakhutdinov (2014) &mdash; <em>Dropout: A Simple Way to Prevent Neural Networks from Overfitting.</em>",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Wan et&nbsp;al. (2013) &mdash; @@T0@@Regularization of Neural Networks using DropConnect.@@T1@@ &middot; Huang et&nbsp;al. (2016) &mdash; @@T2@@Deep Networks with Stochastic Depth.@@T3@@": {
+   "zh": "Wan 等人（2013）&mdash; @@T0@@Regularization of Neural Networks using DropConnect.@@T1@@ &middot; Huang 等人（2016）&mdash; @@T2@@Deep Networks with Stochastic Depth.@@T3@@",
+   "src": "Wan et&nbsp;al. (2013) &mdash; <em>Regularization of Neural Networks using DropConnect.</em> &middot; Huang et&nbsp;al. (2016) &mdash; <em>Deep Networks with Stochastic Depth.</em>",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Gal &amp; Ghahramani (2016) &mdash; @@T0@@Dropout as a Bayesian Approximation.@@T1@@ &middot; Ghiasi, Lin &amp; Le (2018) &mdash; @@T2@@DropBlock.@@T3@@": {
+   "zh": "Gal &amp; Ghahramani（2016）&mdash; @@T0@@Dropout as a Bayesian Approximation.@@T1@@ &middot; Ghiasi, Lin &amp; Le（2018）&mdash; @@T2@@DropBlock.@@T3@@",
+   "src": "Gal &amp; Ghahramani (2016) &mdash; <em>Dropout as a Bayesian Approximation.</em> &middot; Ghiasi, Lin &amp; Le (2018) &mdash; <em>DropBlock.</em>",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Regularization": {
+   "zh": "ES 667 深度学习讲解系列的一部分 &middot; 正则化",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Regularization",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "Dropout 演练场",
+  "tagline": "体会使神经元沉默为何能正则化 &mdash; 实时掩码、p 滑块、集成视角",
+  "summary": "将 dropout 概率 p 从 0 滑至 1，观察一个小型网络闪烁变化。每一帧都是一个不同的子网络。经过许多帧，你实际上是在训练一个共享权重的指数级集成 &mdash; 这正是 2012 年那项最具影响力的正则化方法背后的核心直觉。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "观察实时二值掩码在每一帧的变化 &mdash; 每个批次都是不同的子网络。",
+   "将 dropout 概率从 0.0 拖至 0.9，观察连接如何逐渐稀疏。",
+   "切换训练与评估模式 &mdash; 后者关闭 dropout，且不进行任何重新缩放。",
+   "实时统计保留边的比例，验证“反向 dropout”确实保持期望激活不变。",
+   "在三种模式间切换：对一次前向传播施加掩码、对 8 个掩码做集成，以及稀疏网络的示意图。"
+  ],
+  "tags": [
+   "Dropout",
+   "正则化",
+   "深度学习",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

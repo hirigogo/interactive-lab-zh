@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>通过重新分组感受 p 值</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>通过重新分组感受 p 值</h1>
+        <p class="abstract">
+          暂时忘掉公式。先看两组小小的数字，把它们混在一起，以所有可能的方式重新分配，<em>观察</em>一个 p 值如何作为一个普通分数浮现出来&mdash;没有黑箱，没有含糊其辞。
+        </p>
+        <div class="byline">
+          <span>约 10 分钟</span>
+          <span>概率 &middot; 统计 &middot; 置换检验</span>
+        </div>
+      </header>
+
+      <!-- ─── 前言 ─── -->
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>法庭类比</h2>
+        <p>
+          在法庭上，被告<strong>在被证明有罪之前是清白的</strong>。
+          陪审团不问「是不是他干的？」&mdash;他们问「证据是否
+          如此确凿，以至于我们无法合理地将其解释过去？」
+        </p>
+        <p>
+          p 值的工作方式完全一样。我们首先假设处理没有产生任何
+          效果（「被告是清白的」）。然后我们问：<em>若该假设成立，
+          我们实际观察到的数据有多么令人意外？</em>
+          若答案是「极其意外」&mdash;即 p 值极小&mdash;我们
+          便拒绝该假设。
+        </p>
+        <p>
+          读完本页时，你将亲手算出一个精确的 p 值。
+          无需调用程序库，无需背诵阈值&mdash;只需计数。
+        </p>
+      </section>
+
+      <!-- ─── 第 1 步 ─── -->
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>选择一个实验</h2>
+        <p>
+          每一个统计检验都从数据开始。我们有两组各含 5 名被试的小样本&mdash;一组
+          接受了处理，另一组没有。选择一个情景来做：
+        </p>
+
+        <div class="button-row" id="scenario-buttons" role="group" aria-label="选择情景">
+          <button class="mode-button is-active" data-case="smartPills">聪明药丸 vs 安慰剂</button>
+          <button class="mode-button" data-case="fertilizer">新肥料 vs 旧肥料</button>
+          <button class="mode-button" data-case="coffee">含咖啡因咖啡 vs 无咖啡因咖啡</button>
+        </div>
+        <p class="scenario-desc" id="scenario-desc">认知测验得分</p>
+
+        <div class="sample-grid">
+          <article class="sample-card">
+            <h3>A 组（对照组）</h3>
+            <div class="number-bubbles" id="groupA-bubbles"></div>
+            <p class="sample-metric">Mean: <strong id="meanA"></strong> <span class="unit"></span></p>
+          </article>
+          <article class="sample-card">
+            <h3>B 组（处理组）</h3>
+            <div class="number-bubbles" id="groupB-bubbles"></div>
+            <p class="sample-metric">均值：<strong id="meanB"></strong> <span class="unit"></span></p>
+          </article>
+          <article class="sample-card sample-card--accent">
+            <h3>观察到的差异</h3>
+            <p class="big-number"><span id="observedGap"></span> <span class="unit"></span></p>
+            <p class="sample-metric">这个差距是真实的，还是仅仅出于运气？</p>
+          </article>
+        </div>
+
+        <div class="callout callout--think">
+          <strong>暂停思考。</strong>
+          看看这两组。这个差距在你<em>感觉</em>中算大吗？
+          仅仅通过把十个数值随机分成两组，你能得到这么大的差距吗？
+          记住这个直觉&mdash;我们将严格地检验它。
+        </div>
+      </section>
+
+      <!-- ─── 第 2 步 ─── -->
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>怀疑论者的假设（零假设）</h2>
+        <p>
+          为检验处理是否有效，我们扮演反方。我们
+          采取最严苛的立场：
+        </p>
+        <div class="callout callout--null">
+          <strong>零假设（H<sub>0</sub>）：</strong>
+          处理的效果为<em>零</em>。无论被试落入哪一组，
+          都会得到完全相同的得分。
+        </div>
+        <p>
+          若 H<sub>0</sub> 成立，则「对照组」与「处理组」这两个标签
+          便毫无意义&mdash;它们不过是我们随意贴上的标记。我们在第 1 步
+          看到的差距将仅仅是一时的运气。
+        </p>
+        <p>
+          为模拟这个组别标签无关紧要的世界，我们把
+          标签彻底抹去。将全部 10 个数值投入同一个桶中：
+        </p>
+        <div class="bucket-container">
+           <button class="action-btn" id="btn-bucket">
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+             混合全部数据
+           </button>
+           <div class="bucket" id="bucket-view">
+              <p class="bucket-empty-text">桶是空的。点击上方按钮进行混合！</p>
+           </div>
+        </div>
+        <p>
+          很好。组别身份已经消失。现在我们只有一堆共 10 个
+          原始数值，可以随意重新分配它们。
+        </p>
+      </section>
+
+      <!-- ─── 第 3 步 ─── -->
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>手动重新分组若干次</h2>
+        <p>
+          设想在零假设的世界中重做这个实验：随机挑选 5 个
+          数值作为「A 组」，剩下的 5 个成为「B 组」。计算
+          两组均值之间的差距。当处理确实毫无效果时，这就是随机噪声
+          的样子。
+        </p>
+        <p>
+          点击下方尝试。每次点击都是对这 10 个数值
+          的一次随机重新分组：
+        </p>
+
+        <div class="reshuffle-controls">
+           <button class="action-btn" id="btn-draw-one">抽取 1 次分组</button>
+           <button class="action-btn" id="btn-draw-many">抽取 10 次分组</button>
+           <div class="reshuffle-result" id="manual-result-box">
+              <p>点击按钮以抽取随机分组。</p>
+           </div>
+        </div>
+
+        <figure class="interactive-figure">
+          <figcaption><strong>你目前抽取的结果。</strong> 每个点都是一次纯随机产生的差距。橙色虚线是你实际观察到的差距。</figcaption>
+          <canvas id="manualCanvas" width="920" height="220"></canvas>
+        </figure>
+
+        <div class="callout callout--think">
+          <strong>你注意到了什么？</strong>
+          你的随机差距大多小于观察到的差距，还是与之大致
+          相当？如果你仅仅通过洗牌就能<em>轻易</em>产生与
+          观察到的差距一样大的差距，这就提示该处理可能
+          并未产生任何特殊效果。
+        </div>
+      </section>
+
+      <!-- ─── 第 4 步 ─── -->
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>枚举所有可能的分组</h2>
+        <p>
+          抽取少量随机分组能给我们直觉，但这并不
+          严格。我们可能只是运气不好。为求精确，我们需要
+          检查把 10 个数值分成两组各 5 个的<strong>每一种</strong>可能
+          方式。
+        </p>
+        <p>
+          共有多少种方式？二项式系数告诉我们：
+        </p>
+        <div class="math-block" id="math-choose"></div>
+        <p>
+          恰好 252 种。计算机能在数毫秒内枚举全部。
+          我们来做这件事，并绘制出随机机遇的<em>完整</em>
+          景观：
+        </p>
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+           <button class="action-btn action-btn--primary" id="btn-calc-all">计算全部 252 种分组</button>
+        </div>
+
+        <div class="stat-strip hidden" id="full-stats">
+          <div class="stat-pill">
+            <span class="stat-label">可能性总数</span>
+            <span class="stat-value">252</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-label">观察到的差距</span>
+            <span class="stat-value" id="stat-observed-gap"></span>
+          </div>
+          <div class="stat-pill highlight-pill">
+            <span class="stat-label">极端情形（&ge; 观察值）</span>
+            <span class="stat-value" id="extremeCount"></span>
+          </div>
+        </div>
+
+        <figure class="interactive-figure">
+          <canvas id="gapCanvas" width="920" height="420" aria-label="所有重新分组下均值差距的分布"></canvas>
+          <figcaption>
+            每根柱子代表一组产生了相近差距的分组。
+            <span style="color:var(--accent)">蓝色</span> = 小于我们观察到的差距。
+            <span style="color:var(--extreme)">橙色</span> = 与之相当或更大。
+          </figcaption>
+        </figure>
+
+        <div class="callout callout--think">
+          <strong>解读直方图。</strong>
+          橙色区域是「零假设世界」中至少与我们实际实验
+          同样极端的比例。若该比例极小，
+          我们观察到的差距便难以仅用偶然来解释。
+        </div>
+      </section>
+
+      <!-- ─── 第 5 步 ─── -->
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>p 值不过是一个分数</h2>
+        <p>
+           数一数橙色的柱子。除以 252。就是这样&mdash;这就是
+           p 值。无需微积分，无需查表。只需：
+        </p>
+        <div class="math-block" id="math-pval"></div>
+        <div class="p-value-card">
+           <h3 class="p-value-title">你的精确 p 值为：<span id="final-p-value" class="p-val-number"></span></h3>
+           <p class="p-value-math" id="p-value-math"></p>
+           <p class="p-value-explanation" id="p-value-explanation"></p>
+        </div>
+
+        <h3>p 值究竟告诉了你什么？</h3>
+        <ul class="explanation-list">
+          <li><strong>p = 概率。</strong> 具体而言，是在处理确实
+            毫无效果的前提下，观察到<em>如此大小或更大</em>的差距的
+            概率。</li>
+          <li><strong>小 p 值</strong>（通常 &lt; 0.05）：在纯随机下观察到的
+            差距极不可能出现 &rarr; 我们<em>拒绝</em>零假设，
+            并断定该处理很可能产生了效果。</li>
+          <li><strong>大 p 值：</strong> 这么大的差距在随机情形下
+            时常出现 &rarr; 我们<em>无法拒绝</em> H<sub>0</sub>。我们无法
+            断定该处理产生了任何效果。</li>
+        </ul>
+
+        <h3>p 值<em>不是</em>的三件事</h3>
+        <div class="misconception-grid">
+          <div class="misconception-card">
+            <span class="misconception-icon">错误说法</span>
+            <p><strong>「该处理有效的概率。」</strong><br />
+              不对。p 值完全没有说明该处理有多可能
+              有效。它只衡量数据在 H<sub>0</sub> 下有多么令人意外。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">错误说法</span>
+            <p><strong>「H<sub>0</sub> 为真的概率。」</strong><br />
+              同样不对。p 值先假设 H<sub>0</sub> 为真，然后问
+              <em>数据</em> 出现的可能性有多大。它并没有把这两者反过来。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">错误说法</span>
+            <p><strong>「p &lt; 0.05 意味着结果重要。」</strong><br />
+              统计显著性 &ne; 实际重要性。一种能将血压降低 0.1 mmHg 的
+              药物，在样本量极大时可能得出 p&nbsp;=&nbsp;0.001&mdash;但
+              没有医生会在意。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── 附加 ─── -->
+      <section class="step-section">
+        <div class="step-badge">附加</div>
+        <h2>从 252 到 1370 亿：为何我们需要捷径</h2>
+        <p>
+          你刚才所做的称为 <strong>置换检验</strong>
+          （或随机化检验）。它是一种<em>精确</em>检验&mdash;不需要关于
+          钟形曲线或方差齐性的假设。
+        </p>
+        <p>
+          但它有个难处。10 个数值按 5 对 5 分组时，只有 252
+          种组合。若扩大到 20 对 20（共 40 个数值），你便会遇到：
+        </p>
+        <div class="math-block" id="math-bigchoose"></div>
+        <p>
+          超过 1370 亿。即便是快速的计算机也会吃不消。因此统计学家
+          发展出了两大类捷径：
+        </p>
+        <div class="shortcut-grid">
+          <div class="shortcut-card">
+            <h4>捷径 1：参数检验</h4>
+            <p>
+              假设数据服从已知的形状（通常是钟形曲线），并用
+              微积分与公式计算 p 值。
+              <strong>t 检验</strong>、<strong>方差分析（ANOVA）</strong> 以及
+              <strong>卡方检验</strong> 都是例子。它们快速而
+              优雅，但当假设不成立时便会失效。
+            </p>
+          </div>
+          <div class="shortcut-card">
+            <h4>捷径 2：蒙特卡洛抽样</h4>
+            <p>
+              不必枚举全部分组&mdash;只需随机抽取其中 10,000 种
+              （正是你在第 3 步所做的，只是重复更多次）。极端样本的
+              比例会收敛到真实的 p 值。无需任何
+              分布假设。
+            </p>
+          </div>
+        </div>
+
+        <h3>可视化这些捷径</h3>
+        <p>
+          我们在当前情景下看看这两种捷径的运行情况。
+        </p>
+        
+        <div class="shortcut-viz">
+          <h4>1. 参数方法（t 检验）</h4>
+          <p>
+            参数检验不通过计数组合，而是假设随机噪声的分布构成一条完美的、连续的正态分布）钟形曲线（即正态分布）。
+          </p>
+          <p>
+            由于零假设假定处理毫无效果，曲线的中心恰为零（<i>&mu;</i> = 0）。为绘制曲线，我们用一个捷径公式，直接从 10 个数据点的离散程度估计<strong>标准差（<i>&sigma;</i>）</strong>。
+          </p>
+          <div class="callout">
+            <strong>就我们的数据计算如下：</strong>
+            <ul class="explanation-list" style="margin-top: 0.5rem">
+              <li><strong>A 组：</strong> <span id="param-group-a" class="mono-text">...</span>（均值：<span id="param-mean-a">...</span>，方差：<span id="param-var-a">...</span>）</li>
+              <li><strong>B 组：</strong> <span id="param-group-b" class="mono-text">...</span>（均值：<span id="param-mean-b">...</span>，方差：<span id="param-var-b">...</span>）</li>
+              <li><strong>观察到的差距（「信号」）：</strong> <span id="param-obs" style="font-weight: bold; color: var(--extreme)">...</span></li>
+            </ul>
+            <p>
+              在统计学中，均值的方差会按数据点数目（$n$）缩小。由于我们通过相减两个独立组来求差距，它们的方差会<em>相加</em>。通过取平方根，下式估计了随机差异的标准差（<i>&sigma;</i>）。这代表了预期的<strong>「噪声」</strong>。
+            </p>
+            <div class="math-block" id="math-sd-dynamic"></div>
+            
+            <p>现在我们计算著名的 <strong>Z 分数</strong>（有时称为 Z 统计量）。公式优美而简单：它就是<strong>信号与噪声</strong>之比。</p>
+            <div class="math-block" id="math-zstat-dynamic"></div>
+            
+            <p id="param-conclusion-text"></p>
+            <p>为在无需人工计数组合的情况下计算尾部精确的阴影面积，我们用微积分把连续曲线从我们的 $Z$ 值一直积分到无穷：</p>
+            <div class="math-block" id="math-integral"></div>
+          </div>
+          <figure class="interactive-figure">
+            <canvas id="parametricCanvas" width="920" height="280"></canvas>
+            <figcaption>理论连续分布。阴影面积 = 曲线下的面积（即 p 值）。</figcaption>
+          </figure>
+        </div>
+
+        <div class="shortcut-viz">
+          <h4>2. 蒙特卡洛模拟</h4>
+          <p>我们随机抽取分组并构建直方图。随着抽取次数越来越多，它会逼近第 4 步中精确的 252 种分组分布。</p>
+          <div style="text-align: center; margin: 1.5rem 0;">
+             <button class="action-btn action-btn--primary" id="btn-run-monte-carlo">运行 1,000 个样本</button>
+          </div>
+          <figure class="interactive-figure">
+            <canvas id="monteCarloCanvas" width="920" height="280"></canvas>
+            <figcaption>随机样本：<span id="mc-count">0</span>。估计 p 值：<strong id="mc-pval" style="color:var(--extreme)">-</strong></figcaption>
+          </figure>
+        </div>
+
+        <h3>比较三种方法</h3>
+        <p>我们现已看到针对完全相同的数据计算 p 值的三种不同方式。我们来比较它们：</p>
+        <div class="examples-table-wrap">
+          <table class="examples-table">
+            <thead>
+              <tr>
+                <th>方法</th>
+                <th>工作原理</th>
+                <th>估计 p 值</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>1. 精确置换检验</strong></td>
+                <td>通过计算全部 252 种分组精确得出。（小样本数据的黄金标准）。</td>
+                <td><strong><span id="summary-exact-pval">...</span></strong></td>
+              </tr>
+              <tr>
+                <td><strong>2. 参数方法（z 近似）</strong></td>
+                <td>假设高斯曲线并采用标准差公式。</td>
+                <td><strong>&approx; <span id="summary-param-pval">...</span></strong></td>
+              </tr>
+              <tr>
+                <td><strong>3. 蒙特卡洛模拟</strong></td>
+                <td>随机打乱数据。（样本足够多时收敛到精确检验）。</td>
+                <td><strong>&approx; <span id="summary-mc-pval">尚未运行</span></strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout" style="margin-top: 1.5rem; background: rgba(217, 98, 43, 0.05); border-color: rgba(217, 98, 43, 0.2);">
+          <strong style="color: var(--extreme)">等等，为何参数检验的结果如此不同？</strong><br />
+          若你运行「新肥料」或「咖啡」情景，你可能会注意到参数检验给出的 p 值比精确检验小得多。是数学出错了吗？<br /><br />
+          是的！这正是捷径的根本危险所在。一条完美的钟形曲线其「尾部极薄」。但在处理规模小、噪声大的数据集（$N=10$）时，极端随机事件的发生频率远高于完美钟形曲线的预期。正态分布低估了这些极端尾部事件的概率，从而人为地把 p 值压低。<br /><br />
+          正是这个问题促使 Gosset 发明了「Student t 分布」&mdash;一条专为小样本设计、尾部更厚的特殊曲线。但即便如此，它仍是一种近似。<strong>精确置换检验</strong>（方法 1）不作任何假设，为你的特定数据给出绝对的真值！
+        </div>
+
+        <div class="callout callout--think" style="margin-top: 2rem;">
+          <strong>最终要点</strong><br />
+          你今天构建的置换检验是以上<em>所有</em>方法的概念基础。当有人说「p = 0.03」时，他们是在说：「零假设世界中只有 3% 看起来如此极端。」现在你完全明白这意味着什么&mdash;因为你亲手数过了。
+        </div>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>
+ </div>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

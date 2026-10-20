@@ -1,0 +1,729 @@
+{
+ "slug": "kernel-methods",
+ "units": {
+  "Kernel Methods, and Why DL Cares": {
+   "zh": "核方法，以及深度学习为何关心它",
+   "src": "Kernel Methods, and Why DL Cares",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Kernels never went away. The same recipe that powered SVMs\n          underlies Gaussian processes, the Neural Tangent Kernel, and\n          modern deep-kernel-learning hybrids. Click points and try\n          four kernels live; then see the NTK and why the\n          infinite-width-limit theory matters.": {
+   "zh": "核方法从未消失。曾经驱动 SVM 的那套配方，同样支撑着高斯过程、神经正切核（Neural Tangent Kernel），以及现代深度核学习混合模型。点击添加数据点，实时试用四种核；随后了解 NTK，以及为何无限宽度极限理论如此重要。",
+   "src": "Kernels never went away. The same recipe that powered SVMs\n          underlies Gaussian processes, the Neural Tangent Kernel, and\n          modern deep-kernel-learning hybrids. Click points and try\n          four kernels live; then see the NTK and why the\n          infinite-width-limit theory matters.",
+   "tags": []
+  },
+  "@@T0@@~20 min@@T1@@\n          @@T2@@Kernels &middot; SVM &middot; NTK@@T3@@": {
+   "zh": "@@T0@@约 20 分钟@@T1@@\n          @@T2@@核方法 &middot; SVM &middot; NTK@@T3@@",
+   "src": "<span>~20 min</span>\n          <span>Kernels &middot; SVM &middot; NTK</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "The kernel trick in one line": {
+   "zh": "一行讲清核技巧",
+   "src": "The kernel trick in one line",
+   "tags": []
+  },
+  "A linear classifier learns $w$ such that $\\mathrm{sign}(w^\\top x)$\n          predicts the label. Replace $x \\to \\phi(x)$ for some feature\n          map; the model becomes\n          $\\sum_i \\alpha_i y_i \\phi(x_i)^\\top \\phi(x) = \\sum_i \\alpha_i y_i k(x_i, x)$.\n          You never need $\\phi$ explicitly &mdash; only the kernel\n          $k(x, x') = \\phi(x)^\\top \\phi(x')$. That's the kernel trick.": {
+   "zh": "线性分类器学习 $w$，使得 $\\mathrm{sign}(w^\\top x)$ 预测出标签。对某个特征映射做替换 $x \\to \\phi(x)$，模型便成为 $\\sum_i \\alpha_i y_i \\phi(x_i)^\\top \\phi(x) = \\sum_i \\alpha_i y_i k(x_i, x)$。你永远不需要显式地写出 $\\phi$ &mdash;&mdash; 只需要核 $k(x, x') = \\phi(x)^\\top \\phi(x')$。这就是核技巧。",
+   "src": "A linear classifier learns $w$ such that $\\mathrm{sign}(w^\\top x)$\n          predicts the label. Replace $x \\to \\phi(x)$ for some feature\n          map; the model becomes\n          $\\sum_i \\alpha_i y_i \\phi(x_i)^\\top \\phi(x) = \\sum_i \\alpha_i y_i k(x_i, x)$.\n          You never need $\\phi$ explicitly &mdash; only the kernel\n          $k(x, x') = \\phi(x)^\\top \\phi(x')$. That's the kernel trick.",
+   "tags": []
+  },
+  "Two consequences. First, the runtime depends on the number\n          of training points $N$, not the (often infinite) feature\n          dimension. Second, you can use kernels whose feature maps\n          have @@T0@@no closed form@@T1@@ — the RBF kernel\n          $k(x, x') = \\exp(-\\|x-x'\\|^2 / 2h^2)$ corresponds to an\n          infinite-dimensional Gaussian feature map.": {
+   "zh": "由此有两个推论。其一，运行时间取决于训练点的数目 $N$，而非（往往无限的）特征维度。其二，你可以使用其特征映射 @@T0@@没有闭式形式@@T1@@ 的核 —— RBF 核 $k(x, x') = \\exp(-\\|x-x'\\|^2 / 2h^2)$ 就对应一个无限维的高斯特征映射。",
+   "src": "Two consequences. First, the runtime depends on the number\n          of training points $N$, not the (often infinite) feature\n          dimension. Second, you can use kernels whose feature maps\n          have <em>no closed form</em> — the RBF kernel\n          $k(x, x') = \\exp(-\\|x-x'\\|^2 / 2h^2)$ corresponds to an\n          infinite-dimensional Gaussian feature map.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 1½": {
+   "zh": "第 1½ 步",
+   "src": "Step 1½",
+   "tags": []
+  },
+  "Mercer's theorem &amp; what counts as a valid kernel": {
+   "zh": "Mercer 定理 &amp; 什么才算是合法的核",
+   "src": "Mercer's theorem &amp; what counts as a valid kernel",
+   "tags": []
+  },
+  "Not every symmetric function $k(x, x')$ is a kernel. The\n          requirement: for any finite set of points $\\{x_1, \\dots,\n          x_N\\}$, the Gram matrix $K_{ij} = k(x_i, x_j)$ must be\n          positive semi-definite. Mercer's theorem (1909) says such\n          kernels admit a spectral decomposition": {
+   "zh": "并非每个对称函数 $k(x, x')$ 都是核。其要求是：对任意有限点集 $\\{x_1, \\dots, x_N\\}$，Gram 矩阵 $K_{ij} = k(x_i, x_j)$ 必须是半正定的。Mercer 定理（1909）指出，此类核允许谱分解",
+   "src": "Not every symmetric function $k(x, x')$ is a kernel. The\n          requirement: for any finite set of points $\\{x_1, \\dots,\n          x_N\\}$, the Gram matrix $K_{ij} = k(x_i, x_j)$ must be\n          positive semi-definite. Mercer's theorem (1909) says such\n          kernels admit a spectral decomposition",
+   "tags": []
+  },
+  "where $\\{\\lambda_i, \\psi_i\\}$ are eigenvalues and eigenfunctions\n          of the integral operator\n          $(T_k f)(x) = \\int k(x, x') f(x') \\, d\\mu(x')$. The map\n          $\\phi(x) = (\\sqrt{\\lambda_i}\\,\\psi_i(x))_i$ @@T0@@is@@T1@@ the\n          implicit feature map you never had to compute. Two practical\n          rules follow:": {
+   "zh": "其中 $\\{\\lambda_i, \\psi_i\\}$ 是积分算子 $(T_k f)(x) = \\int k(x, x') f(x') \\, d\\mu(x')$ 的特征值与特征函数。映射 $\\phi(x) = (\\sqrt{\\lambda_i}\\,\\psi_i(x))_i$ @@T0@@正是@@T1@@ 那个你从来无需计算的隐式特征映射。由此可得到两条实用规则：",
+   "src": "where $\\{\\lambda_i, \\psi_i\\}$ are eigenvalues and eigenfunctions\n          of the integral operator\n          $(T_k f)(x) = \\int k(x, x') f(x') \\, d\\mu(x')$. The map\n          $\\phi(x) = (\\sqrt{\\lambda_i}\\,\\psi_i(x))_i$ <em>is</em> the\n          implicit feature map you never had to compute. Two practical\n          rules follow:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Closure properties.@@T1@@ Sums, products, and\n            positive scalar multiples of kernels are kernels. So is\n            $k_1(x, x')\\,k_2(z, z')$ on a product space. This is how\n            you build expressive kernels from primitive ones\n            (spectral mixture kernels, additive GPs).": {
+   "zh": "@@T0@@封闭性。@@T1@@ 核的和、积以及正标量倍数仍然是核。乘积空间上的 $k_1(x, x')\\,k_2(z, z')$ 亦然。这正是你如何由基本核构造出表达力强的核（谱混合核、加性高斯过程）。",
+   "src": "<strong>Closure properties.</strong> Sums, products, and\n            positive scalar multiples of kernels are kernels. So is\n            $k_1(x, x')\\,k_2(z, z')$ on a product space. This is how\n            you build expressive kernels from primitive ones\n            (spectral mixture kernels, additive GPs).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Constructing new kernels.@@T1@@ If $\\phi$ is\n            @@T2@@any@@T3@@ map into a Hilbert space, $k(x, x') = \\langle\n            \\phi(x), \\phi(x')\\rangle$ is automatically a valid kernel.\n            Graph kernels, string kernels, and convolutional kernels\n            all follow this template.": {
+   "zh": "@@T0@@构造新核。@@T1@@ 若 $\\phi$ 是 @@T2@@任意@@T3@@ 一个映入希尔伯特空间的映射，则 $k(x, x') = \\langle \\phi(x), \\phi(x')\\rangle$ 自动就是合法的核。图核、字符串核与卷积核都遵循这一范式。",
+   "src": "<strong>Constructing new kernels.</strong> If $\\phi$ is\n            <em>any</em> map into a Hilbert space, $k(x, x') = \\langle\n            \\phi(x), \\phi(x')\\rangle$ is automatically a valid kernel.\n            Graph kernels, string kernels, and convolutional kernels\n            all follow this template.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 1¾": {
+   "zh": "第 1¾ 步",
+   "src": "Step 1¾",
+   "tags": []
+  },
+  "The representer theorem": {
+   "zh": "表示定理",
+   "src": "The representer theorem",
+   "tags": []
+  },
+  "Why are all kernel-method solutions of the form\n          $f^\\star = \\sum_i \\alpha_i k(x_i, \\cdot)$? The\n          @@T0@@representer theorem@@T1@@ (Kimeldorf &amp; Wahba,\n          1971): for any loss $L$ depending only on\n          $\\{f(x_i)\\}$ and any monotone regulariser $\\Omega(\\|f\\|_\\mathcal{H})$,\n          the minimiser of": {
+   "zh": "为何所有核方法的解都具有 $f^\\star = \\sum_i \\alpha_i k(x_i, \\cdot)$ 的形式？@@T0@@表示定理@@T1@@（Kimeldorf &amp; Wahba，1971）指出：对任何仅依赖于 $\\{f(x_i)\\}$ 的损失 $L$ 以及任何单调的正则项 $\\Omega(\\|f\\|_\\mathcal{H})$，下式的最小化者",
+   "src": "Why are all kernel-method solutions of the form\n          $f^\\star = \\sum_i \\alpha_i k(x_i, \\cdot)$? The\n          <strong>representer theorem</strong> (Kimeldorf &amp; Wahba,\n          1971): for any loss $L$ depending only on\n          $\\{f(x_i)\\}$ and any monotone regulariser $\\Omega(\\|f\\|_\\mathcal{H})$,\n          the minimiser of",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "over the RKHS $\\mathcal{H}$ associated with kernel $k$ lies in\n          the finite-dimensional subspace\n          $\\mathrm{span}\\{k(x_i, \\cdot)\\}_{i=1}^N$. So the infinite-dimensional\n          variational problem reduces to an $N$-dimensional one in\n          $\\alpha$ — that's why kernel methods are tractable.": {
+   "zh": "在与核 $k$ 相关联的 RKHS $\\mathcal{H}$ 上取极小，其解落在有限维子空间 $\\mathrm{span}\\{k(x_i, \\cdot)\\}_{i=1}^N$ 之中。于是，这个无限维的变分问题简化为一个关于 $\\alpha$ 的 $N$ 维问题 —— 这正是核方法为何易于处理的原因。",
+   "src": "over the RKHS $\\mathcal{H}$ associated with kernel $k$ lies in\n          the finite-dimensional subspace\n          $\\mathrm{span}\\{k(x_i, \\cdot)\\}_{i=1}^N$. So the infinite-dimensional\n          variational problem reduces to an $N$-dimensional one in\n          $\\alpha$ — that's why kernel methods are tractable.",
+   "tags": []
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Live: try four kernels": {
+   "zh": "实时：试用四种核",
+   "src": "Live: try four kernels",
+   "tags": []
+  },
+  "Click anywhere to drop a class-A (left-click) or class-B\n          (right-click / shift-click) point. A kernel-ridge classifier\n          re-fits each click and recolours the decision regions.": {
+   "zh": "在任意位置点击即可放置一个 A 类（左键点击）或 B 类（右键点击 / Shift+点击）点。核岭分类器会在每次点击后重新拟合，并为决策区域重新着色。",
+   "src": "Click anywhere to drop a class-A (left-click) or class-B\n          (right-click / shift-click) point. A kernel-ridge classifier\n          re-fits each click and recolours the decision regions.",
+   "tags": []
+  },
+  "kernel": {
+   "zh": "核",
+   "src": "kernel",
+   "tags": []
+  },
+  "RBF": {
+   "zh": "",
+   "src": "RBF",
+   "tags": []
+  },
+  "polynomial": {
+   "zh": "多项式",
+   "src": "polynomial",
+   "tags": []
+  },
+  "Laplacian": {
+   "zh": "拉普拉斯",
+   "src": "Laplacian",
+   "tags": []
+  },
+  "linear": {
+   "zh": "线性",
+   "src": "linear",
+   "tags": []
+  },
+  "bandwidth / scale &nbsp;@@T0@@0.50@@T1@@": {
+   "zh": "带宽 / 尺度 &nbsp;@@T0@@0.50@@T1@@",
+   "src": "bandwidth / scale &nbsp;<span id=\"km-h-val\">0.50</span>",
+   "tags": [
+    "<span id=\"km-h-val\">",
+    "</span>"
+   ]
+  },
+  "polynomial degree &nbsp;@@T0@@3@@T1@@": {
+   "zh": "多项式次数 &nbsp;@@T0@@3@@T1@@",
+   "src": "polynomial degree &nbsp;<span id=\"km-d-val\">3</span>",
+   "tags": [
+    "<span id=\"km-d-val\">",
+    "</span>"
+   ]
+  },
+  "Clear points": {
+   "zh": "清除数据点",
+   "src": "Clear points",
+   "tags": []
+  },
+  "Seed XOR demo": {
+   "zh": "载入 XOR 演示",
+   "src": "Seed XOR demo",
+   "tags": []
+  },
+  "Left-click adds class-A (blue), right-click / shift-click adds class-B (orange). The boundary recomputes live.": {
+   "zh": "左键点击添加 A 类（蓝色），右键点击 / Shift+点击添加 B 类（橙色）。边界实时重新计算。",
+   "src": "Left-click adds class-A (blue), right-click / shift-click adds class-B (orange). The boundary recomputes live.",
+   "tags": []
+  },
+  "Step 2½": {
+   "zh": "第 2½ 步",
+   "src": "Step 2½",
+   "tags": []
+  },
+  "Kernel design — pick the right symmetry": {
+   "zh": "核设计 —— 选择正确的对称性",
+   "src": "Kernel design — pick the right symmetry",
+   "tags": []
+  },
+  "Kernel": {
+   "zh": "核",
+   "src": "Kernel",
+   "tags": []
+  },
+  "Formula": {
+   "zh": "公式",
+   "src": "Formula",
+   "tags": []
+  },
+  "Implicit feature map": {
+   "zh": "隐式特征映射",
+   "src": "Implicit feature map",
+   "tags": []
+  },
+  "Use when": {
+   "zh": "适用场景",
+   "src": "Use when",
+   "tags": []
+  },
+  "Linear": {
+   "zh": "线性",
+   "src": "Linear",
+   "tags": []
+  },
+  "Identity": {
+   "zh": "恒等映射",
+   "src": "Identity",
+   "tags": []
+  },
+  "High-dim sparse data (text BoW)": {
+   "zh": "高维稀疏数据（文本词袋）",
+   "src": "High-dim sparse data (text BoW)",
+   "tags": []
+  },
+  "Polynomial, deg $d$": {
+   "zh": "多项式，次数 $d$",
+   "src": "Polynomial, deg $d$",
+   "tags": []
+  },
+  "All monomials of degree $\\le d$": {
+   "zh": "所有次数 $\\le d$ 的单项式",
+   "src": "All monomials of degree $\\le d$",
+   "tags": []
+  },
+  "You expect feature interactions of bounded order": {
+   "zh": "你预期存在有界阶数的特征交互",
+   "src": "You expect feature interactions of bounded order",
+   "tags": []
+  },
+  "RBF / Gaussian": {
+   "zh": "RBF / 高斯",
+   "src": "RBF / Gaussian",
+   "tags": []
+  },
+  "Infinite-dim": {
+   "zh": "无限维",
+   "src": "Infinite-dim",
+   "tags": []
+  },
+  "Smooth signals, default": {
+   "zh": "平滑信号，默认选择",
+   "src": "Smooth signals, default",
+   "tags": []
+  },
+  "Infinite-dim, rougher": {
+   "zh": "无限维，更粗糙",
+   "src": "Infinite-dim, rougher",
+   "tags": []
+  },
+  "Sparse signals, less smooth": {
+   "zh": "稀疏信号，平滑度较低",
+   "src": "Sparse signals, less smooth",
+   "tags": []
+  },
+  "Matérn-$\\nu$": {
+   "zh": "",
+   "src": "Matérn-$\\nu$",
+   "tags": []
+  },
+  "tunable smoothness": {
+   "zh": "可调的平滑度",
+   "src": "tunable smoothness",
+   "tags": []
+  },
+  "$\\nu$-times differentiable functions": {
+   "zh": "$\\nu$ 次可微函数",
+   "src": "$\\nu$-times differentiable functions",
+   "tags": []
+  },
+  "You want to control smoothness exactly": {
+   "zh": "你希望精确控制平滑度",
+   "src": "You want to control smoothness exactly",
+   "tags": []
+  },
+  "Periodic": {
+   "zh": "周期核",
+   "src": "Periodic",
+   "tags": []
+  },
+  "Fourier basis": {
+   "zh": "傅里叶基",
+   "src": "Fourier basis",
+   "tags": []
+  },
+  "Seasonal time series": {
+   "zh": "季节性时间序列",
+   "src": "Seasonal time series",
+   "tags": []
+  },
+  "String / WL graph": {
+   "zh": "字符串 / WL 图核",
+   "src": "String / WL graph",
+   "tags": []
+  },
+  "histogram of subsequences / subtrees": {
+   "zh": "子序列 / 子树的直方图",
+   "src": "histogram of subsequences / subtrees",
+   "tags": []
+  },
+  "combinatorial features": {
+   "zh": "组合特征",
+   "src": "combinatorial features",
+   "tags": []
+  },
+  "Sequences, molecules, graphs": {
+   "zh": "序列、分子、图",
+   "src": "Sequences, molecules, graphs",
+   "tags": []
+  },
+  "A practical rule of thumb: @@T0@@bandwidth $h$ ≈ median\n          distance between points@@T1@@. The \"median heuristic\" is\n          a strong default and the starting point for hyperparameter\n          search. For the polynomial kernel, prefer the explicit feature\n          expansion if you actually want feature interactions; for\n          neural-net-like nonlinearities, prefer RBF or Matérn.": {
+   "zh": "一条实用的经验法则：@@T0@@带宽 $h$ ≈ 数据点之间距离的中位数@@T1@@。「中位数启发式」是一个很强的默认值，也是超参数搜索的起点。对于多项式核，如果你确实想要特征交互，更宜采用显式特征展开；而对于类神经网络的非线性，更宜采用 RBF 或 Matérn。",
+   "src": "A practical rule of thumb: <strong>bandwidth $h$ ≈ median\n          distance between points</strong>. The \"median heuristic\" is\n          a strong default and the starting point for hyperparameter\n          search. For the polynomial kernel, prefer the explicit feature\n          expansion if you actually want feature interactions; for\n          neural-net-like nonlinearities, prefer RBF or Matérn.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 2¾": {
+   "zh": "第 2¾ 步",
+   "src": "Step 2¾",
+   "tags": []
+  },
+  "The kernel-GP-SVM trinity": {
+   "zh": "核–高斯过程–SVM 三位一体",
+   "src": "The kernel-GP-SVM trinity",
+   "tags": []
+  },
+  "The same kernel gives you three different methods.": {
+   "zh": "同一个核为你带来三种不同的方法。",
+   "src": "The same kernel gives you three different methods.",
+   "tags": []
+  },
+  "@@T0@@Kernel ridge regression.@@T1@@\n            $\\hat\\alpha = (K + \\lambda I)^{-1} y$; prediction\n            $\\hat f(x) = \\sum_i \\hat\\alpha_i k(x_i, x)$. Closed form,\n            $O(N^3)$ to fit, $O(N)$ to predict.": {
+   "zh": "@@T0@@核岭回归。@@T1@@\n            $\\hat\\alpha = (K + \\lambda I)^{-1} y$；预测 $\\hat f(x) = \\sum_i \\hat\\alpha_i k(x_i, x)$。有闭式解，拟合需 $O(N^3)$，预测需 $O(N)$。",
+   "src": "<strong>Kernel ridge regression.</strong>\n            $\\hat\\alpha = (K + \\lambda I)^{-1} y$; prediction\n            $\\hat f(x) = \\sum_i \\hat\\alpha_i k(x_i, x)$. Closed form,\n            $O(N^3)$ to fit, $O(N)$ to predict.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Gaussian process regression.@@T1@@ Same point\n            estimate as kernel ridge with $\\lambda = \\sigma^2$ (noise\n            variance), @@T2@@plus@@T3@@ a closed-form predictive\n            variance $\\sigma_*^2 = k(x_*, x_*) - k_*^\\top (K + \\sigma^2\n            I)^{-1} k_*$. That's the \"calibrated uncertainty for free\"\n            people talk about.": {
+   "zh": "@@T0@@高斯过程回归。@@T1@@ 在 $\\lambda = \\sigma^2$（噪声方差）时，其点估计与核岭回归相同，@@T2@@此外@@T3@@ 还给出闭式的预测方差 $\\sigma_*^2 = k(x_*, x_*) - k_*^\\top (K + \\sigma^2 I)^{-1} k_*$。这就是人们所说的「免费获得校准良好的不确定性」。",
+   "src": "<strong>Gaussian process regression.</strong> Same point\n            estimate as kernel ridge with $\\lambda = \\sigma^2$ (noise\n            variance), <em>plus</em> a closed-form predictive\n            variance $\\sigma_*^2 = k(x_*, x_*) - k_*^\\top (K + \\sigma^2\n            I)^{-1} k_*$. That's the \"calibrated uncertainty for free\"\n            people talk about.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@SVM.@@T1@@ Same kernel, different loss\n            (hinge instead of squared error). The dual reduces to a\n            QP in $\\alpha$; the active constraints pick out the\n            \"support vectors\" — usually a sparse subset of the\n            training set.": {
+   "zh": "@@T0@@SVM。@@T1@@ 相同的核，不同的损失（用合页损失替代平方误差）。其对偶问题归结为一个关于 $\\alpha$ 的二次规划；起作用的约束挑出「支持向量」—— 通常只是训练集的一个稀疏子集。",
+   "src": "<strong>SVM.</strong> Same kernel, different loss\n            (hinge instead of squared error). The dual reduces to a\n            QP in $\\alpha$; the active constraints pick out the\n            \"support vectors\" — usually a sparse subset of the\n            training set.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Mental model: @@T0@@kernel ridge = MAP GP. SVM = max-margin\n          variant.@@T1@@ Each adds a different ingredient (Bayesian\n          posterior, sparsity) on top of the same kernel.": {
+   "zh": "思维模型：@@T0@@核岭回归 = 最大后验高斯过程。SVM = 最大间隔变体。@@T1@@ 二者都在同一个核之上加入了一种不同的要素（贝叶斯后验、稀疏性）。",
+   "src": "Mental model: <em>kernel ridge = MAP GP. SVM = max-margin\n          variant.</em> Each adds a different ingredient (Bayesian\n          posterior, sparsity) on top of the same kernel.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "NTK — the kernel inside an infinite-width net": {
+   "zh": "NTK —— 无限宽度网络内部的核",
+   "src": "NTK — the kernel inside an infinite-width net",
+   "tags": []
+  },
+  "A wide enough randomly-initialised neural net,\n          when trained with vanishing learning rate, behaves as a\n          kernel method (Jacot et&nbsp;al., 2018). Its kernel is the\n          @@T0@@Neural Tangent Kernel@@T1@@:": {
+   "zh": "一个足够宽的随机初始化神经网络，在以趋于零的学习率训练时，其行为如同一个核方法（Jacot 等，2018）。它的核就是 @@T0@@神经正切核@@T1@@：",
+   "src": "A wide enough randomly-initialised neural net,\n          when trained with vanishing learning rate, behaves as a\n          kernel method (Jacot et&nbsp;al., 2018). Its kernel is the\n          <strong>Neural Tangent Kernel</strong>:",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "For a 1-hidden-layer ReLU net the NTK has a known\n          closed form. Below: a finite-width network's predictions\n          alongside the analytic NTK regressor on the same training\n          points. They agree better as you increase width.": {
+   "zh": "对于含 1 个隐藏层的 ReLU 网络，NTK 有已知的闭式形式。下面：在相同的训练点上，一个有限宽度网络的预测与解析 NTK 回归器并排展示。随着宽度增加，二者吻合得更好。",
+   "src": "For a 1-hidden-layer ReLU net the NTK has a known\n          closed form. Below: a finite-width network's predictions\n          alongside the analytic NTK regressor on the same training\n          points. They agree better as you increase width.",
+   "tags": []
+  },
+  "hidden width &nbsp;@@T0@@128@@T1@@": {
+   "zh": "隐藏层宽度 &nbsp;@@T0@@128@@T1@@",
+   "src": "hidden width &nbsp;<span id=\"ntk-w-val\">128</span>",
+   "tags": [
+    "<span id=\"ntk-w-val\">",
+    "</span>"
+   ]
+  },
+  "Resample net + data": {
+   "zh": "重新采样网络 + 数据",
+   "src": "Resample net + data",
+   "tags": []
+  },
+  "Finite-width-net prediction (solid) vs NTK regressor (dashed). The gap shrinks as width →∞.": {
+   "zh": "有限宽度网络的预测（实线）对比 NTK 回归器（虚线）。随着宽度 →∞，差距缩小。",
+   "src": "Finite-width-net prediction (solid) vs NTK regressor (dashed). The gap shrinks as width →∞.",
+   "tags": []
+  },
+  "@@T0@@Why this matters.@@T1@@ The NTK gives a\n          rare-for-DL piece of @@T2@@theory@@T3@@: a closed-form prediction\n          for what an over-parameterised network does. It has limits\n          (real DL learns features; NTK does not), but it explains\n          a lot of double-descent, generalisation, and optimisation\n          behaviour seen in practice.": {
+   "zh": "@@T0@@为何这很重要。@@T1@@ NTK 提供了深度学习中心见的 @@T2@@理论@@T3@@ 结论：对过参数化网络的行为给出闭式预测。它有局限（真正的深度学习会学习特征；NTK 不会），但它解释了大量在实践中出现的双下降、泛化与优化行为。",
+   "src": "<strong>Why this matters.</strong> The NTK gives a\n          rare-for-DL piece of <em>theory</em>: a closed-form prediction\n          for what an over-parameterised network does. It has limits\n          (real DL learns features; NTK does not), but it explains\n          a lot of double-descent, generalisation, and optimisation\n          behaviour seen in practice.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 3½": {
+   "zh": "第 3½ 步",
+   "src": "Step 3½",
+   "tags": []
+  },
+  "Scaling kernels past $N \\approx 10^4$": {
+   "zh": "将核方法扩展到 $N \\approx 10^4$ 以上",
+   "src": "Scaling kernels past $N \\approx 10^4$",
+   "tags": []
+  },
+  "The $O(N^3)$ fit and $O(N^2)$ memory of vanilla kernel methods\n          stop being practical above ~10k points. Four standard\n          escapes:": {
+   "zh": "当数据点超过约 1 万时，原始核方法 $O(N^3)$ 的拟合与 $O(N^2)$ 的内存开销便不再实用。四条标准的出路：",
+   "src": "The $O(N^3)$ fit and $O(N^2)$ memory of vanilla kernel methods\n          stop being practical above ~10k points. Four standard\n          escapes:",
+   "tags": []
+  },
+  "@@T0@@Random Fourier features.@@T1@@ Approximate\n            shift-invariant kernels by sampling frequencies from the\n            kernel's Fourier transform: $k(x, x') \\approx z(x)^\\top\n            z(x')$ with $z(x) \\in \\mathbb{R}^D$ for small $D$\n            (Rahimi &amp; Recht, 2007). Reduces to ordinary ridge in\n            $D$ dimensions — $O(NDB)$ to fit.": {
+   "zh": "@@T0@@随机傅里叶特征。@@T1@@ 通过从核的傅里叶变换中采样频率来近似平移不变核：$k(x, x') \\approx z(x)^\\top z(x')$，其中对小 $D$ 有 $z(x) \\in \\mathbb{R}^D$（Rahimi &amp; Recht，2007）。这归结为 $D$ 维上的普通岭回归 —— 拟合需 $O(NDB)$。",
+   "src": "<strong>Random Fourier features.</strong> Approximate\n            shift-invariant kernels by sampling frequencies from the\n            kernel's Fourier transform: $k(x, x') \\approx z(x)^\\top\n            z(x')$ with $z(x) \\in \\mathbb{R}^D$ for small $D$\n            (Rahimi &amp; Recht, 2007). Reduces to ordinary ridge in\n            $D$ dimensions — $O(NDB)$ to fit.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Nyström approximation.@@T1@@ Pick $M \\ll N$\n            landmark points; approximate $K$ by a low-rank\n            factorisation. Used in scikit-learn's\n            @@T2@@Nystroem@@T3@@.": {
+   "zh": "@@T0@@Nyström 近似。@@T1@@ 选取 $M \\ll N$ 个地标点；用低秩分解近似 $K$。应用于 scikit-learn 的 @@T2@@Nystroem@@T3@@ 中。",
+   "src": "<strong>Nyström approximation.</strong> Pick $M \\ll N$\n            landmark points; approximate $K$ by a low-rank\n            factorisation. Used in scikit-learn's\n            <code>Nystroem</code>.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@Inducing-point GPs (SVGP).@@T1@@ Variational\n            sparse GPs with $M$ inducing locations; $O(NM^2)$\n            training. Default for GP libraries (GPflow, GPyTorch).": {
+   "zh": "@@T0@@诱导点高斯过程（SVGP）。@@T1@@ 含 $M$ 个诱导位置的变分稀疏高斯过程；训练需 $O(NM^2)$。是高斯过程库（GPflow、GPyTorch）的默认方案。",
+   "src": "<strong>Inducing-point GPs (SVGP).</strong> Variational\n            sparse GPs with $M$ inducing locations; $O(NM^2)$\n            training. Default for GP libraries (GPflow, GPyTorch).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@KeOps / structured kernel interpolation.@@T1@@\n            GPU-friendly exact kernel evaluations on millions of points;\n            mature in 2022–2024 for \"exact\" GPs on large data.": {
+   "zh": "@@T0@@KeOps / 结构化核插值。@@T1@@ 对百万级数据点进行 GPU 友好的精确核计算；在 2022–2024 年间已成熟，用于大数据上的「精确」高斯过程。",
+   "src": "<strong>KeOps / structured kernel interpolation.</strong>\n            GPU-friendly exact kernel evaluations on millions of points;\n            mature in 2022–2024 for \"exact\" GPs on large data.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 3¾": {
+   "zh": "第 3¾ 步",
+   "src": "Step 3¾",
+   "tags": []
+  },
+  "Deep kernel learning": {
+   "zh": "深度核学习",
+   "src": "Deep kernel learning",
+   "tags": []
+  },
+  "Why not the best of both worlds — let a neural net learn a\n          feature map $\\phi_\\theta$ and feed that into a kernel?": {
+   "zh": "为何不兼取两者之长 —— 让神经网络学习一个特征映射 $\\phi_\\theta$，再将其送入一个核？",
+   "src": "Why not the best of both worlds — let a neural net learn a\n          feature map $\\phi_\\theta$ and feed that into a kernel?",
+   "tags": []
+  },
+  "Train $\\theta$ jointly with the GP marginal likelihood\n          (Wilson et&nbsp;al., 2016). The neural part learns\n          representations; the GP part gives calibrated uncertainty.\n          In 2024–2026 this is the default for tabular and small-data\n          regression tasks where well-calibrated error bars matter — beats\n          deep ensembles in head-to-head benchmarks on most small tabular\n          regression datasets.": {
+   "zh": "以高斯过程的边缘似然为目标联合训练 $\\theta$（Wilson 等，2016）。神经网络部分学习表示；高斯过程部分给出校准良好的不确定性。在 2024–2026 年间，对于校准良好的误差条至关重要的表格数据与小数据回归任务，这是默认方案 —— 在大多数小型表格回归数据集的正面基准对比中胜过深度集成。",
+   "src": "Train $\\theta$ jointly with the GP marginal likelihood\n          (Wilson et&nbsp;al., 2016). The neural part learns\n          representations; the GP part gives calibrated uncertainty.\n          In 2024–2026 this is the default for tabular and small-data\n          regression tasks where well-calibrated error bars matter — beats\n          deep ensembles in head-to-head benchmarks on most small tabular\n          regression datasets.",
+   "tags": []
+  },
+  "@@T0@@Watch out for collapsing $\\phi_\\theta$.@@T1@@\n            If the feature dimension is very small, $\\phi_\\theta$ can\n            collapse to a constant; regularise with a fixed-norm\n            output layer or use SVGP-style variational training.": {
+   "zh": "@@T0@@当心 $\\phi_\\theta$ 塌缩。@@T1@@ 若特征维度非常小，$\\phi_\\theta$ 可能塌缩为一个常数；请用一个固定范数的输出层来正则化，或采用 SVGP 式的变分训练。",
+   "src": "<strong>Watch out for collapsing $\\phi_\\theta$.</strong>\n            If the feature dimension is very small, $\\phi_\\theta$ can\n            collapse to a constant; regularise with a fixed-norm\n            output layer or use SVGP-style variational training.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Library:@@T1@@ GPyTorch's @@T2@@DKL@@T3@@\n            example.": {
+   "zh": "@@T0@@库：@@T1@@ GPyTorch 的 @@T2@@DKL@@T3@@ 示例。",
+   "src": "<strong>Library:</strong> GPyTorch's <code>DKL</code>\n            example.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Where kernel methods are still the right tool": {
+   "zh": "核方法依然是正确工具的场合",
+   "src": "Where kernel methods are still the right tool",
+   "tags": []
+  },
+  "@@T0@@Small-data regression with calibrated UQ.@@T1@@\n            A GP with an RBF kernel beats a deep net on $\\le 1k$\n            training points and gives you principled error bars for\n            free. Direct fit for sensor calibration, hardware design,\n            wet-lab.": {
+   "zh": "@@T0@@带校准不确定度量化的少数据回归。@@T1@@ 在 $\\le 1k$ 个训练点上，带 RBF 核的高斯过程胜过深度网络，并免费给出有原理依据的误差条。直接适用于传感器校准、硬件设计、湿实验。",
+   "src": "<strong>Small-data regression with calibrated UQ.</strong>\n            A GP with an RBF kernel beats a deep net on $\\le 1k$\n            training points and gives you principled error bars for\n            free. Direct fit for sensor calibration, hardware design,\n            wet-lab.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Deep kernel learning.@@T1@@ $k(x, x') =\n            k_{\\text{RBF}}(\\phi_\\theta(x), \\phi_\\theta(x'))$ where\n            $\\phi_\\theta$ is a neural feature extractor learned\n            jointly. Best of both worlds; works well on tabular and\n            time-series.": {
+   "zh": "@@T0@@深度核学习。@@T1@@ $k(x, x') = k_{\\text{RBF}}(\\phi_\\theta(x), \\phi_\\theta(x'))$，其中 $\\phi_\\theta$ 是一个联合训练的神经特征提取器。两者之长兼得；在表格数据与时间序列上表现良好。",
+   "src": "<strong>Deep kernel learning.</strong> $k(x, x') =\n            k_{\\text{RBF}}(\\phi_\\theta(x), \\phi_\\theta(x'))$ where\n            $\\phi_\\theta$ is a neural feature extractor learned\n            jointly. Best of both worlds; works well on tabular and\n            time-series.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@NTK / NNGP regression.@@T1@@ When you\n            @@T2@@want@@T3@@ the infinite-width limit's prediction (e.g.\n            for theory or as a baseline), the NTK regressor is a\n            line of code in @@T4@@jax@@T5@@ via\n            @@T6@@neural-tangents@@T7@@.": {
+   "zh": "@@T0@@NTK / NNGP 回归。@@T1@@ 当你 @@T2@@需要@@T3@@ 无限宽度极限的预测时（例如用于理论或作为基线），在 @@T4@@jax@@T5@@ 中通过 @@T6@@neural-tangents@@T7@@ 实现 NTK 回归器只需一行代码。",
+   "src": "<strong>NTK / NNGP regression.</strong> When you\n            <em>want</em> the infinite-width limit's prediction (e.g.\n            for theory or as a baseline), the NTK regressor is a\n            line of code in <code>jax</code> via\n            <code>neural-tangents</code>.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@Spectral methods on graphs.@@T1@@ Graph\n            kernels for molecule property prediction, citation\n            networks, sensor topologies. Often beat GNNs on small\n            graph datasets.": {
+   "zh": "@@T0@@图上的谱方法。@@T1@@ 用于分子性质预测、引文网络、传感器拓扑的图核。在小型图数据集上常常胜过 GNN。",
+   "src": "<strong>Spectral methods on graphs.</strong> Graph\n            kernels for molecule property prediction, citation\n            networks, sensor topologies. Often beat GNNs on small\n            graph datasets.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Practical gotchas": {
+   "zh": "实践中的陷阱",
+   "src": "Practical gotchas",
+   "tags": []
+  },
+  "@@T0@@Standardise the inputs.@@T1@@ RBF / Matérn are\n            extremely scale-sensitive. Standardise each feature to\n            unit variance before computing pairwise distances or your\n            bandwidth tuning will be wrong.": {
+   "zh": "@@T0@@对输入做标准化。@@T1@@ RBF / Matérn 对尺度极其敏感。在计算成对距离之前，先将每个特征标准化为单位方差，否则你的带宽调校将是错误的。",
+   "src": "<strong>Standardise the inputs.</strong> RBF / Matérn are\n            extremely scale-sensitive. Standardise each feature to\n            unit variance before computing pairwise distances or your\n            bandwidth tuning will be wrong.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Tune the regulariser.@@T1@@ $\\lambda$ in\n            kernel ridge / $\\sigma^2$ in GP / $C$ in SVM matter as much\n            as the kernel choice. Use cross-validation on log-spaced\n            grids.": {
+   "zh": "@@T0@@调校正则项。@@T1@@ 核岭回归中的 $\\lambda$ / 高斯过程中的 $\\sigma^2$ / SVM 中的 $C$，其重要性与核的选择不相上下。请在按对数间隔的网格上使用交叉验证。",
+   "src": "<strong>Tune the regulariser.</strong> $\\lambda$ in\n            kernel ridge / $\\sigma^2$ in GP / $C$ in SVM matter as much\n            as the kernel choice. Use cross-validation on log-spaced\n            grids.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Nyström samples should be diverse.@@T1@@\n            Uniform-random landmark selection wastes capacity on a\n            cluster. k-means landmarks or leverage-score sampling are\n            better.": {
+   "zh": "@@T0@@Nyström 样本应当多样。@@T1@@ 均匀随机地选取地标点会把容量浪费在某个簇上。k-means 地标或杠杆分数采样更好。",
+   "src": "<strong>Nyström samples should be diverse.</strong>\n            Uniform-random landmark selection wastes capacity on a\n            cluster. k-means landmarks or leverage-score sampling are\n            better.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Numerical stability.@@T1@@ $K + \\lambda I$ can\n            be ill-conditioned; jitter with $\\varepsilon I$\n            ($\\varepsilon \\sim 10^{-6}$) before Cholesky.": {
+   "zh": "@@T0@@数值稳定性。@@T1@@ $K + \\lambda I$ 可能病态；在 Cholesky 分解之前用 $\\varepsilon I$（$\\varepsilon \\sim 10^{-6}$）做抖动。",
+   "src": "<strong>Numerical stability.</strong> $K + \\lambda I$ can\n            be ill-conditioned; jitter with $\\varepsilon I$\n            ($\\varepsilon \\sim 10^{-6}$) before Cholesky.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@When to @@T1@@not@@T2@@ use kernels.@@T3@@ Large\n            datasets ($\\ge 10^5$ raw points), image / audio / language\n            inputs where representation learning matters more than\n            uncertainty calibration — go with deep nets and accept the\n            calibration cost (or post-hoc temperature-scale).": {
+   "zh": "@@T0@@何时 @@T1@@不@@T2@@ 该用核方法。@@T3@@ 大型数据集（$\\ge 10^5$ 个原始数据点），以及表示学习比不确定性校准更重要的图像 / 音频 / 语言输入 —— 请选择深度网络，并接受校准的代价（或事后做温度缩放）。",
+   "src": "<strong>When to <em>not</em> use kernels.</strong> Large\n            datasets ($\\ge 10^5$ raw points), image / audio / language\n            inputs where representation learning matters more than\n            uncertainty calibration — go with deep nets and accept the\n            calibration cost (or post-hoc temperature-scale).",
+   "tags": [
+    "<strong>",
+    "<em>",
+    "</em>",
+    "</strong>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "阅读清单",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Schölkopf &amp; Smola@@T1@@, @@T2@@Learning with\n            Kernels@@T3@@ — the canonical textbook.": {
+   "zh": "@@T0@@Schölkopf &amp; Smola@@T1@@，@@T2@@Learning with Kernels@@T3@@ —— 经典教科书。",
+   "src": "<strong>Schölkopf &amp; Smola</strong>, <em>Learning with\n            Kernels</em> — the canonical textbook.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Rasmussen &amp; Williams@@T1@@, @@T2@@Gaussian\n            Processes for Machine Learning@@T3@@ — free online; the\n            standard GP reference.": {
+   "zh": "@@T0@@Rasmussen &amp; Williams@@T1@@，@@T2@@Gaussian Processes for Machine Learning@@T3@@ —— 可在线免费获取；高斯过程的标准参考书。",
+   "src": "<strong>Rasmussen &amp; Williams</strong>, <em>Gaussian\n            Processes for Machine Learning</em> — free online; the\n            standard GP reference.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Jacot, Gabriel, Hongler (2018)@@T1@@ &mdash;\n            @@T2@@Neural Tangent Kernel.@@T3@@ The infinite-width-net /\n            kernel correspondence.": {
+   "zh": "@@T0@@Jacot, Gabriel, Hongler（2018）@@T1@@ &mdash;&mdash; @@T2@@Neural Tangent Kernel。@@T3@@ 无限宽度网络与核之间的对应关系。",
+   "src": "<strong>Jacot, Gabriel, Hongler (2018)</strong> &mdash;\n            <em>Neural Tangent Kernel.</em> The infinite-width-net /\n            kernel correspondence.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Rahimi &amp; Recht (2007)@@T1@@ &mdash;\n            @@T2@@Random features for large-scale kernel machines.@@T3@@\n            How to scale RBF kernels to millions of points.": {
+   "zh": "@@T0@@Rahimi &amp; Recht（2007）@@T1@@ &mdash;&mdash; @@T2@@Random features for large-scale kernel machines。@@T3@@ 如何将 RBF 核扩展到百万级数据点。",
+   "src": "<strong>Rahimi &amp; Recht (2007)</strong> &mdash;\n            <em>Random features for large-scale kernel machines.</em>\n            How to scale RBF kernels to millions of points.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Wilson, Hu, Salakhutdinov, Xing (2016)@@T1@@\n            &mdash; @@T2@@Deep kernel learning.@@T3@@": {
+   "zh": "@@T0@@Wilson, Hu, Salakhutdinov, Xing（2016）@@T1@@ &mdash;&mdash; @@T2@@Deep kernel learning。@@T3@@",
+   "src": "<strong>Wilson, Hu, Salakhutdinov, Xing (2016)</strong>\n            &mdash; <em>Deep kernel learning.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Cohen, Sridharan, Daume (2022)@@T1@@ &mdash;\n            survey of when GPs beat deep nets on tabular regression.": {
+   "zh": "@@T0@@Cohen, Sridharan, Daume（2022）@@T1@@ &mdash;&mdash; 关于高斯过程何时在表格回归上胜过深度网络的综述。",
+   "src": "<strong>Cohen, Sridharan, Daume (2022)</strong> &mdash;\n            survey of when GPs beat deep nets on tabular regression.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "核方法，以及深度学习为何关心它",
+  "tagline": "从 SVM 核到神经正切核 —— 连接经典机器学习与深度网络的那条主线",
+  "summary": "把数据点点击到二维平面上；选择 RBF / 多项式 / 拉普拉斯核；观察核 SVM 的决策边界如何随核及其超参数而变化。随后认识神经正切核 —— 一个无限宽神经网络在线性化极限下所对应的核。最后是深度核学习这一实用的混合方案。",
+  "difficulty": "中级",
+  "collection": "概率与统计推断",
+  "highlights": [
+   "用 RBF / 多项式 / 拉普拉斯 / 线性核进行实时的点击添加式分类。",
+   "带宽与次数滑块，让你体会核的平滑度旋钮。",
+   "NTK 面板：宽度 →∞ 的 1 隐藏层网络表现得如同一个核回归器 —— 与实际有限宽度网络并排可视化。",
+   "深度核学习处于什么位置，又在何处大放异彩（少数据校准回归）。"
+  ],
+  "tags": [
+   "核方法",
+   "SVM",
+   "NTK",
+   "深度核学习",
+   "交互式"
+  ]
+ },
+ "js": {
+  "finite NN (width [[[0]]])": {
+   "zh": "有限神经网络（宽度 [[[0]]]）",
+   "exprs": [
+    "${STATE.width}"
+   ],
+   "tags": [],
+   "src": "finite NN (width ${STATE.width})"
+  }
+ }
+}

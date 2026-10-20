@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>交互式实验室</title>
+    <meta name="description" content="面向机器学习、概率统计及其底层系统的讲解式交互文章。以具体例子入手，辅以可实时操作的图表，形式化数学只在必要时才出现。" />
+    <link rel="stylesheet" href="assets/site.css" />
+    <style>
+      .simple-shell { max-width: 920px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+      .simple-header { margin-bottom: 3rem; text-align: center; }
+      .simple-header h1 { font-family: var(--font-serif); font-size: clamp(2.2rem, 4.5vw, 3rem);
+        margin: 0 0 0.6rem; color: var(--ink); letter-spacing: -0.02em; line-height: 1.1; }
+      .simple-header p { font-size: 1.05rem; color: var(--muted); max-width: 640px;
+        margin: 0 auto; line-height: 1.7; }
+      .ix-collection { margin: 2.4rem 0; }
+      .ix-collection-title { font-family: var(--font-serif); font-size: 1.05rem; margin: 0 0 0.7rem;
+        font-weight: 600; letter-spacing: 0.02em; color: var(--ink); display: flex;
+        align-items: center; gap: 0.6rem; border-bottom: 1px solid var(--border); padding-bottom: 0.45rem; }
+      .ix-collection-count { font-family: var(--font-mono, 'IBM Plex Mono', monospace); font-size: 0.78rem;
+        color: var(--muted); background: var(--panel-soft); border: 1px solid var(--border);
+        padding: 0.05rem 0.5rem; border-radius: 999px; font-weight: 500; }
+      .ix-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+      .ix-row { margin: 0; }
+      .ix-row-link { display: grid; grid-template-columns: 1.4fr 2.2fr auto; gap: 1rem;
+        align-items: baseline; padding: 0.7rem 0.6rem; border-radius: 6px; text-decoration: none;
+        color: var(--ink); transition: background 120ms ease; border-bottom: 1px solid rgba(0,0,0,0.04); }
+      .ix-row-link:hover { background: rgba(44, 111, 183, 0.05); }
+      .ix-row-title { font-family: var(--font-serif); font-weight: 600; font-size: 1rem; color: var(--ink); }
+      .ix-row-tag { font-size: 0.92rem; color: var(--muted); line-height: 1.5; font-family: var(--font-serif); }
+      .ix-row-meta { display: flex; gap: 0.7rem; font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+        font-size: 0.74rem; color: var(--muted); white-space: nowrap; text-align: right; justify-content: flex-end; }
+      .ix-row-date { opacity: 0.7; }
+      @media (max-width: 720px) {
+        .ix-row-link { grid-template-columns: 1fr; gap: 0.25rem; }
+        .ix-row-meta { justify-content: flex-start; }
+      }
+      .simple-footer { margin-top: 4rem; text-align: center; color: var(--muted); font-size: 0.9rem;
+        border-top: 1px solid var(--border); padding-top: 1.5rem; }
+    </style>
+  </head>
+  <body>
+    <main class="simple-shell">
+      <header class="simple-header">
+        <h1>交互式实验室</h1>
+        <p>面向机器学习、概率统计及其底层系统的讲解式交互文章。以具体例子入手，辅以可实时操作的图表，形式化数学只在必要时才出现。</p>
+      </header>
+
+      <section class="ix-collection">
+        <h2 class="ix-collection-title">深度学习 <span class="ix-collection-count">71</span></h2>
+        <ul class="ix-list">
+      <li class="ix-row">
+        <a class="ix-row-link" href="xor-feature-lift/">
+          <span class="ix-row-title">XOR 与特征提升</span>
+          <span class="ix-row-tag">观察最优直线如何在 XOR 上失效，再引入一列 x₁x₂，看三维平面如何化为二维曲线</span>
+          <span class="ix-row-meta">
+            <span>10 min</span><span class="ix-row-date">2026-09-03</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="symmetry-breaking/">
+          <span class="ix-row-title">对称性破缺实验室</span>
+          <span class="ix-row-tag">看清为何宽度为四的隐藏层可能仍是一个有效宽度为一的模型</span>
+          <span class="ix-row-meta">
+            <span>8 min</span><span class="ix-row-date">2026-08-27</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="autograd-topological-order/">
+          <span class="ix-row-title">面向反向传播的拓扑序</span>
+          <span class="ix-row-tag">观察一次递归的图遍历如何为反向模式自动微分构建安全调度</span>
+          <span class="ix-row-meta">
+            <span>8 min</span><span class="ix-row-date">2026-08-24</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="mlp-decision-boundary/">
+          <span class="ix-row-title">ReLU 分类实验场</span>
+          <span class="ix-row-tag">训练一个小型 ReLU 分类器，再考察组装出其决策曲面的各个带符号函数。</span>
+          <span class="ix-row-meta">
+            <span>Lab</span><span class="ix-row-date">2026-08-17</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="relu-function-approximation/">
+          <span class="ix-row-title">ReLU 函数实验室</span>
+          <span class="ix-row-tag">以固定 ReLU 折点构造连续函数，再检验确定性梯度下降能发现什么。</span>
+          <span class="ix-row-meta">
+            <span>Lab</span><span class="ix-row-date">2026-08-17</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="likelihood-to-loss/">
+          <span class="ix-row-title">从似然到损失</span>
+          <span class="ix-row-tag">每一个损失函数都是伪装起来的噪声模型——选定密度，读出损失</span>
+          <span class="ix-row-meta">
+            <span>11 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="softmax-cross-entropy/">
+          <span class="ix-row-title">Softmax 与交叉熵</span>
+          <span class="ix-row-tag">将 logit 转化为概率，读出损失，观察梯度如何变成 p 减去 y</span>
+          <span class="ix-row-meta">
+            <span>9 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="bayes-classifier/">
+          <span class="ix-row-title">亲手构建一个贝叶斯分类器</span>
+          <span class="ix-row-tag">两个高斯分布加一个先验——构建最优分类器，观察决策边界如何移动</span>
+          <span class="ix-row-meta">
+            <span>10 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="map-regularization/">
+          <span class="ix-row-title">MAP = 似然 × 先验</span>
+          <span class="ix-row-tag">在参数空间中观察正则化如何以一个先验的形式与似然相乘</span>
+          <span class="ix-row-meta">
+            <span>11 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="derivative-tangent/">
+          <span class="ix-row-title">导数是局部的直线</span>
+          <span class="ix-row-tag">把任何光滑曲线放大，它都会变成一条直线 — 其斜率就是导数</span>
+          <span class="ix-row-meta">
+            <span>8 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="surface-partials/">
+          <span class="ix-row-title">偏导数就是切片</span>
+          <span class="ix-row-tag">冻结一个变量，求一个普通导数——梯度不过是把各条斜率汇总起来</span>
+          <span class="ix-row-meta">
+            <span>9 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="jacobian-local-map/">
+          <span class="ix-row-title">雅可比矩阵是一次局部形变</span>
+          <span class="ix-row-tag">在某点附近，非线性映射的表现如同它的雅可比矩阵 —— 一个圆变成一个椭圆</span>
+          <span class="ix-row-meta">
+            <span>9 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="pooling-visualizer/">
+          <span class="ix-row-title">池化：逐格解析</span>
+          <span class="ix-row-tag">在特征图上滑动池化窗口，实时观察最大值与平均值如何将其下采样</span>
+          <span class="ix-row-meta">
+            <span>7 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="padding-stride/">
+          <span class="ix-row-title">填充、步幅与输出尺寸</span>
+          <span class="ix-row-tag">移动四个滑块，看一条取整公式如何精确预测卷积的输出尺寸</span>
+          <span class="ix-row-meta">
+            <span>7 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="inception-cost/">
+          <span class="ix-row-title">为何 1×1 卷积能节省计算量</span>
+          <span class="ix-row-tag">比较直接 3x3 卷积与 1x1 瓶颈结构，观察 FLOPs 柱形如何拉开数倍差距</span>
+          <span class="ix-row-meta">
+            <span>7 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="transfer-learning-playground/">
+          <span class="ix-row-title">冻结还是微调？</span>
+          <span class="ix-row-tag">设置数据集规模与切分点，观察冻结与微调如何在准确率曲线上互换位置</span>
+          <span class="ix-row-meta">
+            <span>8 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="bbox-loss/">
+          <span class="ix-row-title">边界框回归损失</span>
+          <span class="ix-row-tag">在真值框周围拖动预测框，观察 L1、L2 与 smooth-L1 关于“该多在意”的分歧</span>
+          <span class="ix-row-meta">
+            <span>8 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="anchor-assignment/">
+          <span class="ix-row-title">依据 IoU 分配锚框</span>
+          <span class="ix-row-tag">检测是伪装起来的分类：每个预置的锚框都在问「物体在这里吗？」，而 IoU 阈值提供标签。</span>
+          <span class="ix-row-meta">
+            <span>7 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="weight-decay/">
+          <span class="ix-row-title">权重衰减收缩拟合曲线</span>
+          <span class="ix-row-tag">加入一项惩罚，即 lambda 乘以权重范数的平方，观察狂野的过拟合如何平复为光滑且能泛化的曲线</span>
+          <span class="ix-row-meta">
+            <span>10 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="augmentation-mixup/">
+          <span class="ix-row-title">数据增强与 Mixup</span>
+          <span class="ix-row-tag">两种凭空制造训练数据的廉价方式：在每个点周围散布邻居，或沿点之间的连线放置软标签点</span>
+          <span class="ix-row-meta">
+            <span>9 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="embedding-lookup/">
+          <span class="ix-row-title">嵌入就是一张查找表</span>
+          <span class="ix-row-tag">嵌入层不过是对一张已学得的向量表做索引——每个词元对应一行</span>
+          <span class="ix-row-meta">
+            <span>7 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="makemore-forward/">
+          <span class="ix-row-title">字符级 MLP 语言模型，逐步详解</span>
+          <span class="ix-row-tag">一步步走过一个微型字符级 MLP 的一次前向与反向传播</span>
+          <span class="ix-row-meta">
+            <span>10 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="rnn-state-stepper/">
+          <span class="ix-row-title">观察 RNN 的状态演化</span>
+          <span class="ix-row-tag">手工推演一个标量 RNN，观察整个序列如何折叠为一个持续演化的数值</span>
+          <span class="ix-row-meta">
+            <span>8 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="bptt-unroll/">
+          <span class="ix-row-title">随时间反向传播</span>
+          <span class="ix-row-tag">展开一个 RNN，走一遍反向传播，观察截断如何切断贡献链</span>
+          <span class="ix-row-meta">
+            <span>9 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="gru-gates/">
+          <span class="ix-row-title">GRU 门控：保留还是更新</span>
+          <span class="ix-row-tag">更新门是一个可学习的旋钮，在记住过去与采纳新候选之间权衡</span>
+          <span class="ix-row-meta">
+            <span>8 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="causal-conv/">
+          <span class="ix-row-title">因果卷积</span>
+          <span class="ix-row-tag">让核沿序列滑动，绝不窥视未来 —— 左侧填充与膨胀率是仅有的两个关键旋钮</span>
+          <span class="ix-row-meta">
+            <span>8 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="gated-residual/">
+          <span class="ix-row-title">门控残差块</span>
+          <span class="ix-row-tag">逐步遍历 WaveNet/TCN 的这一单元：tanh 提出内容，sigmoid 加以门控，跳跃与残差路径使深层堆叠得以训练</span>
+          <span class="ix-row-meta">
+            <span>9 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="transformer-block/">
+          <span class="ix-row-title">深入一个 Transformer 模块</span>
+          <span class="ix-row-tag">让残差流一步步走过一个模块，看注意力如何混合各个位置，而 FFN 则各自独立地处理每个位置</span>
+          <span class="ix-row-meta">
+            <span>10 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="decoding-lab/">
+          <span class="ix-row-title">逐词元生成</span>
+          <span class="ix-row-tag">一个自回归解码沙盒，温度、top-k 与 top-p 在此重塑模型接下来采样的内容</span>
+          <span class="ix-row-meta">
+            <span>9 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="shifted-window/">
+          <span class="ix-row-title">移位窗口（Swin）</span>
+          <span class="ix-row-tag">窗口注意力是线性的，而非二次的 &amp;mdash;&amp;mdash; 而相间的层做移位可缝合接缝</span>
+          <span class="ix-row-meta">
+            <span>8 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="vq-codebook/">
+          <span class="ix-row-title">向量量化（VQ-VAE）</span>
+          <span class="ix-row-tag">把连续潜变量替换为一个已学习的离散码本中最近的条目</span>
+          <span class="ix-row-meta">
+            <span>8 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="classifier-guidance/">
+          <span class="ix-row-title">引导机制使轨迹发生弯折</span>
+          <span class="ix-row-tag">引导机制将扩散采样导向某一类别 &amp;mdash; 并以多样性换取保真度</span>
+          <span class="ix-row-meta">
+            <span>9 min</span><span class="ix-row-date">2026-07-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="universal-approximation/">
+          <span class="ix-row-title">一层网络能够计算任意函数的可视化证明</span>
+          <span class="ix-row-tag">把 sigmoid 压成阶跃、粘出凸包、堆起塔块——Nielsen 的通用性可视化证明，做成交互式</span>
+          <span class="ix-row-meta">
+            <span>22 min</span><span class="ix-row-date">2026-06-25</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="vanishing-gradients/">
+          <span class="ix-row-title">梯度消失与梯度爆炸</span>
+          <span class="ix-row-tag">神秘的 0.25 从何而来 —— 以及如何阻止它毁掉深度网络</span>
+          <span class="ix-row-meta">
+            <span>14 min</span><span class="ix-row-date">2026-05-23</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="positional-encoding/">
+          <span class="ix-row-title">位置编码 &amp;mdash;&amp;mdash; 正弦式、RoPE、ALiBi</span>
+          <span class="ix-row-tag">注意力具有置换不变性。三种打破该对称性的方法 &amp;mdash;&amp;mdash; 可视化呈现。</span>
+          <span class="ix-row-meta">
+            <span>16 min</span><span class="ix-row-date">2026-05-23</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="mle-map-coin/">
+          <span class="ix-row-title">抛硬币上的 MLE 与 MAP</span>
+          <span class="ix-row-tag">滑动先验，抛几次硬币，观察估计如何从 MLE 移向 MAP。</span>
+          <span class="ix-row-meta">
+            <span>10 min</span><span class="ix-row-date">2026-05-23</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="norm-comparison/">
+          <span class="ix-row-title">BatchNorm 与 LayerNorm、RMSNorm 之比较</span>
+          <span class="ix-row-tag">三种归一化，一个张量——看清每一种究竟在什么之上求平均。</span>
+          <span class="ix-row-meta">
+            <span>12 min</span><span class="ix-row-date">2026-05-23</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="elbo-decomposition/">
+          <span class="ix-row-title">ELBO 分解详解</span>
+          <span class="ix-row-tag">重构与 KL &amp;mdash; 精确看清每一项让你付出的代价。</span>
+          <span class="ix-row-meta">
+            <span>12 min</span><span class="ix-row-date">2026-05-23</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="kv-cache/">
+          <span class="ix-row-title">把 KV 缓存讲明白</span>
+          <span class="ix-row-tag">LLM 推理为何受内存限制——以每个词元的兆字节数来衡量。</span>
+          <span class="ix-row-meta">
+            <span>11 min</span><span class="ix-row-date">2026-05-23</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="quantize-prune/">
+          <span class="ix-row-title">量化与剪枝：并排对比</span>
+          <span class="ix-row-tag">将模型压缩至 int8 / int4 / 稀疏 &amp;mdash; 并精确观察精度在何处跌落悬崖</span>
+          <span class="ix-row-meta">
+            <span>18 min</span><span class="ix-row-date">2026-05-11</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="in-context-learning/">
+          <span class="ix-row-title">从内部看上下文学习</span>
+          <span class="ix-row-tag">为何一个冻结的 Transformer 能从提示中的几个示例学会一项新任务</span>
+          <span class="ix-row-meta">
+            <span>20 min</span><span class="ix-row-date">2026-05-11</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="domain-adaptation/">
+          <span class="ix-row-title">域偏移及其自适应</span>
+          <span class="ix-row-tag">当训练分布与部署分布相互背离——以及应对之道</span>
+          <span class="ix-row-meta">
+            <span>16 min</span><span class="ix-row-date">2026-05-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="gnn/">
+          <span class="ix-row-title">图神经网络：逐步解析</span>
+          <span class="ix-row-tag">在传感器网络图上进行消息传递——每一轮，观察信号如何扩散</span>
+          <span class="ix-row-meta">
+            <span>16 min</span><span class="ix-row-date">2026-05-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="mamba/">
+          <span class="ix-row-title">Mamba 与状态空间模型，可视化</span>
+          <span class="ix-row-tag">一个随序列长度线性扩展的 RNN —— 在长上下文上胜过注意力</span>
+          <span class="ix-row-meta">
+            <span>18 min</span><span class="ix-row-date">2026-05-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="optimizers-beyond/">
+          <span class="ix-row-title">超越梯度下降</span>
+          <span class="ix-row-tag">牛顿法、BFGS、自然梯度、进化式、无梯度 &amp;mdash; 五种非 SGD 思想，在二维损失上实时演示</span>
+          <span class="ix-row-meta">
+            <span>16 min</span><span class="ix-row-date">2026-05-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="double-descent/">
+          <span class="ix-row-title">具体理解双下降现象</span>
+          <span class="ix-row-tag">参数多于数据点本应导致过拟合，但有时反而泛化得更好。</span>
+          <span class="ix-row-meta">
+            <span>14 min</span><span class="ix-row-date">2026-05-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="attention/">
+          <span class="ix-row-title">注意力机制的精算</span>
+          <span class="ix-row-tag">从 Q/K/V 投影出发，到在浏览器中实时训练的微型注意力头</span>
+          <span class="ix-row-meta">
+            <span>30 min</span><span class="ix-row-date">2026-05-09</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="knowledge-distillation/">
+          <span class="ix-row-title">知识蒸馏，实时演示</span>
+          <span class="ix-row-tag">小型学生模型复制大型教师模型软化后的预测 —— 并胜过硬标签训练</span>
+          <span class="ix-row-meta">
+            <span>18 min</span><span class="ix-row-date">2026-05-09</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="resnet/">
+          <span class="ix-row-title">残差连接为何有效</span>
+          <span class="ix-row-tag">观察一个 50 层网络在无跳跃连接时如何衰亡，又如何一键痊愈</span>
+          <span class="ix-row-meta">
+            <span>20 min</span><span class="ix-row-date">2026-05-09</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="unet/">
+          <span class="ix-row-title">逐节剖析 U-Net</span>
+          <span class="ix-row-tag">同一架构为何能在生物医学分割、卫星解析与现代扩散模型中屡屡取胜</span>
+          <span class="ix-row-meta">
+            <span>18 min</span><span class="ix-row-date">2026-05-09</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="mixture-of-experts/">
+          <span class="ix-row-title">专家混合模型实战</span>
+          <span class="ix-row-tag">Mixtral 与 DeepSeek-MoE 如何在不增加计算量的情况下扩展参数量</span>
+          <span class="ix-row-meta">
+            <span>18 min</span><span class="ix-row-date">2026-05-09</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="vision-transformer/">
+          <span class="ix-row-title">视觉 Transformer：在真实照片上运行</span>
+          <span class="ix-row-tag">Patch、位置、自注意力与多层 rollout &amp;mdash;&amp;mdash; 全部基于真实预训练特征计算</span>
+          <span class="ix-row-meta">
+            <span>22 min</span><span class="ix-row-date">2026-05-09</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="clip-zero-shot/">
+          <span class="ix-row-title">CLIP 与零样本分类：从嵌入出发</span>
+          <span class="ix-row-tag">输入任意标签，观察真实 CLIP 模型给出的真实余弦相似度</span>
+          <span class="ix-row-meta">
+            <span>18 min</span><span class="ix-row-date">2026-05-07</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="convolution-visualizer/">
+          <span class="ix-row-title">卷积，逐步演示</span>
+          <span class="ix-row-tag">观察卷积核在图像上滑动，一次一个点积</span>
+          <span class="ix-row-meta">
+            <span>8 min</span><span class="ix-row-date">2026-04-28</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="numerical-tricks/">
+          <span class="ix-row-title">数值计算的实用技巧</span>
+          <span class="ix-row-tag">Log-sum-exp、log-softmax、BCE-with-logits，以及让浮点计算保持可靠的若干修复</span>
+          <span class="ix-row-meta">
+            <span>14 min</span><span class="ix-row-date">2026-04-22</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="softmax-temperature/">
+          <span class="ix-row-title">Softmax 与温度</span>
+          <span class="ix-row-tag">温度如何重塑一个概率分布 —— 以及如何从中采样</span>
+          <span class="ix-row-meta">
+            <span>12 min</span><span class="ix-row-date">2026-04-20</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="dropout-playground/">
+          <span class="ix-row-title">Dropout 演练场</span>
+          <span class="ix-row-tag">体会使神经元沉默为何能正则化 &amp;mdash; 实时掩码、p 滑块、集成视角</span>
+          <span class="ix-row-meta">
+            <span>8 min</span><span class="ix-row-date">2026-04-18</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="receptive-field-grower/">
+          <span class="ix-row-title">感受野增长实验</span>
+          <span class="ix-row-tag">堆叠卷积，观察深层特征的影响范围如何扩散</span>
+          <span class="ix-row-meta">
+            <span>7 min</span><span class="ix-row-date">2026-04-18</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="lr-schedule-visualizer/">
+          <span class="ix-row-title">学习率调度可视化</span>
+          <span class="ix-row-tag">亲手体会 Transformer 为何需要预热 — 每种调度都配有滑块</span>
+          <span class="ix-row-meta">
+            <span>6 min</span><span class="ix-row-date">2026-04-18</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="lstm-gates/">
+          <span class="ix-row-title">LSTM 门控实验场</span>
+          <span class="ix-row-tag">拖动遗忘/输入/输出门，观察细胞状态的流动</span>
+          <span class="ix-row-meta">
+            <span>8 min</span><span class="ix-row-date">2026-04-18</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="seq2seq-bottleneck/">
+          <span class="ix-row-title">Seq2Seq 瓶颈</span>
+          <span class="ix-row-tag">观察翻译质量如何随源句变长而崩塌</span>
+          <span class="ix-row-meta">
+            <span>7 min</span><span class="ix-row-date">2026-04-18</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="bpe-merges/">
+          <span class="ix-row-title">逐步理解 BPE 分词器</span>
+          <span class="ix-row-tag">观察一个分词器如何一次次合并、逐步扩充其词表</span>
+          <span class="ix-row-meta">
+            <span>10 min</span><span class="ix-row-date">2026-04-18</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="lora-adapter/">
+          <span class="ix-row-title">LoRA · 低秩适配器实验场</span>
+          <span class="ix-row-tag">拖动秩，观察可训练参数如何缩减 500 倍</span>
+          <span class="ix-row-meta">
+            <span>7 min</span><span class="ix-row-date">2026-04-18</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="vae-latent-explorer/">
+          <span class="ix-row-title">VAE 潜空间探索器</span>
+          <span class="ix-row-tag">看 KL 惩罚项如何把一个杂乱的二维潜空间理顺</span>
+          <span class="ix-row-meta">
+            <span>8 min</span><span class="ix-row-date">2026-04-18</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="diffusion-denoise/">
+          <span class="ix-row-title">扩散 · 前向加噪与逆向去噪</span>
+          <span class="ix-row-tag">观察一个二维形状溶解为高斯噪声，再重新组装回自身</span>
+          <span class="ix-row-meta">
+            <span>9 min</span><span class="ix-row-date">2026-04-18</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="cfg-scale-visualizer/">
+          <span class="ix-row-title">无分类器引导尺度</span>
+          <span class="ix-row-tag">滑动引导权重 w，观察生成的形状朝提示词拉伸</span>
+          <span class="ix-row-meta">
+            <span>6 min</span><span class="ix-row-date">2026-04-18</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="gan-minimax-dance/">
+          <span class="ix-row-title">通过造假者与侦探的博弈感受 GAN 训练</span>
+          <span class="ix-row-tag">走过对抗博弈的七个步骤 &amp;mdash; 手动判别器、最优 D*、生成器梯度、模式崩塌、WGAN 的修正</span>
+          <span class="ix-row-meta">
+            <span>12 min</span><span class="ix-row-date">2026-04-18</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="optimizer-race/">
+          <span class="ix-row-title">优化器竞速</span>
+          <span class="ix-row-tag">为何我们使用 Adam，而非纯粹的梯度下降</span>
+          <span class="ix-row-meta">
+            <span>15 min</span><span class="ix-row-date">2026-04-12</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="rag/">
+          <span class="ix-row-title">从零实现 RAG</span>
+          <span class="ix-row-tag">检索近邻、以条件约束语言模型 —— 检索增强生成的实际工作原理</span>
+          <span class="ix-row-meta">
+            <span>12 min</span><span class="ix-row-date">2026-03-28</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="text-diffusion/">
+          <span class="ix-row-title">微型文本扩散模型</span>
+          <span class="ix-row-tag">掩蔽、预测、揭示 —— 扩散模型如何在不从左到右的前提下生成文本</span>
+          <span class="ix-row-meta">
+            <span>15 min</span><span class="ix-row-date">2026-03-22</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="autograd/">
+          <span class="ix-row-title">再看自动微分</span>
+          <span class="ix-row-tag">自动微分是什么、不是什么，以及梯度如何在计算图中流动</span>
+          <span class="ix-row-meta">
+            <span>20 min</span><span class="ix-row-date">2026-03-10</span>
+          </span>
+        </a>
+      </li>
+        </ul>
+      </section>
+
+      <section class="ix-collection">
+        <h2 class="ix-collection-title">计算机视觉 <span class="ix-collection-count">9</span></h2>
+        <ul class="ix-list">
+      <li class="ix-row">
+        <a class="ix-row-link" href="perceptual-metrics/">
+          <span class="ix-row-title">逐像素审视感知质量</span>
+          <span class="ix-row-tag">PSNR、SSIM、MS-SSIM、LPIPS——同样的图像，四个数字，往往相互矛盾</span>
+          <span class="ix-row-meta">
+            <span>18 min</span><span class="ix-row-date">2026-05-22</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="equivariant-networks/">
+          <span class="ix-row-title">等变网络实战</span>
+          <span class="ix-row-tag">旋转输入——正确的架构会让输出也随之旋转，而普通 CNN 做不到。</span>
+          <span class="ix-row-meta">
+            <span>16 min</span><span class="ix-row-date">2026-05-11</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="saliency/">
+          <span class="ix-row-title">显著图：并排比较</span>
+          <span class="ix-row-tag">你的分类器究竟使用了哪些像素？四种归因方法，同一张图像</span>
+          <span class="ix-row-meta">
+            <span>16 min</span><span class="ix-row-date">2026-05-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="concept-bottleneck/">
+          <span class="ix-row-title">概念瓶颈模型</span>
+          <span class="ix-row-tag">让模型先预测由人命名的概念，再读出标签——若预测有误，还可加以干预</span>
+          <span class="ix-row-meta">
+            <span>14 min</span><span class="ix-row-date">2026-05-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="eo-foundation-models/">
+          <span class="ix-row-title">深入理解对地观测基础模型</span>
+          <span class="ix-row-tag">卫星预训练骨干网络为何与众不同 — 模态、训练方案、下游评估与 2026 年的模型库</span>
+          <span class="ix-row-meta">
+            <span>30 min</span><span class="ix-row-date">2026-05-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="vision-ssl/">
+          <span class="ix-row-title">无标签的视觉预训练</span>
+          <span class="ix-row-tag">掩蔽图像的 75% 并预测其余部分 — 以及另外四种同样奏效的同类方案</span>
+          <span class="ix-row-meta">
+            <span>20 min</span><span class="ix-row-date">2026-05-09</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="optical-flow/">
+          <span class="ix-row-title">逐帧解析光流</span>
+          <span class="ix-row-tag">在体育片段上实时观察真实的 Lucas-Kanade 与稠密光流计算</span>
+          <span class="ix-row-meta">
+            <span>16 min</span><span class="ix-row-date">2026-05-05</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="image-segmentation/">
+          <span class="ix-row-title">图像分割：使用真实的语义分割模型</span>
+          <span class="ix-row-tag">上传一张照片，运行真实的 DeepLab 模型，并用它为自己的掩码评分</span>
+          <span class="ix-row-meta">
+            <span>15 min</span><span class="ix-row-date">2026-05-03</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="object-detection/">
+          <span class="ix-row-title">基于真实检测器的目标检测</span>
+          <span class="ix-row-tag">上传任意照片，实时运行真实的 COCO-SSD 模型，并审视其每一个决策</span>
+          <span class="ix-row-meta">
+            <span>16 min</span><span class="ix-row-date">2026-05-01</span>
+          </span>
+        </a>
+      </li>
+        </ul>
+      </section>
+
+      <section class="ix-collection">
+        <h2 class="ix-collection-title">多模态 <span class="ix-collection-count">1</span></h2>
+        <ul class="ix-list">
+      <li class="ix-row">
+        <a class="ix-row-link" href="vlm/">
+          <span class="ix-row-title">视觉语言模型：端到端全流程</span>
+          <span class="ix-row-tag">从 CLIP 式对齐到指令微调 &amp;mdash;&amp;mdash; 完整的 VLM 训练流程，附带实时 mini-CLIP 演示</span>
+          <span class="ix-row-meta">
+            <span>22 min</span><span class="ix-row-date">2026-05-09</span>
+          </span>
+        </a>
+      </li>
+        </ul>
+      </section>
+
+      <section class="ix-collection">
+        <h2 class="ix-collection-title">概率与统计推断 <span class="ix-collection-count">11</span></h2>
+        <ul class="ix-list">
+      <li class="ix-row">
+        <a class="ix-row-link" href="prob-programming/">
+          <span class="ix-row-title">概率编程实践</span>
+          <span class="ix-row-tag">PyMC / NumPyro / Stan 是同一个思想 —— 声明一个模型，交给推断引擎</span>
+          <span class="ix-row-meta">
+            <span>20 min</span><span class="ix-row-date">2026-05-11</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="calibration/">
+          <span class="ix-row-title">校准与可靠性图</span>
+          <span class="ix-row-tag">为何 softmax 的 0.97 并不意味着 97% —— 以及那个常能将其治愈的单参数修正</span>
+          <span class="ix-row-meta">
+            <span>15 min</span><span class="ix-row-date">2026-05-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="kernel-methods/">
+          <span class="ix-row-title">核方法，以及深度学习为何关心它</span>
+          <span class="ix-row-tag">从 SVM 核到神经正切核 —— 连接经典机器学习与深度网络的那条主线</span>
+          <span class="ix-row-meta">
+            <span>20 min</span><span class="ix-row-date">2026-05-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="bayesian-posterior/">
+          <span class="ix-row-title">一步步构建后验分布</span>
+          <span class="ix-row-tag">先验 × 似然 = 后验——八个实时实验，把贝叶斯推断从公式变成直觉</span>
+          <span class="ix-row-meta">
+            <span>25 min</span><span class="ix-row-date">2026-05-09</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="info-theory/">
+          <span class="ix-row-title">手算机器学习中的信息论</span>
+          <span class="ix-row-tag">将熵、交叉熵、KL 散度与互信息可视化 —— 每一个量都在你拖动分布时实时重算</span>
+          <span class="ix-row-meta">
+            <span>20 min</span><span class="ix-row-date">2026-05-09</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="active-learning/">
+          <span class="ix-row-title">主动学习：实时挑选样本</span>
+          <span class="ix-row-tag">把标注预算花在模型本就觉得费解的点上</span>
+          <span class="ix-row-meta">
+            <span>16 min</span><span class="ix-row-date">2026-05-09</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="bayes-opt/">
+          <span class="ix-row-title">贝叶斯优化，循序渐进</span>
+          <span class="ix-row-tag">在 10 次评估内优化一个昂贵的黑箱函数 —— 并观察代理模型如何更新</span>
+          <span class="ix-row-meta">
+            <span>20 min</span><span class="ix-row-date">2026-05-09</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="neural-processes/">
+          <span class="ix-row-title">神经网络过程实战</span>
+          <span class="ix-row-tag">一种像高斯过程那样学习「函数先验」的神经网络——只不过是摊销式的</span>
+          <span class="ix-row-meta">
+            <span>20 min</span><span class="ix-row-date">2026-05-09</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="conformal/">
+          <span class="ix-row-title">动手实现共形预测</span>
+          <span class="ix-row-tag">带覆盖率保证的预测区间——无需假设，只差一个分位数</span>
+          <span class="ix-row-meta">
+            <span>18 min</span><span class="ix-row-date">2026-05-09</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="demystifying-p-values/">
+          <span class="ix-row-title">通过重新分组感受 p 值</span>
+          <span class="ix-row-tag">用 10 个数值计算精确 p 值的迷你交互演示</span>
+          <span class="ix-row-meta">
+            <span>10 min</span><span class="ix-row-date">2026-04-01</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="multivariate-normal/">
+          <span class="ix-row-title">认识多元正态分布</span>
+          <span class="ix-row-tag">从一条钟形曲线到点云、边缘分布与切片</span>
+          <span class="ix-row-meta">
+            <span>24 min</span><span class="ix-row-date">2026-03-15</span>
+          </span>
+        </a>
+      </li>
+        </ul>
+      </section>
+
+      <section class="ix-collection">
+        <h2 class="ix-collection-title">时间序列 <span class="ix-collection-count">1</span></h2>
+        <ul class="ix-list">
+      <li class="ix-row">
+        <a class="ix-row-link" href="ts-transformer/">
+          <span class="ix-row-title">打补丁的时间序列 Transformer</span>
+          <span class="ix-row-tag">为何 PatchTST 把序列切成 ViT 风格的补丁，并最终战胜了 LSTM</span>
+          <span class="ix-row-meta">
+            <span>20 min</span><span class="ix-row-date">2026-05-09</span>
+          </span>
+        </a>
+      </li>
+        </ul>
+      </section>
+
+      <section class="ix-collection">
+        <h2 class="ix-collection-title">分布式机器学习 <span class="ix-collection-count">1</span></h2>
+        <ul class="ix-list">
+      <li class="ix-row">
+        <a class="ix-row-link" href="federated-learning/">
+          <span class="ix-row-title">联邦学习：逐轮理解</span>
+          <span class="ix-row-tag">在不共享数据的多个客户端上训练模型——并观察非 IID 漂移如何击垮 FedAvg</span>
+          <span class="ix-row-meta">
+            <span>20 min</span><span class="ix-row-date">2026-05-11</span>
+          </span>
+        </a>
+      </li>
+        </ul>
+      </section>
+
+      <section class="ix-collection">
+        <h2 class="ix-collection-title">天文 <span class="ix-collection-count">1</span></h2>
+        <ul class="ix-list">
+      <li class="ix-row">
+        <a class="ix-row-link" href="moon-phases/">
+          <span class="ix-row-title">月亮为什么会改变形状</span>
+          <span class="ix-row-tag">一份生动直观的指南：新月、娥眉月、弦月与满月</span>
+          <span class="ix-row-meta">
+            <span>8 min</span><span class="ix-row-date">2026-04-04</span>
+          </span>
+        </a>
+      </li>
+        </ul>
+      </section>
+
+      <section class="ix-collection">
+        <h2 class="ix-collection-title">数据结构 <span class="ix-collection-count">4</span></h2>
+        <ul class="ix-list">
+      <li class="ix-row">
+        <a class="ix-row-link" href="trees/">
+          <span class="ix-row-title">树：逐枝展开</span>
+          <span class="ix-row-tag">BST、堆与遍历——构建它们、查询它们，观察上滤与下滤</span>
+          <span class="ix-row-meta">
+            <span>16 min</span><span class="ix-row-date">2026-05-22</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="sorting-race/">
+          <span class="ix-row-title">逐场竞速看排序</span>
+          <span class="ix-row-tag">五种算法，同一数组 —— 观察插入、冒泡、归并、快速与堆排序并驾齐驱</span>
+          <span class="ix-row-meta">
+            <span>14 min</span><span class="ix-row-date">2026-05-22</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="graph-search/">
+          <span class="ix-row-title">图搜索：逐层推进前沿</span>
+          <span class="ix-row-tag">BFS、DFS、Dijkstra、A*——四种搜索策略在同一网格迷宫中竞速</span>
+          <span class="ix-row-meta">
+            <span>16 min</span><span class="ix-row-date">2026-05-22</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="hash-tables/">
+          <span class="ix-row-title">哈希表：逐次冲突解析</span>
+          <span class="ix-row-tag">分离链接、开放寻址、robin hood——看清键究竟落在何处</span>
+          <span class="ix-row-meta">
+            <span>15 min</span><span class="ix-row-date">2026-05-22</span>
+          </span>
+        </a>
+      </li>
+        </ul>
+      </section>
+
+      <section class="ix-collection">
+        <h2 class="ix-collection-title">经典机器学习 <span class="ix-collection-count">3</span></h2>
+        <ul class="ix-list">
+      <li class="ix-row">
+        <a class="ix-row-link" href="random-forest/">
+          <span class="ix-row-title">随机森林：逐棵树地理解</span>
+          <span class="ix-row-tag">Bagging + 随机特征采样——为何由弱树组成的森林能胜过单棵强树</span>
+          <span class="ix-row-meta">
+            <span>16 min</span><span class="ix-row-date">2026-05-11</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="decision-trees/">
+          <span class="ix-row-title">决策树，实时演示</span>
+          <span class="ix-row-tag">观察一棵 CART 树如何逐片地沿坐标轴对齐地划分二维平面——并看清它在何时过拟合</span>
+          <span class="ix-row-meta">
+            <span>16 min</span><span class="ix-row-date">2026-05-10</span>
+          </span>
+        </a>
+      </li>
+      <li class="ix-row">
+        <a class="ix-row-link" href="xgboost/">
+          <span class="ix-row-title">逐棵树理解 XGBoost</span>
+          <span class="ix-row-tag">每一棵新树都拟合上一棵的残差 —— 一次次点击，看回归曲线如何落定</span>
+          <span class="ix-row-meta">
+            <span>18 min</span><span class="ix-row-date">2026-05-10</span>
+          </span>
+        </a>
+      </li>
+        </ul>
+      </section>
+      <footer class="simple-footer">
+        <p>这些交互式讲解是为「动手操作」而设计，而非供静态浏览的笔记。</p>
+      </footer>
+    </main>
+  </body>
+</html>

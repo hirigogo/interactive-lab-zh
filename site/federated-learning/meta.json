@@ -1,0 +1,25 @@
+{
+  "slug": "federated-learning",
+  "title": "联邦学习：逐轮理解",
+  "date": "2026-05-11",
+  "tagline": "在不共享数据的多个客户端上训练模型——并观察非 IID 漂移如何击垮 FedAvg",
+  "summary": "六个具有不同本地标签分布的客户端，通过 FedAvg 训练一个共享分类器。滑动非 IID 强度滑块，观察全局准确率如何崩溃；切换到 FedProx 看它如何稳定下来。附带通信轮次-准确率曲线、各客户端权重漂移图，以及安全聚合与差分隐私的说明。",
+  "readingTime": "20 min",
+  "difficulty": "中级",
+  "collection": "分布式机器学习",
+  "order": 33,
+  "status": "published",
+  "tags": [
+    "联邦学习",
+    "FedAvg",
+    "FedProx",
+    "隐私",
+    "交互式"
+  ],
+  "highlights": [
+    "六个客户端，各具非 IID 标签偏斜；在浏览器中实时运行 FedAvg 各轮。",
+    "非 IID 滑块：IID → 标签偏斜 → 每客户端单一类别；观察全局准确率的失效。",
+    "FedProx 与 FedAvg 切换：近端项驯服了非 IID 客户端上的漂移。",
+    "通信轮次-准确率曲线 + 各客户端权重漂移柱状图。"
+  ]
+}

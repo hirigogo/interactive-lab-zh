@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>逐节剖析 U-Net</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>逐节剖析 U-Net</h1>
+        <p class="abstract">
+          观察一张合成图像沿编码器向下流动，在瓶颈处损失 16 倍的空间分辨率，再向上回升。在任意尺度上切换跳跃连接，观察预测出的掩码如何从模糊的一团变为清晰的分割。随后你将见到嵌入扩散模型中的同一个 U 形结构。
+        </p>
+        <div class="byline">
+          <span>约 18 分钟</span>
+          <span>深度学习 &middot; 分割 &middot; 视觉</span>
+        </div>
+      </header>
+
+      <!-- ─── 前言 ─── -->
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>形状问题</h2>
+        <p>
+          许多视觉任务需要逐像素的输出，而非每张图像一个类别标签：医学图像分割、卫星土地覆盖解析、深度估计，以及近来扩散模型中的去噪。其输出与输入具有相同的空间尺寸。
+        </p>
+        <p>
+          纯粹的 CNN 分类器会将空间分辨率压缩为一张极小的特征图（适用于回答「这是猫吗？」）。若要生成全分辨率的掩码，你必须<em>把分辨率找回来</em> &mdash; 而唯一诚实的做法，是在下行的过程中就把它记住。
+        </p>
+        <div class="callout callout--key">
+          <strong>U-Net 的核心思想，一句话概括。</strong>
+          编码器 $\to$ 瓶颈 $\to$ 解码器，并在每个尺度上设置一条<em>跳跃连接</em>，将编码器的高分辨率特征图直接交给对应的解码器模块。输出掩码既从 U 形结构的深处获得粗粒度的语义上下文，<em>又</em>从浅层的跳跃连接获得锐利的像素级结构。
+        </div>
+      </section>
+
+      <!-- ─── 第 1 步 ─── -->
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>按比例绘制的架构</h2>
+        <p>
+          一个 4 层 U-Net：4 个编码器模块（各自将空间尺寸减半并将通道数加倍）、一个瓶颈、4 个解码器模块（各自将空间尺寸加倍、通道数减半，并拼接对应的编码器特征）。对于 64×64 的输入，瓶颈处为 4×4。这在两个维度上是 16 倍的空间压缩，合计达 256 倍 &mdash; 若无跳跃连接，将造成巨大的信息损失。
+        </p>
+        <div class="unet-figure">
+          <canvas id="arch-canvas" width="880" height="320"></canvas>
+          <figcaption>U 形结构。方块代表特征图；上方数字为 H × W；下方数字为通道数。</figcaption>
+        </div>
+      </section>
+
+      <!-- ─── 第 2 步 ─── -->
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>在真实合成图像上的前向传播</h2>
+        <p>
+          我们合成一个输入：噪声背景上的两个彩色椭圆。目标掩码标注了哪些像素属于椭圆 1、椭圆 2 或背景。一个小型 U-Net（随机权重；为使效果可见，卷积核由手工设定）处理该图像。请逐尺度检视特征图：
+        </p>
+        <div class="train-controls">
+          <button class="action-btn action-btn--ghost" id="re-roll">新的随机图像</button>
+          <span class="train-stat">瓶颈处的分辨率：<strong id="bottleneck-res">—</strong></span>
+        </div>
+        <div class="feature-stage">
+          <div class="feature-row">
+            <div class="feature-cell">
+              <div class="cell-label">输入 64×64</div>
+              <canvas class="feat-canvas" id="feat-input" width="128" height="128"></canvas>
+            </div>
+            <div class="feature-cell">
+              <div class="cell-label">编码 1 · 32×32</div>
+              <canvas class="feat-canvas" id="feat-enc1" width="128" height="128"></canvas>
+            </div>
+            <div class="feature-cell">
+              <div class="cell-label">编码 2 · 16×16</div>
+              <canvas class="feat-canvas" id="feat-enc2" width="128" height="128"></canvas>
+            </div>
+            <div class="feature-cell">
+              <div class="cell-label">编码 3 · 8×8</div>
+              <canvas class="feat-canvas" id="feat-enc3" width="128" height="128"></canvas>
+            </div>
+            <div class="feature-cell">
+              <div class="cell-label">瓶颈 · 4×4</div>
+              <canvas class="feat-canvas" id="feat-bot" width="128" height="128"></canvas>
+            </div>
+          </div>
+          <div class="feature-row">
+            <div class="feature-cell">
+              <div class="cell-label">解码 3 · 8×8（← 瓶颈）</div>
+              <canvas class="feat-canvas" id="feat-dec3" width="128" height="128"></canvas>
+            </div>
+            <div class="feature-cell">
+              <div class="cell-label">解码 2 · 16×16</div>
+              <canvas class="feat-canvas" id="feat-dec2" width="128" height="128"></canvas>
+            </div>
+            <div class="feature-cell">
+              <div class="cell-label">解码 1 · 32×32</div>
+              <canvas class="feat-canvas" id="feat-dec1" width="128" height="128"></canvas>
+            </div>
+            <div class="feature-cell">
+              <div class="cell-label">输出 64×64</div>
+              <canvas class="feat-canvas" id="feat-out" width="128" height="128"></canvas>
+            </div>
+            <div class="feature-cell">
+              <div class="cell-label">目标 64×64</div>
+              <canvas class="feat-canvas" id="feat-tgt" width="128" height="128"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── 第 3 步 ─── -->
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>切换跳跃连接，观察细节消失</h2>
+        <p>
+          第 $\ell$ 层的每条跳跃连接将编码器第 $\ell$ 层的特征图拼接到同一层解码器的输入上。关闭其中一条，相应尺度的细节便会缺失。若全部关闭，你就构建了一个普通的编码器-解码器，而这正是 U-Net 当初被发明出来要超越的架构。
+        </p>
+        <div class="train-controls">
+          <label class="toggle-pair"><input type="checkbox" id="skip-1" checked> 跳跃 @ 32×32（第 1 层）</label>
+          <label class="toggle-pair"><input type="checkbox" id="skip-2" checked> 跳跃 @ 16×16（第 2 层）</label>
+          <label class="toggle-pair"><input type="checkbox" id="skip-3" checked> 跳跃 @ 8×8（第 3 层）</label>
+        </div>
+        <div class="compare-grid">
+          <div class="feature-cell">
+            <div class="cell-label">预测掩码</div>
+            <canvas class="feat-canvas big" id="compare-pred" width="256" height="256"></canvas>
+          </div>
+          <div class="feature-cell">
+            <div class="cell-label">目标掩码</div>
+            <canvas class="feat-canvas big" id="compare-tgt" width="256" height="256"></canvas>
+          </div>
+          <div class="feature-cell">
+            <div class="cell-label">差异（RMSE）</div>
+            <canvas class="feat-canvas big" id="compare-diff" width="256" height="256"></canvas>
+            <div class="rmse-label" id="rmse-label">—</div>
+          </div>
+        </div>
+        <div class="callout">
+          <strong>你应当看到的现象。</strong>
+          三条跳跃连接全部开启时，预测掩码紧贴椭圆边界。关闭第 1 层（最高分辨率）后轮廓变模糊。关闭第 3 层（最深的跳跃连接）后，掩码仍能定位，但会丢失语义形状。全部关闭
+          → 掩码退化为一个低分辨率的矩形。
+        </div>
+      </section>
+
+      <!-- ─── 第 4 步 ─── -->
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>为何用拼接而非相加？</h2>
+        <p>
+          ResNet 采用相加：$y = F(x) + x$。U-Net 则<em>拼接</em>：$y = [F(x); \text{skip}]$。原因是保存信息。编码器特征携带着瓶颈处已丢弃的空间细节。把一个统计特性差异极大的向量加到瓶颈输出上，会干扰解码器的学习。而拼接则让解码器自由选择读取哪些通道。
+        </p>
+        <div class="math-block" id="math-cat"></div>
+        <p>
+          这会增加解码器卷积中的通道数，但对于稠密预测任务而言是值得的。现代 U-Net（以及扩散 U-Net，见第 5 步）有时会混合使用两种方式 &mdash; 模块内部用相加实现残差，跨 U 形结构用拼接实现跳跃。
+        </p>
+      </section>
+
+      <!-- ─── 第 5 步 ─── -->
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>扩散模型中的 U 形结构</h2>
+        <p>
+          Stable Diffusion、Imagen，每一个现代图像扩散骨干网络都是 U-Net。去噪器接收一张含噪图像，并预测需要去除的噪声。这是一个逐像素的回归问题 &mdash; 形状相同、下采样与上采样的思路也相同，只是额外增加了三点：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>时间步条件化。</strong> 当前的噪声水平 $t$ 通过正弦嵌入注入每个模块（具体做法参见<a href="../attention/index.html#step-positional">注意力机制一文中的位置编码部分</a>）。</li>
+          <li><strong>对文本的交叉注意力。</strong> 在每个解码器模块内部，U-Net 对经 CLIP 编码的提示进行交叉注意力，从而使生成过程以文本为条件。</li>
+          <li><strong>瓶颈处的自注意力。</strong> 当空间分辨率变得很小（约 8×8）之后，自注意力将相距遥远的特征联系起来 &mdash; 局部性偏置随之消失。</li>
+        </ul>
+        <p>
+          跳跃连接一如既往地发挥其作用：保存编码器所丢弃的高频细节。这正是扩散模型输出具有锐利边缘、而不像被 JPEG 压缩过的梦境的缘故。
+        </p>
+      </section>
+
+      <!-- ─── 第 6 步 ─── -->
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>值得了解的变体</h2>
+        <ul class="explanation-list">
+          <li><strong>U-Net（原始版）。</strong> Ronneberger 等，
+            2015。为生物医学分割而设计；在数百个标注细胞上训练。十年之后仍是基线方法。</li>
+          <li><strong>nnU-Net。</strong> 自配置的 U-Net；
+            根据数据集自动确定预处理、架构与训练计划。会针对你的模态自动调优。在任何分割任务上都应首先尝试。</li>
+          <li><strong>3-D U-Net。</strong> 采用三维卷积的相同架构；
+            适用于体数据的医学影像（CT、MRI）、卫星时间立方体、点云体素化。</li>
+          <li><strong>Attention U-Net。</strong> 通过一个学习得到的注意力掩码对每条跳跃连接进行门控。当图像中存在大量小目标时尤为有用。</li>
+          <li><strong>TransUNet / Swin-UNet。</strong> 将编码器替换为视觉 Transformer；
+            保留 U 形结构以恢复分辨率。2024 年以来医学图像分割的标准方案。</li>
+          <li><strong>U-Net++（NestedU-Net）。</strong> 在每个中间尺度上增设密集跳跃连接。效果略强，速度略慢。</li>
+          <li><strong>扩散 U-Net（DDPM、Stable Diffusion）。</strong>
+            U-Net + 时间步嵌入 + 对文本的交叉注意力。跳跃连接与 2015 年如出一辙。</li>
+        </ul>
+        <div class="callout callout--think">
+          <strong>最终结论。</strong>
+          U-Net 是 2018 年之前的深度学习成果中第二个拒绝被淘汰的设计 &mdash; 第一个是 ResNet 的残差。每当你需要逐像素输出而又没有无限的训练数据时，U 形结构仍是最佳默认选择。原因正如上图所示：编码器丢弃了细节，解码器无法凭空将其还原，因此你必须通过跳跃连接把它记住。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-7">
+        <div class="step-badge">第 7 步</div>
+        <h2>扩散模型的 U-Net — 一个旧架构为何能在生成竞赛中胜出</h2>
+        <p>
+          每一个 Stable Diffusion 检查点都是一个轻度现代化的 U-Net：编码器 + 瓶颈 + 解码器的结构仍是最初 2015 年的设计，仅额外增加了三点：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>时间步嵌入。</strong> 将正弦时间嵌入 $t$ 映射为逐层的缩放 + 偏置（FiLM 式）。同一网络通过读取 $t$，即可在所有噪声水平上完成去噪。</li>
+          <li><strong>对文本条件的交叉注意力。</strong> 在少数中等分辨率的层上，空间特征图会关注经分词后的文本提示嵌入。「提示引导」实际上就发生在这一环节。</li>
+          <li><strong>低分辨率处的自注意力模块。</strong> U 形结构的瓶颈处对整个空间网格执行完整的自注意力（由于该处网格很小，代价低廉）；高分辨率的层则保持纯卷积。</li>
+        </ul>
+        <p>
+          2024–2026 年间，该领域已部分转向<strong>DiT（Diffusion Transformer）</strong> — 不含 U-Net 跳跃连接的纯 Transformer 骨干网络。DiT 在参数量超过约 2B 后扩展性更好；而 U-Net 在参数量低于 1B 的图像生成模型中仍占主导，因为在小数据上其参数效率要高得多。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-8">
+        <div class="step-badge">第 8 步</div>
+        <h2>实用实现要点</h2>
+        <ul class="explanation-list">
+          <li><strong>输入尺寸必须能被 $2^D$ 整除</strong>，其中 $D$ 为深度。4 个阶段的 U-Net 要求输入 $H, W$ 均能被 16 整除。可先填充，之后再裁剪。</li>
+          <li><strong>填充方式的选择。</strong> 原始实现使用「valid」（不填充）；现代实现使用「same」配合反射填充或零填充，以在跳跃连接之间保持空间尺寸稳定。反射填充通常能得到略更干净的边缘。</li>
+          <li><strong>上采样：转置卷积与先插值后卷积。</strong> 在某些步长 / 卷积核比例下，转置卷积会产生棋盘状伪影。大多数现代 U-Net 采用双线性 / 最近邻上采样后接一个 3×3 卷积 — 视觉上更干净。</li>
+          <li><strong>阶段数。</strong> 4–5 个阶段即可覆盖大多数自然图像任务。更深的 U 形结构需要更宽的通道（瓶颈宽度决定容量）。</li>
+          <li><strong>损失函数。</strong> 医学 / 类别不平衡分割用交叉熵 + Dice；扩散去噪用 MSE；图像到图像的转换用感知损失（VGG 特征）。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-9">
+        <div class="step-badge">第 9 步</div>
+        <h2>阅读清单</h2>
+        <ul class="explanation-list">
+          <li><strong>Ronneberger, Fischer, Brox (2015)</strong> &mdash; <em>U-Net。</em> 原始论文。</li>
+          <li><strong>Çiçek 等 (2016)</strong> &mdash; <em>3D U-Net。</em></li>
+          <li><strong>Oktay 等 (2018)</strong> &mdash; <em>Attention U-Net。</em></li>
+          <li><strong>Isensee, Jaeger, Kohl, Petersen, Maier-Hein (2021)</strong> &mdash; <em>nnU-Net。</em> 用于医学分割的自配置 U-Net。</li>
+          <li><strong>Ho, Jain, Abbeel (2020)</strong> &mdash; <em>Denoising Diffusion Probabilistic Models。</em> 扩散模型中的 U-Net。</li>
+          <li><strong>Peebles &amp; Xie (2022)</strong> &mdash; <em>Scalable Diffusion Models with Transformers (DiT)。</em> 最终基于 Transformer 的继任者。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

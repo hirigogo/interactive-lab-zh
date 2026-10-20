@@ -1,0 +1,299 @@
+{
+ "slug": "causal-conv",
+ "units": {
+  "Causal Convolution": {
+   "zh": "因果卷积",
+   "src": "Causal Convolution",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "A convolution slides a small kernel over a sequence. Make it\n      @@T0@@causal@@T1@@ and it is forbidden from peeking into the future: the output\n      at time $t$ may only touch inputs at $t$ and earlier. Add @@T2@@left-padding@@T3@@\n      to keep the length intact, and @@T4@@dilation@@T5@@ to see far into the past\n      without spending a single extra weight. Drag the kernel below and watch the\n      rules enforce themselves.": {
+   "zh": "卷积将一个小型核沿序列滑动。若令其成为@@T0@@因果@@T1@@ 卷积，它便被禁止窥视未来：时刻 $t$ 的输出只能触及 $t$ 及其之前的输入。再加上@@T2@@左侧填充@@T3@@ 以保持长度不变，并用@@T4@@膨胀@@T5@@ 在不额外增加任何权重的情况下看得更远的过去。拖动下方的核，观察这些规则如何自我约束。",
+   "src": "A convolution slides a small kernel over a sequence. Make it\n      <em>causal</em> and it is forbidden from peeking into the future: the output\n      at time $t$ may only touch inputs at $t$ and earlier. Add <em>left-padding</em>\n      to keep the length intact, and <em>dilation</em> to see far into the past\n      without spending a single extra weight. Drag the kernel below and watch the\n      rules enforce themselves.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~8 min@@T1@@\n      @@T2@@Deep Learning &middot; Sequence Models &middot; TCN / WaveNet@@T3@@": {
+   "zh": "@@T0@@约 8 分钟@@T1@@\n      @@T2@@深度学习 &middot; 序列模型 &middot; TCN / WaveNet@@T3@@",
+   "src": "<span>~8 min</span>\n      <span>Deep Learning &middot; Sequence Models &middot; TCN / WaveNet</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "One kernel, one rule: no looking ahead": {
+   "zh": "一个核，一条规则：不得前瞻",
+   "src": "One kernel, one rule: no looking ahead",
+   "tags": []
+  },
+  "A 1-D convolution with kernel size $K$ computes each output as a weighted sum\n      of $K$ neighbouring inputs. In a plain conv those neighbours straddle the\n      current position &mdash; some are in the future. For streaming data\n      (audio, text, forecasts) that is cheating: at time $t$ you simply do not have\n      $x[t+1]$ yet. A @@T0@@causal@@T1@@ convolution fixes the window so every\n      tap lands on the present or the past:": {
+   "zh": "核大小为 $K$ 的一维卷积将每个输出计算为 $K$ 个相邻输入的加权和。在普通卷积中，这些相邻输入跨越当前位置 &mdash; 其中一些位于未来。对流式数据（音频、文本、预测）而言这便是作弊：在时刻 $t$，你根本还没有 $x[t+1]$。@@T0@@因果@@T1@@ 卷积固定窗口，使每一个抽头都落在当下或过去：",
+   "src": "A 1-D convolution with kernel size $K$ computes each output as a weighted sum\n      of $K$ neighbouring inputs. In a plain conv those neighbours straddle the\n      current position &mdash; some are in the future. For streaming data\n      (audio, text, forecasts) that is cheating: at time $t$ you simply do not have\n      $x[t+1]$ yet. A <strong>causal</strong> convolution fixes the window so every\n      tap lands on the present or the past:",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Here $d$ is the @@T0@@dilation@@T1@@: the stride between taps. With $d=1$ the taps\n      are adjacent; with $d>1$ they spread out, opening holes so the kernel reaches\n      further back in time using the exact same $K$ weights. The stretch of input a\n      single output can see is its @@T2@@receptive field@@T3@@,\n      $(K-1)\\,d + 1$.": {
+   "zh": "其中 $d$ 为@@T0@@膨胀率@@T1@@：抽头之间的步长。当 $d=1$ 时抽头相邻；当 $d>1$ 时它们彼此散开、留下空隙，使核得以用完全相同的 $K$ 个权重回溯到更早的时间。单个输出所能看到的输入跨度即其@@T2@@感受野@@T3@@，为 $(K-1)\\,d + 1$。",
+   "src": "Here $d$ is the <em>dilation</em>: the stride between taps. With $d=1$ the taps\n      are adjacent; with $d>1$ they spread out, opening holes so the kernel reaches\n      further back in time using the exact same $K$ weights. The stretch of input a\n      single output can see is its <strong>receptive field</strong>,\n      $(K-1)\\,d + 1$.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The Lab": {
+   "zh": "实验",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Slide the kernel across the sequence": {
+   "zh": "让核沿序列滑动",
+   "src": "Slide the kernel across the sequence",
+   "tags": []
+  },
+  "The top row is the input sequence $x$; the bottom row is the output $y$. The\n      dashed orange line is @@T0@@now@@T1@@ &mdash; the current time $t$. Everything to\n      its right is the shaded @@T2@@future@@T3@@, off-limits to a causal kernel.\n      The blue-outlined cells are the $K$ taps feeding the current output. Move\n      @@T4@@now@@T5@@, resize the kernel, stretch the dilation, and toggle left-padding.": {
+   "zh": "上行为输入序列 $x$；下行为输出 $y$。橙色虚线为@@T0@@当前时刻@@T1@@ &mdash; 即当前时间 $t$。其右侧的一切都是被阴影遮蔽的@@T2@@未来@@T3@@，对因果核而言属于禁地。蓝框单元格是馈入当前输出的 $K$ 个抽头。移动@@T4@@当前时刻@@T5@@、调整核的大小、拉伸膨胀率，并切换左侧填充。",
+   "src": "The top row is the input sequence $x$; the bottom row is the output $y$. The\n      dashed orange line is <em>now</em> &mdash; the current time $t$. Everything to\n      its right is the shaded <strong>future</strong>, off-limits to a causal kernel.\n      The blue-outlined cells are the $K$ taps feeding the current output. Move\n      <em>now</em>, resize the kernel, stretch the dilation, and toggle left-padding.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Kernel size @@T0@@$K$ = @@T1@@3@@T2@@@@T3@@": {
+   "zh": "核大小 @@T0@@$K$ = @@T1@@3@@T2@@@@T3@@",
+   "src": "Kernel size <span>$K$ = <span id=\"kVal\">3</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"kVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Dilation @@T0@@$d$ = @@T1@@1@@T2@@@@T3@@": {
+   "zh": "膨胀率 @@T0@@$d$ = @@T1@@1@@T2@@@@T3@@",
+   "src": "Dilation <span>$d$ = <span id=\"dVal\">1</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"dVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Now (time $t$) @@T0@@$t$ = @@T1@@8@@T2@@@@T3@@": {
+   "zh": "当前时刻（时间 $t$）@@T0@@$t$ = @@T1@@8@@T2@@@@T3@@",
+   "src": "Now (time $t$) <span>$t$ = <span id=\"tVal\">8</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"tVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Step &rarr;": {
+   "zh": "步进 &rarr;",
+   "src": "Step &rarr;",
+   "tags": []
+  },
+  "Play": {
+   "zh": "播放",
+   "src": "Play",
+   "tags": []
+  },
+  "Left-padding: off": {
+   "zh": "左侧填充：关闭",
+   "src": "Left-padding: off",
+   "tags": []
+  },
+  "Causal 1-D convolution. Output $y[t]$ reads only taps at $t, t-d, \\dots, t-(K{-}1)d$ &mdash; never across the @@T0@@now@@T1@@ line.": {
+   "zh": "因果一维卷积。输出 $y[t]$ 只读取 $t, t-d, \\dots, t-(K{-}1)d$ 处的抽头 &mdash; 从不跨越@@T0@@当前时刻@@T1@@ 这条线。",
+   "src": "Causal 1-D convolution. Output $y[t]$ reads only taps at $t, t-d, \\dots, t-(K{-}1)d$ &mdash; never across the <em>now</em> line.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@@@T1@@@@T2@@ kernel tap@@T3@@\n      @@T4@@@@T5@@@@T6@@ current output@@T7@@\n      @@T8@@@@T9@@@@T10@@ padding zero@@T11@@\n      @@T12@@@@T13@@@@T14@@ future (masked)@@T15@@": {
+   "zh": "@@T0@@@@T1@@@@T2@@ 核的抽头@@T3@@\n      @@T4@@@@T5@@@@T6@@ 当前输出@@T7@@\n      @@T8@@@@T9@@@@T10@@ 填充零@@T11@@\n      @@T12@@@@T13@@@@T14@@ 未来（已遮蔽）@@T15@@",
+   "src": "<span><span class=\"legend-swatch\" style=\"background:#2c6fb7\"></span> kernel tap</span>\n      <span><span class=\"legend-swatch\" style=\"background:#eef4fb;border:1px solid #2c6fb7\"></span> current output</span>\n      <span><span class=\"legend-swatch\" style=\"background:#f2ece0;border:1px dashed #b3a892\"></span> padding zero</span>\n      <span><span class=\"legend-swatch\" style=\"background:rgba(217,98,43,0.14)\"></span> future (masked)</span>",
+   "tags": [
+    "<span>",
+    "<span class=\"legend-swatch\" style=\"background:#2c6fb7\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"legend-swatch\" style=\"background:#eef4fb;border:1px solid #2c6fb7\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"legend-swatch\" style=\"background:#f2ece0;border:1px dashed #b3a892\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"legend-swatch\" style=\"background:rgba(217,98,43,0.14)\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Receptive field $(K{-}1)d+1$@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@感受野 $(K{-}1)d+1$@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Receptive field $(K{-}1)d+1$</span>\n        <span class=\"stat-value\" id=\"rfVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"rfVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Input length@@T1@@\n        @@T2@@16@@T3@@": {
+   "zh": "@@T0@@输入长度@@T1@@\n        @@T2@@16@@T3@@",
+   "src": "<span class=\"stat-label\">Input length</span>\n        <span class=\"stat-value\" id=\"inLenVal\">16</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"inLenVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Output length@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@输出长度@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Output length</span>\n        <span class=\"stat-value\" id=\"outLenVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"outLenVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Left-pad zeros@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@左侧填充零@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Left-pad zeros</span>\n        <span class=\"stat-value\" id=\"padVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"padVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Try this.@@T1@@ Turn left-padding @@T2@@off@@T3@@ and drag @@T4@@now@@T5@@\n      to the far left. The kernel's oldest taps fall off the edge of the sequence\n      (marked in orange) &mdash; there is no $x[-1]$ to read, so no output can be\n      produced there. That is exactly why the output is shorter than the input, and\n      why the missing left cells are greyed out below.": {
+   "zh": "@@T0@@试一试。@@T1@@ 将左侧填充@@T2@@关闭@@T3@@，并把@@T4@@当前时刻@@T5@@ 拖到最左端。核最旧的抽头会从序列边缘掉落（以橙色标出）&mdash; 那里没有 $x[-1]$ 可读，因此无法产生输出。这正是输出比输入短的原因，也是下方缺失的左侧单元格被置灰的原因。",
+   "src": "<strong>Try this.</strong> Turn left-padding <em>off</em> and drag <em>now</em>\n      to the far left. The kernel's oldest taps fall off the edge of the sequence\n      (marked in orange) &mdash; there is no $x[-1]$ to read, so no output can be\n      produced there. That is exactly why the output is shorter than the input, and\n      why the missing left cells are greyed out below.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "收益",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Why dilation is the whole trick": {
+   "zh": "为何膨胀率才是关键所在",
+   "src": "Why dilation is the whole trick",
+   "tags": []
+  },
+  "Push the dilation slider from $1$ to $4$ and keep the kernel size fixed at\n      $K=3$. The kernel still has only three weights &mdash; but its receptive field\n      leaps from $3$ to $9$. Stack a handful of such layers with dilations\n      $1, 2, 4, 8, \\dots$ and the receptive field grows @@T0@@exponentially@@T1@@ with\n      depth while the parameter count grows only linearly. This is the engine behind\n      WaveNet and Temporal Convolutional Networks (TCNs).": {
+   "zh": "将膨胀率滑块从 $1$ 推到 $4$，并保持核大小固定为 $K=3$。核仍然只有三个权重 &mdash; 但其感受野从 $3$ 跃升至 $9$。将若干这样的层以膨胀率 $1, 2, 4, 8, \\dots$ 堆叠起来，感受野便随深度呈@@T0@@指数@@T1@@ 增长，而参数数量仅线性增长。这正是 WaveNet 与时间卷积网络（TCN）背后的引擎。",
+   "src": "Push the dilation slider from $1$ to $4$ and keep the kernel size fixed at\n      $K=3$. The kernel still has only three weights &mdash; but its receptive field\n      leaps from $3$ to $9$. Stack a handful of such layers with dilations\n      $1, 2, 4, 8, \\dots$ and the receptive field grows <em>exponentially</em> with\n      depth while the parameter count grows only linearly. This is the engine behind\n      WaveNet and Temporal Convolutional Networks (TCNs).",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Causality@@T1@@ is a masking rule, not a new operation: forbid any tap with index $> t$. It lets a conv model streaming data honestly.": {
+   "zh": "@@T0@@因果性@@T1@@ 是一条掩蔽规则，而非一种新运算：禁止任何下标 $> t$ 的抽头。它使卷积模型能够诚实地对数据流建模。",
+   "src": "<strong>Causality</strong> is a masking rule, not a new operation: forbid any tap with index $> t$. It lets a conv model streaming data honestly.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Left-padding@@T1@@ of $(K{-}1)d$ zeros restores the length so the output lines up one-to-one with the input &mdash; essential for stacking layers.": {
+   "zh": "@@T0@@左侧填充@@T1@@ 的 $(K{-}1)d$ 个零可恢复长度，使输出与输入一一对齐 &mdash; 这对层与层的堆叠至关重要。",
+   "src": "<strong>Left-padding</strong> of $(K{-}1)d$ zeros restores the length so the output lines up one-to-one with the input &mdash; essential for stacking layers.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Dilation@@T1@@ buys reach for free: the same $K$ weights, spaced $d$ apart, cover $(K{-}1)d+1$ timesteps.": {
+   "zh": "@@T0@@膨胀率@@T1@@ 免费换来触及范围：同样的 $K$ 个权重，以 $d$ 为间隔，覆盖 $(K{-}1)d+1$ 个时间步。",
+   "src": "<strong>Dilation</strong> buys reach for free: the same $K$ weights, spaced $d$ apart, cover $(K{-}1)d+1$ timesteps.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Connect it up.@@T1@@ A causal conv is the convolutional cousin of an\n      RNN: both process a sequence respecting time's arrow. But where an RNN must\n      unroll step by step, a stack of dilated causal convs sees the whole past in\n      parallel &mdash; which is why TCNs often train faster than recurrent models on\n      the same forecasting task.": {
+   "zh": "@@T0@@建立联系。@@T1@@ 因果卷积是 RNN 在卷积一侧的表亲：二者都尊重时间之矢来处理序列。但 RNN 必须逐步展开，而一叠膨胀因果卷积则能并行地看到全部过去 &mdash; 这正是 TCN 在同一预测任务上往往比循环模型训练更快的原因。",
+   "src": "<strong>Connect it up.</strong> A causal conv is the convolutional cousin of an\n      RNN: both process a sequence respecting time's arrow. But where an RNN must\n      unroll step by step, a stack of dilated causal convs sees the whole past in\n      parallel &mdash; which is why TCNs often train faster than recurrent models on\n      the same forecasting task.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 14: Convolutional Sequence Models": {
+   "zh": "ES 667 深度学习讲解系列之一 &middot; 第 14 讲：卷积序列模型",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 14: Convolutional Sequence Models",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "因果卷积",
+  "tagline": "让核沿序列滑动，绝不窥视未来 —— 左侧填充与膨胀率是仅有的两个关键旋钮",
+  "summary": "在序列上拖动一个因果一维卷积，观察规则如何自我约束：时刻 t 的核只能触及 t 及其之前的输入，故被阴影遮蔽的未来始终不可涉足。切换左侧填充可使输出长度与输入保持一致，拉伸膨胀率可在不增加任何权重的前提下将感受野扩大至 (K-1)d+1。这正是 WaveNet 与时间卷积网络背后的构件，在此变得可触可感。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "将因果性视为一条掩蔽规则来观察：核在物理上被阻止越过“当前时刻”这条线进入阴影中的未来。",
+   "切换左侧填充，观察输出长度如何从 N-(K-1)d 骤然回到 N，并以填充零补齐缺失的过去。",
+   "将膨胀率从 1 拉伸到 4，观察感受野 (K-1)d+1 如何增大，而权重数量始终固定为 K。",
+   "在关闭填充的情况下把“当前时刻”滑到最左端，观察最旧的抽头如何从边缘掉落 —— 没有 x[-1]，就没有输出。",
+   "直接关联到 WaveNet 与 TCN，其中膨胀率 1,2,4,8 给出指数增长感受野。"
+  ],
+  "tags": [
+   "因果卷积",
+   "膨胀",
+   "序列模型",
+   "TCN",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

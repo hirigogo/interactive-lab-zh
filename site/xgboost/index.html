@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>逐棵树理解 XGBoost</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>逐棵树理解 XGBoost</h1>
+        <p class="abstract">
+          慢镜头下的梯度提升：每一棵新树拟合前一集成模型的残差。点击 <em>添加树</em>；观察预测变清晰、损失下降。随后了解 XGBoost 实际采用的二阶（牛顿）更新为何胜过朴素的一阶更新。
+        </p>
+        <div class="byline">
+          <span>约 18 分钟</span>
+          <span>经典机器学习 &middot; 提升 &middot; 树模型</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>两行讲清提升法的配方</h2>
+        <p>
+          构建一系列弱学习器（小树），每一棵都拟合当前预测的残差。集成预测是所有树之和。
+        </p>
+        <div class="math-block" id="math-boost"></div>
+        <p>
+          $\eta$ 是学习率。在给定预算下，较小的 $\eta$ 加更多的树几乎总是优于较大的 $\eta$ 加更少的树。$f_t$ 是第 $t$ 棵树在输入 $x$ 上的输出。
+        </p>
+        <h3>XGBoost 额外做了什么</h3>
+        <p>
+          朴素的梯度提升让 $f_t$ 拟合 <em>负梯度</em> $-\partial L / \partial \hat y$（一阶近似）。XGBoost（Chen &amp; Guestrin，2016）则进行 <strong>二阶泰勒展开</strong>，并让树去优化 <em>牛顿步</em> 方向。其分裂增益与叶值公式为：
+        </p>
+        <div class="math-block" id="math-xgb"></div>
+        <p>
+          其中 $g_i = \partial L / \partial \hat y_i$，$h_i = \partial^2 L / \partial \hat y_i^2$。对于平方损失 $L = \frac{1}{2}(y - \hat y)^2$，这退化为朴素的 GBM（$g = \hat y - y$，$h = 1$）。对于逻辑损失，XGBoost 顾及 Hessian 的更新收敛速度明显更快。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>实时逐棵树构建</h2>
+        <p>
+          一个带隐藏曲线的一维回归玩具示例。点击 <em>添加树</em>；下一棵树拟合当前残差；集成预测（青色）随之更新。在同一数据上与单棵深树以及 25 棵树的随机森林作比较。
+        </p>
+        <div class="train-controls">
+          <button class="action-btn" id="xg-add">添加树</button>
+          <button class="action-btn" id="xg-add10">+10 棵树</button>
+          <button class="action-btn action-btn--ghost" id="xg-reset">重置</button>
+          <label>学习率 η &nbsp;<span id="xg-lr-val">0.30</span> <input type="range" id="xg-lr" min="0.05" max="1" step="0.05" value="0.3"></label>
+          <label>最大深度 &nbsp;<span id="xg-depth-val">3</span> <input type="range" id="xg-depth" min="1" max="6" step="1" value="3"></label>
+          <button class="action-btn action-btn--ghost" id="xg-newdata">新数据</button>
+          <span class="train-stat">树的数量 <strong id="xg-n">0</strong></span>
+          <span class="train-stat">训练 RMSE <strong id="xg-rmse">—</strong></span>
+        </div>
+        <div class="xg-figure">
+          <canvas id="xg-fit" width="880" height="320"></canvas>
+          <figcaption>训练数据（●）、真实曲线（虚线）、提升集成（青色实线）、最新一棵树的贡献（橙色虚线）。</figcaption>
+        </div>
+        <div class="xg-figure">
+          <canvas id="xg-residual" width="880" height="200"></canvas>
+          <figcaption>当前集成之后的残差。提升法将其推向零。</figcaption>
+        </div>
+        <div class="xg-figure">
+          <canvas id="xg-loss" width="880" height="200"></canvas>
+          <figcaption>训练 RMSE 随树数量的变化。观察其肘部形状。</figcaption>
+        </div>
+        <h3>与单棵树 + 随机森林比较</h3>
+        <div class="dt-grid">
+          <div class="dt-panel">
+            <div class="panel-label">单棵深树（深度 8）</div>
+            <canvas id="xg-cmp-tree" width="380" height="240"></canvas>
+          </div>
+          <div class="dt-panel">
+            <div class="panel-label">随机森林（25 棵树，深度 6）</div>
+            <canvas id="xg-cmp-rf" width="380" height="240"></canvas>
+          </div>
+          <div class="dt-panel">
+            <div class="panel-label">提升集成（当前）</div>
+            <canvas id="xg-cmp-boost" width="380" height="240"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>你应当看到的现象</h2>
+        <ul class="explanation-list">
+          <li><strong>第一棵树只是一个阶梯函数。</strong>
+            深度为 3 意味着至多 8 个叶节点；预测是对真实函数的块状近似。</li>
+          <li><strong>其后每一棵树都修正残差。</strong>
+            观察残差面板：它变得更具噪声也更小，除非你持续添加树，否则永远无法真正达到零。</li>
+          <li><strong>较低的 η = 更平滑的拟合。</strong> 在 η=0.05 加 100 棵树时曲线平滑。在 η=0.5 加 20 棵树时则参差不齐。总的「步长」相同，偏差/方差的权衡不同。</li>
+          <li><strong>提升法与随机森林对比。</strong> 随机森林对许多 <em>相互独立</em> 的深树取平均；提升法则构建 <em>相互依赖</em> 的浅树。随机森林稳健且可并行；提升法更准确但需串行。自 2018 年以来，在表格任务上 XGBoost / LightGBM / CatBoost 在大多数基准中胜过随机森林。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>生产环境中的 XGBoost —— 真正该调什么</h2>
+        <ul class="explanation-list">
+          <li><strong>n_estimators / num_boost_round。</strong> 配合验证集使用早停。500–5000 是有用的范围；更多则是浪费。</li>
+          <li><strong>learning_rate (η)。</strong> 大数据集用 0.01–0.1，小数据集用 0.05–0.3。树更多时取更低值。</li>
+          <li><strong>max_depth。</strong> 3–10。对于交互丰富的大型表格数据可更深；对于噪声数据则更浅。</li>
+          <li><strong>min_child_weight。</strong> 相当于按 Hessian 加权的每叶最小样本数。默认值为 1；对噪声数据可调高。</li>
+          <li><strong>subsample / colsample_bytree。</strong> 每棵树的行 / 特征自助采样。0.7–0.9 是最佳区间 —— 引入随机性，起到正则化作用。</li>
+          <li><strong>reg_alpha / reg_lambda。</strong> 作用于叶权重的 L1 / L2 正则。若你的特征很多且担心过拟合，可加以调校。</li>
+          <li><strong>tree_method。</strong> 一切情况都使用 'hist'（现代 XGBoost 的默认值）；它比 'exact' 更快且同样准确。</li>
+          <li><strong>objective。</strong> 'reg:squarederror'、'binary:logistic'、'multi:softprob'、'rank:pairwise'、'reg:tweedie'（零膨胀计数），……</li>
+          <li><strong>单调性约束。</strong> 强制「预测必须对特征 X 单调」—— 在保险、医疗、监管场景中很有用。</li>
+          <li><strong>缺失值。</strong> XGBoost 会为每个分裂原生地学习 NaN 的最佳方向路由；除非必要，否则不要做插补。</li>
+        </ul>
+        <div class="callout callout--key">
+          <strong>一句口号。</strong>
+          对于类型混杂、含缺失值且行数 $\le$ 数百万的表格数据，XGBoost / LightGBM / CatBoost 依然是最强大 <em>也最简单</em> 的默认选择。神经表格模型（TabNet、FT-Transformer、SAINT）偶尔在基准中获胜；但在大多数生产场景中，梯度提升树仍然胜出。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>值得了解的变体</h2>
+        <ul class="explanation-list">
+          <li><strong>LightGBM。</strong> 基于直方图；按叶生长（优先最深）的分裂方式；在大数据上比 XGBoost 更快；稍易过拟合，但用 <code>num_leaves</code> 和正则化即可轻松控制。</li>
+          <li><strong>CatBoost。</strong> 原生处理类别特征（无泄漏的目标编码）；默认超参数极佳；在大数据上是三者中最慢的。</li>
+          <li><strong>HistGradientBoosting（sklearn）。</strong> 纯 Python 的替代方案；比最初的 sklearn GBM 快得多；精度相当；随 sklearn 一同提供。</li>
+          <li><strong>NGBoost。</strong> 输出一个 <em>分布</em>（均值 + 方差）的梯度提升；对下游的不确定性工作很有用。</li>
+          <li><strong>XGBoost-Spark / Dask-XGBoost。</strong> 面向超大数据集的分布式实现。</li>
+          <li><strong>TabNet、FT-Transformer、SAINT。</strong> 神经表格模型的替代方案；有时胜出，常常打平，很少能证明额外的 ML-ops 复杂度是值得的。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

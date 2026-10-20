@@ -1,0 +1,157 @@
+{
+ "slug": "mle-map-coin",
+ "units": {
+  "MLE vs MAP, on a Coin Flip": {
+   "zh": "抛硬币上的 MLE 与 MAP",
+   "src": "MLE vs MAP, on a Coin Flip",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Frequentists and Bayesians have argued for a century. On a single\n          coin, both estimates are @@T0@@one number you can compute@@T1@@. Slide\n          the prior, flip some coins, and watch the estimate drift from MLE\n          (data-only) toward MAP (data + prior).": {
+   "zh": "频率派与贝叶斯派争论了一个世纪。在单枚硬币上，两种估计都只是@@T0@@一个可以算出来的数字@@T1@@。滑动先验，抛几次硬币，观察估计如何从 MLE（只用数据）滑向 MAP（数据 + 先验）。",
+   "src": "Frequentists and Bayesians have argued for a century. On a single\n          coin, both estimates are <em>one number you can compute</em>. Slide\n          the prior, flip some coins, and watch the estimate drift from MLE\n          (data-only) toward MAP (data + prior).",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~10 min@@T1@@\n          @@T2@@Probability &middot; Bayesian inference@@T3@@": {
+   "zh": "@@T0@@约 10 分钟@@T1@@\n          @@T2@@概率 &middot; 贝叶斯推断@@T3@@",
+   "src": "<span>~10 min</span>\n          <span>Probability &middot; Bayesian inference</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "The setup": {
+   "zh": "设定",
+   "src": "The setup",
+   "tags": []
+  },
+  "A coin has unknown bias $p$. You flip it $N$ times and observe\n          $h$ heads, $t = N - h$ tails. The likelihood is\n          $\\mathcal{L}(p) = p^h (1-p)^t$. MLE peaks at $\\hat p_{\\text{MLE}} = h/N$.": {
+   "zh": "一枚硬币有未知偏置 $p$。你抛掷 $N$ 次，观察到 $h$ 次正面、$t = N - h$ 次反面。似然为 $\\mathcal{L}(p) = p^h (1-p)^t$。MLE 在 $\\hat p_{\\text{MLE}} = h/N$ 处取峰。",
+   "src": "A coin has unknown bias $p$. You flip it $N$ times and observe\n          $h$ heads, $t = N - h$ tails. The likelihood is\n          $\\mathcal{L}(p) = p^h (1-p)^t$. MLE peaks at $\\hat p_{\\text{MLE}} = h/N$.",
+   "tags": []
+  },
+  "Put a $\\text{Beta}(\\alpha, \\beta)$ prior on $p$. Posterior is\n          $\\text{Beta}(\\alpha + h,\\ \\beta + t)$ — same family, just add the\n          counts. MAP peaks at the mode of that Beta.": {
+   "zh": "对 $p$ 施加 $\\text{Beta}(\\alpha, \\beta)$ 先验。后验为 $\\text{Beta}(\\alpha + h,\\ \\beta + t)$ —— 仍在同一分布族中，只需把计数加上去。MAP 在该 Beta 分布的众数处取峰。",
+   "src": "Put a $\\text{Beta}(\\alpha, \\beta)$ prior on $p$. Posterior is\n          $\\text{Beta}(\\alpha + h,\\ \\beta + t)$ — same family, just add the\n          counts. MAP peaks at the mode of that Beta.",
+   "tags": []
+  },
+  "Try it": {
+   "zh": "试一试",
+   "src": "Try it",
+   "tags": []
+  },
+  "The widget": {
+   "zh": "交互组件",
+   "src": "The widget",
+   "tags": []
+  },
+  "@@T0@@Interactive sliders for $\\alpha$, $\\beta$, true $p$, and $N$ go here.@@T1@@": {
+   "zh": "@@T0@@此处放置 $\\alpha$、$\\beta$、真实 $p$ 与 $N$ 的交互滑块。@@T1@@",
+   "src": "<em>Interactive sliders for $\\alpha$, $\\beta$, true $p$, and $N$ go here.</em>",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Plots: likelihood, prior, posterior on the same axis.@@T1@@": {
+   "zh": "@@T0@@绘图：在同一坐标轴上展示似然、先验与后验。@@T1@@",
+   "src": "<em>Plots: likelihood, prior, posterior on the same axis.</em>",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Read-out: MLE, posterior mean, MAP, KL(posterior &Vert; prior).@@T1@@": {
+   "zh": "@@T0@@读数：MLE、后验均值、MAP、KL(后验 &Vert; 先验)。@@T1@@",
+   "src": "<em>Read-out: MLE, posterior mean, MAP, KL(posterior &Vert; prior).</em>",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Status: scaffold. Implementation pending.@@T1@@": {
+   "zh": "@@T0@@状态：框架已搭好，实现待补。@@T1@@",
+   "src": "<em>Status: scaffold. Implementation pending.</em>",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "What to look for": {
+   "zh": "该观察什么",
+   "src": "What to look for",
+   "tags": []
+  },
+  "@@T0@@Small $N$ &middot; prior wins.@@T1@@ Posterior sits close to the prior. MAP $\\neq$ MLE.": {
+   "zh": "@@T0@@$N$ 小 &middot; 先验胜出。@@T1@@ 后验靠近先验。MAP $\\neq$ MLE。",
+   "src": "<strong>Small $N$ &middot; prior wins.</strong> Posterior sits close to the prior. MAP $\\neq$ MLE.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Large $N$ &middot; data wins.@@T1@@ Posterior collapses around $h/N$. MAP $\\to$ MLE.": {
+   "zh": "@@T0@@$N$ 大 &middot; 数据胜出。@@T1@@ 后验在 $h/N$ 附近收缩。MAP $\\to$ MLE。",
+   "src": "<strong>Large $N$ &middot; data wins.</strong> Posterior collapses around $h/N$. MAP $\\to$ MLE.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Wrong prior &middot; slow correction.@@T1@@ A strong Beta(50, 50) prior pulls MAP toward 0.5 even when the true bias is 0.8.": {
+   "zh": "@@T0@@先验错误 &middot; 修正缓慢。@@T1@@ 即便真实偏置为 0.8，一个很强的 Beta(50, 50) 先验仍会把 MAP 拉向 0.5。",
+   "src": "<strong>Wrong prior &middot; slow correction.</strong> A strong Beta(50, 50) prior pulls MAP toward 0.5 even when the true bias is 0.8.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "抛硬币上的 MLE 与 MAP",
+  "tagline": "滑动先验，抛几次硬币，观察估计如何从 MLE 移向 MAP。",
+  "summary": "一个实时的 Beta-二项演示。选择 Beta(α, β) 先验，观测一串抛掷结果，在同一坐标轴上看到似然、先验与后验。MLE 是似然取峰之处；MAP 是后验取峰之处。抛掷次数少时先验主导；抛掷次数多时 MAP → MLE。这是关于贝叶斯推断如何在有限样本上运作的最清晰的一幅图。",
+  "difficulty": "导论",
+  "collection": "深度学习",
+  "highlights": [
+   "滑动 α 与 β 以设定 Beta 先验；似然 + 先验 + 后验会实时重绘。",
+   "抛掷 1、10、100 或 1000 枚真实偏置为 p 的硬币；观察后验如何随 N 收紧。",
+   "侧栏读出 MLE 估计、后验均值，以及后验与先验之间的 KL。"
+  ],
+  "tags": [
+   "概率",
+   "MLE",
+   "MAP",
+   "贝叶斯",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

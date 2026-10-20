@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-embed="false">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:," />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Step through the dependency-safe ordering used by reverse-mode automatic differentiation."
+    />
+    <title>面向反向传播的拓扑序</title>
+    <script>
+      document.documentElement.dataset.embed =
+        new URLSearchParams(window.location.search).get("embed") === "1" ? "true" : "false";
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#topology-tool">跳至交互部分</a>
+
+    <header class="site-bar site-chrome">
+      <a class="back-link" href="../index.html" aria-label="返回讲解库">
+        <span aria-hidden="true">&larr;</span>
+        讲解库
+      </a>
+      <p>深度学习基础</p>
+    </header>
+
+    <main class="page-shell">
+      <section class="page-intro site-chrome" aria-labelledby="page-title">
+        <div>
+          <p class="page-kicker">交互式讲解</p>
+          <h1 id="page-title">反向传播为何需要一种顺序</h1>
+        </div>
+        <div class="intro-copy">
+          <p>
+            只有当所有下游路径都已对该节点作出贡献之后，梯度才能流经该节点。拓扑排序恰恰为我们提供了这样一种安全的调度方案。
+          </p>
+          <p class="intro-prompt">
+            逐步遍历一个真实的标量图。观察递归调用如何构建出一个依赖优先的列表，再将其反转一次以用于反向传播。
+          </p>
+        </div>
+      </section>
+
+      <ol class="route-strip site-chrome" aria-label="贯穿交互内容的三段式路径">
+        <li><span>01</span><strong>沿</strong>每个保存的 ParentLink 追踪到相应的操作数。</li>
+        <li><span>02</span><strong>仅在其父节点返回之后</strong>再追加该节点。</li>
+        <li><span>03</span><strong>为反向传播将完成的列表</strong>反转。</li>
+      </ol>
+
+      <section data-toposort-animation aria-label="依赖安全排序的交互式追踪"
+               id="topology-tool" tabindex="0" style="margin:0;">
+
+        <div class="tsa-shell">
+          <header class="tsa-heading">
+            <p class="tsa-kicker">交互式追踪 &middot; 与 notebook 完全一致的图</p>
+            <h2>观察 <code>dependency_safe_order(L)</code> 如何构建其列表</h2>
+            <p class="tsa-intro">每一步都是递归辅助函数执行的一次动作。图是固定的；只有调用栈、<code>seen</code> 与 <code>safe_order</code> 会发生变化。</p>
+          </header>
+
+          <div class="tsa-controls" role="group" aria-label="动画控制">
+            <button type="button" data-action="reset" title="重置（Home）">重置</button>
+            <button type="button" data-action="previous" title="上一步（左方向键）">上一步</button>
+            <button type="button" data-action="play" aria-pressed="false" title="播放或暂停（空格）">播放</button>
+            <button type="button" data-action="next" title="下一步（右方向键）">下一步</button>
+            <label class="tsa-speed">速度
+              <select data-action="speed" aria-label="播放速度">
+                <option value="1500">0.6×</option>
+                <option value="950" selected>1×</option>
+                <option value="520">1.8×</option>
+              </select>
+            </label>
+            <span class="tsa-step-count" data-step-count>第 0 步 / 共 0 步</span>
+          </div>
+
+          <div class="tsa-main">
+            <div class="tsa-visual">
+              <div class="tsa-action">
+                <span class="tsa-action-badge" data-kind="ready" data-action-badge>就绪</span>
+                <div class="tsa-status" data-status role="status" aria-live="polite">按下 <strong>下一步</strong> 或 <strong>播放</strong> 以调用 <code>append_after_parents(L)</code>。</div>
+              </div>
+
+              <div class="tsa-graph-scroll" tabindex="0" role="region"
+                   aria-label="可滚动的计算图；使用左右方向键平移">
+                <svg class="tsa-graph" viewBox="0 0 900 350" role="img">
+                  <title>Computation graph used by the dependency-order trace</title>
+                  <desc>The forward graph has leaves w and x creating m, m and b creating a, a and y creating e, and e creating L. The recursive traversal follows those edges in reverse, from each output to its parent operands.</desc>
+                  <defs>
+                    <marker id="tsa-forward-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                      <path d="M 0 0 L 10 5 L 0 10 z" fill="#71878A"/>
+                    </marker>
+                    <marker id="tsa-parent-arrow" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                      <path d="M 0 0 L 10 5 L 0 10 z" fill="#B35F0B"/>
+                    </marker>
+                  </defs>
+
+                  <path class="tsa-edge" data-child="m" data-parent="w" d="M150 62 C168 62 173 104 190 112"/>
+                  <path class="tsa-edge" data-child="m" data-parent="x" d="M150 157 C168 157 173 120 190 112"/>
+                  <path class="tsa-edge" data-child="a" data-parent="m" d="M315 112 C340 112 350 156 375 167"/>
+                  <path class="tsa-edge" data-child="a" data-parent="b" d="M315 237 C340 237 350 178 375 167"/>
+                  <path class="tsa-edge" data-child="e" data-parent="a" d="M500 167 C525 167 535 216 560 227"/>
+                  <path class="tsa-edge" data-child="e" data-parent="y" d="M500 292 C525 292 535 238 560 227"/>
+                  <path class="tsa-edge" data-child="L" data-parent="e" d="M685 227 L745 227"/>
+
+                  <g class="tsa-node" data-node="w" transform="translate(25 30)"><rect width="125" height="64" rx="13"/><text x="62.5" y="27" text-anchor="middle">w</text><text x="62.5" y="48" text-anchor="middle">leaf · value 2</text></g>
+                  <g class="tsa-node" data-node="x" transform="translate(25 125)"><rect width="125" height="64" rx="13"/><text x="62.5" y="27" text-anchor="middle">x</text><text x="62.5" y="48" text-anchor="middle">leaf · value 3</text></g>
+                  <g class="tsa-node" data-node="m" transform="translate(190 80)"><rect width="125" height="64" rx="13"/><text x="62.5" y="27" text-anchor="middle">m</text><text x="62.5" y="48" text-anchor="middle">w × x = 6</text></g>
+                  <g class="tsa-node" data-node="b" transform="translate(190 205)"><rect width="125" height="64" rx="13"/><text x="62.5" y="27" text-anchor="middle">b</text><text x="62.5" y="48" text-anchor="middle">leaf · value 1</text></g>
+                  <g class="tsa-node" data-node="a" transform="translate(375 135)"><rect width="125" height="64" rx="13"/><text x="62.5" y="27" text-anchor="middle">a</text><text x="62.5" y="48" text-anchor="middle">m + b = 7</text></g>
+                  <g class="tsa-node" data-node="y" transform="translate(375 260)"><rect width="125" height="64" rx="13"/><text x="62.5" y="27" text-anchor="middle">y</text><text x="62.5" y="48" text-anchor="middle">leaf · value 10</text></g>
+                  <g class="tsa-node" data-node="e" transform="translate(560 195)"><rect width="125" height="64" rx="13"/><text x="62.5" y="27" text-anchor="middle">e</text><text x="62.5" y="48" text-anchor="middle">a − y = −3</text></g>
+                  <g class="tsa-node" data-node="L" transform="translate(745 195)"><rect width="125" height="64" rx="13"/><text x="62.5" y="27" text-anchor="middle">L</text><text x="62.5" y="48" text-anchor="middle">e² = 9</text></g>
+
+                  <text x="25" y="342" class="tsa-node-index">forward graph: operands → outputs &nbsp; · &nbsp; traversal: output → saved parent operand</text>
+                </svg>
+              </div>
+              <p class="tsa-direction">移动的虚线边是一个保存的 <code>ParentLink</code>，正被从一个输出追踪回某个直接操作数。在手机上可横向滚动该图。</p>
+              <div class="tsa-node-legend" aria-label="节点颜色图例">
+                <span><i class="tsa-swatch"></i>未见过</span>
+                <span><i class="tsa-swatch seen"></i>已见过</span>
+                <span><i class="tsa-swatch stack"></i>位于调用栈</span>
+                <span><i class="tsa-swatch appended"></i>已追加</span>
+              </div>
+            </div>
+
+            <aside class="tsa-machine" aria-label="算法状态">
+              <p class="tsa-panel-title">当前正在运行的代码</p>
+              <pre class="tsa-code" aria-label="依赖安全排序伪代码"><code><span class="tsa-code-line" data-line="1">def append_after_parents(node):</span><span class="tsa-code-line" data-line="2">  if id(node) in seen: return</span><span class="tsa-code-line" data-line="3">  seen.add(id(node))</span><span class="tsa-code-line" data-line="4">  for link in node.parents:</span><span class="tsa-code-line" data-line="5">    append_after_parents(link.value)</span><span class="tsa-code-line" data-line="6">  safe_order.append(node)</span><span class="tsa-code-line" data-line="7"></span><span class="tsa-code-line" data-line="8">append_after_parents(L)</span><span class="tsa-code-line" data-line="9">return safe_order</span><span class="tsa-code-line" data-line="10"></span><span class="tsa-code-line" data-line="11">for output in reversed(safe_order):  # 反向传播</span></code></pre>
+
+              <div class="tsa-state-box">
+                <p class="tsa-panel-title">活跃的递归调用</p>
+                <div class="tsa-chip-row" data-stack aria-label="调用栈"><span class="tsa-empty">空</span></div>
+              </div>
+              <div class="tsa-state-box">
+                <p class="tsa-panel-title">已见过的值</p>
+                <div class="tsa-chip-row" data-seen aria-label="已见过的值"><span class="tsa-empty">暂无</span></div>
+                <p class="tsa-state-note">为便于阅读而按发现顺序展示；<code>seen</code> 是集合，因此只需关注成员资格。</p>
+              </div>
+              <div class="tsa-state-box">
+                <p class="tsa-panel-title">当前的 ParentLink</p>
+                <div class="tsa-link-state" data-link-state aria-live="polite"><span class="tsa-empty">当前没有在追踪任何链接。</span></div>
+                <p class="tsa-state-note">排序追踪的是 <code>.value</code>。保存的 <code>.local_grad</code> 会被显示，但在反向传播之前始终未被使用。</p>
+              </div>
+            </aside>
+          </div>
+
+          <div class="tsa-ledgers">
+            <section class="tsa-ledger">
+              <p class="tsa-panel-title">正在构建的依赖优先输出</p>
+              <div class="tsa-chip-row" data-order aria-label="依赖优先输出"><span class="tsa-empty">空</span></div>
+              <p>只有当每一个递归的父调用都已返回之后，某个 Value 才会进入该列表。</p>
+            </section>
+            <section class="tsa-ledger">
+              <p class="tsa-panel-title">当前各结构的含义</p>
+              <p><code>stack</code> 回答「哪些调用正在等待？」· <code>seen</code> 防止同一个共享 Value 被调度两次 · <code>safe_order</code> 是即将被反转的列表。</p>
+            </section>
+          </div>
+
+          <section class="tsa-backward" data-backward hidden aria-label="最终反向传播调度">
+            <p class="tsa-panel-title">反转一次 &middot; 反向传播调度</p>
+            <div class="tsa-chip-row" data-backward-order></div>
+            <p><strong>为何每个节点都已就绪：</strong>反转后，输出被置于它能够更新的操作数之前。因此，在某个节点将该节点已完成的梯度发送给自己的父节点之前，所有可能对该节点的 <code>.grad</code> 作出贡献的后续输出都已执行完毕。</p>
+          </section>
+
+          <div class="tsa-action-key" aria-label="动作类型图例">
+            <span><b class="tsa-legend-badge enter">进入</b> 开始一次调用并标记为新的</span>
+            <span><b class="tsa-legend-badge follow">追踪链接</b> 递归至某个操作数</span>
+            <span><b class="tsa-legend-badge skip">跳过已见过</b> 对共享 Value 立即返回；此图恰好从不需要它</span>
+            <span><b class="tsa-legend-badge append">追加</b> 父节点均已完成</span>
+            <span><b class="tsa-legend-badge unwind">回退</b> 子调用已返回</span>
+            <span><b class="tsa-legend-badge return">返回</b> 排序已完成</span>
+            <span><b class="tsa-legend-badge reverse">反转</b> 进入反向传播调度</span>
+            <span class="tsa-keyboard">当面板本身获得焦点时的键盘操作：← 上一步 · → 下一步 · 空格 播放/暂停 · Home 重置。</span>
+          </div>
+          <div class="tsa-print-summary">
+            <strong>依赖优先顺序：</strong> w → x → m → b → a → y → e → L<br>
+            <strong>为反向传播反转后：</strong> L → e → y → a → b → m → x → w<br>
+            每个操作数都出现在使用它的输出之前；反转后，每个输出在向自己的操作数发送梯度贡献之前就已就绪。
+          </div>
+        </div>
+        <noscript><p><strong>JavaScript 已关闭。</strong>请使用紧邻本追踪上方的静态依赖顺序图。</p></noscript>
+      </section>
+
+      <section class="takeaway site-chrome" aria-labelledby="takeaway-title">
+        <p class="page-kicker">不变式</p>
+        <h2 id="takeaway-title">等待梯度完整</h2>
+        <p>
+          前向图由操作数指向输出。该遍历沿保存的父链接以相反方向行进，并在返回途中追加。反转该列表后，每个输出都被置于它所要更新其梯度缓冲区的操作数之前。
+        </p>
+      </section>
+    </main>
+
+    <footer class="site-footer site-chrome">
+      <p>为印度理工学院甘地讷格尔分校的 ES 667：深度学习课程而设计。</p>
+    </footer>
+
+    <p class="sr-only" data-payload-status aria-live="polite"></p>
+    <script src="app.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

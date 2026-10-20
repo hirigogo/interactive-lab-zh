@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>神经网络过程实战</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>神经网络过程实战</h1>
+        <p class="abstract">
+          一种像高斯过程那样学习「函数先验」的神经网络 &mdash;— 只不过它是摊销式的。点击若干上下文点；一个条件神经网络过程（CNP）会预测其余部分，其不确定性在数据缺失处张得更开。可与在同一上下文上拟合的真实 GP 作比较。
+        </p>
+        <div class="byline">
+          <span>约 20 分钟</span>
+          <span>概率 &middot; 元学习 &middot; 不确定性</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>NP 解决的是什么问题？</h2>
+        <p>
+          你手头有一小批 $(x, y)$ 对构成的<em>上下文</em>集，希望在新 $x$ 处预测 $y$ 并给出不确定性。高斯过程借助核函数做到这一点。神经网络过程则用一个学习得到的编码器 / 解码器取代核函数，并把推断<em>摊销</em>化：在测试时只需一次前向传播 &mdash;— 无需优化，也无需做核矩阵求逆。
+        </p>
+        <ul class="explanation-list">
+          <li><strong>GP。</strong> 不确定性刻画优美，但复杂度为上下文规模的 $O(N^3)$，而且你必须选取一个核函数。</li>
+          <li><strong>NP。</strong> 评估代价低，无需选择核函数。但你必须先在一个相关任务的分布上训练它。</li>
+        </ul>
+        <div class="callout callout--key">
+          <strong>一句话口号。</strong> NP 是 GP 的一个元学习代理模型。你为众多函数支付一次性的训练成本；此后每一次预测都只是一次前向传播。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">步骤 1</div>
+        <h2>架构：编码器 → 聚合 → 解码器</h2>
+        <p>
+          条件神经网络过程（Garnelo 等，2018）：
+        </p>
+        <div class="math-block" id="math-cnp"></div>
+        <p>
+          $h$ 是一个小型 MLP，把每个上下文对 $(x_i, y_i)$ 转换为表示 $r_i$。聚合器是一种置换不变的池化（均值），把它们聚成一个表示 $r$。解码器 $g$ 把 $(x_*, r)$ 映射为任意查询 $x_*$ 处的预测均值与方差。
+        </p>
+        <div class="bayes-figure">
+          <canvas id="np-arch" width="880" height="220"></canvas>
+          <figcaption>CNP 流水线。均值池化使模型对上下文集合具有置换不变性。</figcaption>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">步骤 2</div>
+        <h2>动手试试：点击数据点，观察后验</h2>
+        <p>
+          在画布上任意位置点击即可添加一个上下文点。右键点击（或按住 Shift 点击）删除。该模型已在一族光滑函数上预训练；它不会随你的点击而训练 &mdash;— 每增加一个点，它只执行一次前向传播。作为对照，同时展示在同一上下文上拟合的 GP。
+        </p>
+        <div class="train-controls">
+          <button class="action-btn action-btn--ghost" id="np-clear">清空上下文</button>
+          <button class="action-btn action-btn--ghost" id="np-seed">载入正弦示例</button>
+          <label>变体
+            <select id="np-变体">
+              <option value="cnp" selected>CNP（确定性）</option>
+              <option value="lnp">潜变量 NP（采样）</option>
+              <option value="anp">注意力 NP</option>
+            </select>
+          </label>
+          <span class="train-stat">|上下文| = <strong id="np-n">0</strong></span>
+        </div>
+        <div class="np-grid">
+          <div class="np-panel">
+            <div class="panel-label">神经网络过程后验（均值 ± 2σ）</div>
+            <canvas id="np-canvas" width="540" height="380"></canvas>
+          </div>
+          <div class="np-panel">
+            <div class="panel-label">同一上下文上的 GP 后验（RBF）</div>
+            <canvas id="gp-canvas" width="540" height="380"></canvas>
+          </div>
+        </div>
+        <div class="callout callout--think">
+          <strong>应当留意之处。</strong>
+          当上下文点为 0 时，NP 返回其训练族群的先验均值（通常大致为零）并给出很宽的带；GP 则返回其先验。添加几个点后，二者的带都会在局部收窄。在远离数据之处，NP 的带<em>形状</em>略有不同 &mdash;— NP 已从它所训练的族群中学到了哪些类型的函数更可能出现（光滑性、周期性）；而 GP 只知道自己的核超参数。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-2a">
+        <div class="step-badge">步骤 2½</div>
+        <h2>训练目标 —— 从形式上看元学习</h2>
+        <p>
+          NP 通过<em>元学习</em>来训练：模拟许多小型数据集，并要求 NP 在每个数据集内部预测被留出的点。对于上下文为 $\mathcal{C} = \{(x_i, y_i)\}$、目标为 $\mathcal{T} = \{(x_j, y_j)\}$ 的单个任务，确定性的 CNP 最小化
+        </p>
+        <div class="math-block" id="math-cnp-loss"></div>
+        <p>
+          其中 $\mu, \sigma^2$ 来自以聚合表示为条件的解码器 $r_\mathcal{C}$。该期望是对从任务分布中采样的众多 $(\mathcal{C}, \mathcal{T})$ 对求取的。
+        </p>
+        <p>
+          <strong>潜变量 NP</strong> 引入一个全局潜变量 $z$，并使用 ELBO：
+        </p>
+        <div class="math-block" id="math-lnp-loss"></div>
+        <p>
+          $q(z|\mathcal{C} \cup \mathcal{T})$ 是变分后验（在上下文 + 目标上的编码器）；$p(z|\mathcal{C})$ 是先验（仅在上下文上的编码器）。采样 $z$ 可在各查询之间得到相互一致的函数样本——即像 GP 那样抽取整条函数。CNP 是其退化情形，此时 $z$ 坍缩为一个点估计。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">步骤 3</div>
+        <h2>各变体及其各自的增益</h2>
+        <ul class="explanation-list">
+          <li><strong>CNP。</strong> 确定性。对每个查询预测均值 + 方差。代价低，单次前向传播。无法采样出整条一致的函数。</li>
+          <li><strong>潜变量 NP（LNP）。</strong> 增加一个概括整条函数的随机潜变量 $z$。采样一次 $z$，解码多次查询 &mdash;— 你就得到一条连贯的函数样本，如同 GP 的一次抽样。代价是要面对更紧的 ELBO 损失与更难的训练。</li>
+          <li><strong>注意力 NP（ANP）。</strong> 用从查询到上下文的注意力取代均值聚合。GP 那种类似核函数的行为重新出现：每个查询都会检索最相关的上下文点。对许多任务而言是两全其美之选。</li>
+          <li><strong>卷积 NP（ConvNP）。</strong> 当输入是一维信号 / 时间序列时使用卷积编码器 &mdash;— 尊重平移等变性。在传感器 / 气候数据上表现强劲。</li>
+          <li><strong>Transformer NP / 仅含注意力的 NP（NeuralProcessFamily）。</strong> 现代变体倾向于去掉显式的聚合器，转而对（上下文 ⊕ 查询）词元使用 Transformer。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">步骤 4</div>
+        <h2>何时选用 NP，何时选用 GP</h2>
+        <ul class="explanation-list">
+          <li><strong>大量相似任务，且每个任务数据很少。</strong>
+            逐个传感器的校准、逐位患者的个性化、逐幅图像的小样本回归。NP 在此大放异彩：在整个族群上训练一次；对下一个实例的预测只需毫秒级。</li>
+          <li><strong>单一任务但数据很多。</strong> 使用带诱导点的 GP（SVGP），或在 $N \le 10^4$ 时使用精确 GP，通常优于 NP。NP 的摊销优势便不复存在。</li>
+          <li><strong>在线流式场景。</strong> NP 天然地处理「上下文随时间增长」，因为每次预测都是一次前向传播。而 GP 需要重新拟合（或采用在线更新）。</li>
+          <li><strong>图像 / 二维补全。</strong> 条件 NP 变体只需一次前向传播，即可从 $k$ 个像素补全出整幅 CelebA 图像——在这个用例中，在图像上的元训练分布是自然而然的选择。</li>
+          <li><strong>贝叶斯优化。</strong> Transformer 神经网络过程（TNP）可作为 BO 的有力代理模型，具有同类的摊销特性：在一族目标函数上训练一次，部署时无需针对每个目标函数拟合超参数。</li>
+        </ul>
+        <div class="callout callout--think">
+          <strong>最终要点。</strong>
+          神经网络过程就是被摊销化的 GP。如果你有大量彼此相关的小任务，并希望得到快速且不确定性经过校准的预测，它们就是正确的工具。如果你只有单一的大任务，并想要清晰的概率语义，那么 GP（或深度核学习）仍然胜出。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">步骤 5</div>
+        <h2>失效模式及识别方法</h2>
+        <ul class="explanation-list">
+          <li><strong>过度保守（置信不足）。</strong> 以高斯似然训练的 CNP 往往给出过宽的区间——模型是在针对元训练分布做对冲。可用可靠性图来诊断；通过注意力（ANP）、更具表现力的似然，或事后校准来修正。</li>
+          <li><strong>LNP 中的后验坍缩。</strong> 若解码器过强，潜变量 $z$ 会变得无信息量，LNP 便退化为 CNP。可用 $\beta$-VAE 式的退火或 free-bits 来修正。</li>
+          <li><strong>分布外的上下文。</strong> 如果测试上下文来自元训练中未曾见过的函数族群，NP 的外推会很糟糕。真正的 GP 只会把它的带拉宽；而 NP 却可能自信地给出一个错误答案。</li>
+          <li><strong>置换不变性被破坏。</strong> 务必确保聚合器（均值 / 注意力）真正具有置换不变性。一个值得检查的隐蔽缺陷：打乱上下文的顺序，检验预测结果是否逐位完全相同。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-6">
+        <div class="step-badge">步骤 6</div>
+        <h2>参考文献</h2>
+        <ul class="explanation-list">
+          <li><strong>Garnelo 等（2018）</strong> &mdash;— <em>Conditional Neural Processes.</em></li>
+          <li><strong>Garnelo 等（2018）</strong> &mdash;— <em>Neural Processes.</em>（潜变量变体。）</li>
+          <li><strong>Kim 等（2019）</strong> &mdash;— <em>Attentive Neural Processes.</em></li>
+          <li><strong>Gordon 等（2020）</strong> &mdash;— <em>Convolutional Conditional Neural Processes.</em></li>
+          <li><strong>Nguyen &amp; Grover（2022）</strong> &mdash;— <em>Transformer Neural Processes.</em></li>
+          <li><strong>Bruinsma 等（2023）</strong> &mdash;— <em>The Neural Process Family</em> 教科书章节；标准的教学参考。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

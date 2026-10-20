@@ -1,0 +1,1151 @@
+{
+ "slug": "universal-approximation",
+ "units": {
+  "A Visual Proof That One Layer Can Compute Anything": {
+   "zh": "一层网络能够计算任意函数的可视化证明",
+   "src": "A Visual Proof That One Layer Can Compute Anything",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "The Universal Approximation Theorem says a neural net with a\n          @@T0@@single@@T1@@ hidden layer can mimic almost any function. This page\n          rebuilds Michael Nielsen's beautiful visual argument, one grabbable\n          piece at a time&mdash;you'll flatten a sigmoid into a step, glue two\n          steps into a bump, design a whole curve by hand, then stack\n          @@T2@@towers@@T3@@ into a 3-D surface. No proof. Just pictures you can\n          drag.": {
+   "zh": "通用逼近定理指出，具有@@T0@@单个@@T1@@隐藏层的神经网络可以模拟几乎任意函数。本页逐步重建 Michael Nielsen 优美的可视化论证，一次一个可拖拽的部件——你将把一个 sigmoid 压平为阶跃，把两个阶跃粘合成一个凸包，手工设计整条曲线，再把@@T2@@塔块@@T3@@堆叠成三维曲面。这里没有形式化证明，只有可以拖动的图形。",
+   "src": "The Universal Approximation Theorem says a neural net with a\n          <em>single</em> hidden layer can mimic almost any function. This page\n          rebuilds Michael Nielsen's beautiful visual argument, one grabbable\n          piece at a time&mdash;you'll flatten a sigmoid into a step, glue two\n          steps into a bump, design a whole curve by hand, then stack\n          <em>towers</em> into a 3-D surface. No proof. Just pictures you can\n          drag.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~22 min@@T1@@\n          @@T2@@Deep Learning &middot; Neural Networks &middot; Approximation@@T3@@": {
+   "zh": "@@T0@@约 22 分钟@@T1@@\n          @@T2@@深度学习 &middot; 神经网络 &middot; 函数逼近@@T3@@",
+   "src": "<span>~22 min</span>\n          <span>Deep Learning &middot; Neural Networks &middot; Approximation</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "The claim that sounds too good": {
+   "zh": "一个听起来过于美好的论断",
+   "src": "The claim that sounds too good",
+   "tags": []
+  },
+  "Here is one of the most quoted results in machine learning: a\n          feed-forward network with a @@T0@@single hidden layer@@T1@@ can\n          approximate @@T2@@any@@T3@@ continuous function to @@T4@@any@@T5@@ accuracy,\n          given enough neurons. One layer. Any function. People repeat it like a\n          slogan&mdash;but almost nobody can @@T6@@see@@T7@@ why it's true.": {
+   "zh": "这是机器学习中被引用最多的结论之一：只要神经元足够多，具有@@T0@@单个隐藏层@@T1@@的前馈网络就能以@@T4@@任意@@T5@@精度逼近@@T2@@任意@@T3@@连续函数。一层网络，任意函数。人们把它当作口号反复传诵——却几乎没有人能@@T6@@看懂@@T7@@它为何成立。",
+   "src": "Here is one of the most quoted results in machine learning: a\n          feed-forward network with a <strong>single hidden layer</strong> can\n          approximate <em>any</em> continuous function to <em>any</em> accuracy,\n          given enough neurons. One layer. Any function. People repeat it like a\n          slogan&mdash;but almost nobody can <em>see</em> why it's true.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "We're going to make it visible, following Michael Nielsen's\n          construction from\n          @@T0@@Chapter&nbsp;4@@T1@@\n          of @@T2@@Neural Networks and Deep Learning@@T3@@. Two honest caveats\n          first, because the theorem is a little narrower than the slogan:": {
+   "zh": "我们将让它变得可见，沿用 Michael Nielsen 在@@T2@@《Neural Networks and Deep Learning》@@T3@@@@T0@@第 4 章@@T1@@中给出的构造。先说明两点必要的限定，因为这个定理比那句口号要稍微狭窄一些：",
+   "src": "We're going to make it visible, following Michael Nielsen's\n          construction from\n          <a href=\"http://neuralnetworksanddeeplearning.com/chap4.html\" target=\"_blank\" rel=\"noopener\">Chapter&nbsp;4</a>\n          of <em>Neural Networks and Deep Learning</em>. Two honest caveats\n          first, because the theorem is a little narrower than the slogan:",
+   "tags": [
+    "<a href=\"http://neuralnetworksanddeeplearning.com/chap4.html\" target=\"_blank\" rel=\"noopener\">",
+    "</a>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Caveat 1 &mdash; approximate, not exact.@@T1@@\n          We won't compute a function perfectly. We'll get @@T2@@arbitrarily\n          close@@T3@@&mdash;and we shrink the gap by adding more neurons.": {
+   "zh": "@@T0@@限定 1——是逼近，而非精确。@@T1@@\n          我们不能完美地计算一个函数，只能做到@@T2@@任意接近@@T3@@——并且通过增加神经元来缩小差距。",
+   "src": "<strong>Caveat 1 &mdash; approximate, not exact.</strong>\n          We won't compute a function perfectly. We'll get <em>arbitrarily\n          close</em>&mdash;and we shrink the gap by adding more neurons.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Caveat 2 &mdash; continuous functions only.@@T1@@\n          The target has to be continuous (no instantaneous jumps). That's the\n          class one hidden layer can handle.": {
+   "zh": "@@T0@@限定 2——仅限连续函数。@@T1@@\n          目标函数必须是连续的（没有瞬时跳跃）。这正是单个隐藏层所能处理的那一类函数。",
+   "src": "<strong>Caveat 2 &mdash; continuous functions only.</strong>\n          The target has to be continuous (no instantaneous jumps). That's the\n          class one hidden layer can handle.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The whole plan, in seven moves": {
+   "zh": "整体方案，共分七步",
+   "src": "The whole plan, in seven moves",
+   "tags": []
+  },
+  "A sigmoid neuron is an @@T0@@S-curve@@T1@@.": {
+   "zh": "一个 sigmoid 神经元是一条@@T0@@S 形曲线@@T1@@。",
+   "src": "A sigmoid neuron is an <strong>S-curve</strong>.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Crank its weight and the S becomes a @@T0@@step@@T1@@.": {
+   "zh": "把它的权重调大，S 形就变成@@T0@@阶跃@@T1@@。",
+   "src": "Crank its weight and the S becomes a <strong>step</strong>.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Subtract two steps to get a @@T0@@bump@@T1@@.": {
+   "zh": "两个阶跃相减得到一个@@T0@@凸包@@T1@@。",
+   "src": "Subtract two steps to get a <strong>bump</strong>.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Line up bumps to @@T0@@design any 1-D curve@@T1@@.": {
+   "zh": "把凸包排成一行，即可@@T0@@设计出任意一维曲线@@T1@@。",
+   "src": "Line up bumps to <strong>design any 1-D curve</strong>.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "In 2-D, cross two bumps and threshold to get a @@T0@@tower@@T1@@.": {
+   "zh": "在二维情形下，把两个凸包相乘并作阈值处理，得到一个@@T0@@塔块@@T1@@。",
+   "src": "In 2-D, cross two bumps and threshold to get a <strong>tower</strong>.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Tile towers@@T1@@ to build any surface.": {
+   "zh": "@@T0@@平铺塔块@@T1@@，即可构造出任意曲面。",
+   "src": "<strong>Tile towers</strong> to build any surface.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Notice what the proof @@T0@@doesn't@@T1@@ promise.": {
+   "zh": "留意这个证明@@T0@@并未@@T1@@承诺什么。",
+   "src": "Notice what the proof <strong>doesn't</strong> promise.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The trick the whole way through: stop thinking of the hidden layer as\n          &ldquo;a network&rdquo; and start thinking of it as a kit of\n          interchangeable @@T0@@bricks@@T1@@. Let's forge the first brick.": {
+   "zh": "贯穿始终的技巧在于：不要再把隐藏层看作“一个网络”，而要把它看作一箱可互换的@@T0@@积木@@T1@@。我们先来锻造第一块积木。",
+   "src": "The trick the whole way through: stop thinking of the hidden layer as\n          &ldquo;a network&rdquo; and start thinking of it as a kit of\n          interchangeable <em>bricks</em>. Let's forge the first brick.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "One sigmoid neuron is an S-curve": {
+   "zh": "单个 sigmoid 神经元是一条 S 形曲线",
+   "src": "One sigmoid neuron is an S-curve",
+   "tags": []
+  },
+  "A single hidden neuron with a sigmoid activation computes": {
+   "zh": "单个采用 sigmoid 激活的隐藏神经元计算的是",
+   "src": "A single hidden neuron with a sigmoid activation computes",
+   "tags": []
+  },
+  "where $\\sigma(z) = 1/(1 + e^{-z})$ is the smooth S-shaped sigmoid. The\n          @@T0@@weight $w$@@T1@@ controls how steep the S is; the\n          @@T2@@bias $b$@@T3@@ slides it left and right. That's the\n          neuron's entire repertoire&mdash;a single soft &ldquo;on/off&rdquo;\n          ramp.": {
+   "zh": "其中 $\\sigma(z) = 1/(1 + e^{-z})$ 是光滑的 S 形 sigmoid 函数。@@T0@@权重 $w$@@T1@@ 控制 S 形的陡峭程度；@@T2@@偏置 $b$@@T3@@ 使它左右平移。这就是该神经元的全部能力——一条柔和的“开/关”斜坡。",
+   "src": "where $\\sigma(z) = 1/(1 + e^{-z})$ is the smooth S-shaped sigmoid. The\n          <strong>weight $w$</strong> controls how steep the S is; the\n          <strong>bias $b$</strong> slides it left and right. That's the\n          neuron's entire repertoire&mdash;a single soft &ldquo;on/off&rdquo;\n          ramp.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Drag both sliders and watch the curve tilt and slide.": {
+   "zh": "拖动两个滑块，观察曲线如何倾斜与平移。",
+   "src": "Drag both sliders and watch the curve tilt and slide.",
+   "tags": []
+  },
+  "Weight @@T0@@w = @@T1@@8@@T2@@@@T3@@": {
+   "zh": "权重 @@T0@@w = @@T1@@8@@T2@@@@T3@@",
+   "src": "Weight <span>w = <span id=\"val-n1-w\">8</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"val-n1-w\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Bias @@T0@@b = @@T1@@-4.0@@T2@@@@T3@@": {
+   "zh": "偏置 @@T0@@b = @@T1@@-4.0@@T2@@@@T3@@",
+   "src": "Bias <span>b = <span id=\"val-n1-b\">-4.0</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"val-n1-b\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "One sigmoid neuron: @@T0@@@@T1@@": {
+   "zh": "单个 sigmoid 神经元：@@T0@@@@T1@@",
+   "src": "One sigmoid neuron: <span id=\"neuron-formula\" style=\"font-family:var(--mono)\"></span>",
+   "tags": [
+    "<span id=\"neuron-formula\" style=\"font-family:var(--mono)\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Notice.@@T1@@\n          The curve always runs from $0$ on the far left to $1$ on the far\n          right. Bigger $|w|$ makes the transition sharper. What happens if you\n          crank $w$ all the way to $80$? The S squeezes into a vertical cliff\n          &mdash; a @@T2@@step@@T3@@. Hold that thought; it's the next move.": {
+   "zh": "@@T0@@请留意。@@T1@@\n          这条曲线总是从最左端的 $0$ 升到最右端的 $1$。$|w|$ 越大，过渡越锐利。如果把 $w$ 一直调到 $80$ 会怎样？S 形被挤压成一道竖直的悬崖——一个@@T2@@阶跃@@T3@@。记住这一点，它就是下一步。",
+   "src": "<strong>Notice.</strong>\n          The curve always runs from $0$ on the far left to $1$ on the far\n          right. Bigger $|w|$ makes the transition sharper. What happens if you\n          crank $w$ all the way to $80$? The S squeezes into a vertical cliff\n          &mdash; a <em>step</em>. Hold that thought; it's the next move.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Crank the weight &rarr; a step function": {
+   "zh": "把权重调大 &rarr; 得到阶跃函数",
+   "src": "Crank the weight &rarr; a step function",
+   "tags": []
+  },
+  "When the weight is enormous, the sigmoid stops looking like a gentle\n          S and snaps into a @@T0@@step function@@T1@@: $0$ on the left,\n          $1$ on the right, with a near-vertical cliff in between. That's a huge\n          simplification&mdash;a step is described by a single number: the\n          @@T2@@position@@T3@@ of its cliff.": {
+   "zh": "当权重极大时，sigmoid 不再像一条柔和的 S 形，而是突变为@@T0@@阶跃函数@@T1@@：左侧为 $0$，右侧为 $1$，中间是一道近乎竖直的悬崖。这是一次极大的简化——一个阶跃只需用单个数字描述：其悬崖的@@T2@@位置@@T3@@。",
+   "src": "When the weight is enormous, the sigmoid stops looking like a gentle\n          S and snaps into a <strong>step function</strong>: $0$ on the left,\n          $1$ on the right, with a near-vertical cliff in between. That's a huge\n          simplification&mdash;a step is described by a single number: the\n          <strong>position</strong> of its cliff.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The cliff sits where the sigmoid's input is zero, i.e. $wx + b = 0$,\n          so $x = -b/w$. Nielsen's key move is to @@T0@@rename@@T1@@ the neuron by\n          this position. Define the step position": {
+   "zh": "悬崖位于 sigmoid 输入为零之处，即 $wx + b = 0$，故 $x = -b/w$。Nielsen 的关键动作是用这个位置为神经元@@T0@@重新命名@@T1@@。定义阶跃位置",
+   "src": "The cliff sits where the sigmoid's input is zero, i.e. $wx + b = 0$,\n          so $x = -b/w$. Nielsen's key move is to <em>rename</em> the neuron by\n          this position. Define the step position",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Now we can forget $w$ and $b$ and just say &ldquo;a step at\n          $s$.&rdquo; The first slider below sets $s$ @@T0@@directly@@T1@@ (it\n          solves for the bias behind the scenes). The second shows why a big\n          weight is what lets us pretend a sigmoid is a clean step.": {
+   "zh": "现在我们大可忘掉 $w$ 和 $b$，直接说“位于 $s$ 处的阶跃”。下面的第一个滑块@@T0@@直接@@T1@@设定 $s$（它在背后反解出偏置）。第二个滑块则说明为何权重足够大时我们才能把 sigmoid 当作干净的阶跃。",
+   "src": "Now we can forget $w$ and $b$ and just say &ldquo;a step at\n          $s$.&rdquo; The first slider below sets $s$ <em>directly</em> (it\n          solves for the bias behind the scenes). The second shows why a big\n          weight is what lets us pretend a sigmoid is a clean step.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Slide the steepness up to make a sharp cliff, then down to watch it\n          melt back into a soft S.": {
+   "zh": "把陡峭度调高以形成锐利的悬崖，再调低，观察它重新融回柔和的 S 形。",
+   "src": "Slide the steepness up to make a sharp cliff, then down to watch it\n          melt back into a soft S.",
+   "tags": []
+  },
+  "Step position @@T0@@s = @@T1@@0.40@@T2@@@@T3@@": {
+   "zh": "阶跃位置 @@T0@@s = @@T1@@0.40@@T2@@@@T3@@",
+   "src": "Step position <span>s = <span id=\"val-step-s\">0.40</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"val-step-s\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Steepness @@T0@@w = @@T1@@60@@T2@@@@T3@@": {
+   "zh": "陡峭度 @@T0@@w = @@T1@@60@@T2@@@@T3@@",
+   "src": "Steepness <span>w = <span id=\"val-step-w\">60</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"val-step-w\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "A high-weight sigmoid behaving as a step at $x = s$.": {
+   "zh": "高权重下的 sigmoid 在 $x = s$ 处表现为阶跃。",
+   "src": "A high-weight sigmoid behaving as a step at $x = s$.",
+   "tags": []
+  },
+  "@@T0@@The payoff.@@T1@@\n          From here on, every hidden neuron is just &ldquo;a step at position\n          $s$.&rdquo; One number per neuron. That's the vocabulary we build\n          everything else from.": {
+   "zh": "@@T0@@收获。@@T1@@\n          自此以后，每个隐藏神经元不过是“位于位置 $s$ 处的一个阶跃”。一个神经元对应一个数字。这就是我们构建其余一切时所使用的词汇。",
+   "src": "<strong>The payoff.</strong>\n          From here on, every hidden neuron is just &ldquo;a step at position\n          $s$.&rdquo; One number per neuron. That's the vocabulary we build\n          everything else from.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Two steps make a bump": {
+   "zh": "两个阶跃构成一个凸包",
+   "src": "Two steps make a bump",
+   "tags": []
+  },
+  "Let's build this one slowly, by stacking sigmoids one at a time. Below\n          is a little workbench: a list of sigmoid neurons and a plot. Each\n          neuron is drawn as a @@T0@@dashed@@T1@@\n          curve in its own colour; the @@T2@@orange@@T3@@\n          line is the @@T4@@running total@@T5@@&mdash;everything added up.\n          Use the @@T6@@●@@T7@@ button to switch a neuron on or off, and\n          watch the total change.": {
+   "zh": "我们慢慢来，一次叠加一个 sigmoid。下面是一个小型工作台：一份 sigmoid 神经元列表和一个绘图区。每个神经元都以其自身颜色画成一条@@T0@@虚线@@T1@@曲线；@@T2@@橙色@@T3@@线是@@T4@@累计总和@@T5@@——即所有项相加的结果。用 @@T6@@●@@T7@@ 按钮开启或关闭某个神经元，观察总和的变化。",
+   "src": "Let's build this one slowly, by stacking sigmoids one at a time. Below\n          is a little workbench: a list of sigmoid neurons and a plot. Each\n          neuron is drawn as a <span style=\"color:var(--accent);font-weight:600\">dashed</span>\n          curve in its own colour; the <span style=\"color:var(--warm);font-weight:600\">orange</span>\n          line is the <strong>running total</strong>&mdash;everything added up.\n          Use the <strong>●</strong> button to switch a neuron on or off, and\n          watch the total change.",
+   "tags": [
+    "<span style=\"color:var(--accent);font-weight:600\">",
+    "</span>",
+    "<span style=\"color:var(--warm);font-weight:600\">",
+    "</span>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Start with the two neurons already there but turn the second one\n          @@T0@@off@@T1@@: you're left with a single @@T2@@rising step@@T3@@\n          at $s_1$, with output weight $+1$. It goes up and stays up&mdash;not\n          very local. Now turn the second one back on. It's a step at $s_2$, but\n          its output weight is $-1$, so it's a step that goes @@T4@@down@@T5@@. Add\n          the two together:": {
+   "zh": "先看已有的两个神经元，把第二个@@T0@@关闭@@T1@@：只剩下 $s_1$ 处一个@@T2@@上升阶跃@@T3@@，其输出权重为 $+1$。它一旦上升就保持不降——并不局部。现在把第二个重新打开。它是 $s_2$ 处的阶跃，但输出权重为 $-1$，因此是一个@@T4@@下降@@T5@@阶跃。把两者相加：",
+   "src": "Start with the two neurons already there but turn the second one\n          <em>off</em>: you're left with a single <strong>rising step</strong>\n          at $s_1$, with output weight $+1$. It goes up and stays up&mdash;not\n          very local. Now turn the second one back on. It's a step at $s_2$, but\n          its output weight is $-1$, so it's a step that goes <em>down</em>. Add\n          the two together:",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "To the left of $s_1$ both are $0$, so the total is $0$. Between $s_1$\n          and $s_2$ only the first is on, so the total sits at $+1$. After $s_2$\n          the down-step kicks in and cancels it back to $0$. What's left is a\n          @@T0@@bump@@T1@@&mdash;a little plateau between the two steps.\n          @@T2@@That's our brick.@@T3@@": {
+   "zh": "在 $s_1$ 左侧两者都是 $0$，总和为 $0$。在 $s_1$ 与 $s_2$ 之间只有第一个起作用，总和保持在 $+1$。越过 $s_2$ 后下降阶跃开始生效，把它抵消回 $0$。剩下的就是一个@@T0@@凸包@@T1@@——两个阶跃之间的一小块平台。@@T2@@这就是我们的积木。@@T3@@",
+   "src": "To the left of $s_1$ both are $0$, so the total is $0$. Between $s_1$\n          and $s_2$ only the first is on, so the total sits at $+1$. After $s_2$\n          the down-step kicks in and cancels it back to $0$. What's left is a\n          <strong>bump</strong>&mdash;a little plateau between the two steps.\n          <em>That's our brick.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Toggle the second neuron off and on to see the bump appear and vanish.\n          Drag the positions and weights. Then press @@T0@@Add sigmoid@@T1@@\n          and stack a few more&mdash;every curve you build is just a sum of these\n          soft steps.": {
+   "zh": "反复开闭第二个神经元，观察凸包如何出现与消失。拖动位置和权重。然后点击@@T0@@添加 sigmoid@@T1@@，再叠加若干个——你构造出的每条曲线都只是这些柔和阶跃之和。",
+   "src": "Toggle the second neuron off and on to see the bump appear and vanish.\n          Drag the positions and weights. Then press <strong>Add sigmoid</strong>\n          and stack a few more&mdash;every curve you build is just a sum of these\n          soft steps.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Steepness @@T0@@w = @@T1@@30@@T2@@@@T3@@ (shared)": {
+   "zh": "陡峭度 @@T0@@w = @@T1@@30@@T2@@@@T3@@（共享）",
+   "src": "Steepness <span>w = <span id=\"val-stacker-w\">30</span></span> (shared)",
+   "tags": [
+    "<span>",
+    "<span id=\"val-stacker-w\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Build": {
+   "zh": "构建",
+   "src": "Build",
+   "tags": []
+  },
+  "+ Add sigmoid": {
+   "zh": "+ 添加 sigmoid",
+   "src": "+ Add sigmoid",
+   "tags": []
+  },
+  "Reset to a bump": {
+   "zh": "重置为单个凸包",
+   "src": "Reset to a bump",
+   "tags": []
+  },
+  "Each @@T0@@dashed@@T1@@ curve is one\n            sigmoid&rsquo;s contribution; the\n            @@T2@@solid orange@@T3@@\n            curve is their sum.": {
+   "zh": "每条@@T0@@虚线@@T1@@曲线是一个 sigmoid 的贡献；@@T2@@橙色实线@@T3@@曲线是它们的总和。",
+   "src": "Each <span style=\"font-weight:600\">dashed</span> curve is one\n            sigmoid&rsquo;s contribution; the\n            <span style=\"color:var(--warm);font-weight:600\">solid orange</span>\n            curve is their sum.",
+   "tags": [
+    "<span style=\"font-weight:600\">",
+    "</span>",
+    "<span style=\"color:var(--warm);font-weight:600\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Why subtraction is the trick.@@T1@@\n          A single step can only go up. Two steps&mdash;one up, one down a little\n          later&mdash;leave a flat island in between. That island is the only\n          shape we'll ever need: a movable, stretchable, flippable bump.": {
+   "zh": "@@T0@@为何相减是关键。@@T1@@\n          单个阶跃只能上升。两个阶跃——一个上升，稍后另一个下降——会在其间留下一块平坦的小岛。这块小岛正是我们唯一需要的形状：一个可移动、可拉伸、可翻转的凸包。",
+   "src": "<strong>Why subtraction is the trick.</strong>\n          A single step can only go up. Two steps&mdash;one up, one down a little\n          later&mdash;leave a flat island in between. That island is the only\n          shape we'll ever need: a movable, stretchable, flippable bump.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Design a curve by hand": {
+   "zh": "手工设计一条曲线",
+   "src": "Design a curve by hand",
+   "tags": []
+  },
+  "Chop $[0, 1]$ into $N$ adjacent slabs and drop one bump on each. The\n          hidden layer's output becomes a row of independent plateaus&mdash;bump\n          $i$ contributes its height on slab $i$:": {
+   "zh": "把 $[0, 1]$ 切成 $N$ 个相邻的区间，在每个区间上放一个凸包。隐藏层的输出便成为一排相互独立的平台——第 $i$ 个凸包在第 $i$ 个区间上贡献其高度：",
+   "src": "Chop $[0, 1]$ into $N$ adjacent slabs and drop one bump on each. The\n          hidden layer's output becomes a row of independent plateaus&mdash;bump\n          $i$ contributes its height on slab $i$:",
+   "tags": []
+  },
+  "Each slider below is one bump's height. The faint shaded blocks are the\n          bumps themselves; the @@T0@@blue@@T1@@\n          line is what the network actually outputs as it rides along their tops.\n          Set the bars to trace the @@T2@@orange@@T3@@\n          target&mdash;then add more slabs for a finer trace.": {
+   "zh": "下面的每个滑块对应一个凸包的高度。浅色的阴影块就是凸包本身；@@T0@@蓝色@@T1@@线是网络沿各凸包顶端行进时实际输出的结果。调整各条形以描出@@T2@@橙色@@T3@@目标曲线——然后增加区间数目以获得更精细的拟合。",
+   "src": "Each slider below is one bump's height. The faint shaded blocks are the\n          bumps themselves; the <span style=\"color:var(--accent);font-weight:600\">blue</span>\n          line is what the network actually outputs as it rides along their tops.\n          Set the bars to trace the <span style=\"color:var(--warm);font-weight:600\">orange</span>\n          target&mdash;then add more slabs for a finer trace.",
+   "tags": [
+    "<span style=\"color:var(--accent);font-weight:600\">",
+    "</span>",
+    "<span style=\"color:var(--warm);font-weight:600\">",
+    "</span>"
+   ]
+  },
+  "Try it by hand, or hit @@T0@@Auto-fit@@T1@@ to snap every bar to\n          the target. Then drag $N$ up and watch the staircase tighten.": {
+   "zh": "你可以手工调节，也可以点击@@T0@@自动拟合@@T1@@让每个条形对齐目标。然后增大 $N$，观察阶梯如何变密。",
+   "src": "Try it by hand, or hit <strong>Auto-fit</strong> to snap every bar to\n          the target. Then drag $N$ up and watch the staircase tighten.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Sine wave": {
+   "zh": "正弦波",
+   "src": "Sine wave",
+   "tags": []
+  },
+  "Nielsen's wiggle": {
+   "zh": "Nielsen 的摆动曲线",
+   "src": "Nielsen's wiggle",
+   "tags": []
+  },
+  "Single hill": {
+   "zh": "单峰",
+   "src": "Single hill",
+   "tags": []
+  },
+  "Sharp spike": {
+   "zh": "尖峰",
+   "src": "Sharp spike",
+   "tags": []
+  },
+  "Two humps": {
+   "zh": "双峰",
+   "src": "Two humps",
+   "tags": []
+  },
+  "Staircase": {
+   "zh": "阶梯",
+   "src": "Staircase",
+   "tags": []
+  },
+  "Smooth cliff": {
+   "zh": "平滑陡崖",
+   "src": "Smooth cliff",
+   "tags": []
+  },
+  "Plateaus": {
+   "zh": "平台",
+   "src": "Plateaus",
+   "tags": []
+  },
+  "Number of bumps @@T0@@N = @@T1@@8@@T2@@@@T3@@": {
+   "zh": "凸包数量 @@T0@@N = @@T1@@8@@T2@@@@T3@@",
+   "src": "Number of bumps <span>N = <span id=\"val-design-n\">8</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"val-design-n\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Shortcut": {
+   "zh": "快捷方式",
+   "src": "Shortcut",
+   "tags": []
+  },
+  "Auto-fit the bars": {
+   "zh": "自动拟合各条形",
+   "src": "Auto-fit the bars",
+   "tags": []
+  },
+  "Optional / advanced": {
+   "zh": "选读 / 进阶",
+   "src": "Optional / advanced",
+   "tags": []
+  },
+  "Peek: the un-squished goal": {
+   "zh": "预览：未经压缩的目标",
+   "src": "Peek: the un-squished goal",
+   "tags": []
+  },
+  "@@T0@@Orange@@T1@@: target.\n            @@T2@@Blue@@T3@@: your\n            hand-built output.": {
+   "zh": "@@T0@@橙色@@T1@@：目标。\n            @@T2@@蓝色@@T3@@：你手工构建的输出。",
+   "src": "<span style=\"color:var(--warm);font-weight:600\">Orange</span>: target.\n            <span style=\"color:var(--accent);font-weight:600\">Blue</span>: your\n            hand-built output.",
+   "tags": [
+    "<span style=\"color:var(--warm);font-weight:600\">",
+    "</span>",
+    "<span style=\"color:var(--accent);font-weight:600\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Bumps (hidden neurons)@@T1@@\n            @@T2@@12@@T3@@": {
+   "zh": "@@T0@@凸包（隐藏神经元）@@T1@@\n            @@T2@@12@@T3@@",
+   "src": "<span class=\"stat-label\">Bumps (hidden neurons)</span>\n            <span class=\"stat-value\" id=\"stat-design-neurons\">12</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"stat-design-neurons\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Slab width@@T1@@\n            @@T2@@0.17@@T3@@": {
+   "zh": "@@T0@@区间宽度@@T1@@\n            @@T2@@0.17@@T3@@",
+   "src": "<span class=\"stat-label\">Slab width</span>\n            <span class=\"stat-value\" id=\"stat-design-slab\">0.17</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"stat-design-slab\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Avg. deviation@@T1@@\n            @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@平均偏差@@T1@@\n            @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Avg. deviation</span>\n            <span class=\"stat-value\" id=\"stat-design-err\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"stat-design-err\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@More bumps, smaller gap.@@T1@@\n          Crank $N$ up and re-fit. The staircase gets finer and the deviation\n          shrinks toward zero. That's the entire theorem in one slider:\n          @@T2@@accuracy is bought with width.@@T3@@": {
+   "zh": "@@T0@@凸包越多，差距越小。@@T1@@\n          增大 $N$ 并重新拟合。阶梯变得更细密，偏差趋于零。整个定理就浓缩在这一个滑块里：@@T2@@精度是用宽度换来的。@@T3@@",
+   "src": "<strong>More bumps, smaller gap.</strong>\n          Crank $N$ up and re-fit. The staircase gets finer and the deviation\n          shrinks toward zero. That's the entire theorem in one slider:\n          <em>accuracy is bought with width.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "One small wrinkle &mdash; safe to skip": {
+   "zh": "一个小的细节——可以跳过",
+   "src": "One small wrinkle &mdash; safe to skip",
+   "tags": []
+  },
+  "You may have noticed the bars don't sit at exactly the same heights\n            as the target. Here's why, in one breath: a real output neuron takes\n            the bumps' total and squishes it through @@T0@@one more sigmoid@@T1@@.\n            So to make the final answer land on, say, $0.8$, the bumps don't aim\n            for $0.8$&mdash;they aim for the value that @@T2@@becomes@@T3@@ $0.8$\n            after the squish. That value is written $\\sigma^{-1}(0.8)$, read\n            &ldquo;sigma-inverse,&rdquo; and it just means @@T4@@undo the\n            sigmoid@@T5@@.": {
+   "zh": "你可能已经注意到，各条形所在的高度与目标并不完全一致。原因一句话即可说清：真正的输出神经元会把凸包的总和再通过@@T0@@一个 sigmoid@@T1@@压缩一次。因此，若想让最终答案落在比如 $0.8$ 上，凸包瞄准的并不是 $0.8$——它们瞄准的是经过压缩后@@T2@@恰好变成@@T3@@ $0.8$ 的那个值。该值记作 $\\sigma^{-1}(0.8)$，读作“sigma 逆”，意思就是@@T4@@把 sigmoid 反解@@T5@@。",
+   "src": "You may have noticed the bars don't sit at exactly the same heights\n            as the target. Here's why, in one breath: a real output neuron takes\n            the bumps' total and squishes it through <em>one more sigmoid</em>.\n            So to make the final answer land on, say, $0.8$, the bumps don't aim\n            for $0.8$&mdash;they aim for the value that <em>becomes</em> $0.8$\n            after the squish. That value is written $\\sigma^{-1}(0.8)$, read\n            &ldquo;sigma-inverse,&rdquo; and it just means <em>undo the\n            sigmoid</em>.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The same target before and after &ldquo;un-squishing.&rdquo; The\n              dashed purple curve, $\\sigma^{-1}(f)$, is what the bumps secretly\n              aim at&mdash;it's just the target, stretched out.": {
+   "zh": "同一目标在“解压缩”前后的对比。紫色虚线 $\\sigma^{-1}(f)$ 正是凸包暗中瞄准的对象——它不过是把目标拉伸开来。",
+   "src": "The same target before and after &ldquo;un-squishing.&rdquo; The\n              dashed purple curve, $\\sigma^{-1}(f)$, is what the bumps secretly\n              aim at&mdash;it's just the target, stretched out.",
+   "tags": []
+  },
+  "You never have to think about this to use the tool above. But if you\n            press @@T0@@&ldquo;Peek: the un-squished goal,&rdquo;@@T1@@ the\n            plot switches to that stretched-out world&mdash;and there the bumps\n            literally @@T2@@add up@@T3@@ to the goal, no squishing in the way.": {
+   "zh": "使用上面的工具时你完全不必考虑这一点。但如果你点击@@T0@@“预览：未经压缩的目标”@@T1@@，绘图区就会切换到那个被拉伸的世界——在那里，凸包确实可以@@T2@@直接相加@@T3@@得到目标，不受压缩干扰。",
+   "src": "You never have to think about this to use the tool above. But if you\n            press <strong>&ldquo;Peek: the un-squished goal,&rdquo;</strong> the\n            plot switches to that stretched-out world&mdash;and there the bumps\n            literally <em>add up</em> to the goal, no squishing in the way.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Halfway": {
+   "zh": "中途小结",
+   "src": "Halfway",
+   "tags": []
+  },
+  "So far: bricks on a line": {
+   "zh": "到目前为止：直线上的积木",
+   "src": "So far: bricks on a line",
+   "tags": []
+  },
+  "Pause and take stock. We turned a neuron into a step, two steps into a\n          bump, and a row of bumps into any 1-D curve we like. The recipe was:\n          @@T0@@chop the input into slabs, raise a bump to the right height on\n          each.@@T1@@": {
+   "zh": "先暂停并梳理一下。我们把一个神经元变成了阶跃，把两个阶跃变成了凸包，又把一排凸包变成了任意想要的一维曲线。配方是：@@T0@@把输入切成区间，在每个区间上竖起一个高度合适的凸包。@@T1@@",
+   "src": "Pause and take stock. We turned a neuron into a step, two steps into a\n          bump, and a row of bumps into any 1-D curve we like. The recipe was:\n          <em>chop the input into slabs, raise a bump to the right height on\n          each.</em>",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Now we want functions of @@T0@@two@@T1@@ inputs&mdash;a height\n          for every point on a floor, i.e. a surface. The plan is exactly the\n          same, but our brick has to become a @@T2@@tower@@T3@@: something\n          that's tall in one little square of the floor and flat everywhere\n          else. Building that tower is the one genuinely clever step in the whole\n          argument, so we'll take it slowly.": {
+   "zh": "现在我们要处理@@T0@@两个@@T1@@输入的函数——即地面上每个点对应一个高度，也就是一个曲面。方案完全相同，但我们的积木必须变成@@T2@@塔块@@T3@@：在地面的某个小方块上高耸、在其他各处平坦的形状。构造这个塔块是整个论证中唯一真正巧妙的一步，因此我们慢慢来。",
+   "src": "Now we want functions of <strong>two</strong> inputs&mdash;a height\n          for every point on a floor, i.e. a surface. The plan is exactly the\n          same, but our brick has to become a <strong>tower</strong>: something\n          that's tall in one little square of the floor and flat everywhere\n          else. Building that tower is the one genuinely clever step in the whole\n          argument, so we'll take it slowly.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Two inputs: build a tower, step by step": {
+   "zh": "两个输入：逐步构造一个塔块",
+   "src": "Two inputs: build a tower, step by step",
+   "tags": []
+  },
+  "With two inputs $x$ and $y$, a neuron's &ldquo;step&rdquo; becomes a\n          @@T0@@wall@@T1@@: it only listens to $x$, so it's a cliff running\n          all the way along $y$. Watch the four panels below&mdash;they're the\n          same construction as before, just lifted into 3-D. Drag any slider;\n          all four update together. @@T2@@Drag any panel to orbit it@@T3@@\n          (or use the Rotate slider) and look around the build.": {
+   "zh": "有了两个输入 $x$ 与 $y$，神经元的“阶跃”就变成一堵@@T0@@墙@@T1@@：它只关注 $x$，因此是一道沿 $y$ 方向一直延伸的悬崖。观察下面四个面板——它们与之前是同一套构造，只是被抬高到三维。拖动任意滑块，四个面板会同步更新。@@T2@@拖动任意面板可使其旋转@@T3@@（或使用“旋转”滑块），环视整个构造。",
+   "src": "With two inputs $x$ and $y$, a neuron's &ldquo;step&rdquo; becomes a\n          <strong>wall</strong>: it only listens to $x$, so it's a cliff running\n          all the way along $y$. Watch the four panels below&mdash;they're the\n          same construction as before, just lifted into 3-D. Drag any slider;\n          all four update together. <strong>Drag any panel to orbit it</strong>\n          (or use the Rotate slider) and look around the build.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@1. Wall.@@T1@@ One step in $x$ &mdash; a cliff.": {
+   "zh": "@@T0@@1. 墙。@@T1@@ 在 $x$ 方向上的一个阶跃——一道悬崖。",
+   "src": "<strong>1. Wall.</strong> One step in $x$ &mdash; a cliff.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@2. Ridge.@@T1@@ Two steps subtracted &mdash; a bump in $x$, a long wall-top.": {
+   "zh": "@@T0@@2. 脊。@@T1@@ 两个阶跃相减——$x$ 方向上的一个凸包，形成一条长长的墙顶。",
+   "src": "<strong>2. Ridge.</strong> Two steps subtracted &mdash; a bump in $x$, a long wall-top.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@3. Cross.@@T1@@ Add a ridge in $x$ and a ridge in $y$. They pile to height $2h$ where they overlap, $h$ on the arms.": {
+   "zh": "@@T0@@3. 十字。@@T1@@ 把 $x$ 方向的脊与 $y$ 方向的脊相加。重叠处堆叠到高度 $2h$，两臂处为 $h$。",
+   "src": "<strong>3. Cross.</strong> Add a ridge in $x$ and a ridge in $y$. They pile to height $2h$ where they overlap, $h$ on the arms.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@4. Tower.@@T1@@ Pass the cross through one more sigmoid with a @@T2@@threshold@@T3@@ between $h$ and $2h$. Only the $2h$ overlap survives.": {
+   "zh": "@@T0@@4. 塔块。@@T1@@ 让该十字再经过一个 sigmoid，其@@T2@@阈值@@T3@@取在 $h$ 与 $2h$ 之间。只有 $2h$ 的重叠部分得以保留。",
+   "src": "<strong>4. Tower.</strong> Pass the cross through one more sigmoid with a <em>threshold</em> between $h$ and $2h$. Only the $2h$ overlap survives.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Center x @@T0@@= @@T1@@0.50@@T2@@@@T3@@": {
+   "zh": "中心 x @@T0@@= @@T1@@0.50@@T2@@@@T3@@",
+   "src": "Center x <span>= <span id=\"val-tower-cx\">0.50</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"val-tower-cx\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Center y @@T0@@= @@T1@@0.50@@T2@@@@T3@@": {
+   "zh": "中心 y @@T0@@= @@T1@@0.50@@T2@@@@T3@@",
+   "src": "Center y <span>= <span id=\"val-tower-cy\">0.50</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"val-tower-cy\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Tower size @@T0@@= @@T1@@0.34@@T2@@@@T3@@": {
+   "zh": "塔块尺寸 @@T0@@= @@T1@@0.34@@T2@@@@T3@@",
+   "src": "Tower size <span>= <span id=\"val-tower-size\">0.34</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"val-tower-size\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Threshold @@T0@@= @@T1@@1.50@@T2@@@@T3@@·h": {
+   "zh": "阈值 @@T0@@= @@T1@@1.50@@T2@@@@T3@@·h",
+   "src": "Threshold <span>= <span id=\"val-tower-thr\">1.50</span></span>·h",
+   "tags": [
+    "<span>",
+    "<span id=\"val-tower-thr\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Steepness @@T0@@w = @@T1@@40@@T2@@@@T3@@": {
+   "zh": "陡峭度 @@T0@@w = @@T1@@40@@T2@@@@T3@@",
+   "src": "Steepness <span>w = <span id=\"val-tower-w\">40</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"val-tower-w\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Rotate @@T0@@↻@@T1@@": {
+   "zh": "旋转 @@T0@@↻@@T1@@",
+   "src": "Rotate <span>↻</span>",
+   "tags": [
+    "<span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@1 · Wall (one step in x)@@T1@@": {
+   "zh": "@@T0@@1 · 墙（$x$ 方向的一个阶跃）@@T1@@",
+   "src": "<span class=\"quad-canvas-label\">1 · Wall (one step in x)</span>",
+   "tags": [
+    "<span class=\"quad-canvas-label\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@2 · Ridge (bump in x)@@T1@@": {
+   "zh": "@@T0@@2 · 脊（$x$ 方向的凸包）@@T1@@",
+   "src": "<span class=\"quad-canvas-label\">2 · Ridge (bump in x)</span>",
+   "tags": [
+    "<span class=\"quad-canvas-label\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@3 · Cross (x-ridge + y-ridge, peaks at 2h)@@T1@@": {
+   "zh": "@@T0@@3 · 十字（$x$ 脊 + $y$ 脊，峰值达 $2h$）@@T1@@",
+   "src": "<span class=\"quad-canvas-label\">3 · Cross (x-ridge + y-ridge, peaks at 2h)</span>",
+   "tags": [
+    "<span class=\"quad-canvas-label\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@4 · Tower (thresholded)@@T1@@": {
+   "zh": "@@T0@@4 · 塔块（经阈值处理）@@T1@@",
+   "src": "<span class=\"quad-canvas-label\">4 · Tower (thresholded)</span>",
+   "tags": [
+    "<span class=\"quad-canvas-label\">",
+    "</span>"
+   ]
+  },
+  "Brighter and taller = higher value. Slide the @@T0@@threshold@@T1@@\n            from $0.5h$ up to $2h$ and watch the cross in panel&nbsp;3 collapse\n            into the clean tower in panel&nbsp;4.": {
+   "zh": "越亮、越高表示取值越大。把@@T0@@阈值@@T1@@从 $0.5h$ 调到 $2h$，观察面板 3 中的十字如何塌缩为面板 4 中干净的塔块。",
+   "src": "Brighter and taller = higher value. Slide the <strong>threshold</strong>\n            from $0.5h$ up to $2h$ and watch the cross in panel&nbsp;3 collapse\n            into the clean tower in panel&nbsp;4.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Why threshold at $1.5h$?@@T1@@\n          It's the only level that separates &ldquo;both ridges on&rdquo; ($2h$)\n          from &ldquo;just one&rdquo; ($h$). Set the threshold too low and the\n          ridge arms leak through into a plus-shape; too high and even the center\n          dies. The tower is what's left when you keep @@T2@@only@@T3@@ the overlap.": {
+   "zh": "@@T0@@为何阈值取 $1.5h$？@@T1@@\n          这是唯一能把“两条脊同时开启”（$2h$）与“只有一条开启”（$h$）区分开的水平。阈值设得过低，脊的两臂会漏过而形成十字形状；设得过高，连中心都会被削掉。当你@@T2@@只@@T3@@保留重叠部分时，剩下的就是塔块。",
+   "src": "<strong>Why threshold at $1.5h$?</strong>\n          It's the only level that separates &ldquo;both ridges on&rdquo; ($2h$)\n          from &ldquo;just one&rdquo; ($h$). Set the threshold too low and the\n          ridge arms leak through into a plus-shape; too high and even the center\n          dies. The tower is what's left when you keep <em>only</em> the overlap.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Tile towers into any surface": {
+   "zh": "平铺塔块以构造任意曲面",
+   "src": "Tile towers into any surface",
+   "tags": []
+  },
+  "A tower is a movable, resizable block of adjustable height. Cover the\n          floor with a grid of them and set each tower's height to the value of\n          the target surface at that spot. The sum is a 3-D\n          &ldquo;staircase&rdquo; that hugs the surface&mdash;and just like in\n          1-D, a finer grid means a closer fit. That's universal approximation\n          for two inputs, and the same move tiles into any number of inputs.": {
+   "zh": "塔块是一个可移动、可缩放、高度可调的方块。用一网格这样的方块铺满地面，并把每个塔块的高度设为目标曲面在该处的取值。其总和构成一个贴合曲面的三维“阶梯”——与一维情形一样，网格越细，拟合越接近。这就是两个输入下的通用逼近，而同样的做法可平铺到任意多个输入。",
+   "src": "A tower is a movable, resizable block of adjustable height. Cover the\n          floor with a grid of them and set each tower's height to the value of\n          the target surface at that spot. The sum is a 3-D\n          &ldquo;staircase&rdquo; that hugs the surface&mdash;and just like in\n          1-D, a finer grid means a closer fit. That's universal approximation\n          for two inputs, and the same move tiles into any number of inputs.",
+   "tags": []
+  },
+  "The @@T0@@Single spike@@T1@@ target makes the towers easy to\n          see&mdash;they stack into a little stepped pyramid. Drag\n          @@T2@@resolution@@T3@@ up to add towers and watch the blocks\n          shrink toward the smooth target. @@T4@@Drag a surface to orbit\n          it@@T5@@ (or use the Rotate slider) and admire the skyline.": {
+   "zh": "@@T0@@单尖峰@@T1@@目标让塔块很容易辨认——它们堆成一座小小的阶梯金字塔。增大@@T2@@分辨率@@T3@@以增加塔块，观察各方块如何收缩并逼近光滑目标。@@T4@@拖动曲面可使其旋转@@T5@@（或使用“旋转”滑块），欣赏这幅天际线。",
+   "src": "The <strong>Single spike</strong> target makes the towers easy to\n          see&mdash;they stack into a little stepped pyramid. Drag\n          <strong>resolution</strong> up to add towers and watch the blocks\n          shrink toward the smooth target. <strong>Drag a surface to orbit\n          it</strong> (or use the Rotate slider) and admire the skyline.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Single spike": {
+   "zh": "单尖峰",
+   "src": "Single spike",
+   "tags": []
+  },
+  "Four spikes": {
+   "zh": "四尖峰",
+   "src": "Four spikes",
+   "tags": []
+  },
+  "Peak &amp; pit": {
+   "zh": "峰与谷",
+   "src": "Peak &amp; pit",
+   "tags": []
+  },
+  "Mountains": {
+   "zh": "群山",
+   "src": "Mountains",
+   "tags": []
+  },
+  "Saddle": {
+   "zh": "鞍面",
+   "src": "Saddle",
+   "tags": []
+  },
+  "Ripples": {
+   "zh": "波纹",
+   "src": "Ripples",
+   "tags": []
+  },
+  "Grid resolution @@T0@@@@T1@@7@@T2@@ &times; @@T3@@7@@T4@@ towers@@T5@@": {
+   "zh": "网格分辨率 @@T0@@@@T1@@7@@T2@@ &times; @@T3@@7@@T4@@ 个塔块@@T5@@",
+   "src": "Grid resolution <span><span id=\"val-surface-res\">7</span> &times; <span id=\"val-surface-res2\">7</span> towers</span>",
+   "tags": [
+    "<span>",
+    "<span id=\"val-surface-res\">",
+    "</span>",
+    "<span id=\"val-surface-res2\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Target surface f(x, y)@@T1@@": {
+   "zh": "@@T0@@目标曲面 f(x, y)@@T1@@",
+   "src": "<span class=\"dual-canvas-label\">Target surface f(x, y)</span>",
+   "tags": [
+    "<span class=\"dual-canvas-label\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Tiled towers approximation@@T1@@": {
+   "zh": "@@T0@@塔块平铺逼近@@T1@@",
+   "src": "<span class=\"dual-canvas-label\">Tiled towers approximation</span>",
+   "tags": [
+    "<span class=\"dual-canvas-label\">",
+    "</span>"
+   ]
+  },
+  "Same colours and heights on both. The right surface is built\n            entirely from sigmoid towers&mdash;raise the resolution and the\n            skyline melts into the target.": {
+   "zh": "两幅图的颜色与高度完全一致。右侧曲面完全由 sigmoid 塔块堆成——提高分辨率，天际线便会融入目标。",
+   "src": "Same colours and heights on both. The right surface is built\n            entirely from sigmoid towers&mdash;raise the resolution and the\n            skyline melts into the target.",
+   "tags": []
+  },
+  "@@T0@@Towers@@T1@@\n            @@T2@@49@@T3@@": {
+   "zh": "@@T0@@塔块@@T1@@\n            @@T2@@49@@T3@@",
+   "src": "<span class=\"stat-label\">Towers</span>\n            <span class=\"stat-value\" id=\"stat-surface-towers\">49</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"stat-surface-towers\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Hidden neurons@@T1@@\n            @@T2@@196@@T3@@": {
+   "zh": "@@T0@@隐藏神经元@@T1@@\n            @@T2@@196@@T3@@",
+   "src": "<span class=\"stat-label\">Hidden neurons</span>\n            <span class=\"stat-value\" id=\"stat-surface-neurons\">196</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"stat-surface-neurons\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Mean squared error@@T1@@\n            @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@均方误差@@T1@@\n            @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Mean squared error</span>\n            <span class=\"stat-value\" id=\"stat-surface-mse\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"stat-surface-mse\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Count the cost.@@T1@@\n          Each tower needs $4$ hidden neurons (two ridges &times; two steps). A\n          $7\\times7$ grid is $49$ towers&mdash;$196$ neurons&mdash;for a coarse\n          fit. Push the resolution up and the neuron count explodes. The theorem\n          guarantees a fit @@T2@@exists@@T3@@; it never promised it would be cheap.": {
+   "zh": "@@T0@@算一算代价。@@T1@@\n          每个塔块需要 $4$ 个隐藏神经元（两条脊 &times; 两个阶跃）。$7\\times7$ 的网格就是 $49$ 个塔块——$196$ 个神经元——而这只是粗糙的拟合。把分辨率推高，神经元数量会急剧膨胀。这个定理保证拟合@@T2@@存在@@T3@@；它从未承诺这会是廉价的。",
+   "src": "<strong>Count the cost.</strong>\n          Each tower needs $4$ hidden neurons (two ridges &times; two steps). A\n          $7\\times7$ grid is $49$ towers&mdash;$196$ neurons&mdash;for a coarse\n          fit. Push the resolution up and the neuron count explodes. The theorem\n          guarantees a fit <em>exists</em>; it never promised it would be cheap.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 7": {
+   "zh": "第 7 步",
+   "src": "Step 7",
+   "tags": []
+  },
+  "What the proof does @@T0@@not@@T1@@ say": {
+   "zh": "这个证明@@T0@@没有@@T1@@说的话",
+   "src": "What the proof does <em>not</em> say",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "You've now built the whole argument with your own hands: step &rarr;\n          bump &rarr; designed curve &rarr; tower &rarr; tiled surface. It's\n          genuinely a proof of universality. But four things quietly get lost\n          when it's flattened into a slogan:": {
+   "zh": "至此你已用自己的双手搭建了完整论证：阶跃 &rarr; 凸包 &rarr; 设计的曲线 &rarr; 塔块 &rarr; 平铺曲面。这确实是对通用性的一个证明。但当它被压缩成一句口号时，有四件事悄然丢失了：",
+   "src": "You've now built the whole argument with your own hands: step &rarr;\n          bump &rarr; designed curve &rarr; tower &rarr; tiled surface. It's\n          genuinely a proof of universality. But four things quietly get lost\n          when it's flattened into a slogan:",
+   "tags": []
+  },
+  "@@T0@@Myth@@T1@@": {
+   "zh": "@@T0@@迷思@@T1@@",
+   "src": "<span class=\"misconception-icon\">Myth</span>",
+   "tags": [
+    "<span class=\"misconception-icon\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@&ldquo;One hidden layer is enough in practice.&rdquo;@@T1@@@@T2@@\n              Enough @@T3@@width@@T4@@ suffices in principle&mdash;but the width can\n              be astronomical. Our tiling spent $4$ neurons per tower and still\n              gave a blocky fit. @@T5@@Depth@@T6@@ lets a network build bumps from\n              bumps and reuse parts, which is why real networks are deep, not\n              absurdly wide.": {
+   "zh": "@@T0@@“在实践中一个隐藏层就够了。”@@T1@@@@T2@@\n              原则上，足够的@@T3@@宽度@@T4@@确实够用——但这个宽度可能高得离谱。我们的平铺方式每个塔块花掉 $4$ 个神经元，拟合结果仍然呈块状。@@T5@@深度@@T6@@使网络能够用凸包构建凸包、复用部件，这正是真实网络选择加深而非荒谬地加宽的原因。",
+   "src": "<strong>&ldquo;One hidden layer is enough in practice.&rdquo;</strong><br />\n              Enough <em>width</em> suffices in principle&mdash;but the width can\n              be astronomical. Our tiling spent $4$ neurons per tower and still\n              gave a blocky fit. <em>Depth</em> lets a network build bumps from\n              bumps and reuse parts, which is why real networks are deep, not\n              absurdly wide.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@&ldquo;Training will find this network.&rdquo;@@T1@@@@T2@@\n              We @@T3@@placed@@T4@@ every step and height by hand. The proof shows a\n              good network @@T5@@exists@@T6@@; it's silent on whether gradient\n              descent can discover it. Existence and learnability are different\n              questions.": {
+   "zh": "@@T0@@“训练会找到这个网络。”@@T1@@@@T2@@\n              我们每一个阶跃和高度都是@@T3@@手工摆放@@T4@@的。该证明说明存在一个好的网络@@T5@@@@T6@@；但对梯度下降能否发现它则只字未提。存在性与可学习性是两个不同的问题。",
+   "src": "<strong>&ldquo;Training will find this network.&rdquo;</strong><br />\n              We <em>placed</em> every step and height by hand. The proof shows a\n              good network <em>exists</em>; it's silent on whether gradient\n              descent can discover it. Existence and learnability are different\n              questions.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@&ldquo;Sigmoids are special.&rdquo;@@T1@@@@T2@@\n              Nothing here needs the sigmoid in particular&mdash;any non-linear\n              activation that can act like a step (or a hinge, for ReLU) works.\n              The S-curve just made the step picture vivid.": {
+   "zh": "@@T0@@“sigmoid 是特殊的。”@@T1@@@@T2@@\n              这里的任何环节都不特别依赖 sigmoid——任何能够起到阶跃作用的非线性激活函数（对 ReLU 而言则是折角）都可以。S 形曲线只是让阶跃的图像更直观而已。",
+   "src": "<strong>&ldquo;Sigmoids are special.&rdquo;</strong><br />\n              Nothing here needs the sigmoid in particular&mdash;any non-linear\n              activation that can act like a step (or a hinge, for ReLU) works.\n              The S-curve just made the step picture vivid.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@&ldquo;It means networks generalize.&rdquo;@@T1@@@@T2@@\n              The construction fits the target on the region you tile&mdash;it's\n              about @@T3@@representing@@T4@@ a function, not predicting well on new\n              inputs. Generalization is a separate story told by data and\n              inductive bias.": {
+   "zh": "@@T0@@“这意味着网络能够泛化。”@@T1@@@@T2@@\n              该构造只在你所平铺的区域上拟合目标——它关乎函数的@@T3@@表示@@T4@@，而非在新输入上预测良好。泛化是另一个由数据和归纳偏置所讲述的故事。",
+   "src": "<strong>&ldquo;It means networks generalize.&rdquo;</strong><br />\n              The construction fits the target on the region you tile&mdash;it's\n              about <em>representing</em> a function, not predicting well on new\n              inputs. Generalization is a separate story told by data and\n              inductive bias.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          &ldquo;Universal&rdquo; means a single hidden layer of bumps can be\n          arranged to match any continuous function as closely as you like. You\n          didn't take that on faith&mdash;you flattened the sigmoids, glued the\n          bumps, and stacked the towers yourself. The art of modern deep learning\n          is doing the same thing @@T2@@efficiently@@T3@@: with depth, good\n          optimizers, and the right inductive biases.": {
+   "zh": "@@T0@@最后总结。@@T1@@\n          “通用”意味着，只要把单个隐藏层中的凸包摆放得当，就能以任意接近的程度匹配任何连续函数。你并没有凭信念接受这一点——你亲手压平了 sigmoid、粘合了凸包、堆叠了塔块。现代深度学习的艺术在于@@T2@@高效地@@T3@@完成同样的事情：借助深度、优秀的优化器以及恰当的归纳偏置。",
+   "src": "<strong>Final takeaway.</strong>\n          &ldquo;Universal&rdquo; means a single hidden layer of bumps can be\n          arranged to match any continuous function as closely as you like. You\n          didn't take that on faith&mdash;you flattened the sigmoids, glued the\n          bumps, and stacked the towers yourself. The art of modern deep learning\n          is doing the same thing <em>efficiently</em>: with depth, good\n          optimizers, and the right inductive biases.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Sigmoid neurons": {
+   "zh": "Sigmoid 神经元",
+   "src": "Sigmoid neurons",
+   "tags": []
+  },
+  "Target function": {
+   "zh": "目标函数",
+   "src": "Target function",
+   "tags": []
+  },
+  "Per-bump height sliders": {
+   "zh": "各凸包高度滑块",
+   "src": "Per-bump height sliders",
+   "tags": []
+  },
+  "Target surface": {
+   "zh": "目标曲面",
+   "src": "Target surface",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "一层网络能够计算任意函数的可视化证明",
+  "tagline": "把 sigmoid 压成阶跃、粘出凸包、堆起塔块——Nielsen 的通用性可视化证明，做成交互式",
+  "summary": "亲手重建 Michael Nielsen 对通用逼近定理的可视化证明：把 sigmoid 调成阶跃，两个阶跃相减得到凸包，堆叠凸包以设计一维曲线，再逐步构造塔块并在可旋转的三维曲面上平铺塔块。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "观察 sigmoid 如何突变为阶跃函数，并学习 Nielsen 按阶跃位置 s = -b/w 的重参数化。",
+   "两个阶跃相减得到凸包，再用一组各凸包高度滑块设计出整条函数——包括输出 sigmoid 所隐藏的 σ⁻¹∘f 细节。",
+   "逐步构造二维塔块（墙、脊、十字、阈值），并在可旋转的三维曲面上平铺塔块以逼近任意函数，观察天际线随分辨率提高而变锐利。"
+  ],
+  "tags": [
+   "神经网络",
+   "通用逼近",
+   "深度学习",
+   "交互式"
+  ]
+ },
+ "js": {
+  "step at s = [[[0]]]": {
+   "zh": "位于 s = [[[0]]] 处的阶跃",
+   "exprs": [
+    "${s.toFixed(2)}"
+   ],
+   "tags": [],
+   "src": "step at s = ${s.toFixed(2)}"
+  },
+  "@@T0@@out weight = [[[0]]][[[1]]]@@T1@@": {
+   "zh": "@@T0@@输出权重 = [[[0]]][[[1]]]@@T1@@",
+   "exprs": [
+    "${n.c >= 0 ? '+' : ''}",
+    "${n.c.toFixed(1)}"
+   ],
+   "tags": [
+    "<span>",
+    "</span>"
+   ],
+   "src": "<span>out weight = ${n.c >= 0 ? '+' : ''}${n.c.toFixed(1)}</span>"
+  },
+  "out weight = [[[0]]][[[1]]]": {
+   "zh": "输出权重 = [[[0]]][[[1]]]",
+   "exprs": [
+    "${n.c >= 0 ? '+' : ''}",
+    "${n.c.toFixed(1)}"
+   ],
+   "tags": [],
+   "src": "out weight = ${n.c >= 0 ? '+' : ''}${n.c.toFixed(1)}"
+  },
+  "Bump [[[0]]] height": {
+   "zh": "凸包 [[[0]]] 的高度",
+   "exprs": [
+    "${i + 1}"
+   ],
+   "tags": [],
+   "src": "Bump ${i + 1} height"
+  },
+  "Σ  aggregate sum": {
+   "zh": "Σ  累计总和",
+   "exprs": [],
+   "tags": [],
+   "src": "Σ  aggregate sum"
+  },
+  "Turn off": {
+   "zh": "关闭",
+   "exprs": [],
+   "tags": [],
+   "src": "Turn off"
+  },
+  "Remove this sigmoid": {
+   "zh": "移除此 sigmoid",
+   "exprs": [],
+   "tags": [],
+   "src": "Remove this sigmoid"
+  },
+  "Sine wave": {
+   "zh": "正弦波",
+   "exprs": [],
+   "tags": [],
+   "src": "Sine wave"
+  },
+  "Nielsen's wiggle": {
+   "zh": "Nielsen 的摆动曲线",
+   "exprs": [],
+   "tags": [],
+   "src": "Nielsen's wiggle"
+  },
+  "Single hill": {
+   "zh": "单峰",
+   "exprs": [],
+   "tags": [],
+   "src": "Single hill"
+  },
+  "Sharp spike": {
+   "zh": "尖峰",
+   "exprs": [],
+   "tags": [],
+   "src": "Sharp spike"
+  },
+  "Two humps": {
+   "zh": "双峰",
+   "exprs": [],
+   "tags": [],
+   "src": "Two humps"
+  },
+  "Smooth cliff": {
+   "zh": "平滑陡崖",
+   "exprs": [],
+   "tags": [],
+   "src": "Smooth cliff"
+  },
+  "Back to the simple view": {
+   "zh": "返回简单视图",
+   "exprs": [],
+   "tags": [],
+   "src": "Back to the simple view"
+  },
+  "Peek: the un-squished goal": {
+   "zh": "预览：未经压缩的目标",
+   "exprs": [],
+   "tags": [],
+   "src": "Peek: the un-squished goal"
+  },
+  "Single spike": {
+   "zh": "单尖峰",
+   "exprs": [],
+   "tags": [],
+   "src": "Single spike"
+  },
+  "Four spikes": {
+   "zh": "四尖峰",
+   "exprs": [],
+   "tags": [],
+   "src": "Four spikes"
+  },
+  "Peak & pit": {
+   "zh": "峰与谷",
+   "exprs": [],
+   "tags": [],
+   "src": "Peak & pit"
+  }
+ }
+}

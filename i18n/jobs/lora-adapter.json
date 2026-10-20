@@ -1,0 +1,582 @@
+{
+ "slug": "lora-adapter",
+ "units": {
+  "LoRA · Low-Rank Adapter Playground": {
+   "zh": "LoRA · 低秩适配器实验场",
+   "src": "LoRA · Low-Rank Adapter Playground",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Full fine-tuning of a 70B model touches 70 billion parameters. LoRA touches 200 million. Quality is often indistinguishable, and the checkpoint is 300× smaller. Slide the rank and see the numbers move; then watch a live SVD recover a target matrix as $r$ grows.": {
+   "zh": "对 70B 模型做全量微调需要更新 700 亿个参数。LoRA 则仅更新 2 亿个。二者质量往往难以区分，而 checkpoint 体积小 300 倍。拖动秩的滑块，观察各数值的变化；随后观看一个实时 SVD 如何随 $r$ 增大而复原目标矩阵。",
+   "src": "Full fine-tuning of a 70B model touches 70 billion parameters. LoRA touches 200 million. Quality is often indistinguishable, and the checkpoint is 300× smaller. Slide the rank and see the numbers move; then watch a live SVD recover a target matrix as $r$ grows.",
+   "tags": []
+  },
+  "@@T0@@~16 min@@T1@@@@T2@@Deep Learning · LoRA · Fine-tuning · PEFT@@T3@@": {
+   "zh": "@@T0@@约 16 分钟@@T1@@@@T2@@深度学习 · LoRA · 微调 · PEFT@@T3@@",
+   "src": "<span>~16 min</span><span>Deep Learning · LoRA · Fine-tuning · PEFT</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "The insight in one line": {
+   "zh": "一句话洞察本质",
+   "src": "The insight in one line",
+   "tags": []
+  },
+  "@@T0@@The @@T1@@change@@T2@@ you want to apply to a pretrained weight is typically low-rank@@T3@@ (Hu et&nbsp;al., 2021). You don't need 70B parameters of update budget — you need a tiny correction. So instead of fine-tuning $W \\in \\mathbb{R}^{d \\times d}$, parameterise the update as": {
+   "zh": "@@T0@@你希望对预训练权重所作的@@T1@@改变@@T2@@通常是低秩的@@T3@@（Hu 等，2021）。你并不需要 700 亿参数的更新预算 &mdash;&mdash; 你需要的只是一处微小的修正。因此，与其微调 $W \\in \\mathbb{R}^{d \\times d}$，不如将更新参数化为",
+   "src": "<strong>The <em>change</em> you want to apply to a pretrained weight is typically low-rank</strong> (Hu et&nbsp;al., 2021). You don't need 70B parameters of update budget — you need a tiny correction. So instead of fine-tuning $W \\in \\mathbb{R}^{d \\times d}$, parameterise the update as",
+   "tags": [
+    "<strong>",
+    "<em>",
+    "</em>",
+    "</strong>"
+   ]
+  },
+  "where $B \\in \\mathbb{R}^{d \\times r}$ and $A \\in \\mathbb{R}^{r \\times d}$ with $r \\ll d$. The base $W_0$ stays frozen; only $A$ and $B$ get gradients. The scalar $\\alpha/r$ keeps the effective step size stable across ranks. At initialisation $B = 0$, so the LoRA term is identically zero and the model is exactly the pretrained one — a guaranteed starting point.": {
+   "zh": "其中 $B \\in \\mathbb{R}^{d \\times r}$、$A \\in \\mathbb{R}^{r \\times d}$，且 $r \\ll d$。基座 $W_0$ 保持冻结；只有 $A$ 与 $B$ 获得梯度。标量 $\\alpha/r$ 使有效步长在不同秩之间保持稳定。在初始化时 $B = 0$，因此 LoRA 项恒为零，模型恰为预训练模型 &mdash;&mdash; 这是一个有保证的起点。",
+   "src": "where $B \\in \\mathbb{R}^{d \\times r}$ and $A \\in \\mathbb{R}^{r \\times d}$ with $r \\ll d$. The base $W_0$ stays frozen; only $A$ and $B$ get gradients. The scalar $\\alpha/r$ keeps the effective step size stable across ranks. At initialisation $B = 0$, so the LoRA term is identically zero and the model is exactly the pretrained one — a guaranteed starting point.",
+   "tags": []
+  },
+  "Why \"low-rank update\" is the right prior": {
+   "zh": "为何「低秩更新」是恰当的先验",
+   "src": "Why \"low-rank update\" is the right prior",
+   "tags": []
+  },
+  "The Hu&nbsp;et&nbsp;al. paper measured the intrinsic dimensionality of fine-tuning a pretrained transformer on downstream tasks and found it was tiny — often under $r = 8$ for $d = 4096$. Two ways to think about this:": {
+   "zh": "Hu 等的论文测量了在下游任务上微调预训练 transformer 的内在维度，发现它极小 &mdash;&mdash; 当 $d = 4096$ 时往往低于 $r = 8$。对此有两种理解方式：",
+   "src": "The Hu&nbsp;et&nbsp;al. paper measured the intrinsic dimensionality of fine-tuning a pretrained transformer on downstream tasks and found it was tiny — often under $r = 8$ for $d = 4096$. Two ways to think about this:",
+   "tags": []
+  },
+  "@@T0@@Empirical.@@T1@@ Fine-tuning datasets are small (thousands of examples) compared to pretraining (trillions of tokens). There's just not enough signal in the fine-tuning data to move the weights along thousands of independent directions; only a few dominate.": {
+   "zh": "@@T0@@实证角度。@@T1@@ 与预训练（万亿词元）相比，微调数据集很小（数千个样本）。微调数据中的信号不足以让权重沿数千个独立方向移动；只有少数几个方向占主导。",
+   "src": "<strong>Empirical.</strong> Fine-tuning datasets are small (thousands of examples) compared to pretraining (trillions of tokens). There's just not enough signal in the fine-tuning data to move the weights along thousands of independent directions; only a few dominate.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Geometric.@@T1@@ Pretrained features already span most of the useful subspace. Fine-tuning rotates that subspace by a small amount, which is exactly a low-rank perturbation.": {
+   "zh": "@@T0@@几何角度。@@T1@@ 预训练特征已经张成了大部分有用的子空间。微调只是将该子空间轻微旋转，而这恰恰就是一个低秩扰动。",
+   "src": "<strong>Geometric.</strong> Pretrained features already span most of the useful subspace. Fine-tuning rotates that subspace by a small amount, which is exactly a low-rank perturbation.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Live: how rank $r$ approximates the true update": {
+   "zh": "实时演示：秩 $r$ 如何逼近真实更新",
+   "src": "Live: how rank $r$ approximates the true update",
+   "tags": []
+  },
+  "Below: a synthetic \"true update\" $\\Delta W^\\star \\in \\mathbb{R}^{32 \\times 32}$ with a heavy-tailed singular-value spectrum (typical of real fine-tuning). The rank-$r$ truncated SVD is the best rank-$r$ approximation by Eckart–Young. Slide $r$ and watch the approximation error and the captured spectrum.": {
+   "zh": "下图：一个合成的「真实更新」$\\Delta W^\\star \\in \\mathbb{R}^{32 \\times 32}$，其奇异值谱呈重尾（真实微调的典型情形）。秩 $r$ 的截断 SVD 是 Eckart–Young 意义下的最佳秩 $r$ 逼近。滑动 $r$，观察逼近误差与被捕获的谱。",
+   "src": "Below: a synthetic \"true update\" $\\Delta W^\\star \\in \\mathbb{R}^{32 \\times 32}$ with a heavy-tailed singular-value spectrum (typical of real fine-tuning). The rank-$r$ truncated SVD is the best rank-$r$ approximation by Eckart–Young. Slide $r$ and watch the approximation error and the captured spectrum.",
+   "tags": []
+  },
+  "rank r:": {
+   "zh": "秩 r：",
+   "src": "rank r:",
+   "tags": []
+  },
+  "spectrum tail": {
+   "zh": "谱尾",
+   "src": "spectrum tail",
+   "tags": []
+  },
+  "heavy (like real LLM fine-tunes)": {
+   "zh": "重尾（如真实 LLM 微调）",
+   "src": "heavy (like real LLM fine-tunes)",
+   "tags": []
+  },
+  "medium": {
+   "zh": "中等",
+   "src": "medium",
+   "tags": []
+  },
+  "flat (worst case)": {
+   "zh": "平坦（最坏情形）",
+   "src": "flat (worst case)",
+   "tags": []
+  },
+  "Resample target": {
+   "zh": "重新采样目标",
+   "src": "Resample target",
+   "tags": []
+  },
+  "Left: target $\\Delta W^\\star$ (top) and its rank-$r$ approximation (bottom). Right: cumulative spectral energy captured by the top-$r$ singular values. Heavy-tailed spectrum needs very small $r$ for &gt; 95% energy.": {
+   "zh": "左：目标 $\\Delta W^\\star$（上）及其秩 $r$ 逼近（下）。右：前 $r$ 个奇异值所捕获的累积谱能量。重尾谱只需极小的 $r$ 即可捕获 &gt; 95% 的能量。",
+   "src": "Left: target $\\Delta W^\\star$ (top) and its rank-$r$ approximation (bottom). Right: cumulative spectral energy captured by the top-$r$ singular values. Heavy-tailed spectrum needs very small $r$ for &gt; 95% energy.",
+   "tags": []
+  },
+  "The parameter-budget playground": {
+   "zh": "参数预算实验场",
+   "src": "The parameter-budget playground",
+   "tags": []
+  },
+  "Base model:": {
+   "zh": "基座模型：",
+   "src": "Base model:",
+   "tags": []
+  },
+  "LoRA rank r:": {
+   "zh": "LoRA 秩 r：",
+   "src": "LoRA rank r:",
+   "tags": []
+  },
+  "Method": {
+   "zh": "方法",
+   "src": "Method",
+   "tags": []
+  },
+  "Trainable params": {
+   "zh": "可训练参数量",
+   "src": "Trainable params",
+   "tags": []
+  },
+  "Ratio vs full": {
+   "zh": "占全量微调之比",
+   "src": "Ratio vs full",
+   "tags": []
+  },
+  "Adapter on disk": {
+   "zh": "适配器磁盘占用",
+   "src": "Adapter on disk",
+   "tags": []
+  },
+  "Full fine-tune": {
+   "zh": "全量微调",
+   "src": "Full fine-tune",
+   "tags": []
+  },
+  "LoRA · r=8": {
+   "zh": "LoRA · r=8（每层两矩阵）",
+   "src": "LoRA · r=8",
+   "tags": []
+  },
+  "QLoRA (4-bit base + r=8)": {
+   "zh": "QLoRA（4 位基座 + r=8）",
+   "src": "QLoRA (4-bit base + r=8)",
+   "tags": []
+  },
+  "At $r = 8$ for a 7B model, you have ~4M trainable parameters. You can fine-tune on a single 24 GB consumer GPU, save the adapter as a ~16 MB file, and ship it next to the base weights. The base never changes — you can layer many adapters on top.": {
+   "zh": "对于 7B 模型，在 $r = 8$ 时你有约 400 万个可训练参数。你可以在单张 24 GB 消费级 GPU 上完成微调，将适配器保存为约 16 MB 的文件，并与基座权重一同分发。基座从不改变 &mdash;&mdash; 你可以在其上叠加许多适配器。",
+   "src": "At $r = 8$ for a 7B model, you have ~4M trainable parameters. You can fine-tune on a single 24 GB consumer GPU, save the adapter as a ~16 MB file, and ship it next to the base weights. The base never changes — you can layer many adapters on top.",
+   "tags": []
+  },
+  "Hyperparameter choices and how to set them": {
+   "zh": "超参数的选择与设定方法",
+   "src": "Hyperparameter choices and how to set them",
+   "tags": []
+  },
+  "1. Rank $r$": {
+   "zh": "1. 秩 $r$",
+   "src": "1. Rank $r$",
+   "tags": []
+  },
+  "For most LLM tasks $r \\in \\{4, 8, 16\\}$ is enough. Larger $r$ doesn't help unless your task adapts the model significantly — e.g. injecting a brand-new modality. Sweep $r$ logarithmically if you suspect higher rank is needed.": {
+   "zh": "对大多数 LLM 任务而言 $r \\in \\{4, 8, 16\\}$ 已足够。除非你的任务对模型作出显著适配 &mdash;&mdash; 例如注入一种全新的模态 &mdash;&mdash; 否则更大的 $r$ 并无助益。若怀疑需要更高的秩，可按对数尺度扫描 $r$。",
+   "src": "For most LLM tasks $r \\in \\{4, 8, 16\\}$ is enough. Larger $r$ doesn't help unless your task adapts the model significantly — e.g. injecting a brand-new modality. Sweep $r$ logarithmically if you suspect higher rank is needed.",
+   "tags": []
+  },
+  "2. Scaling $\\alpha$ and the $\\alpha/r$ convention": {
+   "zh": "2. 缩放系数 $\\alpha$ 与 $\\alpha/r$ 约定",
+   "src": "2. Scaling $\\alpha$ and the $\\alpha/r$ convention",
+   "tags": []
+  },
+  "$\\alpha$ is a scalar applied to $BA$ at inference. The \"$\\alpha/r$\" convention keeps the effective learning rate of the LoRA term roughly constant as you sweep $r$ — handy for hyperparameter search. Typical: $\\alpha = 2r$ or $\\alpha = 16$ regardless of $r$.": {
+   "zh": "$\\alpha$ 是推理时施加于 $BA$ 的标量。约定「$\\alpha/r$」可在扫描 $r$ 时使 LoRA 项的有效学习率大致保持恒定 &mdash;&mdash; 便于超参数搜索。常见取法：$\\alpha = 2r$，或不论 $r$ 如何均取 $\\alpha = 16$。",
+   "src": "$\\alpha$ is a scalar applied to $BA$ at inference. The \"$\\alpha/r$\" convention keeps the effective learning rate of the LoRA term roughly constant as you sweep $r$ — handy for hyperparameter search. Typical: $\\alpha = 2r$ or $\\alpha = 16$ regardless of $r$.",
+   "tags": []
+  },
+  "3. Which modules to inject": {
+   "zh": "3. 注入哪些模块",
+   "src": "3. Which modules to inject",
+   "tags": []
+  },
+  "The original paper recommends $W_q$ and $W_v$ only. Newer empirical surveys (Dettmers, Pagnoni&nbsp;et&nbsp;al., 2023) often inject into all of $\\{W_q, W_k, W_v, W_o\\}$ plus the MLP up-and-down projections for the best quality. Cost is linear in number of injected modules.": {
+   "zh": "原始论文仅推荐 $W_q$ 与 $W_v$。较新的实证研究（Dettmers、Pagnoni 等，2023）为获得最佳质量，往往注入全部 $\\{W_q, W_k, W_v, W_o\\}$ 以及 MLP 的上、下投影。成本与注入模块数量成正比。",
+   "src": "The original paper recommends $W_q$ and $W_v$ only. Newer empirical surveys (Dettmers, Pagnoni&nbsp;et&nbsp;al., 2023) often inject into all of $\\{W_q, W_k, W_v, W_o\\}$ plus the MLP up-and-down projections for the best quality. Cost is linear in number of injected modules.",
+   "tags": []
+  },
+  "4. Dropout": {
+   "zh": "4. Dropout（丢弃法）",
+   "src": "4. Dropout",
+   "tags": []
+  },
+  "A small dropout (0.05–0.10) inside the LoRA path stabilises training on small fine-tuning sets without affecting the base. Skip it for tiny adapters.": {
+   "zh": "在 LoRA 路径内部使用较小的 dropout（0.05–0.10），可在小规模微调集上稳定训练，且不影响基座。对于极小的适配器可略去。",
+   "src": "A small dropout (0.05–0.10) inside the LoRA path stabilises training on small fine-tuning sets without affecting the base. Skip it for tiny adapters.",
+   "tags": []
+  },
+  "The PEFT family in one table": {
+   "zh": "PEFT 家族一览表",
+   "src": "The PEFT family in one table",
+   "tags": []
+  },
+  "Trainable %": {
+   "zh": "可训练比例 %",
+   "src": "Trainable %",
+   "tags": []
+  },
+  "Inference overhead": {
+   "zh": "推理开销",
+   "src": "Inference overhead",
+   "tags": []
+  },
+  "Idea": {
+   "zh": "核心思想",
+   "src": "Idea",
+   "tags": []
+  },
+  "train everything": {
+   "zh": "训练全部参数",
+   "src": "train everything",
+   "tags": []
+  },
+  "BitFit": {
+   "zh": "BitFit（仅微调偏置）",
+   "src": "BitFit",
+   "tags": []
+  },
+  "train only biases": {
+   "zh": "仅训练偏置",
+   "src": "train only biases",
+   "tags": []
+  },
+  "Prefix / prompt tuning": {
+   "zh": "前缀 / 提示微调",
+   "src": "Prefix / prompt tuning",
+   "tags": []
+  },
+  "+sequence length": {
+   "zh": "+ 序列长度",
+   "src": "+sequence length",
+   "tags": []
+  },
+  "prepend learnable tokens": {
+   "zh": "前置可学习词元",
+   "src": "prepend learnable tokens",
+   "tags": []
+  },
+  "Adapters (Houlsby '19)": {
+   "zh": "适配器（Houlsby，2019）",
+   "src": "Adapters (Houlsby '19)",
+   "tags": []
+  },
+  "+small MLP per layer": {
+   "zh": "+ 每层一个小型 MLP",
+   "src": "+small MLP per layer",
+   "tags": []
+  },
+  "insert bottleneck modules": {
+   "zh": "插入瓶颈模块",
+   "src": "insert bottleneck modules",
+   "tags": []
+  },
+  "LoRA": {
+   "zh": "LoRA（低秩适配）",
+   "src": "LoRA",
+   "tags": []
+  },
+  "0 after merge": {
+   "zh": "合并后为 0",
+   "src": "0 after merge",
+   "tags": []
+  },
+  "low-rank weight delta": {
+   "zh": "低秩权重增量",
+   "src": "low-rank weight delta",
+   "tags": []
+  },
+  "QLoRA": {
+   "zh": "QLoRA（量化 LoRA）",
+   "src": "QLoRA",
+   "tags": []
+  },
+  "LoRA on top of 4-bit base": {
+   "zh": "在 4 位基座之上叠加 LoRA",
+   "src": "LoRA on top of 4-bit base",
+   "tags": []
+  },
+  "DoRA (2024)": {
+   "zh": "DoRA（2024）",
+   "src": "DoRA (2024)",
+   "tags": []
+  },
+  "decompose weight into magnitude + direction; LoRA on direction": {
+   "zh": "将权重分解为幅值与方向；对方向施加 LoRA",
+   "src": "decompose weight into magnitude + direction; LoRA on direction",
+   "tags": []
+  },
+  "VeRA (2023)": {
+   "zh": "VeRA（2023）",
+   "src": "VeRA (2023)",
+   "tags": []
+  },
+  "share frozen random $A, B$ across layers; train tiny scaling vectors": {
+   "zh": "在各层间共享冻结的随机 $A, B$；仅训练极小的缩放向量",
+   "src": "share frozen random $A, B$ across layers; train tiny scaling vectors",
+   "tags": []
+  },
+  "AdaLoRA": {
+   "zh": "AdaLoRA（自适应秩分配）",
+   "src": "AdaLoRA",
+   "tags": []
+  },
+  "allocate rank budget adaptively per layer": {
+   "zh": "按层自适应地分配秩预算",
+   "src": "allocate rank budget adaptively per layer",
+   "tags": []
+  },
+  "The math, with the right details": {
+   "zh": "数学细节",
+   "src": "The math, with the right details",
+   "tags": []
+  },
+  "The forward pass becomes": {
+   "zh": "前向传播变为",
+   "src": "The forward pass becomes",
+   "tags": []
+  },
+  "At initialisation: $A \\sim \\mathcal{N}(0, \\sigma^2)$ (Kaiming-style), $B = 0$. So $BA = 0$ and the model output is exactly the pretrained one. Crucially, this means LoRA never @@T0@@damages@@T1@@ the base before training has done anything useful.": {
+   "zh": "在初始化时：$A \\sim \\mathcal{N}(0, \\sigma^2)$（Kaiming 式），$B = 0$。于是 $BA = 0$，模型输出恰为预训练模型。关键在于，这意味着在训练做出任何有益之事之前，LoRA 从不@@T0@@损害@@T1@@基座。",
+   "src": "At initialisation: $A \\sim \\mathcal{N}(0, \\sigma^2)$ (Kaiming-style), $B = 0$. So $BA = 0$ and the model output is exactly the pretrained one. Crucially, this means LoRA never <em>damages</em> the base before training has done anything useful.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "After training, you have a choice:": {
+   "zh": "训练之后，你有两种选择：",
+   "src": "After training, you have a choice:",
+   "tags": []
+  },
+  "@@T0@@Keep LoRA modules separate.@@T1@@ Inference forward pass costs $O(d^2 + 2rd)$ per layer. Lets you swap or compose adapters at serve time. Use when you want to host many task-specific adapters on one base.": {
+   "zh": "@@T0@@将 LoRA 模块保持独立。@@T1@@ 每层推理前向传播的开销为 $O(d^2 + 2rd)$。这使你能在服务时切换或组合适配器。当你希望在一个基座上托管众多任务专用适配器时使用。",
+   "src": "<strong>Keep LoRA modules separate.</strong> Inference forward pass costs $O(d^2 + 2rd)$ per layer. Lets you swap or compose adapters at serve time. Use when you want to host many task-specific adapters on one base.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Merge into base.@@T1@@ Set $W \\leftarrow W_0 + \\frac{\\alpha}{r} BA$. Inference is identical to the base — zero overhead. Use when this adapter is the final one.": {
+   "zh": "@@T0@@合并进基座。@@T1@@ 令 $W \\leftarrow W_0 + \\frac{\\alpha}{r} BA$。推理与基座完全相同 &mdash;&mdash; 零开销。当该适配器即为最终版本时使用。",
+   "src": "<strong>Merge into base.</strong> Set $W \\leftarrow W_0 + \\frac{\\alpha}{r} BA$. Inference is identical to the base — zero overhead. Use when this adapter is the final one.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "QLoRA — fine-tune 70B on a single 48 GB GPU": {
+   "zh": "QLoRA &mdash;&mdash; 在单张 48 GB GPU 上微调 70B",
+   "src": "QLoRA — fine-tune 70B on a single 48 GB GPU",
+   "tags": []
+  },
+  "QLoRA (Dettmers et&nbsp;al., 2023) is \"LoRA on a 4-bit base.\" Three pieces:": {
+   "zh": "QLoRA（Dettmers 等，2023）即「在 4 位基座上做 LoRA」。包含三个部分：",
+   "src": "QLoRA (Dettmers et&nbsp;al., 2023) is \"LoRA on a 4-bit base.\" Three pieces:",
+   "tags": []
+  },
+  "@@T0@@NF4 quantisation.@@T1@@ 4-bit normal-float — designed so the quantisation buckets match the distribution of pretrained weights. ~4× smaller than fp16.": {
+   "zh": "@@T0@@NF4 量化。@@T1@@ 4 位正态浮点 &mdash;&mdash; 其设计使量化分桶与预训练权重的分布相匹配。体积约为 fp16 的 1/4。",
+   "src": "<strong>NF4 quantisation.</strong> 4-bit normal-float — designed so the quantisation buckets match the distribution of pretrained weights. ~4× smaller than fp16.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Double quantisation.@@T1@@ Quantise the quantisation constants themselves; saves a few more bits.": {
+   "zh": "@@T0@@二次量化。@@T1@@ 对量化常数本身再作量化；可再节省若干比特。",
+   "src": "<strong>Double quantisation.</strong> Quantise the quantisation constants themselves; saves a few more bits.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Paged optimisers.@@T1@@ Use unified memory so optimiser state spills to CPU during gradient accumulation peaks.": {
+   "zh": "@@T0@@分页优化器。@@T1@@ 使用统一内存，使优化器状态在梯度累积的高峰期溢出到 CPU。",
+   "src": "<strong>Paged optimisers.</strong> Use unified memory so optimiser state spills to CPU during gradient accumulation peaks.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The base sits frozen in 4-bit, dequantised on the fly for matmul; the LoRA path stays in fp16/bf16. End result: same accuracy as fp16 LoRA at a fraction of the memory.": {
+   "zh": "基座以 4 位冻结存放，在做矩阵乘法时即时反量化；LoRA 路径则保持 fp16/bf16。最终结果：以一小部分显存获得与 fp16 LoRA 相同的精度。",
+   "src": "The base sits frozen in 4-bit, dequantised on the fly for matmul; the LoRA path stays in fp16/bf16. End result: same accuracy as fp16 LoRA at a fraction of the memory.",
+   "tags": []
+  },
+  "PyTorch + peft": {
+   "zh": "PyTorch + peft 代码示例",
+   "src": "PyTorch + peft",
+   "tags": []
+  },
+  "from peft import LoraConfig, get_peft_model\n\nlora_cfg = LoraConfig(\n    r=8,                           # rank\n    lora_alpha=16,                 # scale\n    target_modules=[\"q_proj\", \"v_proj\"],  # where to inject\n    lora_dropout=0.05,\n    bias=\"none\",\n)\nmodel = get_peft_model(base_model, lora_cfg)\nmodel.print_trainable_parameters()\n# > trainable params: 4.2M   all params: 7B   trainable%: 0.06%": {
+   "zh": "",
+   "src": "from peft import LoraConfig, get_peft_model\n\nlora_cfg = LoraConfig(\n    r=8,                           # rank\n    lora_alpha=16,                 # scale\n    target_modules=[\"q_proj\", \"v_proj\"],  # where to inject\n    lora_dropout=0.05,\n    bias=\"none\",\n)\nmodel = get_peft_model(base_model, lora_cfg)\nmodel.print_trainable_parameters()\n# > trainable params: 4.2M   all params: 7B   trainable%: 0.06%",
+   "tags": []
+  },
+  "Practical gotchas": {
+   "zh": "实践中的坑",
+   "src": "Practical gotchas",
+   "tags": []
+  },
+  "@@T0@@Catastrophic forgetting.@@T1@@ LoRA forgets less than full FT because the base stays frozen, but it still drifts on out-of-domain generation. Use small learning rate (1e-4 typical), early stopping, and a held-out OOD eval set.": {
+   "zh": "@@T0@@灾难性遗忘。@@T1@@ 由于基座保持冻结，LoRA 的遗忘少于全量微调，但在域外生成上仍会漂移。应使用较小的学习率（典型为 1e-4）、早停，以及一个留出的域外评估集。",
+   "src": "<strong>Catastrophic forgetting.</strong> LoRA forgets less than full FT because the base stays frozen, but it still drifts on out-of-domain generation. Use small learning rate (1e-4 typical), early stopping, and a held-out OOD eval set.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Mixing adapters.@@T1@@ Adapter-mix-of-experts (LoRAHub, Composing-LoRAs) lets you linearly combine task adapters at inference. Works for closely related tasks; degrades fast for orthogonal ones.": {
+   "zh": "@@T0@@混合适配器。@@T1@@ 适配器专家混合（LoRAHub、Composing-LoRAs）使你能在推理时线性组合各任务适配器。对密切相关的任务有效；对相互正交的任务则迅速退化。",
+   "src": "<strong>Mixing adapters.</strong> Adapter-mix-of-experts (LoRAHub, Composing-LoRAs) lets you linearly combine task adapters at inference. Works for closely related tasks; degrades fast for orthogonal ones.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Don't use LoRA for pretraining-from-scratch.@@T1@@ The low-rank prior is only valid when there's a strong pretrained init to perturb. Pretrain in full rank.": {
+   "zh": "@@T0@@不要用 LoRA 做从零预训练。@@T1@@ 低秩先验仅当存在一个强大的预训练初始化可供扰动时才成立。预训练请使用全秩。",
+   "src": "<strong>Don't use LoRA for pretraining-from-scratch.</strong> The low-rank prior is only valid when there's a strong pretrained init to perturb. Pretrain in full rank.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Merging multiple adapters.@@T1@@ $W_0 + \\sum_i \\frac{\\alpha_i}{r_i} B_i A_i$ — but they can interfere. Use TIES-merging or DARE for cleaner results when stacking many adapters.": {
+   "zh": "@@T0@@合并多个适配器。@@T1@@ $W_0 + \\sum_i \\frac{\\alpha_i}{r_i} B_i A_i$ &mdash;&mdash; 但它们可能相互干扰。在堆叠许多适配器时，使用 TIES 合并或 DARE 可获得更干净的结果。",
+   "src": "<strong>Merging multiple adapters.</strong> $W_0 + \\sum_i \\frac{\\alpha_i}{r_i} B_i A_i$ — but they can interfere. Use TIES-merging or DARE for cleaner results when stacking many adapters.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Quantised vs fp16 inference.@@T1@@ If you trained with QLoRA, you can still serve the merged model at fp16 — just dequantise the base once before merging.": {
+   "zh": "@@T0@@量化推理与 fp16 推理。@@T1@@ 若你使用 QLoRA 训练，仍可以 fp16 部署合并后的模型 &mdash;&mdash; 只需在合并前将基座反量化一次。",
+   "src": "<strong>Quantised vs fp16 inference.</strong> If you trained with QLoRA, you can still serve the merged model at fp16 — just dequantise the base once before merging.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@": {
+   "zh": "@@T0@@最终要点。@@T1@@",
+   "src": "<strong>Final takeaway.</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "LoRA is the rare technique where the \"lazy\" version actually matches the careful one. For 99% of fine-tuning tasks on pretrained models &gt; 1B params, start with LoRA $r=8$, $\\alpha = 16$, $\\{W_q, W_v\\}$ injection. Move to QLoRA if you can't afford fp16 base. Reach for DoRA / AdaLoRA only after you've measured a real gap.": {
+   "zh": "LoRA 是一种罕见的技术：「偷懒」的做法竟然能与严谨的做法相匹敌。对于参数规模 &gt; 10 亿的预训练模型上 99% 的微调任务，都从 LoRA $r=8$、$\\alpha = 16$、注入 $\\{W_q, W_v\\}$ 开始。若无法承担 fp16 基座的成本，则转向 QLoRA。只有在测到真实差距之后，才考虑 DoRA / AdaLoRA。",
+   "src": "LoRA is the rare technique where the \"lazy\" version actually matches the careful one. For 99% of fine-tuning tasks on pretrained models &gt; 1B params, start with LoRA $r=8$, $\\alpha = 16$, $\\{W_q, W_v\\}$ injection. Move to QLoRA if you can't afford fp16 base. Reach for DoRA / AdaLoRA only after you've measured a real gap.",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "参考文献",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Hu, Shen, Wallis, Allen-Zhu, Li, Wang, Wang, Chen (2021)@@T1@@ — @@T2@@LoRA: Low-Rank Adaptation of Large Language Models.@@T3@@ The original.": {
+   "zh": "@@T0@@Hu、Shen、Wallis、Allen-Zhu、Li、Wang、Wang、Chen（2021）@@T1@@ &mdash;&mdash; @@T2@@LoRA: Low-Rank Adaptation of Large Language Models.@@T3@@ 原始论文。",
+   "src": "<strong>Hu, Shen, Wallis, Allen-Zhu, Li, Wang, Wang, Chen (2021)</strong> — <em>LoRA: Low-Rank Adaptation of Large Language Models.</em> The original.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Dettmers, Pagnoni, Holtzman, Zettlemoyer (2023)@@T1@@ — @@T2@@QLoRA: Efficient Finetuning of Quantized LLMs.@@T3@@": {
+   "zh": "@@T0@@Dettmers、Pagnoni、Holtzman、Zettlemoyer（2023）@@T1@@ &mdash;&mdash; @@T2@@QLoRA: Efficient Finetuning of Quantized LLMs.@@T3@@",
+   "src": "<strong>Dettmers, Pagnoni, Holtzman, Zettlemoyer (2023)</strong> — <em>QLoRA: Efficient Finetuning of Quantized LLMs.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Liu, Wang, Han et&nbsp;al. (2024)@@T1@@ — @@T2@@DoRA: Weight-Decomposed Low-Rank Adaptation.@@T3@@": {
+   "zh": "@@T0@@Liu、Wang、Han 等（2024）@@T1@@ &mdash;&mdash; @@T2@@DoRA: Weight-Decomposed Low-Rank Adaptation.@@T3@@",
+   "src": "<strong>Liu, Wang, Han et&nbsp;al. (2024)</strong> — <em>DoRA: Weight-Decomposed Low-Rank Adaptation.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Kopiczko, Blankevoort, Asano (2023)@@T1@@ — @@T2@@VeRA: Vector-based Random Matrix Adaptation.@@T3@@": {
+   "zh": "@@T0@@Kopiczko、Blankevoort、Asano（2023）@@T1@@ &mdash;&mdash; @@T2@@VeRA: Vector-based Random Matrix Adaptation.@@T3@@",
+   "src": "<strong>Kopiczko, Blankevoort, Asano (2023)</strong> — <em>VeRA: Vector-based Random Matrix Adaptation.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Zhang et&nbsp;al. (2023)@@T1@@ — @@T2@@AdaLoRA: Adaptive Budget Allocation.@@T3@@": {
+   "zh": "@@T0@@Zhang 等（2023）@@T1@@ &mdash;&mdash; @@T2@@AdaLoRA: Adaptive Budget Allocation.@@T3@@",
+   "src": "<strong>Zhang et&nbsp;al. (2023)</strong> — <em>AdaLoRA: Adaptive Budget Allocation.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Houlsby et&nbsp;al. (2019)@@T1@@ — @@T2@@Parameter-Efficient Transfer Learning for NLP.@@T3@@ The original adapters paper.": {
+   "zh": "@@T0@@Houlsby 等（2019）@@T1@@ &mdash;&mdash; @@T2@@Parameter-Efficient Transfer Learning for NLP.@@T3@@ 适配器原始论文。",
+   "src": "<strong>Houlsby et&nbsp;al. (2019)</strong> — <em>Parameter-Efficient Transfer Learning for NLP.</em> The original adapters paper.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "LoRA · 低秩适配器实验场",
+  "tagline": "拖动秩，观察可训练参数如何缩减 500 倍",
+  "summary": "LoRA 在一个冻结的基座权重旁注入两个小矩阵 A 与 B。按构造 B·A 即为低秩 &mdash;&mdash; 于是微调 70B 模型就变成微调每层两个 32k 参数的矩阵。拖动秩，用真实数字观察容量与成本之间的权衡。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "将秩 r 从 1 拖到 64 &mdash;&mdash; 观察可训练参数从数千降到数百万再到数十亿。",
+   "切换模型规模（1B、7B、70B），观察存储空间的节省。",
+   "与全量微调、Adam 优化器状态以及 LoRA 的节省量进行对比。",
+   "使用 peft 库的一行 PyTorch 代码。",
+   "QLoRA 预览 &mdash;&mdash; 4 位量化基座有何不同。"
+  ],
+  "tags": [
+   "LoRA",
+   "PEFT",
+   "微调",
+   "LLM",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

@@ -1,0 +1,665 @@
+{
+ "slug": "numerical-tricks",
+ "units": {
+  "Numerical Tricks of the Trade": {
+   "zh": "数值计算的实用技巧",
+   "src": "Numerical Tricks of the Trade",
+   "tags": []
+  },
+  "@@T0@@← Explainer Library@@T1@@": {
+   "zh": "@@T0@@← 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\">← Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Floating point math has limits&mdash;$e^{1000}$ overflows to infinity,\n      $\\log(0)$ explodes to $-\\infty$, and small differences vanish to zero.\n      Modern deep learning would be impossible without a handful of tricks\n      that keep the math honest. This page lets you watch the naive computation\n      break, then watch the trick fix it.": {
+   "zh": "浮点运算有其极限 &mdash;&mdash; $e^{1000}$ 会溢出为无穷，\n      $\\log(0)$ 会爆炸为 $-\\infty$，而微小的差值会消失为零。\n      若无若干使数学保持可靠的技巧，现代深度学习将无从谈起。\n      本页让你亲眼看到朴素计算如何失效，再看技巧如何将其修复。",
+   "src": "Floating point math has limits&mdash;$e^{1000}$ overflows to infinity,\n      $\\log(0)$ explodes to $-\\infty$, and small differences vanish to zero.\n      Modern deep learning would be impossible without a handful of tricks\n      that keep the math honest. This page lets you watch the naive computation\n      break, then watch the trick fix it.",
+   "tags": []
+  },
+  "@@T0@@~14 min@@T1@@\n      @@T2@@Deep Learning &middot; Numerical Stability &middot; Floating Point@@T3@@": {
+   "zh": "@@T0@@约 14 分钟@@T1@@\n      @@T2@@深度学习 &middot; 数值稳定性 &middot; 浮点数@@T3@@",
+   "src": "<span>~14 min</span>\n      <span>Deep Learning &middot; Numerical Stability &middot; Floating Point</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "The problem with $e^{1000}$": {
+   "zh": "$e^{1000}$ 带来的问题",
+   "src": "The problem with $e^{1000}$",
+   "tags": []
+  },
+  "Float64 (the default in NumPy) can represent numbers up to about\n      $10^{308}$. Float32 (the default in PyTorch) only up to about $10^{38}$.\n      That sounds enormous&mdash;until you realize that $e^{100} \\approx 10^{43}$\n      already overflows float32, and $e^{1000} \\approx 10^{434}$ overflows\n      everything.": {
+   "zh": "Float64（NumPy 的默认类型）可表示的数值上限约为\n      $10^{308}$。Float32（PyTorch 的默认类型）仅约为 $10^{38}$。\n      这听上去极为巨大 &mdash;&mdash; 直到你意识到 $e^{100} \\approx 10^{43}$\n      就已经使 float32 溢出，而 $e^{1000} \\approx 10^{434}$ 会使\n      所有类型都溢出。",
+   "src": "Float64 (the default in NumPy) can represent numbers up to about\n      $10^{308}$. Float32 (the default in PyTorch) only up to about $10^{38}$.\n      That sounds enormous&mdash;until you realize that $e^{100} \\approx 10^{43}$\n      already overflows float32, and $e^{1000} \\approx 10^{434}$ overflows\n      everything.",
+   "tags": []
+  },
+  "This is not a hypothetical concern. Logits in a real network easily reach\n      magnitudes of 50 or 100. Cross-entropy losses divide by tiny probabilities.\n      Sigmoids saturate at 0 or 1. Every one of these creates a numerical landmine.": {
+   "zh": "这并非假想的顾虑。真实网络中的 logit 轻易就能达到\n      50 或 100 的量级。交叉熵损失要除以极小的概率。\n      Sigmoid 会饱和到 0 或 1。凡此种种都会埋下数值计算的隐患。",
+   "src": "This is not a hypothetical concern. Logits in a real network easily reach\n      magnitudes of 50 or 100. Cross-entropy losses divide by tiny probabilities.\n      Sigmoids saturate at 0 or 1. Every one of these creates a numerical landmine.",
+   "tags": []
+  },
+  "@@T0@@Float64 limits:@@T1@@ max ≈ 1.8 × 10@@T2@@308@@T3@@, min positive normal ≈ 2.2 × 10@@T4@@-308@@T5@@@@T6@@\n      @@T7@@Float32 limits:@@T8@@ max ≈ 3.4 × 10@@T9@@38@@T10@@, min positive normal ≈ 1.2 × 10@@T11@@-38@@T12@@": {
+   "zh": "@@T0@@Float64 的极限：@@T1@@ 最大值 ≈ 1.8 × 10@@T2@@308@@T3@@，最小正规格化数 ≈ 2.2 × 10@@T4@@-308@@T5@@@@T6@@\n      @@T7@@Float32 的极限：@@T8@@ 最大值 ≈ 3.4 × 10@@T9@@38@@T10@@，最小正规格化数 ≈ 1.2 × 10@@T11@@-38@@T12@@",
+   "src": "<strong>Float64 limits:</strong> max ≈ 1.8 × 10<sup>308</sup>, min positive normal ≈ 2.2 × 10<sup>-308</sup><br>\n      <strong>Float32 limits:</strong> max ≈ 3.4 × 10<sup>38</sup>, min positive normal ≈ 1.2 × 10<sup>-38</sup>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<sup>",
+    "</sup>",
+    "<sup>",
+    "</sup>",
+    "<br>",
+    "<strong>",
+    "</strong>",
+    "<sup>",
+    "</sup>",
+    "<sup>",
+    "</sup>"
+   ]
+  },
+  "The good news: every common pitfall has a well-known fix. By the end of\n      this page you will have watched the four most important ones break and be\n      rescued, on the same logits.": {
+   "zh": "好消息是：每一个常见的陷阱都有众所周知的修复方法。读完本页，\n      你将在同一组 logit 上看到其中最重要的四个陷阱如何失效、\n      又如何被挽救。",
+   "src": "The good news: every common pitfall has a well-known fix. By the end of\n      this page you will have watched the four most important ones break and be\n      rescued, on the same logits.",
+   "tags": []
+  },
+  "Trick 1": {
+   "zh": "技巧 1",
+   "src": "Trick 1",
+   "tags": []
+  },
+  "Log-sum-exp: the universal stabilizer": {
+   "zh": "Log-sum-exp：通用的稳定化手段",
+   "src": "Log-sum-exp: the universal stabilizer",
+   "tags": []
+  },
+  "Many quantities in ML reduce to computing $\\log\\sum_i e^{x_i}$. Sounds\n      harmless. Until any $x_i$ is large&mdash;then $e^{x_i}$ overflows, the sum\n      is $\\infty$, and $\\log\\infty = \\infty$.": {
+   "zh": "机器学习中的许多量都归结为计算 $\\log\\sum_i e^{x_i}$。这听上去\n      无害。直到某个 $x_i$ 很大 &mdash;&mdash; 此时 $e^{x_i}$ 溢出，求和结果为\n      $\\infty$，而 $\\log\\infty = \\infty$。",
+   "src": "Many quantities in ML reduce to computing $\\log\\sum_i e^{x_i}$. Sounds\n      harmless. Until any $x_i$ is large&mdash;then $e^{x_i}$ overflows, the sum\n      is $\\infty$, and $\\log\\infty = \\infty$.",
+   "tags": []
+  },
+  "The trick is to factor out the maximum:": {
+   "zh": "技巧在于把最大值提取出来：",
+   "src": "The trick is to factor out the maximum:",
+   "tags": []
+  },
+  "log Σ exp(xᵢ)\n  = log [exp(m) · Σ exp(xᵢ - m)]      where m = max(xᵢ)\n  = m + log Σ exp(xᵢ - m)": {
+   "zh": "log Σ exp(xᵢ)\n  = log [exp(m) · Σ exp(xᵢ - m)]      其中 m = max(xᵢ)\n  = m + log Σ exp(xᵢ - m)",
+   "src": "log Σ exp(xᵢ)\n  = log [exp(m) · Σ exp(xᵢ - m)]      where m = max(xᵢ)\n  = m + log Σ exp(xᵢ - m)",
+   "tags": []
+  },
+  "Now the largest argument inside the exp is exactly $0$, so $e^0 = 1$ is\n      always representable, and every other term is in $[0, 1]$. Mathematically\n      identical to the naive form, but never overflows.": {
+   "zh": "此时 exp 内部最大的自变量恰为 $0$，因此 $e^0 = 1$ 总是\n      可表示的，而其余每一项都落在 $[0, 1]$ 内。在数学上与\n      朴素形式完全相同，但绝不会溢出。",
+   "src": "Now the largest argument inside the exp is exactly $0$, so $e^0 = 1$ is\n      always representable, and every other term is in $[0, 1]$. Mathematically\n      identical to the naive form, but never overflows.",
+   "tags": []
+  },
+  "Logit magnitude @@T0@@$x_1$ = @@T1@@5.0@@T2@@@@T3@@": {
+   "zh": "Logit 量级 @@T0@@$x_1$ = @@T1@@5.0@@T2@@@@T3@@",
+   "src": "Logit magnitude <span>$x_1$ = <span id=\"lse-x1\">5.0</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"lse-x1\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "$x_1=3$ (safe)": {
+   "zh": "$x_1=3$（安全）",
+   "src": "$x_1=3$ (safe)",
+   "tags": []
+  },
+  "$x_1=20$ (warm)": {
+   "zh": "$x_1=20$（偏热）",
+   "src": "$x_1=20$ (warm)",
+   "tags": []
+  },
+  "$x_1=100$ (overflow!)": {
+   "zh": "$x_1=100$（溢出！）",
+   "src": "$x_1=100$ (overflow!)",
+   "tags": []
+  },
+  "$x_1=700$ (boom)": {
+   "zh": "$x_1=700$（爆炸）",
+   "src": "$x_1=700$ (boom)",
+   "tags": []
+  },
+  "Vector: $\\mathbf{x} = [x_1,\\ 1.5,\\ 0.2,\\ -2.0]$. Compute $\\log\\sum e^{x_i}$ both ways.": {
+   "zh": "向量：$\\mathbf{x} = [x_1,\\ 1.5,\\ 0.2,\\ -2.0]$。用两种方式计算 $\\log\\sum e^{x_i}$。",
+   "src": "Vector: $\\mathbf{x} = [x_1,\\ 1.5,\\ 0.2,\\ -2.0]$. Compute $\\log\\sum e^{x_i}$ both ways.",
+   "tags": []
+  },
+  "Naive — direct formula": {
+   "zh": "朴素 &mdash; 直接公式",
+   "src": "Naive — direct formula",
+   "tags": []
+  },
+  "Stable — log-sum-exp trick": {
+   "zh": "稳定 &mdash; log-sum-exp 技巧",
+   "src": "Stable — log-sum-exp trick",
+   "tags": []
+  },
+  "@@T0@@Where you'll see this.@@T1@@\n      Inside @@T2@@every@@T3@@ softmax, log-softmax, and cross-entropy implementation\n      in PyTorch, JAX, and TensorFlow. Inside the partition function of\n      energy-based models. Inside beam search for sequence models. Inside the\n      KL-divergence computation between two categorical distributions. If you\n      remember one numerical trick, this is the one.": {
+   "zh": "@@T0@@你会在何处见到它。@@T1@@\n      在 PyTorch、JAX 与 TensorFlow 中 @@T2@@每一个@@T3@@ softmax、log-softmax 与交叉熵\n      的实现里。在基于能量的模型的配分函数里。在序列模型的\n      束搜索里。在两个类别分布之间 KL 散度的\n      计算里。若你只记住一个数值技巧，那便是它。",
+   "src": "<strong>Where you'll see this.</strong>\n      Inside <em>every</em> softmax, log-softmax, and cross-entropy implementation\n      in PyTorch, JAX, and TensorFlow. Inside the partition function of\n      energy-based models. Inside beam search for sequence models. Inside the\n      KL-divergence computation between two categorical distributions. If you\n      remember one numerical trick, this is the one.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Trick 2": {
+   "zh": "技巧 2",
+   "src": "Trick 2",
+   "tags": []
+  },
+  "Log-softmax: not (log ∘ softmax)": {
+   "zh": "Log-softmax：并非 (log ∘ softmax)",
+   "src": "Log-softmax: not (log ∘ softmax)",
+   "tags": []
+  },
+  "Cross-entropy needs $\\log p_k$. The naive composition is:": {
+   "zh": "交叉熵需要 $\\log p_k$。朴素的复合写法为：",
+   "src": "Cross-entropy needs $\\log p_k$. The naive composition is:",
+   "tags": []
+  },
+  "Computed naively (compute softmax, then take log), this fails twice:": {
+   "zh": "以朴素方式计算（先算 softmax，再取对数），它会在两处失效：",
+   "src": "Computed naively (compute softmax, then take log), this fails twice:",
+   "tags": []
+  },
+  "The exp-sum can overflow (Trick 1 again).": {
+   "zh": "指数求和可能溢出（又回到技巧 1）。",
+   "src": "The exp-sum can overflow (Trick 1 again).",
+   "tags": []
+  },
+  "If any $p_k \\approx 0$, then $\\log p_k \\to -\\infty$ and gradients explode.": {
+   "zh": "若某个 $p_k \\approx 0$，则 $\\log p_k \\to -\\infty$，梯度随之爆炸。",
+   "src": "If any $p_k \\approx 0$, then $\\log p_k \\to -\\infty$ and gradients explode.",
+   "tags": []
+  },
+  "The clean form uses log-sum-exp directly:": {
+   "zh": "干净的写法直接使用 log-sum-exp：",
+   "src": "The clean form uses log-sum-exp directly:",
+   "tags": []
+  },
+  "log p_k = z_k - log Σⱼ exp(zⱼ)\n        = z_k - LSE(z)\n        = z_k - max(z) - log Σⱼ exp(zⱼ - max(z))": {
+   "zh": "log p_k = z_k - log Σⱼ exp(zⱼ)\n        = z_k - LSE(z)\n        = z_k - max(z) - log Σⱼ exp(zⱼ - max(z))",
+   "src": "log p_k = z_k - log Σⱼ exp(zⱼ)\n        = z_k - LSE(z)\n        = z_k - max(z) - log Σⱼ exp(zⱼ - max(z))",
+   "tags": []
+  },
+  "No exponential of a small probability is ever computed. PyTorch exposes\n      this as @@T0@@F.log_softmax@@T1@@ exactly because composing\n      @@T2@@log(softmax(x))@@T3@@ is brittle.": {
+   "zh": "任何小概率的指数都不再被计算。PyTorch 正是\n      因为 @@T2@@log(softmax(x))@@T3@@ 的复合写法脆弱，\n      才将这一运算暴露为 @@T0@@F.log_softmax@@T1@@。",
+   "src": "No exponential of a small probability is ever computed. PyTorch exposes\n      this as <code>F.log_softmax</code> exactly because composing\n      <code>log(softmax(x))</code> is brittle.",
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Largest logit @@T0@@$z_{\\max}$ = @@T1@@5.0@@T2@@@@T3@@": {
+   "zh": "最大的 logit @@T0@@$z_{\\max}$ = @@T1@@5.0@@T2@@@@T3@@",
+   "src": "Largest logit <span>$z_{\\max}$ = <span id=\"ls-zmax\">5.0</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"ls-zmax\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Smallest logit @@T0@@$z_{\\min}$ = @@T1@@-5.0@@T2@@@@T3@@": {
+   "zh": "最小的 logit @@T0@@$z_{\\min}$ = @@T1@@-5.0@@T2@@@@T3@@",
+   "src": "Smallest logit <span>$z_{\\min}$ = <span id=\"ls-zmin\">-5.0</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"ls-zmin\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Vector: $\\mathbf{z} = [z_{\\max},\\ 0,\\ z_{\\min}]$. Compute $\\log p_{\\min}$ — the log-probability of the\n      @@T0@@smallest@@T1@@ class — which is the dangerous one.": {
+   "zh": "向量：$\\mathbf{z} = [z_{\\max},\\ 0,\\ z_{\\min}]$。计算 $\\log p_{\\min}$ &mdash; 即\n      @@T0@@最小@@T1@@ 类别的对数概率 &mdash; 这是一个危险的对象。",
+   "src": "Vector: $\\mathbf{z} = [z_{\\max},\\ 0,\\ z_{\\min}]$. Compute $\\log p_{\\min}$ — the log-probability of the\n      <em>smallest</em> class — which is the dangerous one.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Naive — log(softmax(z))": {
+   "zh": "朴素 &mdash; log(softmax(z))",
+   "src": "Naive — log(softmax(z))",
+   "tags": []
+  },
+  "Stable — log_softmax(z)": {
+   "zh": "稳定 &mdash; log_softmax(z)",
+   "src": "Stable — log_softmax(z)",
+   "tags": []
+  },
+  "@@T0@@Try the danger zone.@@T1@@\n      Push $z_{\\max}$ to 200 — naive softmax overflows ($e^{200} = \\infty$),\n      then $\\log(\\infty) = \\infty$ for the largest class but $\\log(\\text{NaN}/\\infty)$\n      for the smallest. Push $z_{\\min}$ to -200 — naive computes $e^{-200}$,\n      which underflows to 0, then $\\log 0 = -\\infty$. The stable version handles\n      both: it just returns $z_{\\min} - z_{\\max}$ minus a small correction.": {
+   "zh": "@@T0@@试试危险区。@@T1@@\n      将 $z_{\\max}$ 推至 200 &mdash; 朴素 softmax 溢出（$e^{200} = \\infty$），\n      于是最大类别得到 $\\log(\\infty) = \\infty$，而最小类别得到\n      $\\log(\\text{NaN}/\\infty)$。将 $z_{\\min}$ 推至 -200 &mdash; 朴素算法计算 $e^{-200}$，\n      它下溢为 0，于是 $\\log 0 = -\\infty$。稳定版本能同时处理\n      两者：它只返回 $z_{\\min} - z_{\\max}$ 再减去一个小修正量。",
+   "src": "<strong>Try the danger zone.</strong>\n      Push $z_{\\max}$ to 200 — naive softmax overflows ($e^{200} = \\infty$),\n      then $\\log(\\infty) = \\infty$ for the largest class but $\\log(\\text{NaN}/\\infty)$\n      for the smallest. Push $z_{\\min}$ to -200 — naive computes $e^{-200}$,\n      which underflows to 0, then $\\log 0 = -\\infty$. The stable version handles\n      both: it just returns $z_{\\min} - z_{\\max}$ minus a small correction.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Trick 3": {
+   "zh": "技巧 3",
+   "src": "Trick 3",
+   "tags": []
+  },
+  "BCE-with-logits: avoid the log-of-sigmoid trap": {
+   "zh": "BCE-with-logits：避开“sigmoid 取对数”陷阱",
+   "src": "BCE-with-logits: avoid the log-of-sigmoid trap",
+   "tags": []
+  },
+  "Binary cross-entropy is:": {
+   "zh": "二元交叉熵为：",
+   "src": "Binary cross-entropy is:",
+   "tags": []
+  },
+  "Both $\\log\\sigma(z)$ and $\\log(1 - \\sigma(z))$ are time bombs. If $z$ is\n      strongly negative, $\\sigma(z) \\to 0$, and $\\log 0 = -\\infty$. If $z$ is\n      strongly positive, $1 - \\sigma(z) \\to 0$, same problem.": {
+   "zh": "$\\log\\sigma(z)$ 与 $\\log(1 - \\sigma(z))$ 都是定时炸弹。若 $z$\n      为强负值，则 $\\sigma(z) \\to 0$，而 $\\log 0 = -\\infty$。若 $z$\n      为强正值，则 $1 - \\sigma(z) \\to 0$，问题相同。",
+   "src": "Both $\\log\\sigma(z)$ and $\\log(1 - \\sigma(z))$ are time bombs. If $z$ is\n      strongly negative, $\\sigma(z) \\to 0$, and $\\log 0 = -\\infty$. If $z$ is\n      strongly positive, $1 - \\sigma(z) \\to 0$, same problem.",
+   "tags": []
+  },
+  "The fix uses the identity $\\log\\sigma(z) = -\\log(1 + e^{-z}) = -\\mathrm{softplus}(-z)$,\n      and $\\log(1 - \\sigma(z)) = -z - \\log(1 + e^{-z}) = -z - \\mathrm{softplus}(-z)$.\n      Substituting:": {
+   "zh": "修复方法利用恒等式 $\\log\\sigma(z) = -\\log(1 + e^{-z}) = -\\mathrm{softplus}(-z)$\n      以及 $\\log(1 - \\sigma(z)) = -z - \\log(1 + e^{-z}) = -z - \\mathrm{softplus}(-z)$。\n      代入得：",
+   "src": "The fix uses the identity $\\log\\sigma(z) = -\\log(1 + e^{-z}) = -\\mathrm{softplus}(-z)$,\n      and $\\log(1 - \\sigma(z)) = -z - \\log(1 + e^{-z}) = -z - \\mathrm{softplus}(-z)$.\n      Substituting:",
+   "tags": []
+  },
+  "L = max(z, 0) - z·y + log(1 + exp(-|z|))": {
+   "zh": "L = max(z, 0) - z·y + log(1 + exp(-|z|))",
+   "src": "L = max(z, 0) - z·y + log(1 + exp(-|z|))",
+   "tags": []
+  },
+  "This @@T0@@never@@T1@@ overflows: the only exp is $e^{-|z|}$, which is in $(0, 1]$.\n      PyTorch implements this as @@T2@@F.binary_cross_entropy_with_logits@@T3@@.\n      Composing @@T4@@BCE(sigmoid(z))@@T5@@ by hand is the wrong way.": {
+   "zh": "此式 @@T0@@绝不会@@T1@@ 溢出：唯一的 exp 是 $e^{-|z|}$，它落在 $(0, 1]$ 内。\n      PyTorch 将其实现为 @@T2@@F.binary_cross_entropy_with_logits@@T3@@。\n      手工复合 @@T4@@BCE(sigmoid(z))@@T5@@ 是错误的做法。",
+   "src": "This <em>never</em> overflows: the only exp is $e^{-|z|}$, which is in $(0, 1]$.\n      PyTorch implements this as <code>F.binary_cross_entropy_with_logits</code>.\n      Composing <code>BCE(sigmoid(z))</code> by hand is the wrong way.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Logit @@T0@@$z$ = @@T1@@-30@@T2@@@@T3@@": {
+   "zh": "Logit @@T0@@$z$ = @@T1@@-30@@T2@@@@T3@@",
+   "src": "Logit <span>$z$ = <span id=\"bce-z\">-30</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"bce-z\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Label\n          @@T0@@$y$ = @@T1@@1@@T2@@@@T3@@": {
+   "zh": "标签\n          @@T0@@$y$ = @@T1@@1@@T2@@@@T3@@",
+   "src": "Label\n          <span>$y$ = <span id=\"bce-y\">1</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"bce-y\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Naive — log(sigmoid(z))": {
+   "zh": "朴素 &mdash; log(sigmoid(z))",
+   "src": "Naive — log(sigmoid(z))",
+   "tags": []
+  },
+  "Stable — BCE-with-logits": {
+   "zh": "稳定 &mdash; BCE-with-logits",
+   "src": "Stable — BCE-with-logits",
+   "tags": []
+  },
+  "@@T0@@The pattern.@@T1@@\n      Whenever you see @@T2@@\"apply $\\sigma$ then take $\\log$\"@@T3@@ in your code,\n      pause. There is almost always a single fused operation in the framework\n      that does it stably. Same lesson as @@T4@@log_softmax@@T5@@: never compose\n      unstable building blocks when a stable atomic exists.": {
+   "zh": "@@T0@@这一模式。@@T1@@\n      每当你在代码中看到 @@T2@@“先施加 $\\sigma$ 再取 $\\log$”@@T3@@，\n      都应停下来想一想。框架中几乎总有一个融合的单一运算\n      能稳定地完成它。这与 @@T4@@log_softmax@@T5@@ 是同一个教训：当存在稳定的\n      原子运算时，绝不要复合不稳定的基本构件。",
+   "src": "<strong>The pattern.</strong>\n      Whenever you see <em>\"apply $\\sigma$ then take $\\log$\"</em> in your code,\n      pause. There is almost always a single fused operation in the framework\n      that does it stably. Same lesson as <code>log_softmax</code>: never compose\n      unstable building blocks when a stable atomic exists.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Trick 4": {
+   "zh": "技巧 4",
+   "src": "Trick 4",
+   "tags": []
+  },
+  "log(1 - exp(-x)) and the catastrophic cancellation cousin": {
+   "zh": "log(1 - exp(-x)) 及其灾难性抵消的近亲",
+   "src": "log(1 - exp(-x)) and the catastrophic cancellation cousin",
+   "tags": []
+  },
+  "The function $\\log(1 - e^{-x})$ shows up in survival analysis, in\n      Beta-distribution log-densities, and in some KL divergences. For small $x$\n      (say $x = 10^{-5}$), $e^{-x} \\approx 1 - x$, so $1 - e^{-x} \\approx x$, but\n      the subtraction $1 - e^{-x}$ @@T0@@cancels@@T1@@ almost all the significant\n      bits of the floating-point representation. You lose precision.": {
+   "zh": "函数 $\\log(1 - e^{-x})$ 出现在生存分析、\n      Beta 分布的对数密度以及某些 KL 散度之中。对于较小的 $x$\n      （比如 $x = 10^{-5}$），$e^{-x} \\approx 1 - x$，故 $1 - e^{-x} \\approx x$，但\n      减法 $1 - e^{-x}$ 会 @@T0@@抵消@@T1@@ 掉浮点表示中几乎所有的\n      有效位。精度由此丢失。",
+   "src": "The function $\\log(1 - e^{-x})$ shows up in survival analysis, in\n      Beta-distribution log-densities, and in some KL divergences. For small $x$\n      (say $x = 10^{-5}$), $e^{-x} \\approx 1 - x$, so $1 - e^{-x} \\approx x$, but\n      the subtraction $1 - e^{-x}$ <em>cancels</em> almost all the significant\n      bits of the floating-point representation. You lose precision.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Two specialized library functions, @@T0@@expm1@@T1@@ ($e^x - 1$) and\n      @@T2@@log1p@@T3@@ ($\\log(1 + x)$), preserve precision in exactly the\n      regions where the naive formula loses it. They are in the C standard\n      library, NumPy, and PyTorch for this single reason.": {
+   "zh": "两个专用的库函数 @@T0@@expm1@@T1@@（$e^x - 1$）与\n      @@T2@@log1p@@T3@@（$\\log(1 + x)$），恰好在朴素公式丢失精度的\n      区域保持精度。它们之所以存在于 C 标准库、NumPy 与 PyTorch 中，\n      正是出于这一原因。",
+   "src": "Two specialized library functions, <code>expm1</code> ($e^x - 1$) and\n      <code>log1p</code> ($\\log(1 + x)$), preserve precision in exactly the\n      regions where the naive formula loses it. They are in the C standard\n      library, NumPy, and PyTorch for this single reason.",
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@slider value is $\\log_{10}(x)$, so the actual $x$ ranges from $10^{-12}$ to $10^3$@@T1@@": {
+   "zh": "@@T0@@滑块值为 $\\log_{10}(x)$，故实际的 $x$ 从 $10^{-12}$ 变化到 $10^3$@@T1@@",
+   "src": "<span style=\"font-size: 0.78rem; color: var(--muted); font-family: var(--sans);\">slider value is $\\log_{10}(x)$, so the actual $x$ ranges from $10^{-12}$ to $10^3$</span>",
+   "tags": [
+    "<span style=\"font-size: 0.78rem; color: var(--muted); font-family: var(--sans);\">",
+    "</span>"
+   ]
+  },
+  "Naive — log(1 - exp(-x))": {
+   "zh": "朴素 &mdash; log(1 - exp(-x))",
+   "src": "Naive — log(1 - exp(-x))",
+   "tags": []
+  },
+  "Stable — using expm1 / log1p": {
+   "zh": "稳定 &mdash; 使用 expm1 / log1p",
+   "src": "Stable — using expm1 / log1p",
+   "tags": []
+  },
+  "Drop $x$ to $10^{-7}$. The naive version returns either $-\\infty$ (if\n      $1 - e^{-x}$ rounds to exactly 0) or a value missing 6 digits of precision.\n      The stable version is correct to machine epsilon.": {
+   "zh": "将 $x$ 降至 $10^{-7}$。朴素版本要么返回 $-\\infty$（当\n      $1 - e^{-x}$ 舍入为恰好 0 时），要么返回一个缺失 6 位精度的\n      数值。稳定版本精确到机器 epsilon。",
+   "src": "Drop $x$ to $10^{-7}$. The naive version returns either $-\\infty$ (if\n      $1 - e^{-x}$ rounds to exactly 0) or a value missing 6 digits of precision.\n      The stable version is correct to machine epsilon.",
+   "tags": []
+  },
+  "Trick 5": {
+   "zh": "技巧 5",
+   "src": "Trick 5",
+   "tags": []
+  },
+  "The other usual suspects": {
+   "zh": "其余常见嫌疑对象",
+   "src": "The other usual suspects",
+   "tags": []
+  },
+  "A reference card of tricks you'll meet repeatedly:": {
+   "zh": "一张你将会反复遇到的技巧速查表：",
+   "src": "A reference card of tricks you'll meet repeatedly:",
+   "tags": []
+  },
+  "Quantity": {
+   "zh": "计算对象",
+   "src": "Quantity",
+   "tags": []
+  },
+  "Naive": {
+   "zh": "朴素做法",
+   "src": "Naive",
+   "tags": []
+  },
+  "Stable": {
+   "zh": "稳定做法",
+   "src": "Stable",
+   "tags": []
+  },
+  "Why": {
+   "zh": "原因",
+   "src": "Why",
+   "tags": []
+  },
+  "softmax": {
+   "zh": "softmax",
+   "src": "softmax",
+   "tags": []
+  },
+  "Avoids $e^{\\text{huge}}$": {
+   "zh": "避开 $e^{\\text{巨大}}$",
+   "src": "Avoids $e^{\\text{huge}}$",
+   "tags": []
+  },
+  "log_softmax": {
+   "zh": "log_softmax",
+   "src": "log_softmax",
+   "tags": []
+  },
+  "Skips $\\log$ of underflowed probability": {
+   "zh": "跳过对下溢概率取 $\\log$",
+   "src": "Skips $\\log$ of underflowed probability",
+   "tags": []
+  },
+  "BCE": {
+   "zh": "BCE",
+   "src": "BCE",
+   "tags": []
+  },
+  "Single $\\log$, single $\\exp$, both bounded": {
+   "zh": "仅一次 $\\log$、一次 $\\exp$，且二者均有界",
+   "src": "Single $\\log$, single $\\exp$, both bounded",
+   "tags": []
+  },
+  "$\\log(1+x)$ for tiny $x$": {
+   "zh": "对极小的 $x$ 计算 $\\log(1+x)$",
+   "src": "$\\log(1+x)$ for tiny $x$",
+   "tags": []
+  },
+  "$1 + 10^{-10}$ rounds to $1$, losing all info": {
+   "zh": "$1 + 10^{-10}$ 舍入为 $1$，丢失全部信息",
+   "src": "$1 + 10^{-10}$ rounds to $1$, losing all info",
+   "tags": []
+  },
+  "$e^x - 1$ for tiny $x$": {
+   "zh": "对极小的 $x$ 计算 $e^x - 1$",
+   "src": "$e^x - 1$ for tiny $x$",
+   "tags": []
+  },
+  "Same cancellation: $1 - 1 = 0$ loses everything": {
+   "zh": "同样的抵消：$1 - 1 = 0$ 丢失一切",
+   "src": "Same cancellation: $1 - 1 = 0$ loses everything",
+   "tags": []
+  },
+  "std of $n$ values": {
+   "zh": "$n$ 个数值的标准差",
+   "src": "std of $n$ values",
+   "tags": []
+  },
+  "Welford's online algorithm": {
+   "zh": "Welford 在线算法",
+   "src": "Welford's online algorithm",
+   "tags": []
+  },
+  "Two large numbers minus each other → cancellation": {
+   "zh": "两个大数相减 → 抵消",
+   "src": "Two large numbers minus each other → cancellation",
+   "tags": []
+  },
+  "$\\log\\Gamma(x)$ for large $x$": {
+   "zh": "对较大的 $x$ 计算 $\\log\\Gamma(x)$",
+   "src": "$\\log\\Gamma(x)$ for large $x$",
+   "tags": []
+  },
+  "$\\mathrm{lgamma}(x)$ (Stirling-based)": {
+   "zh": "$\\mathrm{lgamma}(x)$（基于 Stirling 公式）",
+   "src": "$\\mathrm{lgamma}(x)$ (Stirling-based)",
+   "tags": []
+  },
+  "$\\Gamma(170) \\approx 10^{306}$ is the last representable factorial in float64": {
+   "zh": "$\\Gamma(170) \\approx 10^{306}$ 是 float64 中最后一个可表示的阶乘值",
+   "src": "$\\Gamma(170) \\approx 10^{306}$ is the last representable factorial in float64",
+   "tags": []
+  },
+  "variance from @@T0@@scaled@@T1@@ values": {
+   "zh": "由 @@T0@@经缩放@@T1@@ 的数值求方差",
+   "src": "variance from <em>scaled</em> values",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "direct sum of squares": {
+   "zh": "直接求平方和",
+   "src": "direct sum of squares",
+   "tags": []
+  },
+  "BatchNorm uses $\\bar{x}^2 + \\epsilon$ for $\\sigma^2$": {
+   "zh": "BatchNorm 用 $\\bar{x}^2 + \\epsilon$ 来计算 $\\sigma^2$",
+   "src": "BatchNorm uses $\\bar{x}^2 + \\epsilon$ for $\\sigma^2$",
+   "tags": []
+  },
+  "Tiny variance in some channels would otherwise divide-by-zero": {
+   "zh": "否则某些通道中极小的方差会导致除零",
+   "src": "Tiny variance in some channels would otherwise divide-by-zero",
+   "tags": []
+  },
+  "division by softmax weights": {
+   "zh": "除以 softmax 权重",
+   "src": "division by softmax weights",
+   "tags": []
+  },
+  "multiply by $\\exp(-\\log p_k)$ via log_softmax": {
+   "zh": "借助 log_softmax 乘以 $\\exp(-\\log p_k)$",
+   "src": "multiply by $\\exp(-\\log p_k)$ via log_softmax",
+   "tags": []
+  },
+  "Avoid dividing by underflowed $p$": {
+   "zh": "避免除以已下溢的 $p$",
+   "src": "Avoid dividing by underflowed $p$",
+   "tags": []
+  },
+  "L2 norm of huge vector": {
+   "zh": "超大向量的 L2 范数",
+   "src": "L2 norm of huge vector",
+   "tags": []
+  },
+  "$x_i^2$ overflows for $x_i > \\sqrt{\\text{max float}}$": {
+   "zh": "当 $x_i > \\sqrt{\\text{最大浮点数}}$ 时 $x_i^2$ 会溢出",
+   "src": "$x_i^2$ overflows for $x_i > \\sqrt{\\text{max float}}$",
+   "tags": []
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Three rules of thumb": {
+   "zh": "三条经验法则",
+   "src": "Three rules of thumb",
+   "tags": []
+  },
+  "Rule 1": {
+   "zh": "法则 1",
+   "src": "Rule 1",
+   "tags": []
+  },
+  "@@T0@@Never compose @@T1@@log@@T2@@ with something that can be tiny.@@T3@@\n          @@T4@@log(softmax(x))@@T5@@, @@T6@@log(sigmoid(x))@@T7@@, and @@T8@@log(1 - sigmoid(x))@@T9@@\n          are all forbidden. Use the fused stable atomic instead.": {
+   "zh": "@@T0@@绝不要将 @@T1@@log@@T2@@ 与可能极小的量复合。@@T3@@\n          @@T4@@log(softmax(x))@@T5@@、@@T6@@log(sigmoid(x))@@T7@@ 以及 @@T8@@log(1 - sigmoid(x))@@T9@@\n          都在禁止之列。应改用融合的稳定原子运算。",
+   "src": "<strong>Never compose <code>log</code> with something that can be tiny.</strong>\n          <code>log(softmax(x))</code>, <code>log(sigmoid(x))</code>, and <code>log(1 - sigmoid(x))</code>\n          are all forbidden. Use the fused stable atomic instead.",
+   "tags": [
+    "<strong>",
+    "<code>",
+    "</code>",
+    "</strong>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Rule 2": {
+   "zh": "法则 2",
+   "src": "Rule 2",
+   "tags": []
+  },
+  "@@T0@@Never compute @@T1@@exp@@T2@@ of an unbounded quantity.@@T3@@\n          Always shift first: subtract the max, normalize, or factor out the largest term. The\n          mathematical answer is unchanged, the numerical answer is finite.": {
+   "zh": "@@T0@@绝不要对无界的量计算 @@T1@@exp@@T2@@。@@T3@@\n          务必先做平移：减去最大值、归一化，或提取出最大项。\n          数学答案不变，而数值答案保持有限。",
+   "src": "<strong>Never compute <code>exp</code> of an unbounded quantity.</strong>\n          Always shift first: subtract the max, normalize, or factor out the largest term. The\n          mathematical answer is unchanged, the numerical answer is finite.",
+   "tags": [
+    "<strong>",
+    "<code>",
+    "</code>",
+    "</strong>"
+   ]
+  },
+  "Rule 3": {
+   "zh": "法则 3",
+   "src": "Rule 3",
+   "tags": []
+  },
+  "@@T0@@Trust the framework's @@T1@@*_with_logits@@T2@@ functions.@@T3@@\n          They exist because the naive composition is unstable. @@T4@@cross_entropy(logits, y)@@T5@@,\n          @@T6@@bce_with_logits(z, y)@@T7@@, @@T8@@log_softmax(z)@@T9@@, @@T10@@logsumexp(z)@@T11@@ — use them.": {
+   "zh": "@@T0@@信任框架提供的 @@T1@@*_with_logits@@T2@@ 函数。@@T3@@\n          它们之所以存在，正是因为朴素复合写法不稳定。@@T4@@cross_entropy(logits, y)@@T5@@、\n          @@T6@@bce_with_logits(z, y)@@T7@@、@@T8@@log_softmax(z)@@T9@@、@@T10@@logsumexp(z)@@T11@@ &mdash; 请使用它们。",
+   "src": "<strong>Trust the framework's <code>*_with_logits</code> functions.</strong>\n          They exist because the naive composition is unstable. <code>cross_entropy(logits, y)</code>,\n          <code>bce_with_logits(z, y)</code>, <code>log_softmax(z)</code>, <code>logsumexp(z)</code> — use them.",
+   "tags": [
+    "<strong>",
+    "<code>",
+    "</code>",
+    "</strong>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n      Numerical stability is invisible when it works and catastrophic when it\n      doesn't. NaN losses, exploding gradients, mysterious training failures\n      &mdash; a huge fraction of these trace back to a naive composition that\n      should have been the fused stable form. The next time your loss goes\n      @@T2@@nan@@T3@@, check your @@T4@@log@@T5@@s and your @@T6@@exp@@T7@@s\n      first. You'll usually find the culprit there.": {
+   "zh": "@@T0@@最后总结。@@T1@@\n      数值稳定性在正常工作时不可见，一旦失效则后果灾难性。\n      NaN 损失、梯度爆炸、莫名其妙的训练失败\n      &mdash; 其中很大一部分都可追溯到本应使用融合稳定形式\n      的朴素复合写法。下次当你的损失变成\n      @@T2@@nan@@T3@@ 时，请先检查你的 @@T4@@log@@T5@@ 与 @@T6@@exp@@T7@@。\n      你通常会在那里找到元凶。",
+   "src": "<strong>Final takeaway.</strong>\n      Numerical stability is invisible when it works and catastrophic when it\n      doesn't. NaN losses, exploding gradients, mysterious training failures\n      &mdash; a huge fraction of these trace back to a naive composition that\n      should have been the fused stable form. The next time your loss goes\n      <code>nan</code>, check your <code>log</code>s and your <code>exp</code>s\n      first. You'll usually find the culprit there.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "数值计算的实用技巧",
+  "tagline": "Log-sum-exp、log-softmax、BCE-with-logits，以及让浮点计算保持可靠的若干修复",
+  "summary": "Float64 在 $e^{700}$ 处溢出。Float32 在 $e^{88}$ 处溢出。神经网络日常计算出的量常常越过这两个极限。本页以“朴素写法失效 / 稳定写法奏效”的并排对比，展示机器学习中最重要的四个数值技巧 &mdash; log-sum-exp、log-softmax、BCE-with-logits 以及 log1p/expm1。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "将单个 logit 滑块推至 700，观察朴素 softmax 算出 +Infinity，而稳定版本返回正确答案。",
+   "理解为何 log(softmax(x)) 是错误的复合写法，以及 log_softmax(x) 为何作为单一融合运算而存在。",
+   "观察 BCE-with-logits 在 logit 量级达 ±200 时仍保持有限，而朴素 BCE 返回 NaN。",
+   "将 x 拖至 1e-10，看 log(1 - exp(-x)) 丢失 6 位精度 &mdash; 由 log1p 与 expm1 挽救回来。",
+   "另有 10 项稳定性技巧的速查表：Welford 方差、lgamma、缩放 L2 范数等。"
+  ],
+  "tags": [
+   "数值稳定性",
+   "浮点数",
+   "深度学习",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

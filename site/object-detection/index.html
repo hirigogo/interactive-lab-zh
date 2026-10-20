@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>基于真实检测器的目标检测</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article 类别="article">
+      <header 类别="article-header">
+        <a 类别="back-link" href="../index.html">&larr; 讲解库</a>
+        <p 类别="kicker">交互式讲解</p>
+        <h1>基于真实检测器的目标检测</h1>
+        <p 类别="abstract">
+          一个预训练的 <strong>SSD-MobileNetV2</strong> 在完整的 COCO 数据集（80 个类别）上训练后，可在你的浏览器中加载，并对你提供的任意照片实时运行。你绘制真实标注框（ground-truth 框es），它做出预测，而本页的每一项指标&mdash;&mdash;IoU、精确率（precision）、召回率（recall）、F1、非极大值抑制（non-max suppression）、平均精度（average precision）&mdash;&mdash;都针对真实检测器的真实输出计算得出。
+        </p>
+        <div 类别="byline">
+          <span>约 16 分钟</span>
+          <span>计算机视觉 &middot; TensorFlow.js &middot; 真实模型</span>
+        </div>
+      </header>
+
+      <!-- ─── 前言 ─── -->
+      <section 类别="步骤-section" id="prelude">
+        <div 类别="步骤-badge">前言</div>
+        <h2>一个在浏览器中运行的真实检测器</h2>
+        <p>
+          下面加载的模型是 <a href="https://arxiv.org/abs/1512.02325" target="_blank" rel="noopener noreferrer">SSD（Single-Shot Detector，单阶段检测器）</a>，其骨干网络为 MobileNetV2，在 <a href="https://cocodataset.org/" target="_blank" rel="noopener noreferrer">MS-COCO</a> 上训练，可检测 80 个日常类别（人、狗、汽车、笔记本电脑、瓶子&hellip;&hellip;）。它完全通过 <a href="https://www.tensorflow.org/js" target="_blank" rel="noopener noreferrer">TensorFlow.js</a> 在你的 GPU 上运行&mdash;&mdash;模型缓存后便不再有网络请求。本文其余部分你所看到的一切，都是由它在 <em>你的</em> 照片上的 <em>真实</em> 预测计算而来。
+        </p>
+
+        <h3>
+          选择一张照片
+          <span 类别="model-status is-loading" id="model-status">
+            <span 类别="dot"></span><span id="model-status-text">正在加载检测器&hellip;&hellip;</span>
+          </span>
+        </h3>
+        <div 类别="photo-picker">
+          <label 类别="upload-zone" id="upload-zone" for="photo-input">
+            <strong>将照片拖放到此处，或点击上传。</strong>
+            <small>支持任意 JPEG 或 PNG。本地运行，不会上传到服务器。</small>
+            <div 类别="draw-toolbar" style="margin: 0.4rem 0 0;">
+              <button 类别="操作-btn 操作-btn--small" id="webcam-btn" type="button">使用摄像头</button>
+            </div>
+            <input type="file" id="photo-input" accept="image/*" />
+          </label>
+          <div>
+            <div 类别="sample-grid" id="sample-grid"></div>
+            <p style="font-family: var(--sans); color: var(--muted); font-size: 0.8rem; margin: 0.5rem 0 0;">
+              六张 CC 授权的图库照片，选取以覆盖 COCO 类别。
+            </p>
+          </div>
+        </div>
+
+        <div 类别="interactive-figure">
+          <div 类别="image-stage-wrap">
+            <canvas id="preludeCanvas" 类别="scene-canvas"></canvas>
+          </div>
+          <figcaption id="prelude-caption">
+            加载中&hellip;&hellip;一旦模型就绪且照片载入，检测器就会在此处绘制其预测结果。
+          </figcaption>
+        </div>
+
+        <div 类别="stat-strip">
+          <div 类别="stat-pill stat-pill--pred">
+            <span 类别="stat-label">原始检测结果</span>
+            <span 类别="stat-value" id="raw-count">—</span>
+          </div>
+          <div 类别="stat-pill">
+            <span 类别="stat-label">推理时间</span>
+            <span 类别="stat-value" id="inference-ms">—</span>
+          </div>
+          <div 类别="stat-pill">
+            <span 类别="stat-label">检测器</span>
+            <span 类别="stat-value" style="font-size: 0.92rem;">SSD-MobileNetV2</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── 第 1 步 ─── -->
+      <section 类别="步骤-section" id="步骤-1">
+        <div 类别="步骤-badge">第 1 步</div>
+        <h2>一次检测就是四个数加一个标签</h2>
+        <p>
+          模型输出列表中的每一条都如下所示：
+        </p>
+        <div 类别="math-block" id="math-row"></div>
+        <p>
+          框以你图像上的像素坐标给出。类别是 COCO 80 个类别之一。分数是模型的置信度。下面是所有置信度高于 5% 阈值的 <em>每一项</em> 检测的实时列表&mdash;&mdash;这通常就是 SSD 提出的全部候选。点击某一行可在图像上高亮该框。
+        </p>
+
+        <div 类别="split-grid">
+          <div 类别="interactive-figure">
+            <div 类别="image-stage-wrap">
+              <canvas id="rawListCanvas" 类别="scene-canvas"></canvas>
+            </div>
+            <figcaption>点击任意检测即可高亮它。</figcaption>
+          </div>
+          <div>
+            <h3 style="margin-top: 0;">原始输出</h3>
+            <div 类别="detection-table-wrap">
+              <table 类别="detection-table" id="rawTable">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>类别</th>
+                    <th>分数</th>
+                    <th>框</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td colspan="4" style="text-align:center; color:var(--muted);">正在等待模型&hellip;&hellip;</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── 第 2 步 ─── -->
+      <section 类别="步骤-section" id="步骤-2">
+        <div 类别="步骤-badge">第 2 步</div>
+        <h2>交并比（Intersection over Union，IoU）</h2>
+        <p>
+          这是检测中最重要的一个数值。IoU 度量两个框重叠的程度，其标度使得完全相同的框得分为 1，而不相交的框得分为 0：
+        </p>
+        <div 类别="math-block" id="math-iou"></div>
+        <p>
+          下面由你绘制真实标注。点击 <strong>绘制 GT</strong> 按钮，围绕你想评估的任意目标拖出一个矩形并松开。最接近的检测会被自动匹配，IoU 随即给出。你可以按需绘制任意多个。点击 <strong>清除</strong> 重置。
+        </p>
+
+        <div 类别="draw-toolbar">
+          <button 类别="操作-btn" id="btn-draw-gt">绘制真实标注框</button>
+          <button 类别="操作-btn 操作-btn--ghost 操作-btn--small" id="btn-clear-gt">清除全部 GT 框</button>
+          <span style="font-family: var(--sans); color: var(--muted); font-size: 0.85rem;">提示：你也可以拖动现有框的角点来调整其大小。</span>
+        </div>
+
+        <div 类别="interactive-figure">
+          <div 类别="image-stage-wrap">
+            <canvas id="iouCanvas" 类别="scene-canvas"></canvas>
+          </div>
+          <figcaption>
+            <span style="color: var(--truth); font-weight: 700;">绿色</span> = 你的 GT。
+            <span style="color: var(--pred); font-weight: 700;">橙色</span> = 匹配最佳的检测。
+            <span style="color: var(--iou); font-weight: 700;">紫色阴影</span> = 交集。
+          </figcaption>
+        </div>
+
+        <div 类别="stat-strip">
+          <div 类别="stat-pill stat-pill--truth"><span 类别="stat-label">已绘制 GT 框</span><span 类别="stat-value" id="gt-count">0</span></div>
+          <div 类别="stat-pill stat-pill--iou stat-pill--big"><span 类别="stat-label">平均 IoU（最佳匹配）</span><span 类别="stat-value" id="mean-iou">—</span></div>
+          <div 类别="stat-pill"><span 类别="stat-label">最近一次 IoU</span><span 类别="stat-value" id="last-iou">—</span></div>
+        </div>
+
+        <div 类别="callout callout--warn">
+          <strong>0.5 这个阈值是一种惯例，而非定律。</strong>
+          COCO 之所以在 0.5 到 0.95 的 IoU 阈值上以 0.05 为步长对 AP 取平均，正是因为单一阈值会像奖励像素级完美的框那样，奖励那些偷懒而略有偏差的框。请把 GT 框调整为同一目标的更紧与更松版本，观察 IoU 如何变化。
+        </div>
+      </section>
+
+      <!-- ─── 第 3 步 ─── -->
+      <section 类别="步骤-section" id="步骤-3">
+        <div 类别="步骤-badge">第 3 步</div>
+        <h2>置信度阈值筛选</h2>
+        <p>
+          检测器在给出优质猜测的同时，还会输出数十个低置信度的猜测。在实际生产环境中，你会选定一个分数阈值；只有越过该阈值的检测才会保留。滑动阈值，观察框的出现与消失。
+        </p>
+        <div 类别="control-row">
+          <div 类别="control-block">
+            <label>置信度阈值 <span>c &ge; <span id="conf-val">0.30</span></span></label>
+            <input type="range" id="conf-slider" min="0.01" max="0.95" 步骤="0.01" value="0.3" />
+          </div>
+          <div 类别="control-block">
+            <label>显示 <span><span id="showing-count">—</span> / <span id="total-count">—</span> 个框</span></label>
+            <div 类别="legend-row" style="margin: 0.5rem 0 0;">
+              <div 类别="legend-item"><span 类别="legend-swatch" style="background:var(--truth)"></span>真实标注</div>
+              <div 类别="legend-item"><span 类别="legend-swatch" style="background:var(--pred)"></span>高于阈值</div>
+              <div 类别="legend-item"><span 类别="legend-swatch" style="background:#c4beb1"></span>低于阈值</div>
+            </div>
+          </div>
+        </div>
+
+        <div 类别="interactive-figure">
+          <div 类别="image-stage-wrap">
+            <canvas id="threshCanvas" 类别="scene-canvas"></canvas>
+          </div>
+          <figcaption>对当前检测器输出进行实时阈值扫描。</figcaption>
+        </div>
+
+        <h3>相对你的真实标注的精确率、召回率与 F1</h3>
+        <p>
+          若你在第 2 步绘制了任意 GT 框，我们会按 IoU &ge; 0.5 将它们与存留的检测相匹配（经典的 COCO 真阳性规则）。未被匹配的 GT 为假阴性；未被匹配的检测为假阳性。
+        </p>
+        <div 类别="math-block" id="math-prf"></div>
+
+        <div 类别="stat-strip">
+          <div 类别="stat-pill"><span 类别="stat-label">真阳性</span><span 类别="stat-value" id="tp">0</span></div>
+          <div 类别="stat-pill"><span 类别="stat-label">假阳性</span><span 类别="stat-value" id="fp">0</span></div>
+          <div 类别="stat-pill"><span 类别="stat-label">假阴性</span><span 类别="stat-value" id="fn">0</span></div>
+        </div>
+        <div 类别="stat-strip">
+          <div 类别="stat-pill stat-pill--truth stat-pill--big"><span 类别="stat-label">精确率</span><span 类别="stat-value" id="precision">—</span></div>
+          <div 类别="stat-pill stat-pill--pred stat-pill--big"><span 类别="stat-label">召回率</span><span 类别="stat-value" id="recall">—</span></div>
+          <div 类别="stat-pill stat-pill--iou stat-pill--big"><span 类别="stat-label">F1</span><span 类别="stat-value" id="f1">—</span></div>
+        </div>
+
+        <div 类别="callout callout--think">
+          <strong>请先绘制几个 GT 框。</strong>
+          没有真实标注时，精确率与召回率无从定义。围绕真实目标绘制 2–3 个 GT 框，然后滑动置信度阈值。观察 F1 曲线在模型的「自然」工作点附近达到峰值&mdash;&mdash;对 SSD 而言通常在 0.3&ndash;0.5 左右。
+        </div>
+      </section>
+
+      <!-- ─── 第 4 步 ─── -->
+      <section 类别="步骤-section" id="步骤-4">
+        <div 类别="步骤-badge">第 4 步</div>
+        <h2>非极大值抑制（NMS）</h2>
+        <p>
+          检测器会对同一目标多次响应。NMS 是经典的去重规则：
+        </p>
+        <ol 类别="explanation-list">
+          <li>按置信度从高到低对检测排序。</li>
+          <li>保留排名最高的检测。</li>
+          <li>丢弃所有与已保留检测的 IoU 超过 NMS 阈值的其他检测。</li>
+          <li>对剩余的检测重复上述过程。</li>
+        </ol>
+        <p>
+          COCO-SSD 内部已经应用了自己的 NMS。为了观察 NMS 的实际运作，我们以 <code>maxNumBoxes: 40</code> 和内部 IoU 阈值 1.0 加载检测器&mdash;&mdash;这意味着在模型层面 <em>没有任何</em> 检测被抑制。随后你将在下方自行应用 NMS。
+        </p>
+
+        <div 类别="control-row">
+          <div 类别="control-block">
+            <label>NMS IoU 阈值 <span>IoU &ge; <span id="nms-val">0.50</span></span></label>
+            <input type="range" id="nms-slider" min="0.1" max="0.95" 步骤="0.01" value="0.5" />
+          </div>
+          <div 类别="control-block">
+            <label>NMS 前置信度下限 <span>c &ge; <span id="nms-conf-val">0.20</span></span></label>
+            <input type="range" id="nms-conf-slider" min="0.01" max="0.9" 步骤="0.01" value="0.2" />
+          </div>
+        </div>
+
+        <div 类别="interactive-figure">
+          <div 类别="image-stage-wrap">
+            <canvas id="nmsCanvas" 类别="scene-canvas"></canvas>
+          </div>
+          <figcaption>浅色 = 被抑制。实色 = 被保留。</figcaption>
+        </div>
+
+        <div 类别="stat-strip">
+          <div 类别="stat-pill"><span 类别="stat-label">NMS 前</span><span 类别="stat-value" id="nms-in">—</span></div>
+          <div 类别="stat-pill stat-pill--pred"><span 类别="stat-label">保留</span><span 类别="stat-value" id="nms-out">—</span></div>
+          <div 类别="stat-pill stat-pill--iou"><span 类别="stat-label">被抑制</span><span 类别="stat-value" id="nms-sup">—</span></div>
+        </div>
+
+        <h3>NMS 追踪</h3>
+        <div 类别="detection-table-wrap" style="max-height: 220px;">
+          <table 类别="detection-table" id="nms-trace-table">
+            <thead><tr><th>步骤</th><th>操作</th><th>类别</th><th>分数</th><th>针对</th></tr></thead>
+            <tbody><tr><td colspan="5" style="text-align:center; color:var(--muted);">等待中&hellip;&hellip;</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ─── 第 5 步 ─── -->
+      <section 类别="步骤-section" id="步骤-5">
+        <div 类别="步骤-badge">第 5 步</div>
+        <h2>检测器家族</h2>
+        <p>
+          本页运行的 SSD 只是更大设计空间中的一个点。三大主流家族为：
+        </p>
+        <div 类别="examples-table-wrap">
+          <table 类别="examples-table">
+            <thead>
+              <tr><th>家族</th><th>如何提出框</th><th>代表模型</th><th>注意事项</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>基于锚框（本页）</strong></td>
+                <td>在多种尺度 / 宽高比上布置的先验框稠密网格；每个框预测类别 + 偏移量。</td>
+                <td>SSD、Faster R-CNN、RetinaNet、YOLOv3/v4/v5</td>
+                <td>需要 NMS。锚框超参数较为敏感。</td>
+              </tr>
+              <tr>
+                <td><strong>无锚框 / 基于点</strong></td>
+                <td>逐像素（或逐单元）：预测「我是否是中心？」+ 框的范围。</td>
+                <td>FCOS、CenterNet、YOLOX、YOLOv8</td>
+                <td>匹配损失（assignment loss）更为棘手；通常仍使用 NMS。</td>
+              </tr>
+              <tr>
+                <td><strong>基于集合（DETR 风格）</strong></td>
+                <td>固定的可学习查询集合；与 GT 进行匈牙利匹配。</td>
+                <td>DETR、Deformable DETR、DINO</td>
+                <td>无需 NMS。训练缓慢；最初在小型目标上表现较弱。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ─── 第 6 步 ─── -->
+      <section 类别="步骤-section" id="步骤-6">
+        <div 类别="步骤-badge">第 6 步</div>
+        <h2>精确率–召回率曲线与 AP</h2>
+        <p>
+          单一置信度阈值只对应精确率–召回率曲线上的一个点。基准评测需要整条曲线。若你已绘制 GT 框，我们会将阈值从 1 扫到 0，绘制精确率对召回率的曲线，并积分得到平均精度（AP）。
+        </p>
+        <div 类别="interactive-figure">
+          <canvas id="prCanvas" width="640" height="320"></canvas>
+          <figcaption>点击第 2 步中的「绘制 GT」以填充此曲线。</figcaption>
+        </div>
+        <div 类别="reveal-card">
+          <h3>本照片上的平均精度</h3>
+          <div 类别="reveal-number" id="apValue">—</div>
+          <p>
+            由你所绘 GT 框计算得到的 PR 曲线下面积。通常在你围绕视觉上清晰的目标绘制 GT 时更高，而在拥挤或被遮挡的场景中更低。
+          </p>
+        </div>
+      </section>
+
+      <!-- ─── 第 7 步 ─── -->
+      <section 类别="步骤-section" id="步骤-7">
+        <div 类别="步骤-badge">第 7 步</div>
+        <h2>仍然会难住人们的四件事</h2>
+        <div 类别="misconception-grid">
+          <div 类别="misconception-card">
+            <span 类别="misconception-icon">误区</span>
+            <p><strong>「99% 置信度意味着模型是对的。」</strong><br />
+              现代检测器的校准很差。上传一张包含临界情形的照片，你会看到 SSD 在看似合理的错误框上飙升至 0.9。请使用 PR 曲线，而非原始数值。</p>
+          </div>
+          <div 类别="misconception-card">
+            <span 类别="misconception-icon">误区</span>
+            <p><strong>「NMS 只是清理工作。」</strong><br />
+              在拥挤场景中，经典 NMS 会 <em>删除真实的重复目标</em>。试一张两只猫挨着坐的照片，观察其中一个框被抹掉。那是 Soft-NMS / DETR 的领域。</p>
+          </div>
+          <div 类别="misconception-card">
+            <span 类别="misconception-icon">误区</span>
+            <p><strong>「mAP 概括了一切。」</strong><br />
+              也许你想要任意精确率下的 100% 召回率（医学扫描），或者任意召回率下的 100% 精确率（自动驾驶）。在选定模型之前，请始终绘制完整的 PR 曲线。</p>
+          </div>
+          <div 类别="misconception-card">
+            <span 类别="misconception-icon">误区</span>
+            <p><strong>「框越大越安全。」</strong><br />
+              严格包含真实框的预测，其 IoU&nbsp;=&nbsp;真实/预测。巨大的「安全」框会拖垮 IoU。紧致者胜。</p>
+          </div>
+        </div>
+
+        <div 类别="callout callout--think" style="margin-top: 2rem;">
+          <strong>最终总结。</strong>
+          你刚刚在真实图像上运行了一个真实的 COCO 检测器，用手绘的真实标注度量了它的输出，并观察到精确率、召回率、NMS 与 AP 都如数学所预测的那样表现。现代检测研究的其余部分，就是用一个更好的骨干网络（ViT、ConvNeXt）、更好的匹配方式（基于集合、无锚框）以及更好的损失函数来替代 SSD&mdash;&mdash;但每一个部分最终都落到同一张记分板上。
+        </div>
+      </section>
+
+      <section 类别="步骤-section" id="步骤-8">
+        <div 类别="步骤-badge">第 8 步</div>
+        <h2>架构谱系图</h2>
+        <ul 类别="explanation-list">
+          <li><strong>两阶段：R-CNN → Fast R-CNN → Faster R-CNN。</strong> 先提出候选区域，再进行分类与精修。准确但缓慢。</li>
+          <li><strong>带锚框的单阶段：SSD、YOLO v1–v5、RetinaNet。</strong> 锚框的稠密网格；对每个锚框预测（类别, 偏移量）。速度快，在消费级 GPU 上可实时运行。</li>
+          <li><strong>无锚框：FCOS、CenterNet。</strong> 在每个空间位置直接预测（类别, 框），无需调校锚框。更简单，精度具竞争力。</li>
+          <li><strong>基于集合：DETR（2020）、Deformable DETR、DINO、RT-DETR。</strong> 带目标查询的 Transformer 解码器；无需 NMS —— 训练时的二分匹配确保每个目标只有唯一预测。2024 年以后精度优先检测的默认方案。</li>
+          <li><strong>开放词汇：Grounding DINO、OWL-ViT、OmDet。</strong> 检测由自由文本描述的任意类别。将视觉骨干网络与语言编码器相结合。</li>
+        </ul>
+      </section>
+
+      <section 类别="步骤-section" id="步骤-9">
+        <div 类别="步骤-badge">第 9 步</div>
+        <h2>匹配问题 —— 锚框、FCOS、匈牙利算法</h2>
+        <p>
+          训练期间，每个预测框都必须匹配到一个真实标注框（或被标记为「背景」）。这种 <em>匹配（assignment）</em> 是各检测器家族之间最大的差异。
+        </p>
+        <ul 类别="explanation-list">
+          <li><strong>基于锚框。</strong> 若 $\mathrm{IoU}(a, g) &gt; \tau$（典型值 $\tau = 0.5$），则位于锚框 $a$ 处的预测框与 GT $g$ 匹配。简单，但锚框尺度/比例的选择是一个超参数。</li>
+          <li><strong>基于中心（FCOS）。</strong> 若某空间位置位于 $g$ 内部，且处在以其中心为基准的、随尺度变化的带状区域内，则该位置与 GT $g$ 匹配。无需锚框。</li>
+          <li><strong>匈牙利 / 二分匹配（DETR）。</strong> 求解一个分配问题，使每个 GT 恰好匹配 <em>一个</em> 预测，并最小化一个（代价 + IoU + 类别）损失。没有重复预测就意味着无需 NMS 后处理。</li>
+        </ul>
+        <p>
+          基于集合的 DETR 式匹配是一项突破，它最终使 Transformer 检测器能够与单阶段 CNN 相抗衡。一旦移除了人工设计的匹配规则，扩大骨干网络的规模就能带来干净的性能提升。
+        </p>
+      </section>
+
+      <section 类别="步骤-section" id="步骤-10">
+        <div 类别="步骤-badge">第 10 步</div>
+        <h2>阅读清单</h2>
+        <ul 类别="explanation-list">
+          <li><strong>Girshick（2014–15）</strong> —— R-CNN、Fast R-CNN。两阶段方法的基石。</li>
+          <li><strong>Ren 等（2015）</strong> —— <em>Faster R-CNN。</em></li>
+          <li><strong>Liu 等（2016）</strong> —— <em>SSD。</em></li>
+          <li><strong>Redmon 等（2016+）</strong> —— <em>YOLO v1–v5。</em></li>
+          <li><strong>Tian 等（2019）</strong> —— <em>FCOS。</em> 无锚框。</li>
+          <li><strong>Carion 等（2020）</strong> —— <em>DETR。</em> 基于 Transformer 的集合预测器。</li>
+          <li><strong>Zhang, Li, Liu 等（2023）</strong> —— <em>DINO / Grounding DINO。</em></li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

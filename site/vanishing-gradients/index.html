@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>梯度消失与梯度爆炸</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>梯度消失与梯度爆炸</h1>
+        <p class="abstract">
+          堆叠一百层；连乘一百个 Jacobian；观察梯度如何凋亡 —— 或爆炸。一个导数面板将那个神秘因子（sigmoid（S 型函数） 为 0.25，ReLU（线性整流单元） 为 1.0）去神秘化；深度滑块展示连乘链条的累积效应；权重尺度滑块则将失效模式从梯度消失翻转为梯度爆炸。随后，一张误区卡片澄清“梯度消失”究竟意味着什么。
+        </p>
+        <div class="byline">
+          <span>约 14 分钟</span>
+          <span>深度学习 &middot; 基础 &middot; 初始化</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>梯度为何如此重要</h2>
+        <p>
+          神经网络的训练方式是从每个权重中减去 $\partial \mathcal{L} / \partial W$ 的一个微小倍数。若该梯度实质上为零，权重便不动，该层也就学不到任何东西。若该梯度大得惊人，权重就会过冲，损失爆炸。两种失效模式有共同的根源：第 1 层的梯度是 $L$ 个因子的<em>乘积</em> —— 其下游每一层各贡献一个因子。
+        </p>
+        <div class="math-block" id="math-prod"></div>
+        <p>
+          若所有数都小于 1，其乘积会收缩至零；若所有数都大于 1，其乘积则会爆炸。这两种失效 —— 梯度消失与梯度爆炸 —— 是同一个代数效应，只是方向相反。
+        </p>
+        <p>
+          下方的交互模块将从三个层面带你走过这段历程：(1) 单个激活函数的导数究竟是什么样子；(2) 叠加成链后会带来什么；(3) 改变权重尺度或激活函数能换来什么。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>神秘因子 0.25 从何而来</h2>
+        <p>
+          反向传播链条中的每一个因子，都是该层激活函数在预激活值 $z$ 处的导数。因此我们应当从<em>观察该导数</em> 开始。拖动下方的输入 $z$；左图上的圆点沿激活函数移动，右图上的圆点沿其导数移动。最终进入链条的正是右图所描绘的量。
+        </p>
+        <div class="controls">
+          <span style="font-family: var(--sans); font-size: 0.92rem;">激活函数：</span>
+          <div class="激活函数-tabs" id="deriv-tabs">
+            <button class="tab-btn is-active" data-act="sigmoid（S 型函数）">sigmoid（S 型函数）</button>
+            <button class="tab-btn" data-act="tanh（双曲正切）">tanh（双曲正切）</button>
+            <button class="tab-btn" data-act="relu">ReLU（线性整流单元）</button>
+          </div>
+          <label>z
+            <input type="range" id="deriv-z" min="-6" max="6" step="0.05" value="0" />
+          </label>
+          <span class="ctrl-num" id="deriv-z-val">0.00</span>
+        </div>
+        <div class="deriv-stage">
+          <div class="deriv-panel">
+            <h4>激活函数 σ(z)</h4>
+            <canvas id="deriv-sigma"></canvas>
+          </div>
+          <div class="deriv-panel">
+            <h4>导数 σ'(z) &mdash; 这正是反向传播所连乘的量</h4>
+            <canvas id="deriv-prime"></canvas>
+          </div>
+        </div>
+        <div class="deriv-readout">
+          <div class="val-cur">
+            <span>当前滑块处的 σ'(z)：</span>
+            <strong id="deriv-cur">0.250</strong>
+          </div>
+          <div class="val-max">
+            <span>所有 z 上 σ'(z) 的最大值：</span>
+            <strong id="deriv-max">0.250</strong>
+          </div>
+        </div>
+        <p>
+          为何 sigmoid（S 型函数） 在深层注定失败：即便在其最宽裕之处（$z = 0$），$\sigma'(z) = 0.25$。在其他任何位置都更小。链式法则要将 $L$ 个这样的数连乘 —— 而它们<em>全都</em> 至多为 $0.25$。
+        </p>
+        <ul class="explanation-list">
+          <li><strong>Sigmoid。</strong> $\sigma'(z) = \sigma(z)(1 - \sigma(z))$。在 $z = 0$ 处取最大值 $0.25$；向两侧均衰减至零。</li>
+          <li><strong>Tanh。</strong> $\tanh（双曲正切）'(z) = 1 - \tanh（双曲正切）(z)^2$。在 $z = 0$ 处取最大值 $1.0$ —— 中部宽裕，但在 $|z| > 2$ 之外迅速饱和。</li>
+          <li><strong>ReLU（线性整流单元）。</strong> $\sigma'(z) = \mathbb{1}\{z > 0\}$ —— 要么恰为 1（激活），要么恰为 0（失效）。无饱和；是一个离散开关。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>链条逐步叠加 —— 我们来观察</h2>
+        <p>
+          现在堆叠 $L$ 个相同的层，每层向链条贡献该激活函数的<em>最好情形</em> 导数。输入层的梯度便是这 $L$ 个因子的累乘。下方：顶部的柱条为输出层（反向传播的起点）；其下每一根柱条都表示向链条中再作一次乘法。最底部的柱条为输入层 —— 也就是我们说“梯度消失”时所关心的那一层。
+        </p>
+        <div class="controls">
+          <span style="font-family: var(--sans); font-size: 0.92rem;">激活函数：</span>
+          <div class="激活函数-tabs" id="main-tabs">
+            <button class="tab-btn" data-act="sigmoid（S 型函数）">sigmoid（S 型函数）</button>
+            <button class="tab-btn is-active" data-act="tanh（双曲正切）">tanh（双曲正切）</button>
+            <button class="tab-btn" data-act="relu">ReLU（线性整流单元）</button>
+          </div>
+          <label>深度 L
+            <input type="range" id="main-深度" min="1" max="50" value="12" />
+          </label>
+          <span class="ctrl-num" id="main-深度-val">12</span>
+        </div>
+        <div class="readout-bar">
+          <div class="readout-card" id="card-grad">
+            <div class="r-label">输入层梯度</div>
+            <div class="r-value" id="val-grad">—</div>
+          </div>
+          <div class="readout-card">
+            <div class="r-label">逐层因子</div>
+            <div class="r-value" id="val-factor">—</div>
+          </div>
+          <div class="readout-card">
+            <div class="r-label">降至 1e-9 处的深度</div>
+            <div class="r-value" id="val-深度-thresh">—</div>
+          </div>
+        </div>
+        <div class="legend">
+          <span><span class="legend-sw" style="background: var(--healthy);"></span>梯度 &gt; 10⁻³（存活）</span>
+          <span><span class="legend-sw" style="background: var(--warn);"></span>10⁻⁶ – 10⁻³（收缩中）</span>
+          <span><span class="legend-sw" style="background: var(--dead);"></span>&lt; 10⁻⁶（实质为零）</span>
+          <span><span class="legend-sw" style="background: var(--explode);"></span>&gt; 10²（爆炸）</span>
+        </div>
+        <div class="playground-stage">
+          <canvas id="main-chart"></canvas>
+          <div class="playground-axes">
+            <span>log₁₀ |gradient|：10⁻²⁰ ← 收缩 &middot; 存活 → 10²</span>
+          </div>
+        </div>
+        <div class="chain-product">
+          <div style="font-family: var(--sans); font-weight: 600; font-size: 0.88rem; color: var(--text); margin-bottom: 0.3rem;">
+            连乘链条（输入层梯度的逐项展开）
+          </div>
+          <div class="chain-eq" id="chain-eq">—</div>
+          <div class="chain-result" id="chain-result">—</div>
+        </div>
+        <p>
+          值得一试的操作：
+        </p>
+        <ul class="explanation-list">
+          <li>将激活函数设为<em>sigmoid（S 型函数）</em>、深度 $L = 10$：链条为 $0.25^{10} \approx 9.5 \times 10^{-7}$ —— 已落入“收缩”区间。</li>
+          <li>sigmoid（S 型函数） 在 $L = 20$ 时：$0.25^{20} \approx 9 \times 10^{-13}$ —— 低于典型的 float-32 精度。该层无法学习。</li>
+          <li>切换到<em>tanh（双曲正切）</em>：最大导数为 1.0；在 $L = 50$ 时梯度保持在 $1.0^{50} = 1$。但那是最好情形 —— 只要 $|z| > 2$，$\tanh（双曲正切）' \ll 1$，真实的链条依然会消失，只是更慢一些。</li>
+          <li>切换到<em>ReLU（线性整流单元）</em>、激活比例 100%：梯度永远保持为 1。这正是 ReLU（线性整流单元） 打破了深度上限的原因。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>另一种失效模式：梯度爆炸</h2>
+        <p>
+          我们此前一直忽略了链条中的权重矩阵。真实的逐层因子是 $W_\ell^\top \sigma'(z_\ell)$ —— 激活导数乘以权重。若把权重初始化得过大，乘积便大于 1，链条将爆炸而非凋亡。
+        </p>
+        <details class="advanced-section" open>
+          <summary>进阶：权重初始化尺度（试一试）</summary>
+          <div class="inner">
+            <p>
+              拖动下方的滑块。此时每一层向链条贡献 $w \cdot \sigma'(z)$。当 $w > 1$ 时，失效模式便从梯度消失翻转为梯度爆炸。
+            </p>
+            <div class="controls">
+              <label>权重尺度 w
+                <input type="range" id="adv-weight" min="0.5" max="2.0" step="0.05" value="1.0" />
+              </label>
+              <span class="ctrl-num" id="adv-weight-val">1.00</span>
+              <label>激活函数
+                <select id="adv-act">
+                  <option value="sigmoid（S 型函数）">sigmoid（S 型函数）</option>
+                  <option value="tanh（双曲正切）" selected>tanh（双曲正切）</option>
+                  <option value="relu">ReLU（线性整流单元）</option>
+                </select>
+              </label>
+              <label>深度
+                <input type="range" id="adv-深度" min="1" max="50" value="20" />
+              </label>
+              <span class="ctrl-num" id="adv-深度-val">20</span>
+              <label>ReLU（线性整流单元） 激活比例
+                <input type="range" id="adv-active" min="0" max="100" value="50" />
+              </label>
+              <span class="ctrl-num" id="adv-active-val">50%</span>
+            </div>
+            <div class="readout-bar">
+              <div class="readout-card" id="adv-card-grad">
+                <div class="r-label">输入层梯度</div>
+                <div class="r-value" id="adv-grad">—</div>
+              </div>
+              <div class="readout-card">
+                <div class="r-label">逐层因子（w · σ'）</div>
+                <div class="r-value" id="adv-factor">—</div>
+              </div>
+              <div class="readout-card">
+                <div class="r-label">所处区间</div>
+                <div class="r-value" id="adv-所处区间">—</div>
+              </div>
+            </div>
+            <div class="playground-stage">
+              <canvas id="adv-chart"></canvas>
+            </div>
+          </div>
+        </details>
+        <div class="callout callout--key">
+          <strong>学界最终收敛到的五种对策。</strong>
+          它们中的每一种都旨在使逐层链条因子保持在 1 附近。
+          <ul class="explanation-list" style="margin-top: 0.4rem;">
+            <li><strong>ReLU（线性整流单元） 及其同类</strong>（Glorot &amp; Bengio 2010；Nair &amp; Hinton 2010）：$\sigma' \in \{0, 1\}$，而非 $\le 0.25$。</li>
+            <li><strong>Xavier / He 初始化</strong>：缩放权重使 $\mathrm{Var}(W_\ell) \cdot \mathbb{E}[\sigma'^2] = 1$ —— 链条因子的方差在构造上即为 1.0。</li>
+            <li><strong>批归一化 / 层归一化</strong>：逐层重新缩放激活值，使逐层 Jacobian 的谱半径保持在 1 附近。</li>
+            <li><strong>残差连接</strong>（He 等 2015）：$y = f(x) + x$。恒等路径为 Jacobian 增加 1；即便 $f$ 消失，这个 $1$ 也不会消失。</li>
+            <li><strong>LSTM 单元状态 / 门控单元</strong>：遗忘门 $\in [0, 1]$ 直接乘在单元状态的 Jacobian 上；将其设为接近 1 便得到一条横贯数千时间步的梯度高速公路。</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>三个误区，三点纠正</h2>
+        <div class="misconception">
+          <div class="m-q">“ReLU（线性整流单元） 神经元死亡会导致梯度消失。”</div>
+          <div class="m-text">
+            并不尽然。源自 sigmoid（S 型函数） / tanh（双曲正切） 的梯度消失是<em>乘性</em> 的 —— 其效应随深度呈指数累积（$0.25^L$）。而 50% 的 ReLU（线性整流单元） 神经元死亡率则是<em>线性</em> 缩放 —— 在任何深度下均为 $1^L \cdot 0.5
+            = 0.5$。它只收缩一次，并不会指数式地消失。二者是不同的问题，对策也不同。
+          </div>
+        </div>
+        <div class="misconception">
+          <div class="m-q">“梯度消失会使权重趋于零。”</div>
+          <div class="m-text">
+            趋于零的是<em>更新量</em>，而非权重：$W_{\text{new}} = W_{\text{old}} - \eta \cdot 0 =
+            W_{\text{old}}$。权重停留在其随机初始化的取值上；该层学不到任何有意义的东西，但权重并未被推向零。
+          </div>
+        </div>
+        <div class="misconception">
+          <div class="m-q">“这个 (factor)^N 模型不过是个卡通画。”</div>
+          <div class="m-text">
+            它是有力的示意，而非精确的模拟。在真实网络中，每个 $\sigma'(z_\ell)$ 都不相同。但由于 sigmoid（S 型函数） 的导数<em>始终</em> $\le 0.25$、tanh（双曲正切） 的导数 $\le 1.0$，最坏情形的上界 $0.25^L$ 支配着该乘积。这一示意精确地刻画了渐近行为；其常数则是偏乐观的。
+          </div>
+        </div>
+        <div class="misconception">
+          <div class="m-q">“梯度消失是 sigmoid（S 型函数） 的问题；ReLU（线性整流单元） 已将其解决。”</div>
+          <div class="m-text">
+            ReLU（线性整流单元） 使梯度消失<em>大幅</em> 减少，但并未使其绝迹。一个初始权重 $w &lt; 1$ 且不含残差结构的网络，仍会看到梯度逐层收缩 —— 其链条是 $w^L$ 而非 $0.25^L$，但原理完全相同。现代训练同时依赖初始化<em>与</em> 归一化<em>与</em> 残差路径三者。
+          </div>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>值得记住的数字</h2>
+        <p>
+          以下六个事实，可让你下一次查看深度网络训练曲线时立即心领神会：
+        </p>
+        <ul class="explanation-list">
+          <li>$\sigma'_{\max} = 0.25$（sigmoid（S 型函数））、$1.0$（tanh（双曲正切））、$1$（ReLU（线性整流单元） 激活）。</li>
+          <li>sigmoid（S 型函数） 在深度 $\approx \log_4 (1 / \text{floor}) \approx 20$ 处触及梯度下限（取下限为 $10^{-12}$）。</li>
+          <li>Xavier 初始化将权重缩放为 $\mathcal{N}(0, 1/\text{fan\_in})$；He 初始化则缩放为 $\mathcal{N}(0, 2/\text{fan\_in})$。系数 2 源于 ReLU（线性整流单元） 平均会使一半的激活值失效。</li>
+          <li>BatchNorm 通常将各层输出重新缩放至 $\mathrm{Var} = 1$；这等价于在每一层“把 Jacobian 的谱重新归一化为 1”。</li>
+          <li>残差连接为 Jacobian 增加一个恒等项，因此梯度的下界为 $1$，而非 $0$。</li>
+          <li>梯度<em>裁剪</em> 为爆炸方向设置了上限；它并不能解决梯度消失。可将裁剪用于 RNN / Transformer 的训练稳定性；但不要指望它能让一个 sigmoid（S 型函数）-MLP 在深度 50 时训得起来。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>推荐阅读</h2>
+        <ul class="reading-list">
+          <li><strong>Hochreiter，1991（学位论文）</strong> &mdash; 最早关于“长期依赖难以学习”的分析。</li>
+          <li><strong>Bengio、Simard、Frasconi，1994</strong> &mdash; <em>Learning long-term dependencies with gradient descent is difficult.</em> 对梯度消失的形式化分析。</li>
+          <li><strong>Glorot &amp; Bengio，2010</strong> &mdash; <em>Understanding the difficulty of training deep feedforward neural networks.</em> Xavier 初始化；现代叙事由此开始。</li>
+          <li><strong>Nair &amp; Hinton，2010</strong> &mdash; <em>Rectified linear units improve restricted Boltzmann machines.</em></li>
+          <li><strong>He 等，2015</strong> &mdash; <em>Delving deep into rectifiers.</em> He 初始化；考虑 ReLU（线性整流单元） 的方差。</li>
+          <li><strong>He 等，2015</strong> &mdash; <em>Deep residual learning for image recognition.</em> 残差连接。</li>
+          <li><strong>Pascanu、Mikolov、Bengio，2013</strong> &mdash; <em>On the difficulty of training recurrent neural networks.</em> 梯度爆炸与裁剪。</li>
+          <li><strong>Karpathy，“Yes you should understand backprop”</strong> &mdash; 一篇可读性极佳的配套文章，主张学生应在不借助自动微分的情况下掌握这一切。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

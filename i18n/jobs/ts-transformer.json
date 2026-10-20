@@ -1,0 +1,523 @@
+{
+ "slug": "ts-transformer",
+ "units": {
+  "Time-Series Transformers, Patched": {
+   "zh": "打补丁的时间序列 Transformer",
+   "src": "Time-Series Transformers, Patched",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Long-horizon forecasting on an air-quality-flavoured signal,\n          four ways: seasonal-naive baseline, ARIMA-flavour, LSTM,\n          PatchTST. Slide the patch length, watch the forecast and\n          RMSE change. Why PatchTST finally beat the LSTMs and where\n          Mamba is taking it next.": {
+   "zh": "在一个带空气质量风格的信号上做长视界预测，共四种方式：季节性朴素基线、ARIMA 风格、LSTM、PatchTST。滑动补丁长度，观察预测与 RMSE 的变化。探讨 PatchTST 为何最终战胜了 LSTM，以及 Mamba 正把它带向何方。",
+   "src": "Long-horizon forecasting on an air-quality-flavoured signal,\n          four ways: seasonal-naive baseline, ARIMA-flavour, LSTM,\n          PatchTST. Slide the patch length, watch the forecast and\n          RMSE change. Why PatchTST finally beat the LSTMs and where\n          Mamba is taking it next.",
+   "tags": []
+  },
+  "@@T0@@~20 min@@T1@@\n          @@T2@@Time Series &middot; Forecasting &middot; Transformer@@T3@@": {
+   "zh": "@@T0@@约 20 分钟@@T1@@\n          @@T2@@时间序列 &middot; 预测 &middot; Transformer@@T3@@",
+   "src": "<span>~20 min</span>\n          <span>Time Series &middot; Forecasting &middot; Transformer</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "What's hard about time-series forecasting?": {
+   "zh": "时间序列预测难在哪里？",
+   "src": "What's hard about time-series forecasting?",
+   "tags": []
+  },
+  "Three things make time series harder than a regular ML\n          problem:": {
+   "zh": "有三件事使时间序列比常规机器学习问题更难：",
+   "src": "Three things make time series harder than a regular ML\n          problem:",
+   "tags": []
+  },
+  "@@T0@@Multiple seasonalities.@@T1@@ Daily,\n            weekly, yearly &mdash; sometimes all in one signal.": {
+   "zh": "@@T0@@多重季节性。@@T1@@ 日、周、年——有时全部叠加在同一个信号中。",
+   "src": "<strong>Multiple seasonalities.</strong> Daily,\n            weekly, yearly &mdash; sometimes all in one signal.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Distribution drift.@@T1@@ A sensor's mean and\n            variance shift over time. Yesterday's training distribution\n            isn't today's test distribution.": {
+   "zh": "@@T0@@分布漂移。@@T1@@ 传感器的均值与方差随时间变化。昨天的训练分布并不是今天的测试分布。",
+   "src": "<strong>Distribution drift.</strong> A sensor's mean and\n            variance shift over time. Yesterday's training distribution\n            isn't today's test distribution.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Long horizons.@@T1@@ Predicting the next\n            point is easy. Predicting 96 points ahead from a 96-point\n            context is where most methods fall apart.": {
+   "zh": "@@T0@@长视界。@@T1@@ 预测下一个点很容易。从 96 个点的上下文预测未来 96 个点，才是大多数方法崩解之处。",
+   "src": "<strong>Long horizons.</strong> Predicting the next\n            point is easy. Predicting 96 points ahead from a 96-point\n            context is where most methods fall apart.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@The slogan.@@T1@@ Almost every time-series result\n          you read in 2020-2022 was beaten by seasonal-naive. PatchTST\n          (2023) was the first deep model to comfortably win across\n          benchmarks &mdash; with a 50-line architecture: cut the\n          sequence into ViT-style patches and run a transformer on the\n          patch tokens.": {
+   "zh": "@@T0@@这句口号。@@T1@@ 你在 2020-2022 年间读到的几乎每一个时间序列结果，都被季节性朴素方法击败。PatchTST（2023）是第一个在各项基准上从容胜出的深度模型——其架构只有约 50 行：把序列切成 ViT 风格的补丁，再在补丁词元上运行 transformer。",
+   "src": "<strong>The slogan.</strong> Almost every time-series result\n          you read in 2020-2022 was beaten by seasonal-naive. PatchTST\n          (2023) was the first deep model to comfortably win across\n          benchmarks &mdash; with a 50-line architecture: cut the\n          sequence into ViT-style patches and run a transformer on the\n          patch tokens.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "The four baselines you owe yourself": {
+   "zh": "你欠自己的四个基线",
+   "src": "The four baselines you owe yourself",
+   "tags": []
+  },
+  "@@T0@@Seasonal-naive.@@T1@@ Predict $\\hat y_{t+h} = y_{t + h - S}$\n            where $S$ is the seasonal period (24 hours, 7 days). It's\n            a one-line baseline and beats the deep models 30% of the\n            time.": {
+   "zh": "@@T0@@季节性朴素。@@T1@@ 预测 $\\hat y_{t+h} = y_{t + h - S}$，其中 $S$ 为季节周期（24 小时、7 天）。它是只有一行的基线，却有 30% 的时间能击败深度模型。",
+   "src": "<strong>Seasonal-naive.</strong> Predict $\\hat y_{t+h} = y_{t + h - S}$\n            where $S$ is the seasonal period (24 hours, 7 days). It's\n            a one-line baseline and beats the deep models 30% of the\n            time.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@ARIMA / ETS.@@T1@@ Classical statistical\n            models with explicit trend / seasonality / autoregressive\n            terms. Strong on smooth, well-behaved signals.": {
+   "zh": "@@T0@@ARIMA / ETS。@@T1@@ 带有显式趋势 / 季节性 / 自回归项的经典统计模型。在平滑、行为良好的信号上表现强劲。",
+   "src": "<strong>ARIMA / ETS.</strong> Classical statistical\n            models with explicit trend / seasonality / autoregressive\n            terms. Strong on smooth, well-behaved signals.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@LSTM / GRU.@@T1@@ Recurrent networks. Decade\n            of dominance; finally outperformed on long horizons by\n            patched transformers.": {
+   "zh": "@@T0@@LSTM / GRU。@@T1@@ 循环网络。称霸十年；最终在长视界上被打补丁的 transformer 超越。",
+   "src": "<strong>LSTM / GRU.</strong> Recurrent networks. Decade\n            of dominance; finally outperformed on long horizons by\n            patched transformers.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@PatchTST.@@T1@@ Treat the sequence the way\n            a Vision Transformer treats an image: split into\n            non-overlapping patches, embed each patch, run a vanilla\n            transformer over the patch tokens, project back to the\n            forecast horizon.": {
+   "zh": "@@T0@@PatchTST。@@T1@@ 像视觉 Transformer 处理图像那样处理序列：切成互不重叠的补丁，为每个补丁做嵌入，在补丁词元上运行普通的 transformer，再投影回预测视界。",
+   "src": "<strong>PatchTST.</strong> Treat the sequence the way\n            a Vision Transformer treats an image: split into\n            non-overlapping patches, embed each patch, run a vanilla\n            transformer over the patch tokens, project back to the\n            forecast horizon.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "The patch trick": {
+   "zh": "补丁技巧",
+   "src": "The patch trick",
+   "tags": []
+  },
+  "The earlier wave of time-series transformers (Informer,\n          Autoformer, FEDformer) treated each timestep as a token. At\n          long context lengths this drowns the model in tokens and the\n          $O(N^2)$ cost balloons. PatchTST groups every $P$\n          consecutive points into one token (just like ViT does with\n          $P \\times P$ patches of an image), reducing token count by\n          $P\\times$ and giving the model a slightly smoother view of\n          local structure.": {
+   "zh": "更早一波时间序列 transformer（Informer、Autoformer、FEDformer）把每个时间步当作一个词元。在长上下文下，这会让模型淹没在词元之中，$O(N^2)$ 的开销随之膨胀。PatchTST 把每 $P$ 个连续点归为一个词元（正如 ViT 对图像用 $P \\times P$ 的补丁），使词元数减少 $P\\times$，并让模型对局部结构获得略为平滑的视角。",
+   "src": "The earlier wave of time-series transformers (Informer,\n          Autoformer, FEDformer) treated each timestep as a token. At\n          long context lengths this drowns the model in tokens and the\n          $O(N^2)$ cost balloons. PatchTST groups every $P$\n          consecutive points into one token (just like ViT does with\n          $P \\times P$ patches of an image), reducing token count by\n          $P\\times$ and giving the model a slightly smoother view of\n          local structure.",
+   "tags": []
+  },
+  "That's it. Patch length $P$ is the only real new\n          hyperparameter. Channel-independence (predict each channel\n          with the same shared transformer, so multivariate isn't\n          forced into a giant vocabulary) is the second trick. The\n          third &mdash; instance normalisation per series &mdash;\n          handles distribution drift.": {
+   "zh": "就是这样。补丁长度 $P$ 是唯一真正新增的超参数。通道独立性（用同一个共享 transformer 预测每个通道，从而不必把多变量强行塞进一个巨大的词表）是第二个技巧。第三个——对每条序列做实例归一化——则处理分布漂移。",
+   "src": "That's it. Patch length $P$ is the only real new\n          hyperparameter. Channel-independence (predict each channel\n          with the same shared transformer, so multivariate isn't\n          forced into a giant vocabulary) is the second trick. The\n          third &mdash; instance normalisation per series &mdash;\n          handles distribution drift.",
+   "tags": []
+  },
+  "The PatchTST tokenisation. Sequence → patches → embeddings → transformer → forecast head.": {
+   "zh": "PatchTST 的词元化。序列 → 补丁 → 嵌入 → transformer → 预测头。",
+   "src": "The PatchTST tokenisation. Sequence → patches → embeddings → transformer → forecast head.",
+   "tags": []
+  },
+  "Step 2½": {
+   "zh": "第 2½ 步",
+   "src": "Step 2½",
+   "tags": []
+  },
+  "Channel independence — the unintuitive choice": {
+   "zh": "通道独立性——反直觉的选择",
+   "src": "Channel independence — the unintuitive choice",
+   "tags": []
+  },
+  "PatchTST predicts each variate $v$ using the same shared transformer, with no cross-variate attention until a final projection. Reasoning:": {
+   "zh": "PatchTST 用同一个共享 transformer 预测每个变量 $v$，直至最终投影之前都不做跨变量注意力。理由如下：",
+   "src": "PatchTST predicts each variate $v$ using the same shared transformer, with no cross-variate attention until a final projection. Reasoning:",
+   "tags": []
+  },
+  "@@T0@@Overfitting protection.@@T1@@ Cross-variate attention has $V^2$ parameters per layer; in benchmarks with $V \\sim 10$ variates and a few thousand training windows, it overfits aggressively.": {
+   "zh": "@@T0@@防止过拟合。@@T1@@ 跨变量注意力每层有 $V^2$ 个参数；在 $V \\sim 10$ 个变量、训练窗口只有数千个的基准中，它会急剧过拟合。",
+   "src": "<strong>Overfitting protection.</strong> Cross-variate attention has $V^2$ parameters per layer; in benchmarks with $V \\sim 10$ variates and a few thousand training windows, it overfits aggressively.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Transferability.@@T1@@ A channel-independent model can train on series with different variate counts (one model, many tasks). This is what enables foundation-style pretraining.": {
+   "zh": "@@T0@@可迁移性。@@T1@@ 通道无关的模型可以在变量数不同的序列上训练（一个模型，多个任务）。这正是基础模型式预训练得以实现的关键。",
+   "src": "<strong>Transferability.</strong> A channel-independent model can train on series with different variate counts (one model, many tasks). This is what enables foundation-style pretraining.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@The trade-off.@@T1@@ You lose the ability to learn that \"channel A leads channel B by 3 steps\". When that cross-channel signal matters, use @@T2@@iTransformer@@T3@@ (each variate = one token, attention is over variates not over time).": {
+   "zh": "@@T0@@权衡。@@T1@@ 你会失去学习“通道 A 领先通道 B 三个步长”这一关系的能力。当这种跨通道信号很重要时，应改用 @@T2@@iTransformer@@T3@@（每个变量 = 一个词元，注意力作用在变量而非时间之上）。",
+   "src": "<strong>The trade-off.</strong> You lose the ability to learn that \"channel A leads channel B by 3 steps\". When that cross-channel signal matters, use <strong>iTransformer</strong> (each variate = one token, attention is over variates not over time).",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Empirically the two cover different regimes: PatchTST wins on univariate-ish panels with many time steps; iTransformer wins when cross-variate structure dominates.": {
+   "zh": "经验上二者覆盖不同情形：PatchTST 在时间步很多、接近单变量的面板上胜出；iTransformer 则在跨变量结构占主导时胜出。",
+   "src": "Empirically the two cover different regimes: PatchTST wins on univariate-ish panels with many time steps; iTransformer wins when cross-variate structure dominates.",
+   "tags": []
+  },
+  "Step 2¾": {
+   "zh": "第 2¾ 步",
+   "src": "Step 2¾",
+   "tags": []
+  },
+  "RevIN — the instance normalisation that fixes distribution drift": {
+   "zh": "RevIN——修复分布漂移的实例归一化",
+   "src": "RevIN — the instance normalisation that fixes distribution drift",
+   "tags": []
+  },
+  "A time series usually has a non-stationary mean and variance. The classical fix is differencing or log-transforming; PatchTST's modern fix is @@T0@@Reversible Instance Normalization@@T1@@ (Kim et&nbsp;al., 2022):": {
+   "zh": "时间序列通常具有非平稳的均值与方差。经典的解决办法是差分或对数变换；PatchTST 的现代解法是@@T0@@可逆实例归一化@@T1@@（Kim 等人，2022）：",
+   "src": "A time series usually has a non-stationary mean and variance. The classical fix is differencing or log-transforming; PatchTST's modern fix is <strong>Reversible Instance Normalization</strong> (Kim et&nbsp;al., 2022):",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Standardise the input window using its own mean/variance. Run the model on the normalised series. Un-normalise the forecast with the same statistics. Three lines of code; consistently +1–2% horizon-RMSE improvement on benchmark splits. Critical for chartof-the-decade-quality results.": {
+   "zh": "用输入窗口自身的均值/方差对它做标准化。在归一化后的序列上运行模型。再用同一组统计量把预测反归一化。只需三行代码；在基准划分上稳定带来 1–2% 的视界 RMSE 改善。对于达到“十年一遇图表”级别质量的结果至关重要。",
+   "src": "Standardise the input window using its own mean/variance. Run the model on the normalised series. Un-normalise the forecast with the same statistics. Three lines of code; consistently +1–2% horizon-RMSE improvement on benchmark splits. Critical for chartof-the-decade-quality results.",
+   "tags": []
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Race the four models live": {
+   "zh": "让四个模型实时竞速",
+   "src": "Race the four models live",
+   "tags": []
+  },
+  "Below: a synthetic AQ-flavour signal (daily + weekly +\n          noise + slow drift). Slide the horizon and patch length;\n          all four models forecast and the RMSE updates.": {
+   "zh": "下面是一条合成的空气质量风格信号（日 + 周 + 噪声 + 缓慢漂移）。滑动视界与补丁长度；四个模型都会给出预测，RMSE 随之更新。",
+   "src": "Below: a synthetic AQ-flavour signal (daily + weekly +\n          noise + slow drift). Slide the horizon and patch length;\n          all four models forecast and the RMSE updates.",
+   "tags": []
+  },
+  "New series": {
+   "zh": "新建序列",
+   "src": "New series",
+   "tags": []
+  },
+  "horizon &nbsp;@@T0@@96@@T1@@": {
+   "zh": "视界 &nbsp;@@T0@@96@@T1@@",
+   "src": "horizon &nbsp;<span id=\"ts-h-val\">96</span>",
+   "tags": [
+    "<span id=\"ts-h-val\">",
+    "</span>"
+   ]
+  },
+  "patch length &nbsp;@@T0@@16@@T1@@": {
+   "zh": "补丁长度 &nbsp;@@T0@@16@@T1@@",
+   "src": "patch length &nbsp;<span id=\"ts-p-val\">16</span>",
+   "tags": [
+    "<span id=\"ts-p-val\">",
+    "</span>"
+   ]
+  },
+  "Context (left) | true (faint, right) | four overlaid forecasts. The vertical line marks the forecast start.": {
+   "zh": "上下文（左侧）| 真值（右侧，淡色）| 四条叠加的预测曲线。竖线标记预测的起点。",
+   "src": "Context (left) | true (faint, right) | four overlaid forecasts. The vertical line marks the forecast start.",
+   "tags": []
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "What 2024-2026 has taught us": {
+   "zh": "2024-2026 年教会我们的事",
+   "src": "What 2024-2026 has taught us",
+   "tags": []
+  },
+  "@@T0@@State-space models (Mamba, S5).@@T1@@ Linear\n            attention with a structured state-space recursion. Much\n            faster on very long contexts; for forecasting they trade\n            blows with PatchTST and increasingly win on long horizons.": {
+   "zh": "@@T0@@状态空间模型（Mamba、S5）。@@T1@@ 带结构化状态空间递推的线性注意力。在极长上下文上快得多；在预测任务中与 PatchTST 互有胜负，并且在长视界上越来越常取胜。",
+   "src": "<strong>State-space models (Mamba, S5).</strong> Linear\n            attention with a structured state-space recursion. Much\n            faster on very long contexts; for forecasting they trade\n            blows with PatchTST and increasingly win on long horizons.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@iTransformer.@@T1@@ Treats each @@T2@@variate@@T3@@\n            as a token rather than each timestep, so the transformer\n            attention learns cross-series structure (which other\n            sensors predict which). Strong on multivariate panels.": {
+   "zh": "@@T0@@iTransformer。@@T1@@ 把每个@@T2@@变量@@T3@@（而非每个时间步）当作一个词元，因此 transformer 的注意力学习的是跨序列结构（哪些其他传感器预测哪些）。在多变量面板上表现强劲。",
+   "src": "<strong>iTransformer.</strong> Treats each <em>variate</em>\n            as a token rather than each timestep, so the transformer\n            attention learns cross-series structure (which other\n            sensors predict which). Strong on multivariate panels.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Foundation models for time series.@@T1@@\n            TimesFM (Google), Chronos (Amazon), Lag-Llama, Moirai &mdash;\n            big pretrained models that zero-shot or one-shot a new\n            time-series task. Useful when you have many short series\n            with no per-series fine-tune budget.": {
+   "zh": "@@T0@@面向时间序列的基础模型。@@T1@@\n            TimesFM（Google）、Chronos（Amazon）、Lag-Llama、Moirai——这些大型预训练模型可对新时间序列任务做零样本或单样本处理。当你拥有许多短序列、却没有逐序列微调预算时，它们很有用。",
+   "src": "<strong>Foundation models for time series.</strong>\n            TimesFM (Google), Chronos (Amazon), Lag-Llama, Moirai &mdash;\n            big pretrained models that zero-shot or one-shot a new\n            time-series task. Useful when you have many short series\n            with no per-series fine-tune budget.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Forecast distributions.@@T1@@ Quantile\n            regression heads, conformal calibration, deep AR with\n            normalising flows &mdash; the field has moved from \"predict\n            a number\" to \"predict an interval\". The\n            @@T2@@BO@@T3@@ and\n            @@T4@@Bayesian\n            playground@@T5@@ articles are useful here.": {
+   "zh": "@@T0@@预测分布。@@T1@@ 分位数回归头、共形校准、带归一化流的 deep AR——该领域已从“预测一个数字”转向“预测一个区间”。@@T2@@贝叶斯优化@@T3@@与@@T4@@贝叶斯推演场@@T5@@的文章在此处很有用。",
+   "src": "<strong>Forecast distributions.</strong> Quantile\n            regression heads, conformal calibration, deep AR with\n            normalising flows &mdash; the field has moved from \"predict\n            a number\" to \"predict an interval\". The\n            <a href=\"../bayes-opt/index.html\">BO</a> and\n            <a href=\"../bayesian-posterior/index.html\">Bayesian\n            playground</a> articles are useful here.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<a href=\"../bayes-opt/index.html\">",
+    "</a>",
+    "<a href=\"../bayesian-posterior/index.html\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          Time-series forecasting is no longer a \"deep learning lost\n          to seasonal-naive\" punchline. PatchTST and Mamba make\n          long-horizon forecasting practical with modest compute, and\n          foundation models change the data-budget equation entirely.\n          The most practical 2026 update to any forecasting stack.": {
+   "zh": "@@T0@@最后总结。@@T1@@\n          时间序列预测不再是“深度学习败给季节性朴素”这样的笑柄。PatchTST 与 Mamba 以适度的算力让长视界预测变得实用，而基础模型则彻底改变了数据预算的等式。这是任何预测技术栈在 2026 年最实用的更新。",
+   "src": "<strong>Final takeaway.</strong>\n          Time-series forecasting is no longer a \"deep learning lost\n          to seasonal-naive\" punchline. PatchTST and Mamba make\n          long-horizon forecasting practical with modest compute, and\n          foundation models change the data-budget equation entirely.\n          The most practical 2026 update to any forecasting stack.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "How to set up a forecasting evaluation that doesn't lie": {
+   "zh": "如何搭建一个不说谎的预测评估",
+   "src": "How to set up a forecasting evaluation that doesn't lie",
+   "tags": []
+  },
+  "@@T0@@Backtesting, not random splits.@@T1@@ Use rolling-origin evaluation: train up to time $t$, forecast $[t+1, t+H]$, advance $t$. Random splits over time leak information.": {
+   "zh": "@@T0@@回溯检验，而非随机划分。@@T1@@ 使用滚动起点评估：训练至时刻 $t$，预测 $[t+1, t+H]$，再推进 $t$。沿时间做随机划分会泄露信息。",
+   "src": "<strong>Backtesting, not random splits.</strong> Use rolling-origin evaluation: train up to time $t$, forecast $[t+1, t+H]$, advance $t$. Random splits over time leak information.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Multiple metrics.@@T1@@ Report MSE and MAE (different sensitivity to outliers), plus a scale-free metric (sMAPE or MASE) so you can aggregate across datasets.": {
+   "zh": "@@T0@@多个指标。@@T1@@ 报告 MSE 与 MAE（对离群值的敏感性不同），再加上一个无量纲指标（sMAPE 或 MASE），以便跨数据集汇总。",
+   "src": "<strong>Multiple metrics.</strong> Report MSE and MAE (different sensitivity to outliers), plus a scale-free metric (sMAPE or MASE) so you can aggregate across datasets.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Compare against the seasonal-naive.@@T1@@ Always. A model that doesn't beat $\\hat y_{t+h} = y_{t+h-S}$ isn't a forecasting model.": {
+   "zh": "@@T0@@与季节性朴素方法比较。@@T1@@ 永远都要比。一个胜不过 $\\hat y_{t+h} = y_{t+h-S}$ 的模型根本算不上预测模型。",
+   "src": "<strong>Compare against the seasonal-naive.</strong> Always. A model that doesn't beat $\\hat y_{t+h} = y_{t+h-S}$ isn't a forecasting model.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Interval coverage, not just point forecast.@@T1@@ Report 90%-CI coverage and width — a tight interval that misses 30% of the time is worse than a wider one that hits 90%. Wrap with @@T2@@conformal prediction@@T3@@ for cheap distribution-free intervals.": {
+   "zh": "@@T0@@区间覆盖率，而非仅点预测。@@T1@@ 报告 90% 置信区间的覆盖率与宽度——一个 30% 情况下都落空的紧区间，比一个能命中 90% 的较宽区间更糟。用@@T2@@共形预测@@T3@@包裹以获得廉价的无分布区间。",
+   "src": "<strong>Interval coverage, not just point forecast.</strong> Report 90%-CI coverage and width — a tight interval that misses 30% of the time is worse than a wider one that hits 90%. Wrap with <a href=\"../conformal/index.html\">conformal prediction</a> for cheap distribution-free intervals.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<a href=\"../conformal/index.html\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@Long horizon = horizon ≥ context.@@T1@@ The standard benchmarks (ETT, Weather, Traffic, ECL) all evaluate H ∈ {96, 192, 336, 720}. Anything shorter is a different problem.": {
+   "zh": "@@T0@@长视界 = 视界 ≥ 上下文。@@T1@@ 标准基准（ETT、Weather、Traffic、ECL）都评估 H ∈ {96, 192, 336, 720}。比这更短的就是另一个问题了。",
+   "src": "<strong>Long horizon = horizon ≥ context.</strong> The standard benchmarks (ETT, Weather, Traffic, ECL) all evaluate H ∈ {96, 192, 336, 720}. Anything shorter is a different problem.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "阅读清单",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Nie, Nguyen, Sinthong, Kalagnanam (2023)@@T1@@ &mdash; @@T2@@A Time Series is Worth 64 Words: Long-term Forecasting with Transformers.@@T3@@ The PatchTST paper.": {
+   "zh": "@@T0@@Nie, Nguyen, Sinthong, Kalagnanam (2023)@@T1@@ &mdash; @@T2@@A Time Series is Worth 64 Words: Long-term Forecasting with Transformers.@@T3@@ 即 PatchTST 论文。",
+   "src": "<strong>Nie, Nguyen, Sinthong, Kalagnanam (2023)</strong> &mdash; <em>A Time Series is Worth 64 Words: Long-term Forecasting with Transformers.</em> The PatchTST paper.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Kim et&nbsp;al. (2022)@@T1@@ &mdash; @@T2@@Reversible Instance Normalization.@@T3@@": {
+   "zh": "@@T0@@Kim 等人 (2022)@@T1@@ &mdash; @@T2@@Reversible Instance Normalization.@@T3@@",
+   "src": "<strong>Kim et&nbsp;al. (2022)</strong> &mdash; <em>Reversible Instance Normalization.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Liu et&nbsp;al. (2024)@@T1@@ &mdash; @@T2@@iTransformer.@@T3@@": {
+   "zh": "@@T0@@Liu 等人 (2024)@@T1@@ &mdash; @@T2@@iTransformer.@@T3@@",
+   "src": "<strong>Liu et&nbsp;al. (2024)</strong> &mdash; <em>iTransformer.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Gu &amp; Dao (2023)@@T1@@ &mdash; @@T2@@Mamba.@@T3@@": {
+   "zh": "@@T0@@Gu 与 Dao (2023)@@T1@@ &mdash; @@T2@@Mamba.@@T3@@",
+   "src": "<strong>Gu &amp; Dao (2023)</strong> &mdash; <em>Mamba.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Das et&nbsp;al. (2024)@@T1@@ &mdash; @@T2@@TimesFM.@@T3@@": {
+   "zh": "@@T0@@Das 等人 (2024)@@T1@@ &mdash; @@T2@@TimesFM.@@T3@@",
+   "src": "<strong>Das et&nbsp;al. (2024)</strong> &mdash; <em>TimesFM.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Ansari et&nbsp;al. (2024)@@T1@@ &mdash; @@T2@@Chronos.@@T3@@": {
+   "zh": "@@T0@@Ansari 等人 (2024)@@T1@@ &mdash; @@T2@@Chronos.@@T3@@",
+   "src": "<strong>Ansari et&nbsp;al. (2024)</strong> &mdash; <em>Chronos.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Hyndman &amp; Athanasopoulos@@T1@@ &mdash; @@T2@@Forecasting: Principles and Practice.@@T3@@ The classical baseline-and-method reference.": {
+   "zh": "@@T0@@Hyndman 与 Athanasopoulos@@T1@@ &mdash; @@T2@@Forecasting: Principles and Practice.@@T3@@ 经典的基线与方法参考书。",
+   "src": "<strong>Hyndman &amp; Athanasopoulos</strong> &mdash; <em>Forecasting: Principles and Practice.</em> The classical baseline-and-method reference.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "打补丁的时间序列 Transformer",
+  "tagline": "为何 PatchTST 把序列切成 ViT 风格的补丁，并最终战胜了 LSTM",
+  "summary": "在一个空气质量风格的信号上并排进行长视界预测：季节性朴素基线、ARIMA、一个小型 LSTM，以及 PatchTST。滑动补丁长度，观察预测如何变化。文章结尾讨论状态空间模型（Mamba）所处的位置及其后续发展。",
+  "difficulty": "中级",
+  "collection": "时间序列",
+  "highlights": [
+   "实时生成合成的空气质量风格信号（日 + 周 + 噪声 + 漂移）；基线、类 ARIMA、类 LSTM 与类 PatchTST 的预测曲线叠加呈现。",
+   "滑动补丁长度与视界，观察四个模型的 RMSE 如何更新。",
+   "带位置编码的补丁词元化示意图，使 transformer 一侧变得具体。",
+   "与实验室对齐：AirDelhi 移动传感器、JoulesEye / ApneaEye 呼吸频率、能量分解。"
+  ],
+  "tags": [
+   "时间序列",
+   "预测",
+   "Transformer",
+   "PatchTST",
+   "Mamba",
+   "交互式"
+  ]
+ },
+ "js": {
+  "\n      @@T0@@RMSE on horizon (lower is better):@@T1@@\n      @@T2@@naive [[[1]]]@@T3@@\n      @@T4@@ARIMA-ish [[[3]]]@@T5@@\n      @@T6@@LSTM-ish [[[5]]]@@T7@@\n      @@T8@@PatchTST-ish [[[7]]]@@T9@@\n    ": {
+   "zh": "\n      @@T0@@视界上的 RMSE（越低越好）：@@T1@@\n      @@T2@@朴素 [[[1]]]@@T3@@\n      @@T4@@类 ARIMA [[[3]]]@@T5@@\n      @@T6@@类 LSTM [[[5]]]@@T7@@\n      @@T8@@类 PatchTST [[[7]]]@@T9@@\n    ",
+   "exprs": [
+    "${colors.naive}",
+    "${rmse(fc.naive, truth).toFixed(3)}",
+    "${colors.arima}",
+    "${rmse(fc.arima, truth).toFixed(3)}",
+    "${colors.lstm}",
+    "${rmse(fc.lstm, truth).toFixed(3)}",
+    "${colors.patch}",
+    "${rmse(fc.patch, truth).toFixed(3)}"
+   ],
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span style=\"color:[[[0]]]\">",
+    "</span>",
+    "<span style=\"color:[[[2]]]\">",
+    "</span>",
+    "<span style=\"color:[[[4]]]\">",
+    "</span>",
+    "<span style=\"color:[[[6]]]\">",
+    "</span>"
+   ],
+   "src": "\n      <span>RMSE on horizon (lower is better):</span>\n      <span style=\"color:${colors.naive}\">naive ${rmse(fc.naive, truth).toFixed(3)}</span>\n      <span style=\"color:${colors.arima}\">ARIMA-ish ${rmse(fc.arima, truth).toFixed(3)}</span>\n      <span style=\"color:${colors.lstm}\">LSTM-ish ${rmse(fc.lstm, truth).toFixed(3)}</span>\n      <span style=\"color:${colors.patch}\">PatchTST-ish ${rmse(fc.patch, truth).toFixed(3)}</span>\n    "
+  },
+  "ARIMA-ish": {
+   "zh": "类 ARIMA",
+   "exprs": [],
+   "tags": [],
+   "src": "ARIMA-ish"
+  },
+  "LSTM-ish": {
+   "zh": "类 LSTM",
+   "exprs": [],
+   "tags": [],
+   "src": "LSTM-ish"
+  },
+  "PatchTST-ish": {
+   "zh": "类 PatchTST",
+   "exprs": [],
+   "tags": [],
+   "src": "PatchTST-ish"
+  },
+  "linear forecast head → horizon H": {
+   "zh": "线性预测头 → 视界 H",
+   "exprs": [],
+   "tags": [],
+   "src": "linear forecast head → horizon H"
+  }
+ }
+}

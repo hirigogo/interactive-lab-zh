@@ -1,0 +1,1085 @@
+{
+ "slug": "trees",
+ "units": {
+  "Trees, Branch by Branch": {
+   "zh": "树：逐枝展开",
+   "src": "Trees, Branch by Branch",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "The data structure that quietly powers ordered maps,\n          priority queues, autocomplete, and half the algorithms\n          textbook. Build a binary search tree by typing values, run\n          all four traversals on it, then switch to a heap and watch\n          sift-up and sift-down preserve the heap invariant on every\n          operation.": {
+   "zh": "这种数据结构在幕后支撑着有序映射、优先队列、自动补全，以及算法教科书中的半壁江山。通过输入数值构建一棵二叉搜索树，对它运行全部四种遍历，再切换到堆，观察上滤与下滤如何在每次操作中维持堆不变式。",
+   "src": "The data structure that quietly powers ordered maps,\n          priority queues, autocomplete, and half the algorithms\n          textbook. Build a binary search tree by typing values, run\n          all four traversals on it, then switch to a heap and watch\n          sift-up and sift-down preserve the heap invariant on every\n          operation.",
+   "tags": []
+  },
+  "@@T0@@~16 min@@T1@@\n          @@T2@@Data structures &middot; BST &middot; Heap@@T3@@": {
+   "zh": "@@T0@@约 16 分钟@@T1@@\n          @@T2@@数据结构 &middot; BST &middot; 堆@@T3@@",
+   "src": "<span>~16 min</span>\n          <span>Data structures &middot; BST &middot; Heap</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Why trees keep showing up": {
+   "zh": "树为何无处不在",
+   "src": "Why trees keep showing up",
+   "tags": []
+  },
+  "A sorted array lets you binary-search in $O(\\log n)$ but\n          insertion is $O(n)$ because every element after the\n          insertion point has to shift. A linked list flips the\n          trade: insertion is $O(1)$ at a known position, but search\n          is $O(n)$.": {
+   "zh": "有序数组支持 $O(\\log n)$ 的二分查找，但插入为 $O(n)$，因为插入点之后的每个元素都必须后移。链表则将这一取舍反转：在已知位置插入为 $O(1)$，但查找为 $O(n)$。",
+   "src": "A sorted array lets you binary-search in $O(\\log n)$ but\n          insertion is $O(n)$ because every element after the\n          insertion point has to shift. A linked list flips the\n          trade: insertion is $O(1)$ at a known position, but search\n          is $O(n)$.",
+   "tags": []
+  },
+  "A balanced binary tree gives you @@T0@@both@@T1@@ in\n          $O(\\log n)$. That single fact — that you can support\n          ordered insert and ordered search in the same logarithmic\n          time — is the reason trees show up everywhere from\n          database indexes (B-trees) to the priority queues inside\n          Dijkstra and A* (binary heaps) to the rope structures that\n          back modern text editors.": {
+   "zh": "平衡二叉树能在 $O(\\log n)$ 内同时提供@@T0@@两者@@T1@@。正是这一事实——有序插入与有序查找可在同一对数时间内完成——使得树无处不在地出现：从数据库索引（B 树）到 Dijkstra 与 A* 内部的优先队列（二叉堆），再到支撑现代文本编辑器的 rope 结构。",
+   "src": "A balanced binary tree gives you <em>both</em> in\n          $O(\\log n)$. That single fact — that you can support\n          ordered insert and ordered search in the same logarithmic\n          time — is the reason trees show up everywhere from\n          database indexes (B-trees) to the priority queues inside\n          Dijkstra and A* (binary heaps) to the rope structures that\n          back modern text editors.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Two trees worth knowing well.@@T1@@\n          The @@T2@@binary search tree@@T3@@ (BST) maintains a left-less-than,\n          right-greater invariant — built for ordered queries. The\n          @@T4@@heap@@T5@@ maintains a parent-less-than-children\n          invariant — built for \"give me the smallest/largest right\n          now\". Same shape, completely different invariant. The rest\n          of the tree zoo (AVL, red-black, B-tree, trie, segment\n          tree) are refinements of these two ideas.": {
+   "zh": "@@T0@@两种值得深入掌握的树。@@T1@@@@T2@@二叉搜索树@@T3@@（BST）维持左小右大的不变式——为有序查询而构建。@@T4@@堆@@T5@@维持父小于子的不变式——为「立刻给我最小/最大元素」而构建。二者形状相同，不变式却截然不同。树家族中的其余成员（AVL 树、红黑树、B 树、trie、线段树）都是这两个思想的细化。",
+   "src": "<strong>Two trees worth knowing well.</strong>\n          The <em>binary search tree</em> (BST) maintains a left-less-than,\n          right-greater invariant — built for ordered queries. The\n          <em>heap</em> maintains a parent-less-than-children\n          invariant — built for \"give me the smallest/largest right\n          now\". Same shape, completely different invariant. The rest\n          of the tree zoo (AVL, red-black, B-tree, trie, segment\n          tree) are refinements of these two ideas.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "Anatomy": {
+   "zh": "结构剖析",
+   "src": "Anatomy",
+   "tags": []
+  },
+  "A binary tree is a collection of @@T0@@nodes@@T1@@,\n          each carrying a value and up to two children — left and\n          right. One node is distinguished as the @@T2@@root@@T3@@;\n          a node with no children is a @@T4@@leaf@@T5@@; the\n          @@T6@@height@@T7@@ is the longest path from root to\n          leaf.": {
+   "zh": "二叉树是@@T0@@节点@@T1@@的集合，每个节点携带一个值以及至多两个子节点——左孩子与右孩子。有一个节点被指定为@@T2@@根@@T3@@；没有子节点的节点称为@@T4@@叶@@T5@@；@@T6@@高度@@T7@@是从根到叶的最长路径。",
+   "src": "A binary tree is a collection of <strong>nodes</strong>,\n          each carrying a value and up to two children — left and\n          right. One node is distinguished as the <strong>root</strong>;\n          a node with no children is a <strong>leaf</strong>; the\n          <strong>height</strong> is the longest path from root to\n          leaf.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@$n$ nodes@@T1@@ means $n - 1$ edges. Always.": {
+   "zh": "@@T0@@$n$ 个节点@@T1@@意味着 $n - 1$ 条边。永远如此。",
+   "src": "<strong>$n$ nodes</strong> means $n - 1$ edges. Always.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@A perfectly balanced tree@@T1@@ on $n$\n            nodes has height $\\lceil \\log_2(n + 1) \\rceil$.": {
+   "zh": "含 $n$ 个节点的@@T0@@完全平衡树@@T1@@，其高度为 $\\lceil \\log_2(n + 1) \\rceil$。",
+   "src": "<strong>A perfectly balanced tree</strong> on $n$\n            nodes has height $\\lceil \\log_2(n + 1) \\rceil$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@A degenerate tree@@T1@@ (every node has at\n            most one child, forming a \"list\") has height $n - 1$.\n            Every operation degrades to $O(n)$. This is the\n            @@T2@@worst case@@T3@@ a BST will hit if you insert sorted\n            data.": {
+   "zh": "@@T0@@退化树@@T1@@（每个节点至多有一个子节点，形成一条「链」）的高度为 $n - 1$。每次操作都退化为 $O(n)$。若插入有序数据，这正是 BST 会遭遇的@@T2@@最坏情况@@T3@@。",
+   "src": "<strong>A degenerate tree</strong> (every node has at\n            most one child, forming a \"list\") has height $n - 1$.\n            Every operation degrades to $O(n)$. This is the\n            <em>worst case</em> a BST will hit if you insert sorted\n            data.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@A @@T1@@complete@@T2@@ tree@@T3@@ is filled\n            level by level, left to right. Heaps are always\n            complete — which is why you can store them in an array\n            without wasting space.": {
+   "zh": "@@T0@@@@T1@@完全@@T2@@二叉树@@T3@@逐层自左向右填满。堆始终是完全的——这正是它可存于数组而不浪费空间的原因。",
+   "src": "<strong>A <em>complete</em> tree</strong> is filled\n            level by level, left to right. Heaps are always\n            complete — which is why you can store them in an array\n            without wasting space.",
+   "tags": [
+    "<strong>",
+    "<em>",
+    "</em>",
+    "</strong>"
+   ]
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Build a BST, search inside it": {
+   "zh": "构建 BST 并在其中查找",
+   "src": "Build a BST, search inside it",
+   "tags": []
+  },
+  "Type values one at a time. Each goes into the tree by the\n          BST rule: smaller than current → go left; larger → go\n          right; insert when you hit an empty slot. Then type a value\n          to @@T0@@search@@T1@@ for; the path is highlighted as it walks\n          down.": {
+   "zh": "逐个输入数值。每个数值都按 BST 规则进入树中：小于当前节点则向左；大于则向右；遇到空位即插入。随后输入一个待@@T0@@查找@@T1@@的值，查找路径在下行过程中会被高亮。",
+   "src": "Type values one at a time. Each goes into the tree by the\n          BST rule: smaller than current → go left; larger → go\n          right; insert when you hit an empty slot. Then type a value\n          to <em>search</em> for; the path is highlighted as it walks\n          down.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "insert": {
+   "zh": "插入",
+   "src": "insert",
+   "tags": []
+  },
+  "add": {
+   "zh": "添加",
+   "src": "add",
+   "tags": []
+  },
+  "search": {
+   "zh": "查找",
+   "src": "search",
+   "tags": []
+  },
+  "find": {
+   "zh": "寻找",
+   "src": "find",
+   "tags": []
+  },
+  "random 8": {
+   "zh": "随机 8 个",
+   "src": "random 8",
+   "tags": []
+  },
+  "sorted 1..8": {
+   "zh": "有序 1..8",
+   "src": "sorted 1..8",
+   "tags": []
+  },
+  "clear": {
+   "zh": "清空",
+   "src": "clear",
+   "tags": []
+  },
+  "empty tree.": {
+   "zh": "空树。",
+   "src": "empty tree.",
+   "tags": []
+  },
+  "Things worth trying:": {
+   "zh": "值得尝试的操作：",
+   "src": "Things worth trying:",
+   "tags": []
+  },
+  "Click @@T0@@random 8@@T1@@ a few times. Most trees come\n            out roughly balanced; height $\\approx 3$ for $n = 8$.": {
+   "zh": "多次点击 @@T0@@随机 8 个@@T1@@。大多数生成的树大致平衡；当 $n = 8$ 时高度 $\\approx 3$。",
+   "src": "Click <em>random 8</em> a few times. Most trees come\n            out roughly balanced; height $\\approx 3$ for $n = 8$.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Click @@T0@@sorted 1..8@@T1@@. You get a right-spine — a\n            linked list in disguise, height 7. This is exactly the\n            worst case a real BST library protects against with\n            balancing (AVL or red-black rotations).": {
+   "zh": "点击 @@T0@@有序 1..8@@T1@@。你会得到一条右斜链——伪装成树的链表，高度为 7。这正是真实的 BST 库通过平衡手段（AVL 或红黑旋转）所防范的最坏情况。",
+   "src": "Click <em>sorted 1..8</em>. You get a right-spine — a\n            linked list in disguise, height 7. This is exactly the\n            worst case a real BST library protects against with\n            balancing (AVL or red-black rotations).",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Search for a value that isn't there. You'll walk down\n            until you hit a null and stop — the search path tells\n            you where the value @@T0@@would@@T1@@ be inserted.": {
+   "zh": "查找一个并不存在的值。你会一路下行直到遇到空指针而停止——该查找路径恰好告诉你此值@@T0@@本应@@T1@@插入的位置。",
+   "src": "Search for a value that isn't there. You'll walk down\n            until you hit a null and stop — the search path tells\n            you where the value <em>would</em> be inserted.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Four traversals, one tree": {
+   "zh": "四种遍历，同一棵树",
+   "src": "Four traversals, one tree",
+   "tags": []
+  },
+  "A traversal visits every node exactly once. Four canonical\n          orders, all defined by where the root sits relative to the\n          recursive calls on its subtrees:": {
+   "zh": "一次遍历恰好访问每个节点一次。四种经典顺序，均由根节点相对于其子树上递归调用的位置所定义：",
+   "src": "A traversal visits every node exactly once. Four canonical\n          orders, all defined by where the root sits relative to the\n          recursive calls on its subtrees:",
+   "tags": []
+  },
+  "@@T0@@Pre-order@@T1@@ — root, then left, then right.\n            Used to @@T2@@serialise@@T3@@ a tree (knowing pre-order +\n            in-order uniquely reconstructs it).": {
+   "zh": "@@T0@@前序@@T1@@——根、左、右。用于@@T2@@序列化@@T3@@树（已知前序加中序即可唯一重建该树）。",
+   "src": "<strong>Pre-order</strong> — root, then left, then right.\n            Used to <em>serialise</em> a tree (knowing pre-order +\n            in-order uniquely reconstructs it).",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@In-order@@T1@@ — left, root, right. On a BST,\n            this yields the values in @@T2@@sorted order@@T3@@ — the\n            cleanest possible verification that your BST is correct.": {
+   "zh": "@@T0@@中序@@T1@@——左、根、右。对 BST 而言，它按@@T2@@有序顺序@@T3@@给出各值——这是验证 BST 正确性最简洁的方式。",
+   "src": "<strong>In-order</strong> — left, root, right. On a BST,\n            this yields the values in <em>sorted order</em> — the\n            cleanest possible verification that your BST is correct.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Post-order@@T1@@ — left, right, root. Used\n            to free / evaluate bottom-up (every parent waits for its\n            children).": {
+   "zh": "@@T0@@后序@@T1@@——左、右、根。用于自底向上地释放或求值（每个父节点都等待其子节点）。",
+   "src": "<strong>Post-order</strong> — left, right, root. Used\n            to free / evaluate bottom-up (every parent waits for its\n            children).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Level-order@@T1@@ (BFS) — visit by depth.\n            Implemented with a queue, not recursion.": {
+   "zh": "@@T0@@层序@@T1@@（BFS）——按深度访问。用队列而非递归实现。",
+   "src": "<strong>Level-order</strong> (BFS) — visit by depth.\n            Implemented with a queue, not recursion.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Pick a traversal below; the nodes light up one at a time in\n          that order. Then look at the trail of values it produces.": {
+   "zh": "在下方选择一种遍历；节点会按该顺序逐个亮起。随后观察它产生的数值序列。",
+   "src": "Pick a traversal below; the nodes light up one at a time in\n          that order. Then look at the trail of values it produces.",
+   "tags": []
+  },
+  "traversal": {
+   "zh": "遍历",
+   "src": "traversal",
+   "tags": []
+  },
+  "pre-order (root → L → R)": {
+   "zh": "前序（根 → 左 → 右）",
+   "src": "pre-order (root → L → R)",
+   "tags": []
+  },
+  "in-order (L → root → R)": {
+   "zh": "中序（左 → 根 → 右）",
+   "src": "in-order (L → root → R)",
+   "tags": []
+  },
+  "post-order (L → R → root)": {
+   "zh": "后序（左 → 右 → 根）",
+   "src": "post-order (L → R → root)",
+   "tags": []
+  },
+  "level-order (BFS)": {
+   "zh": "层序（BFS）",
+   "src": "level-order (BFS)",
+   "tags": []
+  },
+  "play": {
+   "zh": "播放",
+   "src": "play",
+   "tags": []
+  },
+  "reset": {
+   "zh": "重置",
+   "src": "reset",
+   "tags": []
+  },
+  "speed": {
+   "zh": "速度",
+   "src": "speed",
+   "tags": []
+  },
+  "slow": {
+   "zh": "慢",
+   "src": "slow",
+   "tags": []
+  },
+  "normal": {
+   "zh": "正常",
+   "src": "normal",
+   "tags": []
+  },
+  "fast": {
+   "zh": "快",
+   "src": "fast",
+   "tags": []
+  },
+  "The in-order traversal of a BST is a sorted list — try\n          inserting unsorted values above and then running in-order\n          here. It's the simplest BST sanity check.": {
+   "zh": "BST 的中序遍历是一个有序列表——试着在上方插入无序数值，然后在此处运行中序遍历。这是最简单的 BST 正确性校验。",
+   "src": "The in-order traversal of a BST is a sorted list — try\n          inserting unsorted values above and then running in-order\n          here. It's the simplest BST sanity check.",
+   "tags": []
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Why balance matters": {
+   "zh": "平衡为何重要",
+   "src": "Why balance matters",
+   "tags": []
+  },
+  "The cost of every BST operation — insert, search,\n          predecessor, in-order successor, delete — is proportional\n          to the depth of the node touched. A balanced tree caps\n          depth at $\\log_2 n$; an unbalanced one can let it grow to\n          $n$.": {
+   "zh": "每次 BST 操作——插入、查找、前驱、中序后继、删除——的代价都与所触及节点的深度成正比。平衡树将深度上限控制在 $\\log_2 n$；不平衡的树则可能让深度增长到 $n$。",
+   "src": "The cost of every BST operation — insert, search,\n          predecessor, in-order successor, delete — is proportional\n          to the depth of the node touched. A balanced tree caps\n          depth at $\\log_2 n$; an unbalanced one can let it grow to\n          $n$.",
+   "tags": []
+  },
+  "Self-balancing BSTs solve this by rotating nodes whenever\n          the height of two siblings drifts too far apart:": {
+   "zh": "自平衡 BST 通过在两个兄弟节点高度相差过大时旋转节点来解决此问题：",
+   "src": "Self-balancing BSTs solve this by rotating nodes whenever\n          the height of two siblings drifts too far apart:",
+   "tags": []
+  },
+  "@@T0@@AVL trees@@T1@@ (Adelson-Velsky &amp; Landis,\n            1962) keep $|h_{\\text{left}} - h_{\\text{right}}| \\le 1$\n            at every node. Strict balance → fastest lookups, more\n            rotations on insert.": {
+   "zh": "@@T0@@AVL 树@@T1@@（Adelson-Velsky 与 Landis，1962）在每个节点处维持 $|h_{\\text{left}} - h_{\\text{right}}| \\le 1$。严格平衡 → 查找最快，但插入时旋转更多。",
+   "src": "<strong>AVL trees</strong> (Adelson-Velsky &amp; Landis,\n            1962) keep $|h_{\\text{left}} - h_{\\text{right}}| \\le 1$\n            at every node. Strict balance → fastest lookups, more\n            rotations on insert.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Red-black trees@@T1@@ use a colour\n            invariant that gives weaker balance but cheaper updates.\n            This is what most standard libraries ship as their\n            ordered map: C++ @@T2@@std::map@@T3@@, Java\n            @@T4@@TreeMap@@T5@@, Linux kernel's process scheduler.": {
+   "zh": "@@T0@@红黑树@@T1@@使用颜色不变式，平衡性较弱但更新代价更低。多数标准库正是以其作为有序映射：C++ @@T2@@std::map@@T3@@、Java 的 @@T4@@TreeMap@@T5@@、Linux 内核的进程调度器。",
+   "src": "<strong>Red-black trees</strong> use a colour\n            invariant that gives weaker balance but cheaper updates.\n            This is what most standard libraries ship as their\n            ordered map: C++ <code>std::map</code>, Java\n            <code>TreeMap</code>, Linux kernel's process scheduler.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@B-trees@@T1@@ generalise the idea to nodes\n            with many children, tuned to disk-block sizes. Every\n            relational database index you have ever used is a\n            B-tree variant.": {
+   "zh": "@@T0@@B 树@@T1@@将这一思想推广到拥有众多子节点的节点，并针对磁盘块大小进行调优。你所用过的每一个关系数据库索引都是 B 树的变体。",
+   "src": "<strong>B-trees</strong> generalise the idea to nodes\n            with many children, tuned to disk-block sizes. Every\n            relational database index you have ever used is a\n            B-tree variant.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Treaps and skip lists@@T1@@ randomise to get\n            balance in expectation without rotations — simpler to\n            implement, comparable performance.": {
+   "zh": "@@T0@@Treap 与跳表@@T1@@通过随机化在期望意义下获得平衡而无需旋转——实现更简单，性能相当。",
+   "src": "<strong>Treaps and skip lists</strong> randomise to get\n            balance in expectation without rotations — simpler to\n            implement, comparable performance.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@The trap.@@T1@@\n          A plain BST without balancing is a @@T2@@terrible@@T3@@ general-purpose\n          data structure — its worst case is hit by sorted input,\n          which is more common than uniform random in practice.\n          Always reach for a balanced variant in production. Reach\n          for the plain BST only when implementing it for teaching\n          (like this article) or when input order is guaranteed\n          adversarial-free.": {
+   "zh": "@@T0@@陷阱。@@T1@@未作平衡的朴素 BST 是一种@@T2@@糟糕透顶@@T3@@的通用数据结构——它的最坏情况由有序输入触发，而在实践中这比均匀随机输入更常见。在生产环境中应始终选用平衡变体。只有在为教学而实现它（如本文）或输入顺序可保证无对抗性时，才应选用朴素 BST。",
+   "src": "<strong>The trap.</strong>\n          A plain BST without balancing is a <em>terrible</em> general-purpose\n          data structure — its worst case is hit by sorted input,\n          which is more common than uniform random in practice.\n          Always reach for a balanced variant in production. Reach\n          for the plain BST only when implementing it for teaching\n          (like this article) or when input order is guaranteed\n          adversarial-free.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Heaps — parent dominates children": {
+   "zh": "堆——父节点支配子节点",
+   "src": "Heaps — parent dominates children",
+   "tags": []
+  },
+  "A binary heap is a @@T0@@complete@@T1@@ binary tree with a\n          single invariant: every parent is $\\le$ both its children\n          (min-heap) or $\\ge$ both (max-heap). It is most naturally\n          stored as an array — for a node at index $i$:": {
+   "zh": "二叉堆是一棵@@T0@@完全@@T1@@二叉树，只含一个不变式：每个父节点都 $\\le$ 其两个子节点（最小堆）或 $\\ge$ 其两个子节点（最大堆）。它最自然地以数组存储——对于索引为 $i$ 的节点：",
+   "src": "A binary heap is a <em>complete</em> binary tree with a\n          single invariant: every parent is $\\le$ both its children\n          (min-heap) or $\\ge$ both (max-heap). It is most naturally\n          stored as an array — for a node at index $i$:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Because the tree is always complete, no array slots are\n          wasted. Two operations preserve the invariant:": {
+   "zh": "由于树始终是完全的，数组槽位不会浪费。有两种操作维持该不变式：",
+   "src": "Because the tree is always complete, no array slots are\n          wasted. Two operations preserve the invariant:",
+   "tags": []
+  },
+  "@@T0@@Insert (sift-up).@@T1@@ Append at the end;\n            walk up swapping with parent while the invariant is\n            violated. $O(\\log n)$.": {
+   "zh": "@@T0@@插入（上滤）。@@T1@@追加至末尾；在不变式被违反时不断与父节点交换并上移。$O(\\log n)$。",
+   "src": "<strong>Insert (sift-up).</strong> Append at the end;\n            walk up swapping with parent while the invariant is\n            violated. $O(\\log n)$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Extract root (sift-down).@@T1@@ Take the\n            root (the min or max). Move the last element into the\n            root slot. Walk down swapping with the smaller (or larger)\n            child while the invariant is violated. $O(\\log n)$.": {
+   "zh": "@@T0@@提取根（下滤）。@@T1@@取出根（最小或最大元素）。将末元素移入根槽位。在不变式被违反时不断与较小（或较大）的子节点交换并下移。$O(\\log n)$。",
+   "src": "<strong>Extract root (sift-down).</strong> Take the\n            root (the min or max). Move the last element into the\n            root slot. Walk down swapping with the smaller (or larger)\n            child while the invariant is violated. $O(\\log n)$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Below: insert values into a heap and watch them sift up;\n          extract the root and watch the last element sift down. Both\n          the tree view and the array view stay synchronised.": {
+   "zh": "下方：向堆中插入数值并观察其上滤；提取根并观察末元素下滤。树视图与数组视图始终保持同步。",
+   "src": "Below: insert values into a heap and watch them sift up;\n          extract the root and watch the last element sift down. Both\n          the tree view and the array view stay synchronised.",
+   "tags": []
+  },
+  "kind": {
+   "zh": "类型",
+   "src": "kind",
+   "tags": []
+  },
+  "min-heap": {
+   "zh": "最小堆",
+   "src": "min-heap",
+   "tags": []
+  },
+  "max-heap": {
+   "zh": "最大堆",
+   "src": "max-heap",
+   "tags": []
+  },
+  "extract root": {
+   "zh": "提取根",
+   "src": "extract root",
+   "tags": []
+  },
+  "heapify random 12": {
+   "zh": "堆化随机 12 个",
+   "src": "heapify random 12",
+   "tags": []
+  },
+  "empty heap.": {
+   "zh": "空堆。",
+   "src": "empty heap.",
+   "tags": []
+  },
+  "array view": {
+   "zh": "数组视图",
+   "src": "array view",
+   "tags": []
+  },
+  "Index 0 is the root. Indices $2i+1$ and $2i+2$ are its\n              children. The two views are the same tree.": {
+   "zh": "索引 0 是根。索引 $2i+1$ 与 $2i+2$ 是其子节点。两种视图描述的是同一棵树。",
+   "src": "Index 0 is the root. Indices $2i+1$ and $2i+2$ are its\n              children. The two views are the same tree.",
+   "tags": []
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Heapify — building a heap in O(n)": {
+   "zh": "堆化——在 O(n) 内构建堆",
+   "src": "Heapify — building a heap in O(n)",
+   "tags": []
+  },
+  "The obvious way to build a heap of $n$ items is to call\n          @@T0@@insert@@T1@@ $n$ times. That's $n \\log n$ work.\n          Floyd's heapify does it in $O(n)$ by working bottom-up.": {
+   "zh": "构建含 $n$ 个元素的堆，最直接的做法是调用 @@T0@@插入@@T1@@ $n$ 次。这需要 $n \\log n$ 的工作量。Floyd 堆化则通过自底向上操作在 $O(n)$ 内完成。",
+   "src": "The obvious way to build a heap of $n$ items is to call\n          <code>insert</code> $n$ times. That's $n \\log n$ work.\n          Floyd's heapify does it in $O(n)$ by working bottom-up.",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Why $O(n)$ instead of $O(n \\log n)$? Sift-down on a node at\n          depth $d$ costs at most $h - d$ where $h = \\lfloor \\log_2\n          n \\rfloor$ is the tree's height. Half the nodes are\n          leaves (cost 0); a quarter are one level up (cost 1); an\n          eighth are two levels up (cost 2); the sum collapses to a\n          constant times $n$. Press @@T0@@heapify random 12@@T1@@ above\n          and watch the bottom-up passes.": {
+   "zh": "为何是 $O(n)$ 而非 $O(n \\log n)$？对深度为 $d$ 的节点做下滤，代价至多为 $h - d$，其中 $h = \\lfloor \\log_2 n \\rfloor$ 为树的高度。半数节点是叶（代价 0）；四分之一在上移一层处（代价 1）；八分之一在上移两层处（代价 2）；该级数求和收敛为一个常数乘以 $n$。点击上方的 @@T0@@堆化随机 12 个@@T1@@，观察自底向上的各趟处理。",
+   "src": "Why $O(n)$ instead of $O(n \\log n)$? Sift-down on a node at\n          depth $d$ costs at most $h - d$ where $h = \\lfloor \\log_2\n          n \\rfloor$ is the tree's height. Half the nodes are\n          leaves (cost 0); a quarter are one level up (cost 1); an\n          eighth are two levels up (cost 2); the sum collapses to a\n          constant times $n$. Press <em>heapify random 12</em> above\n          and watch the bottom-up passes.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Heapify is also the building block of @@T0@@heap sort@@T1@@:\n          build a max-heap in place ($O(n)$), then repeatedly\n          extract-max into the last array slot ($n \\log n$). Total\n          $O(n \\log n)$, in-place, no auxiliary memory. The reason\n          it isn't the default sort in most languages is cache\n          behaviour — quicksort and Timsort dominate in practice\n          despite the same asymptotic.": {
+   "zh": "堆化也是@@T0@@堆排序@@T1@@的构建模块：原地构建最大堆（$O(n)$），再反复提取最大值并放入数组末尾槽位（$n \\log n$）。总计 $O(n \\log n)$，原地进行，无需辅助内存。它在多数语言中并非默认排序的原因在于缓存行为——尽管渐进复杂度相同，实践中快排与 Timsort 仍占主导。",
+   "src": "Heapify is also the building block of <strong>heap sort</strong>:\n          build a max-heap in place ($O(n)$), then repeatedly\n          extract-max into the last array slot ($n \\log n$). Total\n          $O(n \\log n)$, in-place, no auxiliary memory. The reason\n          it isn't the default sort in most languages is cache\n          behaviour — quicksort and Timsort dominate in practice\n          despite the same asymptotic.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 7": {
+   "zh": "第 7 步",
+   "src": "Step 7",
+   "tags": []
+  },
+  "Where this gets used": {
+   "zh": "实际应用场景",
+   "src": "Where this gets used",
+   "tags": []
+  },
+  "Use case": {
+   "zh": "应用场景",
+   "src": "Use case",
+   "tags": []
+  },
+  "Structure": {
+   "zh": "结构",
+   "src": "Structure",
+   "tags": []
+  },
+  "Why": {
+   "zh": "原因",
+   "src": "Why",
+   "tags": []
+  },
+  "Ordered map / set (C++ @@T0@@std::map@@T1@@, Java @@T2@@TreeMap@@T3@@)": {
+   "zh": "有序映射 / 集合（C++ @@T0@@std::map@@T1@@、Java @@T2@@TreeMap@@T3@@）",
+   "src": "Ordered map / set (C++ <code>std::map</code>, Java <code>TreeMap</code>)",
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "red-black BST": {
+   "zh": "红黑 BST",
+   "src": "red-black BST",
+   "tags": []
+  },
+  "$O(\\log n)$ insert + ordered iteration; in-order traversal yields the sorted keys for free.": {
+   "zh": "$O(\\log n)$ 插入 + 有序迭代；中序遍历免费给出有序键。",
+   "src": "$O(\\log n)$ insert + ordered iteration; in-order traversal yields the sorted keys for free.",
+   "tags": []
+  },
+  "Database / filesystem index": {
+   "zh": "数据库 / 文件系统索引",
+   "src": "Database / filesystem index",
+   "tags": []
+  },
+  "B-tree, B+-tree": {
+   "zh": "B 树、B+ 树",
+   "src": "B-tree, B+-tree",
+   "tags": []
+  },
+  "Wide nodes minimise disk reads; same logarithmic guarantee as a binary tree but with $\\log_B n$ depth.": {
+   "zh": "宽节点使磁盘读取次数最小化；与二叉树具有相同的对数保证，但深度为 $\\log_B n$。",
+   "src": "Wide nodes minimise disk reads; same logarithmic guarantee as a binary tree but with $\\log_B n$ depth.",
+   "tags": []
+  },
+  "Priority queue (Dijkstra, A*, event simulation)": {
+   "zh": "优先队列（Dijkstra、A*、事件模拟）",
+   "src": "Priority queue (Dijkstra, A*, event simulation)",
+   "tags": []
+  },
+  "binary heap, Fibonacci heap": {
+   "zh": "二叉堆、斐波那契堆",
+   "src": "binary heap, Fibonacci heap",
+   "tags": []
+  },
+  "$O(\\log n)$ extract-min; Fibonacci heaps amortise @@T0@@decrease-key@@T1@@ to $O(1)$ which is the bottleneck inside Dijkstra.": {
+   "zh": "$O(\\log n)$ 提取最小值；斐波那契堆将 @@T0@@decrease-key@@T1@@ 摊还至 $O(1)$，这正是 Dijkstra 内部的瓶颈所在。",
+   "src": "$O(\\log n)$ extract-min; Fibonacci heaps amortise <code>decrease-key</code> to $O(1)$ which is the bottleneck inside Dijkstra.",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Top-k streaming (top trending tweets, top-k logs)": {
+   "zh": "Top-k 流式处理（热门推文、Top-k 日志）",
+   "src": "Top-k streaming (top trending tweets, top-k logs)",
+   "tags": []
+  },
+  "min-heap of size $k$": {
+   "zh": "大小为 $k$ 的最小堆",
+   "src": "min-heap of size $k$",
+   "tags": []
+  },
+  "Compare each new element to the heap root; replace and sift if larger. $O(n \\log k)$ total.": {
+   "zh": "将每个新元素与堆根比较；若更大则替换并下滤。总计 $O(n \\log k)$。",
+   "src": "Compare each new element to the heap root; replace and sift if larger. $O(n \\log k)$ total.",
+   "tags": []
+  },
+  "Heap sort, partial sort": {
+   "zh": "堆排序、部分排序",
+   "src": "Heap sort, partial sort",
+   "tags": []
+  },
+  "binary heap": {
+   "zh": "二叉堆",
+   "src": "binary heap",
+   "tags": []
+  },
+  "In-place sort; partial sort gives the top-k in $O(n + k \\log n)$.": {
+   "zh": "原地排序；部分排序在 $O(n + k \\log n)$ 内给出 top-k。",
+   "src": "In-place sort; partial sort gives the top-k in $O(n + k \\log n)$.",
+   "tags": []
+  },
+  "Autocomplete, prefix matching": {
+   "zh": "自动补全、前缀匹配",
+   "src": "Autocomplete, prefix matching",
+   "tags": []
+  },
+  "trie": {
+   "zh": "前缀树（trie）",
+   "src": "trie",
+   "tags": []
+  },
+  "Tree keyed on string characters; prefix lookup in $O(|\\text{prefix}|)$ regardless of dictionary size.": {
+   "zh": "以字符串字符为键的树；前缀查找为 $O(|\\text{prefix}|)$，与词典规模无关。",
+   "src": "Tree keyed on string characters; prefix lookup in $O(|\\text{prefix}|)$ regardless of dictionary size.",
+   "tags": []
+  },
+  "Range queries (sum / min on arrays)": {
+   "zh": "区间查询（数组上的求和 / 求最小值）",
+   "src": "Range queries (sum / min on arrays)",
+   "tags": []
+  },
+  "segment tree, Fenwick tree": {
+   "zh": "线段树、Fenwick 树",
+   "src": "segment tree, Fenwick tree",
+   "tags": []
+  },
+  "$O(\\log n)$ range-query and point-update. The competitive-programming workhorse.": {
+   "zh": "$O(\\log n)$ 的区间查询与单点更新。竞赛编程中的主力结构。",
+   "src": "$O(\\log n)$ range-query and point-update. The competitive-programming workhorse.",
+   "tags": []
+  },
+  "Decision trees, random forests, XGBoost": {
+   "zh": "决策树、随机森林、XGBoost",
+   "src": "Decision trees, random forests, XGBoost",
+   "tags": []
+  },
+  "tree of split predicates": {
+   "zh": "分裂谓词构成的树",
+   "src": "tree of split predicates",
+   "tags": []
+  },
+  "Tree as a function from feature vector to label. Different problem, same scaffolding.": {
+   "zh": "树被视为从特征向量到标签的函数。问题不同，脚手架相同。",
+   "src": "Tree as a function from feature vector to label. Different problem, same scaffolding.",
+   "tags": []
+  },
+  "Step 8": {
+   "zh": "第 8 步",
+   "src": "Step 8",
+   "tags": []
+  },
+  "Sharp edges": {
+   "zh": "易错之处",
+   "src": "Sharp edges",
+   "tags": []
+  },
+  "@@T0@@BST delete is the awkward operation.@@T1@@\n            Inserting and searching are five lines each; deletion\n            has three cases (leaf, one-child, two-children) and the\n            two-children case requires finding the in-order\n            successor. This is why textbooks devote a whole page\n            to delete and a paragraph to insert.": {
+   "zh": "@@T0@@BST 的删除是棘手的操作。@@T1@@插入与查找各只需五行代码；删除却有三种情形（叶、单子、双子），而双子情形还需找到中序后继。这正是教科书为删除留出整整一页、而为插入只留一段的原因。",
+   "src": "<strong>BST delete is the awkward operation.</strong>\n            Inserting and searching are five lines each; deletion\n            has three cases (leaf, one-child, two-children) and the\n            two-children case requires finding the in-order\n            successor. This is why textbooks devote a whole page\n            to delete and a paragraph to insert.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Heap does @@T1@@not@@T2@@ support fast search.@@T3@@\n            \"Find an element in a heap\" is $O(n)$. The heap\n            invariant orders parents w.r.t. children only — not\n            siblings. If you need both ordered iteration and\n            priority extraction, you need two structures or a more\n            elaborate one (indexed heap, treap, or balanced BST).": {
+   "zh": "@@T0@@堆@@T1@@不@@T2@@支持快速查找。@@T3@@「在堆中查找某元素」为 $O(n)$。堆不变式只对父与子排序——不涉及兄弟。若你既需要有序迭代又需要优先提取，就需要两种结构或一种更精巧的结构（索引堆、treap 或平衡 BST）。",
+   "src": "<strong>Heap does <em>not</em> support fast search.</strong>\n            \"Find an element in a heap\" is $O(n)$. The heap\n            invariant orders parents w.r.t. children only — not\n            siblings. If you need both ordered iteration and\n            priority extraction, you need two structures or a more\n            elaborate one (indexed heap, treap, or balanced BST).",
+   "tags": [
+    "<strong>",
+    "<em>",
+    "</em>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Heap's @@T1@@decrease-key@@T2@@ needs a handle.@@T3@@\n            To decrease the priority of an arbitrary element you\n            need to know its array index — which means a side\n            hashmap keyed on element identity. Forget the side map\n            and Dijkstra silently breaks.": {
+   "zh": "@@T0@@堆的 @@T1@@decrease-key@@T2@@ 需要句柄。@@T3@@要降低任意元素的优先级，你需要知道它的数组索引——这意味着要维护一个以元素身份为键的辅助哈希表。忘记这个辅助映射，Dijkstra 就会悄然失效。",
+   "src": "<strong>Heap's <code>decrease-key</code> needs a handle.</strong>\n            To decrease the priority of an arbitrary element you\n            need to know its array index — which means a side\n            hashmap keyed on element identity. Forget the side map\n            and Dijkstra silently breaks.",
+   "tags": [
+    "<strong>",
+    "<code>",
+    "</code>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Pointer-based vs array-based.@@T1@@ BSTs\n            with explicit node objects pay for pointer chasing and\n            poor cache locality. For small fixed-size trees,\n            storing children in a flat array (left at $2i+1$, right\n            at $2i+2$ — same trick as heaps) is much faster despite\n            the gaps from unbalanced shapes.": {
+   "zh": "@@T0@@基于指针与基于数组。@@T1@@使用显式节点对象的 BST 需为指针追踪和较差的缓存局部性付出代价。对于小型固定规模树，将子节点存于平坦数组中（左孩子在 $2i+1$、右孩子在 $2i+2$——与堆相同的技巧）会快得多，尽管不平衡形状会带来空隙。",
+   "src": "<strong>Pointer-based vs array-based.</strong> BSTs\n            with explicit node objects pay for pointer chasing and\n            poor cache locality. For small fixed-size trees,\n            storing children in a flat array (left at $2i+1$, right\n            at $2i+2$ — same trick as heaps) is much faster despite\n            the gaps from unbalanced shapes.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Recursion depth limits.@@T1@@ A degenerate\n            tree on $n$ nodes will overflow the call stack at $n\n            \\approx 10^4$ in most languages if you traverse with\n            naïve recursion. Either balance the tree or use the\n            iterative-with-explicit-stack form.": {
+   "zh": "@@T0@@递归深度限制。@@T1@@若采用朴素递归遍历，含 $n$ 个节点的退化树在多数语言中当 $n \\approx 10^4$ 时就会使调用栈溢出。要么平衡树，要么改用显式栈的迭代形式。",
+   "src": "<strong>Recursion depth limits.</strong> A degenerate\n            tree on $n$ nodes will overflow the call stack at $n\n            \\approx 10^4$ in most languages if you traverse with\n            naïve recursion. Either balance the tree or use the\n            iterative-with-explicit-stack form.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Two heaps for the running median.@@T1@@ A\n            max-heap of the lower half and a min-heap of the upper\n            half, kept balanced in size. Insert and median both\n            cost $O(\\log n)$. A classic interview question whose\n            solution is a heap configuration, not a clever new\n            structure.": {
+   "zh": "@@T0@@用两个堆求滑动中位数。@@T1@@下半部分用最大堆、上半部分用最小堆，并保持两者大小平衡。插入与求中位数均花费 $O(\\log n)$。这是一道经典的面试题，其解法是一种堆的配置，而非某种巧妙的新结构。",
+   "src": "<strong>Two heaps for the running median.</strong> A\n            max-heap of the lower half and a min-heap of the upper\n            half, kept balanced in size. Insert and median both\n            cost $O(\\log n)$. A classic interview question whose\n            solution is a heap configuration, not a clever new\n            structure.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 9": {
+   "zh": "第 9 步",
+   "src": "Step 9",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "推荐阅读",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Knuth, @@T1@@The Art of Computer Programming, Vol 3@@T2@@.@@T3@@\n            The reference, still. Trees are chapter 6.2.": {
+   "zh": "@@T0@@Knuth，@@T1@@The Art of Computer Programming, Vol 3@@T2@@。@@T3@@至今仍是权威参考。树位于第 6.2 章。",
+   "src": "<strong>Knuth, <em>The Art of Computer Programming, Vol 3</em>.</strong>\n            The reference, still. Trees are chapter 6.2.",
+   "tags": [
+    "<strong>",
+    "<em>",
+    "</em>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Cormen, Leiserson, Rivest, Stein — @@T1@@CLRS@@T2@@.@@T3@@\n            Chapters 6 (heaps), 12 (BSTs), 13 (red-black trees),\n            18 (B-trees). The teaching standard.": {
+   "zh": "@@T0@@Cormen、Leiserson、Rivest、Stein——@@T1@@CLRS@@T2@@。@@T3@@第 6 章（堆）、第 12 章（BST）、第 13 章（红黑树）、第 18 章（B 树）。教学标准之作。",
+   "src": "<strong>Cormen, Leiserson, Rivest, Stein — <em>CLRS</em>.</strong>\n            Chapters 6 (heaps), 12 (BSTs), 13 (red-black trees),\n            18 (B-trees). The teaching standard.",
+   "tags": [
+    "<strong>",
+    "<em>",
+    "</em>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Sedgewick &amp; Wayne, @@T1@@Algorithms (4th ed.)@@T2@@.@@T3@@\n            Best presentation of red-black trees as left-leaning\n            2-3 trees.": {
+   "zh": "@@T0@@Sedgewick 与 Wayne，@@T1@@Algorithms (4th ed.)@@T2@@。@@T3@@将红黑树表述为左倾 2-3 树的最佳讲解。",
+   "src": "<strong>Sedgewick &amp; Wayne, <em>Algorithms (4th ed.)</em>.</strong>\n            Best presentation of red-black trees as left-leaning\n            2-3 trees.",
+   "tags": [
+    "<strong>",
+    "<em>",
+    "</em>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Adelson-Velsky &amp; Landis, 1962@@T1@@ —\n            @@T2@@An algorithm for the organisation of information.@@T3@@\n            The AVL tree, the first balanced BST.": {
+   "zh": "@@T0@@Adelson-Velsky 与 Landis，1962@@T1@@——@@T2@@An algorithm for the organisation of information.@@T3@@AVL 树，第一个平衡 BST。",
+   "src": "<strong>Adelson-Velsky &amp; Landis, 1962</strong> —\n            <em>An algorithm for the organisation of information.</em>\n            The AVL tree, the first balanced BST.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Floyd, 1964@@T1@@ —\n            @@T2@@Algorithm 245: Treesort.@@T3@@ The bottom-up $O(n)$\n            heapify and heap sort in two pages.": {
+   "zh": "@@T0@@Floyd，1964@@T1@@——@@T2@@Algorithm 245: Treesort.@@T3@@用两页篇幅给出自底向上 $O(n)$ 的堆化与堆排序。",
+   "src": "<strong>Floyd, 1964</strong> —\n            <em>Algorithm 245: Treesort.</em> The bottom-up $O(n)$\n            heapify and heap sort in two pages.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Bayer &amp; McCreight, 1972@@T1@@ —\n            @@T2@@Organisation and Maintenance of Large Ordered Indexes.@@T3@@\n            B-trees.": {
+   "zh": "@@T0@@Bayer 与 McCreight，1972@@T1@@——@@T2@@Organisation and Maintenance of Large Ordered Indexes.@@T3@@B 树。",
+   "src": "<strong>Bayer &amp; McCreight, 1972</strong> —\n            <em>Organisation and Maintenance of Large Ordered Indexes.</em>\n            B-trees.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Pugh, 1990@@T1@@ —\n            @@T2@@Skip Lists: A Probabilistic Alternative to Balanced Trees.@@T3@@\n            A whole class of structures that argue against trees.": {
+   "zh": "@@T0@@Pugh，1990@@T1@@——@@T2@@Skip Lists: A Probabilistic Alternative to Balanced Trees.@@T3@@一整类与树相抗衡的结构。",
+   "src": "<strong>Pugh, 1990</strong> —\n            <em>Skip Lists: A Probabilistic Alternative to Balanced Trees.</em>\n            A whole class of structures that argue against trees.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "树：逐枝展开",
+  "tagline": "BST、堆与遍历——构建它们、查询它们，观察上滤与下滤",
+  "summary": "这种数据结构在幕后支撑着有序映射、优先队列、自动补全，以及算法教科书中的半壁江山。通过输入数值构建一棵二叉搜索树，观察四种不同顺序的遍历在其中穿行，再切换到堆，看上滤/下滤如何在每次插入与提取中维持堆不变式。",
+  "difficulty": "入门",
+  "collection": "数据结构",
+  "highlights": [
+   "通过输入数值构建 BST——当树平衡时，观察查找在 O(log n) 内命中匹配节点。",
+   "在同一棵树上动画演示全部四种遍历（前序、中序、后序、层序）。",
+   "实时最小堆与最大堆：插入触发上滤，提取最小值触发下滤，二者均逐步展示。",
+   "在 O(n) 内对随机数组堆化，观察自底向上算法如何胜过最直接的做法。",
+   "平衡为何重要：插入有序数值会得到链表（O(n) 查找）；随机顺序插入则得到 O(log n)。"
+  ],
+  "tags": [
+   "BST",
+   "堆",
+   "优先队列",
+   "遍历",
+   "交互式"
+  ]
+ },
+ "js": {
+  "n = @@T0@@[[[0]]]@@T1@@, height = @@T2@@[[[1]]]@@T3@@ (optimal for this size: [[[2]]]).": {
+   "zh": "n = @@T0@@[[[0]]]@@T1@@，高度 = @@T2@@[[[1]]]@@T3@@（此规模的最优值：[[[2]]]）。",
+   "exprs": [
+    "${n}",
+    "${Math.max(0, h)}",
+    "${optimal}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "n = <strong>${n}</strong>, height = <strong>${Math.max(0, h)}</strong> (optimal for this size: ${optimal})."
+  },
+  "searching for @@T0@@[[[0]]]@@T1@@ — visiting [[[1]]].": {
+   "zh": "正在查找 @@T0@@[[[0]]]@@T1@@——访问 [[[1]]]。",
+   "exprs": [
+    "${value}",
+    "${path[i].value}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "searching for <strong>${value}</strong> — visiting ${path[i].value}."
+  },
+  "found @@T0@@[[[0]]]@@T1@@ in [[[1]]] step[[[2]]]. [[[3]]]": {
+   "zh": "在 [[[1]]] 步[[[2]]]内找到 @@T0@@[[[0]]]@@T1@@。[[[3]]]",
+   "exprs": [
+    "${value}",
+    "${path.length}",
+    "${path.length === 1 ? '' : 's'}",
+    "${bstSummary()}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "found <strong>${value}</strong> in ${path.length} step${path.length === 1 ? '' : 's'}. ${bstSummary()}"
+  },
+  "@@T0@@[[[0]]]@@T1@@ not in tree (walked [[[1]]] step[[[2]]]). [[[3]]]": {
+   "zh": "@@T0@@[[[0]]]@@T1@@ 不在树中（已走 [[[1]]] 步[[[2]]]）。[[[3]]]",
+   "exprs": [
+    "${value}",
+    "${path.length}",
+    "${path.length === 1 ? '' : 's'}",
+    "${bstSummary()}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "<strong>${value}</strong> not in tree (walked ${path.length} step${path.length === 1 ? '' : 's'}). ${bstSummary()}"
+  },
+  "inserted 8 random values. [[[0]]]": {
+   "zh": "已插入 8 个随机值。[[[0]]]",
+   "exprs": [
+    "${bstSummary()}"
+   ],
+   "tags": [],
+   "src": "inserted 8 random values. ${bstSummary()}"
+  },
+  "inserted 1..8 in order → degenerate right-spine. [[[0]]]": {
+   "zh": "已按顺序插入 1..8 → 退化为右斜链。[[[0]]]",
+   "exprs": [
+    "${bstSummary()}"
+   ],
+   "tags": [],
+   "src": "inserted 1..8 in order → degenerate right-spine. ${bstSummary()}"
+  },
+  "@@T0@@[[[0]]]-order@@T1@@ traversal complete: visited [[[1]]] node[[[2]]].": {
+   "zh": "@@T0@@[[[0]]] 序@@T1@@遍历完成：已访问 [[[1]]] 个节点[[[2]]]。",
+   "exprs": [
+    "${mode}",
+    "${out.length}",
+    "${out.length === 1 ? '' : 's'}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "<strong>${mode}-order</strong> traversal complete: visited ${out.length} node${out.length === 1 ? '' : 's'}."
+  },
+  "sifting @@T0@@[[[0]]]@@T1@@ up": {
+   "zh": "上滤 @@T0@@[[[0]]]@@T1@@",
+   "exprs": [
+    "${HEAP.arr[i]}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "sifting <strong>${HEAP.arr[i]}</strong> up"
+  },
+  "sifting down": {
+   "zh": "下滤",
+   "exprs": [],
+   "tags": [],
+   "src": "sifting down"
+  },
+  "[[[0]]]: swap indices [[[1]]] ↔ [[[2]]] (values [[[3]]] ↔ [[[4]]]).": {
+   "zh": "[[[0]]]：交换索引 [[[1]]] ↔ [[[2]]]（值 [[[3]]] ↔ [[[4]]]）。",
+   "exprs": [
+    "${label}",
+    "${sw.a}",
+    "${sw.b}",
+    "${HEAP.arr[sw.b]}",
+    "${HEAP.arr[sw.a]}"
+   ],
+   "tags": [],
+   "src": "${label}: swap indices ${sw.a} ↔ ${sw.b} (values ${HEAP.arr[sw.b]} ↔ ${HEAP.arr[sw.a]})."
+  },
+  "heapified [[[0]]] elements in O(n). [[[1]]]": {
+   "zh": "已在 O(n) 内堆化 [[[0]]] 个元素。[[[1]]]",
+   "exprs": [
+    "${HEAP.arr.length}",
+    "${heapSummary()}"
+   ],
+   "tags": [],
+   "src": "heapified ${HEAP.arr.length} elements in O(n). ${heapSummary()}"
+  },
+  "[[[0]]]-heap: n = @@T0@@[[[1]]]@@T1@@, height = @@T2@@[[[2]]]@@T3@@, root = @@T4@@[[[3]]]@@T5@@.": {
+   "zh": "[[[0]]] 堆：n = @@T0@@[[[1]]]@@T1@@，高度 = @@T2@@[[[2]]]@@T3@@，根 = @@T4@@[[[3]]]@@T5@@。",
+   "exprs": [
+    "${HEAP.kind}",
+    "${n}",
+    "${h}",
+    "${HEAP.arr[0]}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "${HEAP.kind}-heap: n = <strong>${n}</strong>, height = <strong>${h}</strong>, root = <strong>${HEAP.arr[0]}</strong>."
+  },
+  "demo tree pre-populated. [[[0]]]": {
+   "zh": "演示树已预填充。[[[0]]]",
+   "exprs": [
+    "${bstSummary()}"
+   ],
+   "tags": [],
+   "src": "demo tree pre-populated. ${bstSummary()}"
+  },
+  "switched to @@T0@@[[[0]]]-heap@@T1@@. [[[1]]]": {
+   "zh": "已切换至 @@T0@@[[[0]]] 堆@@T1@@。[[[1]]]",
+   "exprs": [
+    "${HEAP.kind}",
+    "${heapSummary()}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "switched to <strong>${HEAP.kind}-heap</strong>. ${heapSummary()}"
+  },
+  "extracting root @@T0@@[[[0]]]@@T1@@ — moving last element to root, then sifting down.": {
+   "zh": "正在提取根 @@T0@@[[[0]]]@@T1@@——将末元素移至根，随后下滤。",
+   "exprs": [
+    "${root}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "extracting root <strong>${root}</strong> — moving last element to root, then sifting down."
+  },
+  "inserted 8 random values one at a time. [[[0]]]": {
+   "zh": "已逐个插入 8 个随机值。[[[0]]]",
+   "exprs": [
+    "${heapSummary()}"
+   ],
+   "tags": [],
+   "src": "inserted 8 random values one at a time. ${heapSummary()}"
+  },
+  "unheaped random array of 12 values. running Floyd's bottom-up heapify…": {
+   "zh": "含 12 个值的未堆化随机数组。正在运行 Floyd 自底向上堆化…",
+   "exprs": [],
+   "tags": [],
+   "src": "unheaped random array of 12 values. running Floyd's bottom-up heapify…"
+  },
+  "demo heap pre-populated. [[[0]]]": {
+   "zh": "演示堆已预填充。[[[0]]]",
+   "exprs": [
+    "${heapSummary()}"
+   ],
+   "tags": [],
+   "src": "demo heap pre-populated. ${heapSummary()}"
+  },
+  " visited": {
+   "zh": " 已访问",
+   "exprs": [],
+   "tags": [],
+   "src": " visited"
+  },
+  "insert some values first.": {
+   "zh": "请先插入一些数值。",
+   "exprs": [],
+   "tags": [],
+   "src": "insert some values first."
+  },
+  "tok tok-arrow": {
+   "zh": "tok-arrow tok",
+   "exprs": [],
+   "tags": [],
+   "src": "tok tok-arrow"
+  },
+  "empty heap.": {
+   "zh": "空堆。",
+   "exprs": [],
+   "tags": [],
+   "src": "empty heap."
+  },
+  "enter an integer.": {
+   "zh": "请输入一个整数。",
+   "exprs": [],
+   "tags": [],
+   "src": "enter an integer."
+  },
+  "enter an integer to search.": {
+   "zh": "请输入一个整数以进行查找。",
+   "exprs": [],
+   "tags": [],
+   "src": "enter an integer to search."
+  },
+  "tree is empty.": {
+   "zh": "树为空。",
+   "exprs": [],
+   "tags": [],
+   "src": "tree is empty."
+  },
+  "empty tree.": {
+   "zh": "空树。",
+   "exprs": [],
+   "tags": [],
+   "src": "empty tree."
+  },
+  "heap is empty.": {
+   "zh": "堆为空。",
+   "exprs": [],
+   "tags": [],
+   "src": "heap is empty."
+  }
+ }
+}

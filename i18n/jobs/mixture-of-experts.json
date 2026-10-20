@@ -1,0 +1,589 @@
+{
+ "slug": "mixture-of-experts",
+ "units": {
+  "Mixture of Experts, Live": {
+   "zh": "专家混合模型实战",
+   "src": "Mixture of Experts, Live",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Four linear experts and a softmax gate, trained jointly in\n          your browser on a piecewise 2-D regression. Watch the gate\n          carve the input plane into four regions, the experts\n          specialise inside their regions, and the load-balancing\n          auxiliary loss wake up dead experts. Toggle soft mixture\n          vs top-1 hard routing.": {
+   "zh": "四个线性专家与一个 softmax 门控网络，在你的浏览器中于一个分段二维回归任务上联合训练。观察门控如何将输入平面划分为四个区域、各专家如何在其区域内专精化，以及负载均衡辅助损失如何唤醒「死亡」专家。可在软混合与 top-1 硬路由之间切换。",
+   "src": "Four linear experts and a softmax gate, trained jointly in\n          your browser on a piecewise 2-D regression. Watch the gate\n          carve the input plane into four regions, the experts\n          specialise inside their regions, and the load-balancing\n          auxiliary loss wake up dead experts. Toggle soft mixture\n          vs top-1 hard routing.",
+   "tags": []
+  },
+  "@@T0@@~18 min@@T1@@\n          @@T2@@Deep Learning &middot; Sparse Models &middot; Routing@@T3@@": {
+   "zh": "@@T0@@约 18 分钟@@T1@@\n          @@T2@@深度学习 &middot; 稀疏模型 &middot; 路由@@T3@@",
+   "src": "<span>~18 min</span>\n          <span>Deep Learning &middot; Sparse Models &middot; Routing</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Why MoE": {
+   "zh": "为何采用 MoE",
+   "src": "Why MoE",
+   "tags": []
+  },
+  "A single dense network has to learn one function for every\n          input. As models grow, more parameters means more compute on\n          every forward pass &mdash; the cost of capacity scales\n          linearly with capacity itself.": {
+   "zh": "单一稠密网络必须为每个输入学习同一个函数。随着模型增大，参数更多意味着每次前向传播的计算量也更大 &mdash; 容量的代价与容量本身呈线性增长。",
+   "src": "A single dense network has to learn one function for every\n          input. As models grow, more parameters means more compute on\n          every forward pass &mdash; the cost of capacity scales\n          linearly with capacity itself.",
+   "tags": []
+  },
+  "Mixture of Experts decouples them. You have $E$ expert\n          networks and a small @@T0@@gating network@@T1@@. For\n          each input, the gate picks one or two experts; only those\n          run. A model can have 8× the parameters of a dense\n          counterpart but cost roughly 1× the compute &mdash; provided\n          routing is sparse.": {
+   "zh": "专家混合模型将二者解耦。你拥有 $E$ 个专家网络和一个小型@@T0@@门控网络@@T1@@。对于每个输入，门控选取一个或两个专家，只有被选中的专家参与计算。一个模型的参数量可以是同等稠密模型的 8 倍，而计算量却约为 1 倍 &mdash; 前提是路由足够稀疏。",
+   "src": "Mixture of Experts decouples them. You have $E$ expert\n          networks and a small <strong>gating network</strong>. For\n          each input, the gate picks one or two experts; only those\n          run. A model can have 8× the parameters of a dense\n          counterpart but cost roughly 1× the compute &mdash; provided\n          routing is sparse.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@The slogan.@@T1@@ MoE pays for parameters in\n          memory, not in flops. As of 2026 every frontier-scale model\n          (GPT-OSS, Mixtral, DeepSeek-V3, Llama-MoE) is some flavour\n          of MoE.": {
+   "zh": "@@T0@@一句话概括。@@T1@@ MoE 为参数付出的代价在内存，而非浮点运算量。截至 2026 年，所有前沿规模的模型（GPT-OSS、Mixtral、DeepSeek-V3、Llama-MoE）在某种意义上都属于 MoE。",
+   "src": "<strong>The slogan.</strong> MoE pays for parameters in\n          memory, not in flops. As of 2026 every frontier-scale model\n          (GPT-OSS, Mixtral, DeepSeek-V3, Llama-MoE) is some flavour\n          of MoE.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "The model in one line": {
+   "zh": "一行概括模型",
+   "src": "The model in one line",
+   "tags": []
+  },
+  "Each expert $f_e$ is a function (we use linear:\n          $f_e(x) = w_e^\\top x + b_e$). The gate $g(x) \\in \\Delta^E$\n          is a softmax over $E$ logits. The model output is a weighted\n          mixture; the gradient flows into both the experts (where\n          they were used) and the gate (which gets a signal pushing it\n          toward better routings).": {
+   "zh": "每个专家 $f_e$ 是一个函数（此处采用线性形式：$f_e(x) = w_e^\\top x + b_e$）。门控 $g(x) \\in \\Delta^E$ 是对 $E$ 个 logit 的 softmax。模型输出为加权混合；梯度同时流入各专家（在被用到之处）与门控（后者获得推动其走向更优路由的信号）。",
+   "src": "Each expert $f_e$ is a function (we use linear:\n          $f_e(x) = w_e^\\top x + b_e$). The gate $g(x) \\in \\Delta^E$\n          is a softmax over $E$ logits. The model output is a weighted\n          mixture; the gradient flows into both the experts (where\n          they were used) and the gate (which gets a signal pushing it\n          toward better routings).",
+   "tags": []
+  },
+  "Hard top-1 routing replaces the soft mixture with\n          $\\hat e = \\arg\\max g_e(x)$ &mdash; only one expert runs\n          per input. We use a straight-through gradient so the gate\n          still learns.": {
+   "zh": "硬 top-1 路由以 $\\hat e = \\arg\\max g_e(x)$ 取代软混合 &mdash; 每个输入仅有一个专家参与计算。我们采用直通式梯度，使门控仍然能够学习。",
+   "src": "Hard top-1 routing replaces the soft mixture with\n          $\\hat e = \\arg\\max g_e(x)$ &mdash; only one expert runs\n          per input. We use a straight-through gradient so the gate\n          still learns.",
+   "tags": []
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Train it live": {
+   "zh": "实时训练",
+   "src": "Train it live",
+   "tags": []
+  },
+  "The toy task: a 2-D plane carved into four quadrants, each\n          with a different linear truth function. A single linear\n          model can't fit it; four linear experts plus a gate can.": {
+   "zh": "玩具任务：将一个二维平面划分为四个象限，每个象限对应一个不同的线性真值函数。单个线性模型无法拟合；而四个线性专家加一个门控则可以。",
+   "src": "The toy task: a 2-D plane carved into four quadrants, each\n          with a different linear truth function. A single linear\n          model can't fit it; four linear experts plus a gate can.",
+   "tags": []
+  },
+  "Start training": {
+   "zh": "开始训练",
+   "src": "Start training",
+   "tags": []
+  },
+  "Reinitialise": {
+   "zh": "重新初始化",
+   "src": "Reinitialise",
+   "tags": []
+  },
+  "routing": {
+   "zh": "路由",
+   "src": "routing",
+   "tags": []
+  },
+  "soft mixture": {
+   "zh": "软混合",
+   "src": "soft mixture",
+   "tags": []
+  },
+  "top-1 hard": {
+   "zh": "top-1 硬路由",
+   "src": "top-1 hard",
+   "tags": []
+  },
+  "load-balance loss": {
+   "zh": "负载均衡损失",
+   "src": "load-balance loss",
+   "tags": []
+  },
+  "balance λ &nbsp;@@T0@@0.10@@T1@@": {
+   "zh": "均衡系数 λ &nbsp;@@T0@@0.10@@T1@@",
+   "src": "balance λ &nbsp;<span id=\"moe-lambda-val\">0.10</span>",
+   "tags": [
+    "<span id=\"moe-lambda-val\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@step @@T1@@0@@T2@@@@T3@@\n          @@T4@@MSE @@T5@@—@@T6@@@@T7@@": {
+   "zh": "@@T0@@步数 @@T1@@0@@T2@@@@T3@@\n          @@T4@@MSE @@T5@@—@@T6@@@@T7@@",
+   "src": "<span class=\"train-stat\">step <strong id=\"moe-step\">0</strong></span>\n          <span class=\"train-stat\">MSE <strong id=\"moe-loss\">—</strong></span>",
+   "tags": [
+    "<span class=\"train-stat\">",
+    "<strong id=\"moe-step\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"moe-loss\">",
+    "</strong>",
+    "</span>"
+   ]
+  },
+  "Gating regions (one colour per expert)": {
+   "zh": "门控区域（每个专家一种颜色）",
+   "src": "Gating regions (one colour per expert)",
+   "tags": []
+  },
+  "Per-expert prediction error": {
+   "zh": "各专家的预测误差",
+   "src": "Per-expert prediction error",
+   "tags": []
+  },
+  "Loss curve + expert utilisation": {
+   "zh": "损失曲线 + 专家利用率",
+   "src": "Loss curve + expert utilisation",
+   "tags": []
+  },
+  "@@T0@@What to watch for.@@T1@@\n          With @@T2@@soft mixture@@T3@@ + no balance loss the gate\n          sometimes collapses onto a single expert (@@T4@@dead expert@@T5@@\n          problem). Turn on @@T6@@load-balance@@T7@@ and the\n          balance term penalises uneven utilisation; the four-way\n          split usually appears within ~150 steps. Switch to\n          @@T8@@top-1@@T9@@ for the Switch-Transformer-style routing &mdash;\n          Voronoi-like region boundaries appear instead of a smooth\n          softmax mixture.": {
+   "zh": "@@T0@@值得关注之处。@@T1@@\n          在@@T2@@软混合@@T3@@且无均衡损失时，门控有时会坍塌到单一专家（@@T4@@死亡专家@@T5@@问题）。开启@@T6@@负载均衡@@T7@@后，均衡项会惩罚不均衡的利用；四路划分通常在约 150 步内出现。切换到@@T8@@top-1@@T9@@即为 Switch-Transformer 式的路由 &mdash; 此时出现的不是平滑的 softmax 混合，而是类似 Voronoi 的区域边界。",
+   "src": "<strong>What to watch for.</strong>\n          With <em>soft mixture</em> + no balance loss the gate\n          sometimes collapses onto a single expert (<em>dead expert</em>\n          problem). Turn on <strong>load-balance</strong> and the\n          balance term penalises uneven utilisation; the four-way\n          split usually appears within ~150 steps. Switch to\n          <em>top-1</em> for the Switch-Transformer-style routing &mdash;\n          Voronoi-like region boundaries appear instead of a smooth\n          softmax mixture.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "The auxiliary load-balance loss": {
+   "zh": "辅助负载均衡损失",
+   "src": "The auxiliary load-balance loss",
+   "tags": []
+  },
+  "Without intervention the gate has every reason to collapse:\n          the easiest local minimum is \"always pick expert 1\". The\n          auxiliary loss pushes the gate toward uniform utilisation:": {
+   "zh": "若不加以干预，门控完全有理由坍塌：最容易落入的局部极小值就是「总是选择专家 1」。辅助损失则推动门控趋向均匀利用：",
+   "src": "Without intervention the gate has every reason to collapse:\n          the easiest local minimum is \"always pick expert 1\". The\n          auxiliary loss pushes the gate toward uniform utilisation:",
+   "tags": []
+  },
+  "$f_e$ is the fraction of tokens routed to expert $e$ and\n          $P_e$ is the average gate probability for expert $e$ over\n          the batch. The product is minimised when both are uniform\n          ($1/E$). The Switch Transformer paper introduced this exact\n          form and it's what every modern MoE uses.": {
+   "zh": "$f_e$ 是被路由至专家 $e$ 的词元比例，$P_e$ 是该批次上专家 $e$ 的平均门控概率。当二者都均匀（$1/E$）时该乘积取最小。Switch Transformer 一文提出了这一确切形式，现代所有 MoE 均采用之。",
+   "src": "$f_e$ is the fraction of tokens routed to expert $e$ and\n          $P_e$ is the average gate probability for expert $e$ over\n          the batch. The product is minimised when both are uniform\n          ($1/E$). The Switch Transformer paper introduced this exact\n          form and it's what every modern MoE uses.",
+   "tags": []
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "What scales, what hurts, what production looks like": {
+   "zh": "什么能规模化、什么会造成损害、生产部署是什么样的",
+   "src": "What scales, what hurts, what production looks like",
+   "tags": []
+  },
+  "@@T0@@Switch Transformer (Fedus et al., 2021).@@T1@@\n            One expert per token (top-1). Demonstrated 4× speed-ups at\n            constant quality.": {
+   "zh": "@@T0@@Switch Transformer（Fedus 等，2021）。@@T1@@\n            每个词元使用一个专家（top-1）。在质量不变的前提下展示了 4 倍加速。",
+   "src": "<strong>Switch Transformer (Fedus et al., 2021).</strong>\n            One expert per token (top-1). Demonstrated 4× speed-ups at\n            constant quality.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Mixtral 8×7B (Mistral, 2023).@@T1@@ Top-2\n            routing across 8 experts; only the experts of the top-2\n            gates run; effective parameter count ~47B with ~13B active\n            per token.": {
+   "zh": "@@T0@@Mixtral 8×7B（Mistral，2023）。@@T1@@ 在 8 个专家间做 top-2 路由；仅 top-2 门控对应的专家参与计算；有效参数量约 47B，每个词元激活约 13B。",
+   "src": "<strong>Mixtral 8×7B (Mistral, 2023).</strong> Top-2\n            routing across 8 experts; only the experts of the top-2\n            gates run; effective parameter count ~47B with ~13B active\n            per token.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@DeepSeek-MoE (2024).@@T1@@ Many small experts\n            (256+) with finer-grained routing. Auxiliary-loss-free\n            balancing via per-expert biases on the gate.": {
+   "zh": "@@T0@@DeepSeek-MoE（2024）。@@T1@@ 众多小专家（256 个以上），路由粒度更细。通过门控上各专家的偏置实现无辅助损失的均衡。",
+   "src": "<strong>DeepSeek-MoE (2024).</strong> Many small experts\n            (256+) with finer-grained routing. Auxiliary-loss-free\n            balancing via per-expert biases on the gate.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Common pitfalls.@@T1@@ Routing instability\n            during early training; experts collapse if the\n            auxiliary loss is too small or absent; ALL-to-ALL\n            communication dominates training time at large scale;\n            \"expert capacity\" overflow needs token dropping or\n            re-routing.": {
+   "zh": "@@T0@@常见陷阱。@@T1@@ 训练早期路由不稳定；若辅助损失过小或缺失，专家会坍塌；在规模较大时，ALL-to-ALL 通信会主导训练时间；「专家容量」溢出需要丢弃词元或重新路由。",
+   "src": "<strong>Common pitfalls.</strong> Routing instability\n            during early training; experts collapse if the\n            auxiliary loss is too small or absent; ALL-to-ALL\n            communication dominates training time at large scale;\n            \"expert capacity\" overflow needs token dropping or\n            re-routing.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@What MoE does @@T1@@not@@T2@@ save you.@@T3@@\n            Inference memory: every expert's weights still need to be\n            in GPU/TPU memory. MoE is FLOP-cheap, RAM-expensive.": {
+   "zh": "@@T0@@MoE @@T1@@不能@@T2@@为你省下的东西。@@T3@@\n            推理内存：每个专家的权重仍须驻留于 GPU/TPU 内存中。MoE 省的是浮点运算量，费的是内存。",
+   "src": "<strong>What MoE does <em>not</em> save you.</strong>\n            Inference memory: every expert's weights still need to be\n            in GPU/TPU memory. MoE is FLOP-cheap, RAM-expensive.",
+   "tags": [
+    "<strong>",
+    "<em>",
+    "</em>",
+    "</strong>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Where MoE shows up beyond LLMs": {
+   "zh": "MoE 在 LLM 之外的用武之地",
+   "src": "Where MoE shows up beyond LLMs",
+   "tags": []
+  },
+  "@@T0@@Multi-task and multi-domain models.@@T1@@\n            One expert per task domain; the gate learns the routing. Useful when many sensor modalities or task types share a backbone.": {
+   "zh": "@@T0@@多任务与多领域模型。@@T1@@\n            每个任务领域一个专家；由门控学习路由。当多种传感器模态或任务类型共享同一骨干网络时尤为有用。",
+   "src": "<strong>Multi-task and multi-domain models.</strong>\n            One expert per task domain; the gate learns the routing. Useful when many sensor modalities or task types share a backbone.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Time-series with MoE.@@T1@@ Different\n            experts for different temporal patterns (activity recognition vs sleep vs heart-rate). The gate becomes a soft regime classifier.": {
+   "zh": "@@T0@@结合 MoE 的时间序列。@@T1@@\n            针对不同时间模式（活动识别、睡眠、心率）使用不同专家。门控由此成为一个软性的状态分类器。",
+   "src": "<strong>Time-series with MoE.</strong> Different\n            experts for different temporal patterns (activity recognition vs sleep vs heart-rate). The gate becomes a soft regime classifier.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Multimodal models.@@T1@@ Image vs text vs\n            audio expert blocks; gate routes per modality (often hard\n            top-1).": {
+   "zh": "@@T0@@多模态模型。@@T1@@\n            图像、文本与音频各有其专家模块；门控按模态路由（通常为硬 top-1）。",
+   "src": "<strong>Multimodal models.</strong> Image vs text vs\n            audio expert blocks; gate routes per modality (often hard\n            top-1).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Conditional computation in vision.@@T1@@\n            Different experts for different scales / regions in satellite or medical images.": {
+   "zh": "@@T0@@视觉中的条件计算。@@T1@@\n            在卫星或医学图像中，针对不同的尺度 / 区域使用不同专家。",
+   "src": "<strong>Conditional computation in vision.</strong>\n            Different experts for different scales / regions in satellite or medical images.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          MoE is the cheapest way to give a model more \"knowledge\" per\n          parameter. As long as routing is sparse and balancing is in\n          place, you get capacity without flops. Once you have it,\n          dense scaling looks wasteful.": {
+   "zh": "@@T0@@最终结论。@@T1@@\n          MoE 是让模型在单位参数上获得更多「知识」的最廉价方式。只要路由足够稀疏且均衡机制到位，你就能在不增加浮点运算量的情况下获得容量。一旦拥有它，稠密式扩展就显得浪费。",
+   "src": "<strong>Final takeaway.</strong>\n          MoE is the cheapest way to give a model more \"knowledge\" per\n          parameter. As long as routing is sparse and balancing is in\n          place, you get capacity without flops. Once you have it,\n          dense scaling looks wasteful.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Expert parallelism — the systems story": {
+   "zh": "专家并行 — 系统层面的故事",
+   "src": "Expert parallelism — the systems story",
+   "tags": []
+  },
+  "Past ~1B parameters per expert, you can't fit all experts on one GPU. The standard sharding pattern (Lepikhin et&nbsp;al., 2020):": {
+   "zh": "当单个专家参数量超过约 1B 时，你无法把所有专家放入一块 GPU。标准的分片模式如下（Lepikhin 等，2020）：",
+   "src": "Past ~1B parameters per expert, you can't fit all experts on one GPU. The standard sharding pattern (Lepikhin et&nbsp;al., 2020):",
+   "tags": []
+  },
+  "@@T0@@Expert parallelism.@@T1@@ Place different experts on different devices. Each device holds a subset of experts.": {
+   "zh": "@@T0@@专家并行。@@T1@@ 将不同专家放置于不同设备上。每台设备持有专家的一个子集。",
+   "src": "<strong>Expert parallelism.</strong> Place different experts on different devices. Each device holds a subset of experts.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@All-to-all dispatch.@@T1@@ For each batch of tokens, send tokens to the device hosting their chosen expert; run the expert locally; send outputs back. This is two all-to-all collectives per layer.": {
+   "zh": "@@T0@@全对全分发。@@T1@@ 对每一批词元，将其发送到承载其被选专家的设备；在本地运行该专家；再将输出送回。每层需要两次全对全集合通信。",
+   "src": "<strong>All-to-all dispatch.</strong> For each batch of tokens, send tokens to the device hosting their chosen expert; run the expert locally; send outputs back. This is two all-to-all collectives per layer.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Expert capacity.@@T1@@ Each expert has a fixed slot count per batch (e.g. $1.25 \\times \\text{tokens}/E$). Overflowing tokens get @@T2@@dropped@@T3@@ (zero-output) or @@T4@@re-routed@@T5@@ to the second-choice expert. The capacity factor is a knob between speed (low capacity, more drops) and quality (high capacity, more compute).": {
+   "zh": "@@T0@@专家容量。@@T1@@ 每个专家在每批次中拥有固定的槽位数（例如 $1.25 \\times \\text{tokens}/E$）。溢出的词元会被@@T2@@丢弃@@T3@@（输出为零）或被@@T4@@重新路由@@T5@@到次选专家。容量因子是速度（容量低、丢弃多）与质量（容量高、计算多）之间的一个旋钮。",
+   "src": "<strong>Expert capacity.</strong> Each expert has a fixed slot count per batch (e.g. $1.25 \\times \\text{tokens}/E$). Overflowing tokens get <em>dropped</em> (zero-output) or <em>re-routed</em> to the second-choice expert. The capacity factor is a knob between speed (low capacity, more drops) and quality (high capacity, more compute).",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Pipelining + tensor parallelism.@@T1@@ Stack expert parallelism on top of standard 3D parallelism. Each device runs one stage's experts, sharded.": {
+   "zh": "@@T0@@流水线并行 + 张量并行。@@T1@@ 在标准三维并行之上叠加专家并行。每台设备运行某一阶段的专家，并以分片形式存放。",
+   "src": "<strong>Pipelining + tensor parallelism.</strong> Stack expert parallelism on top of standard 3D parallelism. Each device runs one stage's experts, sharded.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The all-to-all is what makes MoE training systems hard. Frameworks: GShard, Tutel, Megablocks, DeepSpeed-MoE.": {
+   "zh": "正是全对全通信使得 MoE 训练系统如此困难。相关框架有：GShard、Tutel、Megablocks、DeepSpeed-MoE。",
+   "src": "The all-to-all is what makes MoE training systems hard. Frameworks: GShard, Tutel, Megablocks, DeepSpeed-MoE.",
+   "tags": []
+  },
+  "Step 7": {
+   "zh": "第 7 步",
+   "src": "Step 7",
+   "tags": []
+  },
+  "Frontier MoE comparison": {
+   "zh": "前沿 MoE 对比",
+   "src": "Frontier MoE comparison",
+   "tags": []
+  },
+  "Model": {
+   "zh": "模型",
+   "src": "Model",
+   "tags": []
+  },
+  "Total params": {
+   "zh": "总参数量",
+   "src": "Total params",
+   "tags": []
+  },
+  "Active / token": {
+   "zh": "每词元激活量",
+   "src": "Active / token",
+   "tags": []
+  },
+  "# experts": {
+   "zh": "专家数",
+   "src": "# experts",
+   "tags": []
+  },
+  "Top-k": {
+   "zh": "Top-k 取值",
+   "src": "Top-k",
+   "tags": []
+  },
+  "Notable trick": {
+   "zh": "关键技巧",
+   "src": "Notable trick",
+   "tags": []
+  },
+  "Switch Transformer (2021)": {
+   "zh": "Switch Transformer（2021）",
+   "src": "Switch Transformer (2021)",
+   "tags": []
+  },
+  "Aux load-balance loss; expert capacity": {
+   "zh": "辅助负载均衡损失；专家容量",
+   "src": "Aux load-balance loss; expert capacity",
+   "tags": []
+  },
+  "GLaM (2021)": {
+   "zh": "GLaM（2021）",
+   "src": "GLaM (2021)",
+   "tags": []
+  },
+  "Routing balance via aux loss; sparsity at training": {
+   "zh": "通过辅助损失实现路由均衡；训练时采用稀疏性",
+   "src": "Routing balance via aux loss; sparsity at training",
+   "tags": []
+  },
+  "Mixtral 8×7B (2023)": {
+   "zh": "Mixtral 8×7B（2023）",
+   "src": "Mixtral 8×7B (2023)",
+   "tags": []
+  },
+  "Open-weight; outperforms Llama-2 70B": {
+   "zh": "开放权重；性能优于 Llama-2 70B",
+   "src": "Open-weight; outperforms Llama-2 70B",
+   "tags": []
+  },
+  "DeepSeek-V3 (2024)": {
+   "zh": "DeepSeek-V3（2024）",
+   "src": "DeepSeek-V3 (2024)",
+   "tags": []
+  },
+  "256 + 1 shared": {
+   "zh": "256 + 1 个共享专家",
+   "src": "256 + 1 shared",
+   "tags": []
+  },
+  "Aux-loss-free balancing via per-expert bias": {
+   "zh": "通过各专家偏置实现无辅助损失的均衡",
+   "src": "Aux-loss-free balancing via per-expert bias",
+   "tags": []
+  },
+  "Mixtral 8×22B (2024)": {
+   "zh": "Mixtral 8×22B（2024）",
+   "src": "Mixtral 8×22B (2024)",
+   "tags": []
+  },
+  "Same architecture, scaled experts": {
+   "zh": "相同架构，专家规模扩大",
+   "src": "Same architecture, scaled experts",
+   "tags": []
+  },
+  "Qwen2-MoE A14B (2024)": {
+   "zh": "Qwen2-MoE A14B（2024）",
+   "src": "Qwen2-MoE A14B (2024)",
+   "tags": []
+  },
+  "64 + 4 shared": {
+   "zh": "64 + 4 个共享专家",
+   "src": "64 + 4 shared",
+   "tags": []
+  },
+  "Shared experts always active": {
+   "zh": "共享专家始终激活",
+   "src": "Shared experts always active",
+   "tags": []
+  },
+  "Step 8": {
+   "zh": "第 8 步",
+   "src": "Step 8",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "阅读清单",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Jacobs, Jordan, Nowlan, Hinton (1991)@@T1@@ — @@T2@@Adaptive Mixtures of Local Experts.@@T3@@ The original MoE paper.": {
+   "zh": "@@T0@@Jacobs, Jordan, Nowlan, Hinton (1991)@@T1@@ — @@T2@@Adaptive Mixtures of Local Experts。@@T3@@ MoE 的开山之作。",
+   "src": "<strong>Jacobs, Jordan, Nowlan, Hinton (1991)</strong> — <em>Adaptive Mixtures of Local Experts.</em> The original MoE paper.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Shazeer et&nbsp;al. (2017)@@T1@@ — @@T2@@Outrageously Large Neural Networks.@@T3@@ Top-k gating, MoE inside Transformers.": {
+   "zh": "@@T0@@Shazeer 等 (2017)@@T1@@ — @@T2@@Outrageously Large Neural Networks。@@T3@@ Top-k 门控，将 MoE 引入 Transformer。",
+   "src": "<strong>Shazeer et&nbsp;al. (2017)</strong> — <em>Outrageously Large Neural Networks.</em> Top-k gating, MoE inside Transformers.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Lepikhin et&nbsp;al. (2020)@@T1@@ — @@T2@@GShard.@@T3@@ The expert-parallelism systems paper.": {
+   "zh": "@@T0@@Lepikhin 等 (2020)@@T1@@ — @@T2@@GShard。@@T3@@ 专家并行的系统论文。",
+   "src": "<strong>Lepikhin et&nbsp;al. (2020)</strong> — <em>GShard.</em> The expert-parallelism systems paper.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Fedus, Zoph, Shazeer (2021)@@T1@@ — @@T2@@Switch Transformer.@@T3@@": {
+   "zh": "@@T0@@Fedus, Zoph, Shazeer (2021)@@T1@@ — @@T2@@Switch Transformer。@@T3@@",
+   "src": "<strong>Fedus, Zoph, Shazeer (2021)</strong> — <em>Switch Transformer.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Du et&nbsp;al. (2022)@@T1@@ — @@T2@@GLaM.@@T3@@": {
+   "zh": "@@T0@@Du 等 (2022)@@T1@@ — @@T2@@GLaM。@@T3@@",
+   "src": "<strong>Du et&nbsp;al. (2022)</strong> — <em>GLaM.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@DeepSeek-AI (2024)@@T1@@ — @@T2@@DeepSeek-V3 Technical Report.@@T3@@ Aux-loss-free MoE.": {
+   "zh": "@@T0@@DeepSeek-AI (2024)@@T1@@ — @@T2@@DeepSeek-V3 Technical Report。@@T3@@ 无辅助损失的 MoE。",
+   "src": "<strong>DeepSeek-AI (2024)</strong> — <em>DeepSeek-V3 Technical Report.</em> Aux-loss-free MoE.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Mistral AI (2024)@@T1@@ — @@T2@@Mixtral of Experts.@@T3@@": {
+   "zh": "@@T0@@Mistral AI (2024)@@T1@@ — @@T2@@Mixtral of Experts。@@T3@@",
+   "src": "<strong>Mistral AI (2024)</strong> — <em>Mixtral of Experts.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "专家混合模型实战",
+  "tagline": "Mixtral 与 DeepSeek-MoE 如何在不增加计算量的情况下扩展参数量",
+  "summary": "在你的浏览器中，于一个分段二维回归任务上联合训练四个线性专家与一个 softmax 门控。观察门控如何将输入平面划分为四个区域、各专家如何在其区域内专精化，以及负载均衡辅助损失如何防止专家死亡。可在软混合与 top-1 路由之间切换。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "在分段平面上对 4 个专家 + 一个门控网络进行实时联合训练。",
+   "切换软混合与 top-1 硬路由 — 观察稀疏专家如何专精化。",
+   "一键加入负载均衡辅助损失；观察死亡的专家被唤醒。",
+   "专家归属区域的平面可视化，并叠加预测误差。"
+  ],
+  "tags": [
+   "MoE",
+   "稀疏模型",
+   "路由",
+   "Mixtral",
+   "交互式"
+  ]
+ },
+ "js": {
+  "MSE loss": {
+   "zh": "MSE 损失",
+   "exprs": [],
+   "tags": [],
+   "src": "MSE loss"
+  },
+  "Start training": {
+   "zh": "开始训练",
+   "exprs": [],
+   "tags": [],
+   "src": "Start training"
+  }
+ }
+}

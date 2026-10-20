@@ -1,0 +1,339 @@
+{
+ "slug": "map-regularization",
+ "units": {
+  "MAP = Likelihood × Prior": {
+   "zh": "MAP = 似然 × 先验",
+   "src": "MAP = Likelihood × Prior",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "MAP = Likelihood &times; Prior": {
+   "zh": "MAP = 似然 &times; 先验",
+   "src": "MAP = Likelihood &times; Prior",
+   "tags": []
+  },
+  "&ldquo;Add a regularizer to the loss&rdquo; sounds like a hack. It isn't. Put a\n      @@T0@@prior@@T1@@ on your parameters, multiply it by the likelihood, and maximize\n      the product &mdash; that's the MAP estimate, and the regularizer falls out\n      automatically. This page draws all three distributions in parameter space so\n      you can see the MAP sit between the data's answer (MLE) and the prior's pull toward zero.": {
+   "zh": "“在损失上加一个正则项”听起来像是个取巧的窍门，其实不然。为你的参数设置一个@@T0@@先验@@T1@@，将其与似然相乘，再最大化该乘积 &mdash; 这就是 MAP 估计，而正则项会自然而然地显现出来。本页将这三个分布统统画在参数空间中，让你看清 MAP 如何坐落于数据的答案（MLE）与先验向零的拉力之间。",
+   "src": "&ldquo;Add a regularizer to the loss&rdquo; sounds like a hack. It isn't. Put a\n      <em>prior</em> on your parameters, multiply it by the likelihood, and maximize\n      the product &mdash; that's the MAP estimate, and the regularizer falls out\n      automatically. This page draws all three distributions in parameter space so\n      you can see the MAP sit between the data's answer (MLE) and the prior's pull toward zero.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~11 min@@T1@@\n      @@T2@@Deep Learning &middot; Regularization &middot; Bayesian Inference@@T3@@": {
+   "zh": "@@T0@@约 11 分钟@@T1@@\n      @@T2@@深度学习 &middot; 正则化 &middot; 贝叶斯推断@@T3@@",
+   "src": "<span>~11 min</span>\n      <span>Deep Learning &middot; Regularization &middot; Bayesian Inference</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Two peaks, one product": {
+   "zh": "两个峰，一个乘积",
+   "src": "Two peaks, one product",
+   "tags": []
+  },
+  "Take a tiny model with just two weights $\\theta = (\\theta_1, \\theta_2)$. The\n      @@T0@@likelihood@@T1@@ $p(\\text{data}\\mid\\theta)$ is a bump centered on the\n      value that best fits the data &mdash; the MLE. The @@T2@@prior@@T3@@\n      $p(\\theta)$ is a bump centered at the origin, encoding &ldquo;keep the weights\n      small.&rdquo; Bayes multiplies them into the @@T4@@posterior@@T5@@:": {
+   "zh": "取一个仅含两个权重的微小模型 $\\theta = (\\theta_1, \\theta_2)$。@@T0@@似然@@T1@@ $p(\\text{data}\\mid\\theta)$ 是一个以最佳拟合数据的取值（即 MLE）为中心的隆起。@@T2@@先验@@T3@@ $p(\\theta)$ 则是以原点为中心的隆起，编码了“令权重保持较小”这一信念。Bayes 将其相乘得到@@T4@@后验@@T5@@：",
+   "src": "Take a tiny model with just two weights $\\theta = (\\theta_1, \\theta_2)$. The\n      <strong>likelihood</strong> $p(\\text{data}\\mid\\theta)$ is a bump centered on the\n      value that best fits the data &mdash; the MLE. The <strong>prior</strong>\n      $p(\\theta)$ is a bump centered at the origin, encoding &ldquo;keep the weights\n      small.&rdquo; Bayes multiplies them into the <strong>posterior</strong>:",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Take $-\\log$ of both sides and the product becomes a sum &mdash; a data-fit term\n      plus a penalty term:": {
+   "zh": "对两边取 $-\\log$，乘积便化为求和 &mdash; 一个数据拟合项加上一个惩罚项：",
+   "src": "Take $-\\log$ of both sides and the product becomes a sum &mdash; a data-fit term\n      plus a penalty term:",
+   "tags": []
+  },
+  "A Gaussian prior gives $-\\log p(\\theta) \\propto \\lVert\\theta\\rVert_2^2$ &mdash;\n      that's @@T0@@ℓ₂ regularization (ridge)@@T1@@. A Laplace prior gives\n      $-\\log p(\\theta) \\propto \\lVert\\theta\\rVert_1$ &mdash; that's\n      @@T2@@ℓ₁ regularization (lasso)@@T3@@.\n      The regularizer was a prior all along.": {
+   "zh": "高斯先验给出 $-\\log p(\\theta) \\propto \\lVert\\theta\\rVert_2^2$ &mdash; 这就是@@T0@@ℓ₂ 正则化（岭回归）@@T1@@。拉普拉斯先验给出 $-\\log p(\\theta) \\propto \\lVert\\theta\\rVert_1$ &mdash; 这就是@@T2@@ℓ₁ 正则化（lasso）@@T3@@。原来正则项自始至终就是一个先验。",
+   "src": "A Gaussian prior gives $-\\log p(\\theta) \\propto \\lVert\\theta\\rVert_2^2$ &mdash;\n      that's <strong>ℓ₂ regularization (ridge)</strong>. A Laplace prior gives\n      $-\\log p(\\theta) \\propto \\lVert\\theta\\rVert_1$ &mdash; that's\n      <strong>ℓ₁ regularization (lasso)</strong>.\n      The regularizer was a prior all along.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The Lab": {
+   "zh": "实验",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Parameter space, live": {
+   "zh": "参数空间，实时呈现",
+   "src": "Parameter space, live",
+   "tags": []
+  },
+  "The square is parameter space. Blue contours are the likelihood (data fit),\n      teal contours are the prior (centered at the origin), and orange contours are\n      their product, the posterior. The three marked points are the MLE (data's best\n      fit), the MAP (posterior peak), and the origin. Move the controls and watch the\n      MAP get tugged between the data and zero.": {
+   "zh": "方形区域即参数空间。蓝色等值线为似然（数据拟合），青色等值线为先验（以原点为中心），橙色等值线则为二者的乘积，即后验。三个被标记的点分别是 MLE（数据的最佳拟合）、MAP（后验峰值）与原点。移动控件，观察 MAP 如何在数据与零之间被来回拉扯。",
+   "src": "The square is parameter space. Blue contours are the likelihood (data fit),\n      teal contours are the prior (centered at the origin), and orange contours are\n      their product, the posterior. The three marked points are the MLE (data's best\n      fit), the MAP (posterior peak), and the origin. Move the controls and watch the\n      MAP get tugged between the data and zero.",
+   "tags": []
+  },
+  "Gaussian prior (ℓ₂ / ridge)": {
+   "zh": "高斯先验（ℓ₂ / 岭回归）",
+   "src": "Gaussian prior (ℓ₂ / ridge)",
+   "tags": []
+  },
+  "Laplace prior (ℓ₁ / lasso)": {
+   "zh": "拉普拉斯先验（ℓ₁ / lasso）",
+   "src": "Laplace prior (ℓ₁ / lasso)",
+   "tags": []
+  },
+  "Amount of data @@T0@@few@@T1@@": {
+   "zh": "数据量 @@T0@@少@@T1@@",
+   "src": "Amount of data <output id=\"dataVal\" for=\"dataAmt\">few</output>",
+   "tags": [
+    "<output id=\"dataVal\" for=\"dataAmt\">",
+    "</output>"
+   ]
+  },
+  "Noise level @@T0@@medium@@T1@@": {
+   "zh": "噪声水平 @@T0@@中等@@T1@@",
+   "src": "Noise level <output id=\"noiseVal\" for=\"noise\">medium</output>",
+   "tags": [
+    "<output id=\"noiseVal\" for=\"noise\">",
+    "</output>"
+   ]
+  },
+  "Prior width $\\tau$ @@T0@@1.00@@T1@@": {
+   "zh": "先验宽度 $\\tau$ @@T0@@1.00@@T1@@",
+   "src": "Prior width $\\tau$ <output id=\"tauVal\" for=\"tau\">1.00</output>",
+   "tags": [
+    "<output id=\"tauVal\" for=\"tau\">",
+    "</output>"
+   ]
+  },
+  "Prior correlation $\\rho$ @@T0@@0.00@@T1@@": {
+   "zh": "先验相关性 $\\rho$ @@T0@@0.00@@T1@@",
+   "src": "Prior correlation $\\rho$ <output id=\"rhoVal\" for=\"rho\">0.00</output>",
+   "tags": [
+    "<output id=\"rhoVal\" for=\"rho\">",
+    "</output>"
+   ]
+  },
+  "Your browser does not support the parameter-space contour plot.": {
+   "zh": "你的浏览器不支持参数空间等值线图。",
+   "src": "Your browser does not support the parameter-space contour plot.",
+   "tags": []
+  },
+  "Each contour joins parameter values with the same negative log density; inner contours are more plausible. Narrow $\\tau$ = strong prior; more data / less noise = tighter likelihood.": {
+   "zh": "每条等值线连接的是负对数密度相同的参数取值；越靠内的等值线越可信。$\\tau$ 越窄表示先验越强；数据越多 / 噪声越小则似然越紧。",
+   "src": "Each contour joins parameter values with the same negative log density; inner contours are more plausible. Narrow $\\tau$ = strong prior; more data / less noise = tighter likelihood.",
+   "tags": []
+  },
+  "@@T0@@@@T1@@ Likelihood (data fit)": {
+   "zh": "@@T0@@@@T1@@ 似然（数据拟合）",
+   "src": "<span class=\"legend-swatch\" style=\"border-top-color:#2c6fb7;\"></span> Likelihood (data fit)",
+   "tags": [
+    "<span class=\"legend-swatch\" style=\"border-top-color:#2c6fb7;\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@@@T1@@ Prior (toward 0)": {
+   "zh": "@@T0@@@@T1@@ 先验（趋向 0）",
+   "src": "<span class=\"legend-swatch\" style=\"border-top-color:#1e7770;\"></span> Prior (toward 0)",
+   "tags": [
+    "<span class=\"legend-swatch\" style=\"border-top-color:#1e7770;\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@@@T1@@ Posterior (product)": {
+   "zh": "@@T0@@@@T1@@ 后验（乘积）",
+   "src": "<span class=\"legend-swatch\" style=\"border-top-color:#d9622b;\"></span> Posterior (product)",
+   "tags": [
+    "<span class=\"legend-swatch\" style=\"border-top-color:#d9622b;\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@@@T1@@ MLE &mdash; data's best fit": {
+   "zh": "@@T0@@@@T1@@ MLE &mdash; 数据的最佳拟合",
+   "src": "<span class=\"legend-dot\" style=\"background:#2c6fb7;\"></span> MLE &mdash; data's best fit",
+   "tags": [
+    "<span class=\"legend-dot\" style=\"background:#2c6fb7;\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@@@T1@@ MAP &mdash; posterior peak": {
+   "zh": "@@T0@@@@T1@@ MAP &mdash; 后验峰值",
+   "src": "<span class=\"legend-dot\" style=\"background:#d9622b;\"></span> MAP &mdash; posterior peak",
+   "tags": [
+    "<span class=\"legend-dot\" style=\"background:#d9622b;\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@@@T1@@ Origin (0, 0)": {
+   "zh": "@@T0@@@@T1@@ 原点 (0, 0)",
+   "src": "<span class=\"legend-dot\" style=\"background:#8a8072;\"></span> Origin (0, 0)",
+   "tags": [
+    "<span class=\"legend-dot\" style=\"background:#8a8072;\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@MLE $(\\theta_1,\\theta_2)$@@T1@@\n            @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@MLE $(\\theta_1,\\theta_2)$@@T1@@\n            @@T2@@&mdash;（最大似然估计坐标）@@T3@@",
+   "src": "<span class=\"stat-label\">MLE $(\\theta_1,\\theta_2)$</span>\n            <span class=\"stat-value\" id=\"mleVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"mleVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@MAP $(\\theta_1,\\theta_2)$@@T1@@\n            @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@MAP $(\\theta_1,\\theta_2)$@@T1@@\n            @@T2@@&mdash;（最大后验估计坐标）@@T3@@",
+   "src": "<span class=\"stat-label\">MAP $(\\theta_1,\\theta_2)$</span>\n            <span class=\"stat-value\" id=\"mapVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"mapVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Shrinkage $\\lVert\\theta_{\\text{MAP}}\\rVert / \\lVert\\theta_{\\text{MLE}}\\rVert$@@T1@@\n            @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@收缩率 $\\lVert\\theta_{\\text{MAP}}\\rVert / \\lVert\\theta_{\\text{MLE}}\\rVert$@@T1@@\n            @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Shrinkage $\\lVert\\theta_{\\text{MAP}}\\rVert / \\lVert\\theta_{\\text{MLE}}\\rVert$</span>\n            <span class=\"stat-value\" id=\"shrinkVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"shrinkVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Three things to try.@@T1@@\n      (1) Drag @@T2@@Prior width $\\tau$@@T3@@ to the left (narrow, strong prior) with the\n      Gaussian prior: the MAP slides smoothly toward the origin &mdash; ℓ₂ shrinks\n      everything a little. (2) Switch to the @@T4@@Laplace prior@@T5@@ and narrow $\\tau$:\n      the MAP snaps onto an axis, driving $\\theta_2$ to @@T6@@exactly@@T7@@ zero &mdash;\n      that corner of the diamond is ℓ₁ sparsity. (3) Push @@T8@@Amount of data@@T9@@ to\n      the right (or drop the noise): the blue likelihood tightens and the MAP marches\n      back onto the MLE &mdash; with enough data, the prior stops mattering.": {
+   "zh": "@@T0@@三件值得一试的事。@@T1@@\n      （1）在高斯先验下将@@T2@@先验宽度 $\\tau$@@T3@@ 向左拖（更窄、更强的先验）：MAP 会平滑地滑向原点 &mdash; ℓ₂ 会把一切都略微收缩。\n      （2）切换到@@T4@@拉普拉斯先验@@T5@@ 并收窄 $\\tau$：MAP 会骤然跳到某一坐标轴上，把 $\\theta_2$ 推向@@T6@@恰好@@T7@@ 为零 &mdash; 菱形的那一角正是 ℓ₁ 的稀疏性。\n      （3）将@@T8@@数据量@@T9@@ 向右推（或降低噪声）：蓝色的似然变得更紧，MAP 便向 MLE 回移 &mdash; 数据足够多时，先验便不再重要。",
+   "src": "<strong>Three things to try.</strong>\n      (1) Drag <em>Prior width $\\tau$</em> to the left (narrow, strong prior) with the\n      Gaussian prior: the MAP slides smoothly toward the origin &mdash; ℓ₂ shrinks\n      everything a little. (2) Switch to the <em>Laplace prior</em> and narrow $\\tau$:\n      the MAP snaps onto an axis, driving $\\theta_2$ to <em>exactly</em> zero &mdash;\n      that corner of the diamond is ℓ₁ sparsity. (3) Push <em>Amount of data</em> to\n      the right (or drop the noise): the blue likelihood tightens and the MAP marches\n      back onto the MLE &mdash; with enough data, the prior stops mattering.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "收益",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Why ℓ₁ gives sparsity and ℓ₂ does not": {
+   "zh": "为何 ℓ₁ 产生稀疏而 ℓ₂ 不会",
+   "src": "Why ℓ₁ gives sparsity and ℓ₂ does not",
+   "tags": []
+  },
+  "Look at the prior contours. The @@T0@@Gaussian@@T1@@ prior draws smooth\n      @@T2@@ellipses@@T3@@ &mdash; round everywhere. When the likelihood ellipse presses\n      against it, they meet at a generic point with both coordinates nonzero: ℓ₂\n      shrinks weights toward zero but rarely to zero.": {
+   "zh": "观察先验的等值线。@@T0@@高斯@@T1@@ 先验画出的是光滑的@@T2@@椭圆@@T3@@ &mdash; 处处圆润。当似然椭圆压向它时，二者在一个两个坐标皆非零的一般位置点相交：ℓ₂ 会把权重向零收缩，但极少收缩到恰好为零。",
+   "src": "Look at the prior contours. The <strong>Gaussian</strong> prior draws smooth\n      <em>ellipses</em> &mdash; round everywhere. When the likelihood ellipse presses\n      against it, they meet at a generic point with both coordinates nonzero: ℓ₂\n      shrinks weights toward zero but rarely to zero.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The @@T0@@Laplace@@T1@@ prior draws @@T2@@diamonds@@T3@@ &mdash; with sharp\n      corners sitting exactly on the axes. A tilted likelihood ellipse is very likely\n      to first touch the diamond at a corner, and a corner has one coordinate equal to\n      zero. That geometric fact &mdash; pointy ℓ₁ ball versus round ℓ₂ ball &mdash; is\n      the entire reason lasso produces sparse models and ridge does not.": {
+   "zh": "@@T0@@拉普拉斯@@T1@@ 先验画出的则是@@T2@@菱形@@T3@@ &mdash; 其尖锐的角恰好落在各坐标轴上。一个倾斜的似然椭圆极有可能最先在某个角处触到菱形，而角上有一个坐标等于零。这一几何事实 &mdash; 尖的 ℓ₁ 球与圆的 ℓ₂ 球之别 &mdash; 正是 lasso 产生稀疏模型而岭回归不会的全部原因。",
+   "src": "The <strong>Laplace</strong> prior draws <em>diamonds</em> &mdash; with sharp\n      corners sitting exactly on the axes. A tilted likelihood ellipse is very likely\n      to first touch the diamond at a corner, and a corner has one coordinate equal to\n      zero. That geometric fact &mdash; pointy ℓ₁ ball versus round ℓ₂ ball &mdash; is\n      the entire reason lasso produces sparse models and ridge does not.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Takeaway.@@T1@@ Regularization strength is prior width: a narrow prior\n      ($\\tau\\!\\downarrow$, big $\\lambda$) is a strong belief that weights are near zero;\n      a wide prior ($\\tau\\!\\uparrow$, small $\\lambda$) barely constrains them. And the\n      likelihood's grip tightens with data, so $\\hat\\theta_{\\text{MAP}}\\to\\hat\\theta_{\\text{MLE}}$\n      as $N\\to\\infty$. Frequentist regularized regression and Bayesian MAP estimation are the\n      same computation viewed from two sides.": {
+   "zh": "@@T0@@要点。@@T1@@ 正则化强度即先验宽度：窄先验（$\\tau\\!\\downarrow$、$\\lambda$ 大）表示强烈相信权重接近零；宽先验（$\\tau\\!\\uparrow$、$\\lambda$ 小）几乎不构成约束。而似然的掌控力随数据增多而收紧，故当 $N\\to\\infty$ 时 $\\hat\\theta_{\\text{MAP}}\\to\\hat\\theta_{\\text{MLE}}$。频率学派的带正则回归与贝叶斯 MAP 估计，不过是同一计算从两侧观察的结果。",
+   "src": "<strong>Takeaway.</strong> Regularization strength is prior width: a narrow prior\n      ($\\tau\\!\\downarrow$, big $\\lambda$) is a strong belief that weights are near zero;\n      a wide prior ($\\tau\\!\\uparrow$, small $\\lambda$) barely constrains them. And the\n      likelihood's grip tightens with data, so $\\hat\\theta_{\\text{MAP}}\\to\\hat\\theta_{\\text{MLE}}$\n      as $N\\to\\infty$. Frequentist regularized regression and Bayesian MAP estimation are the\n      same computation viewed from two sides.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 1: Why These Losses?": {
+   "zh": "ES 667 深度学习讲解系列之一 &middot; 第 1 讲：为何是这些损失？",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 1: Why These Losses?",
+   "tags": []
+  },
+  "Choose a parameter prior": {
+   "zh": "选择参数先验",
+   "src": "Choose a parameter prior",
+   "tags": []
+  },
+  "Amount of data": {
+   "zh": "数据量",
+   "src": "Amount of data",
+   "tags": []
+  },
+  "Noise level": {
+   "zh": "噪声水平",
+   "src": "Noise level",
+   "tags": []
+  },
+  "Prior width tau": {
+   "zh": "先验宽度 tau",
+   "src": "Prior width tau",
+   "tags": []
+  },
+  "Gaussian prior correlation rho": {
+   "zh": "高斯先验相关性 rho",
+   "src": "Gaussian prior correlation rho",
+   "tags": []
+  },
+  "Parameter-space contour plot of likelihood, prior, and posterior": {
+   "zh": "似然、先验与后验的参数空间等值线图",
+   "src": "Parameter-space contour plot of likelihood, prior, and posterior",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "MAP = 似然 × 先验",
+  "tagline": "在参数空间中观察正则化如何以一个先验的形式与似然相乘",
+  "summary": "在参数空间中绘制一个双参数模型。叠加三组等值线 —— 似然（数据拟合）、先验（以零为中心）及其乘积即后验 —— 并标出 MLE、MAP 与原点。收窄高斯先验，观察 L2 收缩如何把 MAP 拉向零；切换到拉普拉斯先验，观察 L1 如何将某个坐标驱动至恰好为零；增加数据，观察 MAP 如何回退到 MLE。正则化不过就是一个先验。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "看清后验字面上就是似然等值线乘以先验等值线，绘制在二维参数空间中。",
+   "MAP 估计位于后验的峰值处 —— 介于 MLE（数据）与原点（先验）之间。",
+   "收窄高斯先验，观察 L2 正则化如何将两个参数平滑地收缩向零。",
+   "切换到拉普拉斯先验，观察其菱形等值线如何将某个参数骤然压至恰好为零 —— 这就是 L1 稀疏性。",
+   "增加数据或降低噪声，似然随之收紧，把 MAP 拖回 MLE 之上 —— 先验的影响逐渐消退。"
+  ],
+  "tags": [
+   "MAP",
+   "正则化",
+   "先验",
+   "贝叶斯",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

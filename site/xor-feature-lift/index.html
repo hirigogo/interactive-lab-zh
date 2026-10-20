@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Train logistic regression on XOR and watch the best possible line fail. Add the feature x1·x2 and see a flat plane in feature space become a curve in input space.">
+  <title>XOR 与特征提升</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23232b32'/%3E%3Ccircle cx='9' cy='9' r='3.2' fill='%236fa3d8'/%3E%3Ccircle cx='23' cy='23' r='3.2' fill='%236fa3d8'/%3E%3Crect x='19.8' y='5.8' width='6.4' height='6.4' fill='%23e3895f'/%3E%3Crect x='5.8' y='19.8' width='6.4' height='6.4' fill='%23e3895f'/%3E%3Cpath d='M4 17.5C10 17.5 13 15 16 15s6-2.5 12-2.5' fill='none' stroke='%23fff' stroke-width='2.2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="main.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#workspace">跳至实验输出</a>
+
+  <header class="topbar">
+    <a class="back-link" href="../" aria-label="返回全部交互式文章">全部交互式文章</a>
+    <div class="course-mark">
+      <span>深度学习 · 第 1 讲</span>
+      <strong>XOR 与特征提升</strong>
+    </div>
+    <nav class="top-links" aria-label="相关课程材料">
+      <a href="../mlp-decision-boundary/">ReLU 演练场</a>
+      <a href="https://nipunbatra.github.io/dl-teaching/slides-pdf/L1.pdf">讲义幻灯片</a>
+    </nav>
+  </header>
+
+  <main class="app">
+    <section class="intro" aria-labelledby="pageTitle">
+      <div>
+        <p class="eyebrow">一个线性模型，两种视角</p>
+        <h1 id="pageTitle">直线无法学会 XOR，再加一列特征就可以。</h1>
+        <p class="lead">在 XOR 上训练逻辑回归，观察最优的直线如何失效。随后追加特征 x<sub>1</sub>x<sub>2</sub>：同一个线性模型用一个三维平面将提升后的数据点分开；从正上方俯视该平面，得到的正是输入平面中的那条曲线。</p>
+      </div>
+      <aside class="equation-card" aria-label="模型">
+        <p class="card-label">模型</p>
+        <p class="equation">z = b + w<sub>1</sub>x<sub>1</sub> + w<sub>2</sub>x<sub>2</sub> + w<sub>3</sub>·φ(x)</p>
+        <p class="equation">p(y = 1 | x) = σ(z) = 1 / (1 + e<sup>−z</sup>)</p>
+        <p>决策边界 z = 0 在特征 (x<sub>1</sub>, x<sub>2</sub>, φ) 中是线性的。本实验中的每一个控件都只改变数据或 φ，分类器本身始终保持线性。</p>
+      </aside>
+    </section>
+
+    <section class="lab-shell">
+      <aside class="controls" aria-label="实验控件">
+        <section class="control-group">
+          <div class="section-heading"><span>1</span><h2>选择数据</h2></div>
+          <div class="toggle-row" role="group" aria-label="数据集">
+            <button class="toggle-button is-active" type="button" data-dataset="clusters" aria-pressed="true"><strong>四个簇</strong><small>100 个数据点</small></button>
+            <button class="toggle-button" type="button" data-dataset="corners" aria-pressed="false"><strong>四个角点</strong><small>4 个布尔点</small></button>
+          </div>
+          <p class="helper">XOR 标签：x<sub>1</sub> 与 x<sub>2</sub> 同号处为蓝色，异号处为橙色。</p>
+        </section>
+
+        <section class="control-group">
+          <div class="section-heading"><span>2</span><h2>选择特征</h2></div>
+          <div class="mode-list" role="group" aria-label="特征映射">
+            <button class="mode-button is-active" type="button" data-feature="none" aria-pressed="true">
+              <strong>仅 x₁, x₂</strong><small>一条直线</small>
+            </button>
+            <button class="mode-button" type="button" data-feature="product" aria-pressed="false">
+              <strong>+ x₁x₂</strong><small>特征提升</small>
+            </button>
+            <button class="mode-button" type="button" data-feature="radius" aria-pressed="false">
+              <strong>+ x₁² + x₂²</strong><small>干扰特征</small>
+            </button>
+            <button class="mode-button" type="button" data-feature="relu" aria-pressed="false">
+              <strong>+ ReLU(x₁ + x₂ − 1)</strong><small>单个隐藏神经元</small>
+            </button>
+          </div>
+          <p class="helper" id="featureHelp">在原始输入上的逻辑回归。</p>
+        </section>
+
+        <section class="control-group">
+          <div class="section-heading"><span>3</span><h2>手动设定或学习权重</h2></div>
+          <div class="slider-list">
+            <label class="slider-row" for="w1Slider">
+              <span>w₁ · x₁</span>
+              <input id="w1Slider" type="range" min="-8" max="8" step="0.05" value="0.7">
+              <output id="w1Value" for="w1Slider">0.70</output>
+            </label>
+            <label class="slider-row" for="w2Slider">
+              <span>w₂ · x₂</span>
+              <input id="w2Slider" type="range" min="-8" max="8" step="0.05" value="-0.45">
+              <output id="w2Value" for="w2Slider">−0.45</output>
+            </label>
+            <label class="slider-row" for="w3Slider">
+              <span id="w3Label">w₃ · φ</span>
+              <input id="w3Slider" type="range" min="-8" max="8" step="0.05" value="0">
+              <output id="w3Value" for="w3Slider">0.00</output>
+            </label>
+            <label class="slider-row" for="bSlider">
+              <span>b · 偏置</span>
+              <input id="bSlider" type="range" min="-8" max="8" step="0.05" value="0.15">
+              <output id="bValue" for="bSlider">0.15</output>
+            </label>
+          </div>
+          <div class="action-row">
+            <button class="primary-button" id="runBtn" type="button" aria-pressed="false">运行</button>
+            <button id="stepBtn" type="button">单步</button>
+            <button id="resetBtn" type="button">重置</button>
+          </div>
+          <dl class="run-facts">
+            <div><dt>步数</dt><dd id="stepValue">0</dd></div>
+            <div><dt>学习率</dt><dd>0.50</dd></div>
+            <div><dt>更新方式</dt><dd>全批量</dd></div>
+          </dl>
+          <p class="status" id="statusText" role="status" aria-live="polite">请先试试滑块。</p>
+        </section>
+
+        <section class="control-group takeaway-card">
+          <p class="card-label">待检验的预测</p>
+          <p>仅用 x₁ 与 x₂ 时，损失无法低于 <strong>ln 2 ≈ 0.693</strong>，即处处猜测 0.5 的损失。加入 x₁x₂ 后，损失可以降到 <strong>零</strong>。</p>
+        </section>
+      </aside>
+
+      <section class="workspace" id="workspace" aria-label="实验输出">
+        <header class="workspace-head">
+          <div>
+            <p class="eyebrow" id="workspaceEyebrow">两个特征：x₁ 与 x₂</p>
+            <h2 id="workspaceTitle">一条直线能分开 XOR 吗？</h2>
+          </div>
+          <span class="dataset-badge" id="datasetBadge">100 个数据点 · 每个角点 25 个</span>
+        </header>
+
+        <div class="metric-strip" aria-live="polite">
+          <div class="metric"><span>二元交叉熵</span><strong id="lossValue">—</strong><small id="lossNote">随机水平 = ln 2 = 0.693</small></div>
+          <div class="metric metric-key"><span>准确率</span><strong id="accuracyValue">—</strong><small id="accuracyNote">100 个数据点</small></div>
+          <div class="metric"><span>输入空间中的边界</span><strong id="boundaryValue">—</strong><small>在 (x₁, x₂) 中绘制的集合 z = 0</small></div>
+          <div class="metric"><span>特征空间中的边界</span><strong id="dimensionValue">—</strong><small id="dimensionNote">始终是平面</small></div>
+        </div>
+
+        <div class="plot-grid">
+          <section class="plot-panel" aria-labelledby="inputTitle">
+            <div class="panel-head">
+              <div><p class="eyebrow">输入空间</p><h3 id="inputTitle">分类器在 (x₁, x₂) 中绘出的边界</h3></div>
+              <span class="compact-value" id="inputSummary">—</span>
+            </div>
+            <canvas id="inputCanvas" role="img" tabindex="0" aria-describedby="inputHelp" aria-label="带有 XOR 训练点的输入空间决策图">你的浏览器不支持输入空间画布。</canvas>
+            <div class="legend" aria-label="输入空间图例">
+              <span><i class="swatch class-zero"></i>p(y = 1) 接近 0</span>
+              <span><i class="swatch class-one"></i>p(y = 1) 接近 1</span>
+              <span><i class="point-key point-zero"></i>类别 0</span>
+              <span><i class="point-key point-one"></i>类别 1</span>
+              <span><i class="curve-key"></i>边界 z = 0</span>
+            </div>
+            <p class="plot-help" id="inputHelp">背景颜色表示模型概率。深色曲线为 z = 0 的轨迹，由当前权重实时绘出。</p>
+            <p class="equation-readout" id="boundaryEquation">—</p>
+          </section>
+
+          <section class="plot-panel" aria-labelledby="featureTitle">
+            <div class="panel-head">
+              <div><p class="eyebrow">特征空间</p><h3 id="featureTitle">在 (x₁, x₂, φ) 中的同一条边界</h3></div>
+              <div class="view-row" role="group" aria-label="相机视角">
+                <button type="button" data-view="orbit" class="is-active" aria-pressed="true">环绕</button>
+                <button type="button" data-view="edge" aria-pressed="false">侧视</button>
+                <button type="button" data-view="top" aria-pressed="false">俯视</button>
+              </div>
+            </div>
+            <canvas id="featureCanvas" role="img" tabindex="0" aria-describedby="featureSpaceHelp" aria-label="提升后数据与分离平面的特征空间视图">你的浏览器不支持特征空间画布。</canvas>
+            <div class="legend" aria-label="特征空间图例">
+              <span><i class="swatch surface-key"></i>曲面 z = φ，按 p 着色</span>
+              <span><i class="swatch plane-key"></i>平面 z = 0</span>
+              <span><i class="curve-key"></i>平面 ∩ 曲面</span>
+              <span><i class="curve-key curve-dashed"></i>其在底面上的投影</span>
+            </div>
+            <p class="plot-help" id="featureSpaceHelp">拖动可环绕，滚轮可缩放，方向键可旋转，按 0 复位。侧视将平面压缩为一条直线，俯视则重现左侧面板。</p>
+            <p class="equation-readout" id="planeEquation">—</p>
+          </section>
+        </div>
+
+        <section class="history-panel" aria-labelledby="historyTitle">
+          <div class="panel-head">
+            <div><p class="eyebrow">训练</p><h3 id="historyTitle">每次梯度步后的损失</h3></div>
+            <span class="compact-value" id="historySummary">—</span>
+          </div>
+          <canvas id="historyCanvas" class="history-canvas" role="img" tabindex="0" aria-label="每次梯度步的二元交叉熵损失">你的浏览器不支持损失历史画布。</canvas>
+          <p class="plot-help">虚线为 ln 2，即处处预测 0.5 的损失。逻辑损失是凸的，因此梯度下降能收敛到所选特征下的最优权重。</p>
+        </section>
+
+        <section class="explanation" aria-labelledby="whyTitle">
+          <div>
+            <p class="eyebrow">图形说明了什么</p>
+            <h2 id="whyTitle">非线性从来不在分类器里。</h2>
+          </div>
+          <div class="explanation-grid">
+            <article>
+              <span class="explanation-index">A</span>
+              <h3>任何直线都无法做到</h3>
+              <p>假设某条直线把两个蓝色角点 (1, 1) 与 (−1, −1) 都放在正侧。半平面是凸集，故它也包含二者的中点，即原点。对两个橙色角点 (1, −1) 与 (−1, 1) 施以同样的论证，则原点落在负侧。矛盾。</p>
+              <p>问题不在训练。逻辑损失关于 (w, b) 是凸的，故梯度下降能到达全局最优；而在对称的 XOR 上，该最优解为 w = 0：处处预测 0.5，损失为 ln 2。</p>
+            </article>
+            <article>
+              <span class="explanation-index">B</span>
+              <h3>一列特征即可解决</h3>
+              <p>在角点上，新列 x<sub>1</sub>x<sub>2</sub> 对蓝色取 +1、对橙色取 −1，因而它自身就能分开两类。权重 (0, 0, −1) 给出 z = −x<sub>1</sub>x<sub>2</sub>：蓝色上 p = σ(−1) ≈ 0.27，橙色上 σ(+1) ≈ 0.73；增大 w<sub>3</sub> 可使二者同时更锐利。</p>
+              <p>在特征空间中，该边界是平面 u<sub>3</sub> = 0。加入乘积特征并训练，观察平面如何稳定在其附近。</p>
+            </article>
+            <article>
+              <span class="explanation-index">C</span>
+              <h3>同一条边界，两种视角</h3>
+              <p>在特征坐标下，边界为 b + w<sub>1</sub>u<sub>1</sub> + w<sub>2</sub>u<sub>2</sub> + w<sub>3</sub>u<sub>3</sub> = 0，按构造即为一个平面。代入 u<sub>3</sub> = x<sub>1</sub>x<sub>2</sub> 并求解得 x<sub>2</sub> = −(b + w<sub>1</sub>x<sub>1</sub>) / (w<sub>2</sub> + w<sub>3</sub>x<sub>1</sub>)，这是一条双曲线，其渐近线为 x<sub>1</sub> = −w<sub>2</sub>/w<sub>3</sub> 与 x<sub>2</sub> = −w<sub>1</sub>/w<sub>3</sub>。</p>
+              <p>点击侧视可将平面看作一条直线，再点击俯视可看到其迹线即左侧的曲线。同一个对象，两种投影。</p>
+            </article>
+            <article>
+              <span class="explanation-index">D</span>
+              <h3>网络学习 φ</h3>
+              <p>干扰特征 x<sub>1</sub>² + x<sub>2</sub>² 在每个角点上都等于 2，因而无助于分类：有用的特征必须在不同类别间取值不同。ReLU 特征 max(0, x<sub>1</sub> + x<sub>2</sub> − 1) 是权重为 (1, 1)、偏置为 −1 的单个隐藏神经元，此处由手工设定。它标记出 (1, 1) 角点，与那条直线配合即可解出 XOR。</p>
+              <p>隐藏层就是这样一组单元的集合，其权重由同样的梯度下降学习得到。ReLU 演练场展示了这一过程。</p>
+            </article>
+          </div>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>逻辑回归 · 全批量梯度下降 · 全部计算均在本页完成</span>
+    <a href="../mlp-decision-boundary/">继续：让网络学习 φ →</a>
+  </footer>
+
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

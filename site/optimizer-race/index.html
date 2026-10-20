@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>优化器竞速</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>优化器竞速</h1>
+        <p class="abstract">
+          在四张不同的损失曲面上放置一个起点，观察 SGD、Momentum 与 Adam 如何并排地真正求解该优化问题&mdash;&mdash;它们的步数、当前损失与轨迹全都实时计算。
+        </p>
+        <div class="byline">
+          <span>约 15 分钟</span>
+          <span>深度学习 &middot; 优化 &middot; SGD</span>
+        </div>
+      </header>
+
+      <!-- ─── 前言 ─── -->
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>为何不直接使用朴素梯度下降？</h2>
+        <p>
+          训练神经网络，本质上就是最小化一个<em>损失函数</em>。每个权重都对应一个旋钮，你度量模型的错误程度，然后朝任何能减小误差的方向转动这些旋钮。听起来很简单。
+        </p>
+        <p>
+          问题在于，真实的损失曲面完全不像一个光滑的碗。它们有细长的沟壑；有在某些方向上看似平坦、在另一些方向上却倾斜的鞍点；有梯度消亡的高原；还有梯度爆炸的悬崖。朴素梯度下降对这一切都难以从容应对&mdash;&mdash;这正是 Adam 于 2014 年被提出后便几乎没有退场的原因。
+        </p>
+        <p>
+          本页让你在四张诊断性曲面上让三种优化器竞速。每一个点、每一条路径、每一个损失数值，都由数学区块中所给出的同一批闭式曲面实时计算得出。
+        </p>
+      </section>
+
+      <!-- ─── 第 1 步 ─── -->
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>朴素 SGD：顺着斜率走</h2>
+        <p>
+          <strong>随机梯度下降（SGD）</strong> 做的是最直白的事。每一步都计算损失的梯度，并沿该方向的反方向小幅移动权重：
+        </p>
+        <div class="math-block" id="math-sgd"></div>
+        <ul class="explanation-list">
+          <li><strong>$W_t$：</strong> 当前的权重。</li>
+          <li><strong>$\alpha$：</strong> 学习率（步长）。</li>
+          <li><strong>$\nabla L(W_t)$：</strong> 当前点处的梯度。</li>
+        </ul>
+        <p>
+          SGD 是恰当的起点，但一旦梯度不再指向极小值，它便会迷失方向。在沟壑中，梯度指向的是沟壁的<em>横向</em>，而非<em>沿着</em>沟壁的方向，因此 SGD 在两侧壁之间来回反弹，朝谷底前进得极为缓慢。
+        </p>
+      </section>
+
+      <!-- ─── 第 2 步 ─── -->
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>Momentum：加入一点惯性</h2>
+        <p>
+          <strong>Momentum（动量法）</strong> 把优化器视为一个沉重的球。它不直接以当前梯度作为步长，而是累积一个<em>速度</em>，将过去的梯度与当前的梯度混合起来：
+        </p>
+        <div class="math-block" id="math-momentum"></div>
+        <ul class="explanation-list">
+          <li><strong>$V_t$：</strong> 速度（近期梯度的滑动平均）。</li>
+          <li><strong>$\beta$：</strong> 摩擦系数，通常取 0.9。取值越小记忆越短；取值越大则球越重。</li>
+        </ul>
+        <p>
+          在沟壑中，梯度里那部分振荡分量（横向跨越沟壁者）在速度中相互抵消，因为相邻各步的推动方向相反。与此同时，那极小但方向一致的分量（沿着谷底者）则<em>不断累积</em>，恰在你所期望之处积蓄起速度。
+        </p>
+      </section>
+
+      <!-- ─── 第 3 步 ─── -->
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>Adam：逐参数自适应</h2>
+        <p>
+          <strong>Adam</strong> 优化器 增加了第二个滑动平均：梯度的平方。它用一阶矩确定方向（与 momentum 类似），用二阶矩对每个参数<em>分别重新缩放</em>：
+        </p>
+        <div class="math-block" id="math-adam"></div>
+        <p>
+          奇妙之处在于除以 $\sqrt{\hat v_{t+1}}$。梯度波动剧烈的参数（二阶矩较大）获得<em>更小</em>的有效步长。梯度一直很小但方向一致的参数（二阶矩较小）则获得<em>更大</em>的步长。这就像是在该曲面的一个扭曲版本上运行 momentum：陡峭的壁被削平，平缓的坡被加陡。
+        </p>
+      </section>
+
+      <!-- ─── 第 4 步 ─── -->
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>大奖赛：四张曲面</h2>
+        <p>
+          选择一张曲面，调整学习率，然后在地形上任意处点击以放置起点。每个优化器都从同一起点出发、运行相同的步数，以保证比较的公正。
+        </p>
+
+        <h3>选择曲面</h3>
+        <div class="button-row" id="landscape-buttons" role="group" aria-label="曲面">
+          <button class="mode-button is-active" data-landscape="ravine">狭窄沟壑</button>
+          <button class="mode-button" data-landscape="saddle">鞍点</button>
+          <button class="mode-button" data-landscape="plateau">高原 + 碗形</button>
+          <button class="mode-button" data-landscape="rosenbrock">Rosenbrock 函数</button>
+          <button class="mode-button" data-landscape="sharpTrap">尖锐陷阱（Adam 可能失败）</button>
+        </div>
+        <p class="scenario-caption" id="landscape-caption"></p>
+        <div class="math-block" id="math-landscape"></div>
+
+        <div class="control-row">
+          <div class="control-block">
+            <label>学习率 <span>&alpha; = <span id="lr-val">0.05</span></span></label>
+            <input type="range" id="lr-slider" min="0.005" max="0.25" step="0.005" value="0.05" />
+          </div>
+          <div class="control-block">
+            <label>最大步数 <span><span id="steps-val">300</span></span></label>
+            <input type="range" id="steps-slider" min="50" max="600" step="10" value="300" />
+          </div>
+        </div>
+
+        <div class="interactive-figure">
+          <canvas id="optCanvas" width="800" height="500"></canvas>
+          <figcaption>
+            <strong>在任意处点击</strong> 即可放置起点。全局极小值以星号标出。
+          </figcaption>
+
+          <div class="legend" style="margin-top: 1.2rem;">
+            <div class="legend-item"><div class="legend-swatch" style="background:#ca5b2a"></div><strong>SGD（随机梯度下降）</strong></div>
+            <div class="legend-item"><div class="legend-swatch" style="background:#245b8f"></div><strong>Momentum（动量法）</strong></div>
+            <div class="legend-item"><div class="legend-swatch" style="background:#1e7770"></div><strong>Adam</strong> 优化器</div>
+          </div>
+        </div>
+
+        <h3>实时计分板</h3>
+        <div class="stat-strip">
+          <div class="stat-pill" style="border-color:#ca5b2a;">
+            <span class="stat-label">SGD</span>
+            <span class="stat-value" id="sgd-loss" style="color:#ca5b2a;">—</span>
+            <span class="stat-sub" id="sgd-steps">步数：0</span>
+          </div>
+          <div class="stat-pill" style="border-color:#245b8f;">
+            <span class="stat-label">Momentum</span>
+            <span class="stat-value" id="mom-loss" style="color:#245b8f;">—</span>
+            <span class="stat-sub" id="mom-steps">步数：0</span>
+          </div>
+          <div class="stat-pill" style="border-color:#1e7770;">
+            <span class="stat-label">Adam</span>
+            <span class="stat-value" id="adam-loss" style="color:#1e7770;">—</span>
+            <span class="stat-sub" id="adam-steps">步数：0</span>
+          </div>
+        </div>
+
+        <h3>损失随步数的变化</h3>
+        <div class="interactive-figure">
+          <canvas id="lossCanvas" width="800" height="220"></canvas>
+          <figcaption>对数尺度的损失曲线。越低越好。</figcaption>
+        </div>
+      </section>
+
+      <!-- ─── 第 5 步 ─── -->
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>各张曲面所揭示的问题</h2>
+        <div class="examples-table-wrap">
+          <table class="examples-table">
+            <thead>
+              <tr>
+                <th>曲面</th>
+                <th>考察内容</th>
+                <th>胜出者及其原因</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>狭窄沟壑</strong></td>
+                <td>方向错配：梯度指向横向，而非纵向。</td>
+                <td>Momentum 与 Adam。SGD 在两侧壁之间反复弹跳。</td>
+              </tr>
+              <tr>
+                <td><strong>鞍点</strong></td>
+                <td>逃出曲率正负兼具的「平坦」区域。</td>
+                <td>Adam（激进的逐参数缩放）。SGD 会陷住；Momentum 较慢。</td>
+              </tr>
+              <tr>
+                <td><strong>高原 + 碗形</strong></td>
+                <td>在出现任何真实信号之前的一段完全平坦区域。</td>
+                <td>Adam（能从极小梯度中自我启动）。SGD 步履维艰。Momentum 最终会加速。</td>
+              </tr>
+              <tr>
+                <td><strong>Rosenbrock 函数 函数</strong></td>
+                <td>一条蜿蜒通向极小值的弯曲山谷。</td>
+                <td>三者都很吃力；Adam 通常最先抵达盆地，因为它按轴重新缩放。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          试着在每张曲面上都从同一个极端角落出发，观察损失曲线如何分道扬镳。Adam 单步的总计算量约为 SGD 的两倍，但<em>收敛所需步数</em>之比通常远超两倍&mdash;&mdash;这正是如今无人再用朴素 SGD 训练现代模型的原因。
+        </p>
+      </section>
+
+      <!-- ─── 第 6 步 ─── -->
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>关于 Adam 的三种常见误解</h2>
+        <div class="misconception-grid">
+          <div class="misconception-card">
+            <span class="misconception-icon">误解</span>
+            <p><strong>「Adam 总能胜过 SGD。」</strong><br />
+              在配有精心调校学习率调度的大规模图像分类任务上，朴素 SGD + momentum 在最终测试精度上仍优于 Adam。Adam 收敛更<em>快</em>，
+              但泛化可能更差。合适的优化器取决于具体问题。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">误解</span>
+            <p><strong>「学习率越高，训练总是越快。」</strong><br />
+              在上述任意一张曲面上把 $\alpha$ 调到足够高，优化器都会越过目标并发散（损失膨胀至无穷）。
+              每张曲面都有一段「安全」的学习率范围，且随算法而异。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">误解</span>
+            <p><strong>「Momentum 只关乎速度。」</strong><br />
+              它更重要的职责是<em>对噪声取平均</em>。对于逐步抖动的 mini-batch 梯度，momentum 的滑动平均可滤除噪声，使净方向保持稳定。速度只是副产物。</p>
+          </div>
+        </div>
+        <div class="callout callout--think" style="margin-top: 2rem;">
+          <strong>最终要点。</strong>
+          梯度下降优雅却天真。Momentum 增加了记忆，以应对会反复弹跳的沟壑。Adam 增加了逐参数缩放，以应对各轴曲率不同的曲面。你在上述竞速中所见的每一项改进，都是优化器对曲面建立起更完善心智模型的结果&mdash;&mdash;从一个盲目的行者，变为一个能感知形状的侦察者。
+        </div>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

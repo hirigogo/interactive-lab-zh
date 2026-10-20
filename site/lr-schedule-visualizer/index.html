@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>学习率调度可视化</title>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../shared/site.css" />
+    <style>
+      :root { --ink:#1f1f1e; --paper:#faf8f3; --paper-alt:#f0eee5; --rule:#c9c4b5; --muted:#6b6a65; --accent:#d97757; --accent-soft:#ead3c5; --sage:#7b9e89; --slate:#4a6670; --wine:#a8324b; }
+      body { font-family:"Source Serif 4",Georgia,serif; background:var(--paper); color:var(--ink); line-height:1.55; max-width:800px; margin:0 auto; padding:40px 24px 80px 24px; }
+      .kicker { font-family:"Manrope",sans-serif; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin:0 0 6px 0; }
+      h1 { font-size:44px; line-height:1.1; margin:0 0 16px 0; }
+      h2 { font-size:28px; line-height:1.2; margin:48px 0 14px 0; }
+      .abstract { font-size:18px; color:var(--muted); font-style:italic; margin:0 0 16px 0; }
+      .byline { font-family:"Manrope",sans-serif; font-size:13px; color:var(--muted); border-top:1px solid var(--rule); border-bottom:1px solid var(--rule); padding:12px 0; margin-bottom:36px; }
+      .byline span { margin-right:14px; }
+      a.back-link { font-family:"Manrope",sans-serif; font-size:13px; color:var(--accent); text-decoration:none; display:inline-block; margin-bottom:24px; }
+      p { margin:0 0 16px 0; }
+      code { font-family:"IBM Plex Mono",monospace; font-size:.9em; background:var(--paper-alt); padding:2px 6px; border-radius:3px; }
+      .figure { background:var(--paper-alt); border:1px solid var(--rule); border-radius:6px; padding:20px; margin:24px 0; }
+      .controls { display:flex; flex-wrap:wrap; gap:18px; align-items:center; margin-bottom:16px; font-family:"Manrope",sans-serif; font-size:14px; }
+      .controls label { display:flex; align-items:center; gap:8px; }
+      input[type="range"] { width:180px; accent-color:var(--accent); }
+      .mode-toggle { display:inline-flex; border:1px solid var(--rule); border-radius:4px; overflow:hidden; }
+      .mode-toggle button { font-family:"Manrope",sans-serif; font-size:13px; padding:6px 12px; background:var(--paper); color:var(--muted); border:none; border-right:1px solid var(--rule); cursor:pointer; }
+      .mode-toggle button:last-child { border-right:none; }
+      .mode-toggle button.active { background:var(--accent); color:var(--paper); }
+      pre.code { font-family:"IBM Plex Mono",monospace; font-size:13px; background:var(--paper-alt); padding:14px; border-radius:4px; border:1px solid var(--rule); overflow-x:auto; }
+      svg { display:block; margin:0 auto; }
+    </style>
+  </head>
+  <body>
+    <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+    <p class="kicker">交互式讲解</p>
+    <h1>学习率调度可视化</h1>
+    <p class="abstract">
+      四种调度，同一画布。拖动峰值学习率、预热比例与总步数 — 精确观察学习率在训练过程中的变化，并理解为何 Transformer 以满学习率冷启动时会在最初 100 步内发散。
+    </p>
+    <div class="byline"><span>约 6 分钟</span><span>深度学习 · 优化 · 调度</span></div>
+
+    <p>
+      <em>同一个</em>优化器能否成功，取决于你为它套上怎样的学习率调度。以 <code>lr = 3e-4</code> 对 Transformer 冷启动 Adam，会在数百步内发散。而若从 0 开始线性预热，同一架构便能平稳训练。
+    </p>
+
+    <h2>实验场</h2>
+    <div class="figure">
+      <div class="controls" style="margin-bottom:12px">
+        <label>场景：
+          <div class="mode-toggle">
+            <button class="scen-btn active" data-scen="resnet">ResNet · CIFAR-10 场景</button>
+            <button class="scen-btn" data-scen="bert">Transformer · BERT 场景</button>
+            <button class="scen-btn" data-scen="lora">LoRA 微调</button>
+          </div>
+        </label>
+      </div>
+      <div class="controls">
+        <label>调度：
+          <div class="mode-toggle">
+            <button class="sched-btn" data-s="const">恒定</button>
+            <button class="sched-btn active" data-s="阶梯">阶梯</button>
+            <button class="sched-btn" data-s="指数">指数</button>
+            <button class="sched-btn" data-s="cos">余弦</button>
+            <button class="sched-btn" data-s="warm">预热+余弦</button>
+          </div>
+        </label>
+        <label>峰值学习率： <input type="range" id="peak" min="0.0001" max="0.5" 阶梯="0.0001" value="0.003" /><span id="peak-val" style="font-family:'IBM Plex Mono',monospace; min-width:60px;">3e-3</span></label>
+        <label>预热比例： <input type="range" id="warm" min="0" max="20" 阶梯="1" value="5" /><span id="warm-val" style="font-family:'IBM Plex Mono',monospace; min-width:30px;">5%</span></label>
+      </div>
+      <svg id="plot" width="720" height="280" viewBox="0 0 720 280"></svg>
+    </div>
+
+    <h2>当前调度对应的 PyTorch 代码</h2>
+    <pre class="code" id="code-out"></pre>
+
+    <h2>为何 Transformer 需要预热</h2>
+    <p>
+      Adam 的二阶矩估计 <code>v̂_t</code> 在第 1 步时既小又含噪。用 <code>√v̂_t</code> 作除数会极大地放最初若干步。与此同时，随机初始化的注意力会产生尖峰状的分布 — 少数注意力头中出现较大的早期梯度。二者叠加，以满学习率冷启动便会产生巨大而不稳定的初始步，损失随之发散。
+    </p>
+    <p>
+      预热在训练的前 1–10% 内将学习率从 0 线性升至峰值。一旦 <code>v̂_t</code> 经过若干步趋于稳定、注意力也已变得分散，便可安全地维持峰值学习率。
+    </p>
+
+    <h2>现代学习率调度的四阶段解剖</h2>
+    <ol>
+      <li><strong>预热（0 → 峰值）。</strong> 在总步数的 1–10% 内线性上升。稳定 Adam 的矩估计，并让初始化有时间趋于平稳。</li>
+      <li><strong>峰值（恒定或近乎恒定）。</strong> 训练的主体部分。一些方案（Llama、Chinchilla）保持恒定；另一些（余弦、Noam）则在预热结束后立即开始衰减。</li>
+      <li><strong>衰减（峰值 → 近零）。</strong> 余弦、线性或阶梯。具体形状不如幅度重要 — 关键在于最终学习率要足够低。</li>
+      <li><strong>尾部（约 0）。</strong> 可选。最后阶段以低学习率进行收尾微调。在 LLM 预训练中属标准做法。</li>
+    </ol>
+
+    <h2>按使用场景分类的调度速查表</h2>
+    <ul>
+      <li><strong>ImageNet 上的计算机视觉（ResNet、ViT）。</strong> 在 100 个轮次内做余弦衰减；ResNet 无需预热，ViT 约需 5 个轮次的预热。峰值学习率约 0.1（SGD）或 1e-3（AdamW）。</li>
+      <li><strong>LLM 预训练。</strong> 线性预热约占总词元数的 1%，随后余弦衰减至峰值的 10%。峰值学习率从约 3e-4（小模型）到约 1e-4（70B 以上）。</li>
+      <li><strong>LLM 的 SFT / 指令微调。</strong> 短线性预热（约 50 步），余弦衰减至零。峰值学习率约为 2e-5 至 5e-5。相比预训练<em>低得多</em>，以避免灾难性遗忘。</li>
+      <li><strong>LoRA 微调。</strong> 恒定或单次余弦周期。峰值学习率约 1e-4。适配器参数能比基础参数承受更高的学习率。</li>
+      <li><strong>目标检测 / 分割。</strong> 阶梯调度（在训练进度 60%、80% 处乘以 0.1）。这是经典的 DETR / Mask R-CNN 方案。</li>
+      <li><strong>扩散模型训练。</strong> 恒定学习率 + 权重 EMA。隐式的「衰减」主要由 EMA 承担。</li>
+    </ul>
+
+    <h2>单周期、余弦与恒定三者对比</h2>
+    <p>
+      你在生产实践中会遇到的三种范式：
+    </p>
+    <ul>
+      <li><strong>恒定学习率 + 结尾衰减。</strong> 为 Chinchilla 及近期的 Llama 训练所采用。在训练时长经过良好调校时，其经验表现与余弦相当；对于超长训练，其行为更易于分析。</li>
+      <li><strong>余弦退火</strong>（Loshchilov &amp; Hutter，2017）。平滑衰减；是 HuggingFace Trainer 与 PyTorch Lightning 中的默认选项。带重启的余弦（“SGDR”）会周期性地回到峰值 — 在 2022 年之前流行于视觉领域，如今在 LLM 中基本已被弃用。</li>
+      <li><strong>单周期（Leslie Smith，2018）。</strong> 学习率与动量的联合扫掠 — 短预热、长余弦衰减、极低的尾部。对于短训练过程（少于 1000 个轮次）效果强劲。对 LLM 而言多已成为历史，但对小规模 CNN 训练仍有价值。</li>
+    </ul>
+
+    <h2>阅读清单</h2>
+    <ul>
+      <li><strong>Loshchilov &amp; Hutter (2017)</strong> — <em>SGDR: Stochastic Gradient Descent with Warm Restarts。</em></li>
+      <li><strong>Smith (2018)</strong> — <em>A Disciplined Approach to Neural Network Hyper-Parameters。</em> 单周期方法的论文。</li>
+      <li><strong>Hoffer 等 (2017)</strong> — <em>Train Longer, Generalize Better。</em></li>
+      <li><strong>Liu 等 (2020)</strong> — <em>On the Variance of the Adaptive Learning Rate and Beyond (RAdam)。</em> 解释预热为何对 Adam 有帮助。</li>
+      <li><strong>Hoffmann 等 (2022)</strong> — <em>Training Compute-Optimal Large Language Models (Chinchilla)。</em> 恒定学习率配结尾衰减的方案。</li>
+    </ul><script>
+      const svg = document.getElementById("plot");
+      const NS = "http://www.w3.org/2000/svg";
+      const TOTAL = 1000;  // 阶梯s
+      const PLOT_W = 640, PLOT_H = 220, LEFT = 60, TOP = 20;
+
+      let schedule = "阶梯", peak = 0.003, warmup_pct = 5;
+
+      function lrAt(阶梯) {
+        const T = TOTAL;
+        if (schedule === "const") {
+          return peak;
+        } else if (schedule === "阶梯") {
+          if (阶梯 < T * 0.5) return peak;
+          if (阶梯 < T * 0.75) return peak * 0.1;
+          return peak * 0.01;
+        } else if (schedule === "指数") {
+          return peak * Math.pow(0.01, 阶梯 / T);
+        } else if (schedule === "cos") {
+          return peak * 0.5 * (1 + Math.cos(Math.PI * 阶梯 / T));
+        } else if (schedule === "warm") {
+          const w = T * warmup_pct / 100;
+          if (阶梯 < w) return peak * 阶梯 / w;
+          const progress = (阶梯 - w) / (T - w);
+          return peak * 0.5 * (1 + Math.cos(Math.PI * progress));
+        }
+        return peak;
+      }
+
+      function draw() {
+        svg.innerHTML = "";
+
+        // Axes
+        const ax = document.createElementNS(NS, "g");
+        const axisColor = "#1f1f1e";
+        const l = (x1,y1,x2,y2,col,w) => {
+          const ln = document.createElementNS(NS, "line");
+          ln.setAttribute("x1", x1); ln.setAttribute("y1", y1);
+          ln.setAttribute("x2", x2); ln.setAttribute("y2", y2);
+          ln.setAttribute("stroke", col || axisColor);
+          ln.setAttribute("stroke-width", w || 1);
+          svg.appendChild(ln);
+        };
+        // x-axis + y-axis
+        l(LEFT, TOP + PLOT_H, LEFT + PLOT_W, TOP + PLOT_H, "#1f1f1e", 1.1);
+        l(LEFT, TOP, LEFT, TOP + PLOT_H, "#1f1f1e", 1.1);
+        // grid
+        for (let i = 1; i < 4; i++) {
+          l(LEFT, TOP + i * PLOT_H / 4, LEFT + PLOT_W, TOP + i * PLOT_H / 4, "#c9c4b5", 0.4);
+        }
+
+        // Max LR for scale
+        let maxLR = 0;
+        for (let s = 0; s <= TOTAL; s += 5) maxLR = Math.max(maxLR, lrAt(s));
+
+        // LR curve
+        const path = document.createElementNS(NS, "path");
+        const pts = [];
+        for (let s = 0; s <= TOTAL; s += 2) {
+          const x = LEFT + (s / TOTAL) * PLOT_W;
+          const y = TOP + PLOT_H - (lrAt(s) / maxLR) * PLOT_H;
+          pts.push(`${s === 0 ? "M" : "L"} ${x} ${y}`);
+        }
+        path.setAttribute("d", pts.join(" "));
+        path.setAttribute("stroke", "#d97757");
+        path.setAttribute("stroke-width", "2.4");
+        path.setAttribute("fill", "none");
+        svg.appendChild(path);
+
+        // Y-axis label
+        const yLabel = document.createElementNS(NS, "text");
+        yLabel.setAttribute("x", 10);
+        yLabel.setAttribute("y", TOP + PLOT_H / 2);
+        yLabel.setAttribute("transform", `rotate(-90 10 ${TOP + PLOT_H / 2})`);
+        yLabel.setAttribute("text-anchor", "middle");
+        yLabel.setAttribute("font-family", "Manrope, sans-serif");
+        yLabel.setAttribute("font-size", "11");
+        yLabel.setAttribute("fill", "#6b6a65");
+        yLabel.textContent = "learning rate";
+        svg.appendChild(yLabel);
+
+        const xLabel = document.createElementNS(NS, "text");
+        xLabel.setAttribute("x", LEFT + PLOT_W / 2);
+        xLabel.setAttribute("y", TOP + PLOT_H + 30);
+        xLabel.setAttribute("text-anchor", "middle");
+        xLabel.setAttribute("font-family", "Manrope, sans-serif");
+        xLabel.setAttribute("font-size", "11");
+        xLabel.setAttribute("fill", "#6b6a65");
+        xLabel.textContent = "training 阶梯 →";
+        svg.appendChild(xLabel);
+
+        // Peak readout
+        const peakLabel = document.createElementNS(NS, "text");
+        peakLabel.setAttribute("x", LEFT - 6);
+        peakLabel.setAttribute("y", TOP + 6);
+        peakLabel.setAttribute("text-anchor", "end");
+        peakLabel.setAttribute("font-family", "IBM Plex Mono, monospace");
+        peakLabel.setAttribute("font-size", "10");
+        peakLabel.setAttribute("fill", "#6b6a65");
+        peakLabel.textContent = maxLR.toExponential(1);
+        svg.appendChild(peakLabel);
+
+        updateCode();
+      }
+
+      function updateCode() {
+        const box = document.getElementById("code-out");
+        let c;
+        if (schedule === "阶梯") {
+          c = `sched = torch.optim.lr_scheduler.MultiStepLR(
+    opt,
+    milestones=[${Math.floor(TOTAL*0.5)}, ${Math.floor(TOTAL*0.75)}],
+    gamma=0.1)`;
+        } else if (schedule === "指数") {
+          c = `sched = torch.optim.lr_scheduler.ExponentialLR(
+    opt,
+    gamma=${Math.pow(0.01, 1/TOTAL).toFixed(5)})  # 2 decades over full run`;
+        } else if (schedule === "cos") {
+          c = `sched = torch.optim.lr_scheduler.CosineAnnealingLR(
+    opt,
+    T_max=${TOTAL},
+    eta_min=0.0)`;
+        } else {
+          c = `from torch.optim.lr_scheduler import LambdaLR
+def lr_lambda(阶梯):
+    warmup = ${Math.floor(TOTAL * warmup_pct / 100)}
+    if 阶梯 < warmup:
+        return 阶梯 / warmup
+    progress = (阶梯 - warmup) / (${TOTAL} - warmup)
+    return 0.5 * (1 + math.cos(math.pi * progress))
+sched = LambdaLR(opt, lr_lambda)`;
+        }
+        box.textContent = c;
+      }
+
+      const SCENARIOS = {
+        resnet: { schedule: '阶梯', peak: 0.1, warmup_pct: 0, note: 'CNN-from-scratch · big LR · 阶梯 decay (drop 10× at 50%, 75%)' },
+        bert: { schedule: 'warm', peak: 0.0003, warmup_pct: 10, note: 'Transformer · cold-start diverges · warmup 10% then 余弦' },
+        lora: { schedule: 'cos', peak: 0.0002, warmup_pct: 0, note: 'LoRA 微调 · low LR · 余弦 decay' }
+      };
+      function applyScenario(key) {
+        const s = SCENARIOS[key];
+        schedule = s.schedule;
+        peak = s.peak;
+        warmup_pct = s.warmup_pct;
+        document.getElementById('peak').value = peak;
+        document.getElementById('peak-val').textContent = peak.toExponential(1);
+        document.getElementById('warm').value = warmup_pct;
+        document.getElementById('warm-val').textContent = warmup_pct + '%';
+        document.querySelectorAll('.sched-btn').forEach(x => x.classList.toggle('active', x.dataset.s === s.schedule));
+        draw();
+      }
+      document.querySelectorAll('.scen-btn').forEach(b => b.addEventListener('click', () => {
+        document.querySelectorAll('.scen-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        applyScenario(b.dataset.scen);
+      }));
+      document.querySelectorAll(".sched-btn").forEach(b => b.addEventListener("click", () => {
+        document.querySelectorAll(".sched-btn").forEach(x => x.classList.remove("active"));
+        b.classList.add("active");
+        schedule = b.dataset.s;
+        draw();
+      }));
+      document.getElementById("peak").addEventListener("input", (e) => {
+        peak = parseFloat(e.target.value);
+        document.getElementById("peak-val").textContent = peak.toExponential(1);
+        draw();
+      });
+      document.getElementById("warm").addEventListener("input", (e) => {
+        warmup_pct = parseInt(e.target.value);
+        document.getElementById("warm-val").textContent = `${warmup_pct}%`;
+        draw();
+      });
+
+      draw();
+    </script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

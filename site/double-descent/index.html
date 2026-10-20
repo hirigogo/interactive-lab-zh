@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>具体理解双下降现象</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>具体理解双下降现象</h1>
+        <p class="abstract">
+          经典统计学说：参数比数据点还多会带来灾难性的过拟合。现代深度学习则说：继续增大，测试误差往往反而<em>更小</em>。拖动模型规模跨越插值阈值，实时观察双下降曲线的形成。
+        </p>
+        <div class="byline">
+          <span>约 14 分钟</span>
+          <span>泛化 &middot; 随机特征</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>你应当看到的现象</h2>
+        <ul class="explanation-list">
+          <li><strong>欠参数化区域（$P &lt; N$）。</strong> 随着参数增加，训练误差与测试误差同时下降 &mdash; 即经典的偏差-方差关系。</li>
+          <li><strong>插值阈值（$P \approx N$）。</strong> 训练误差降为零；测试误差骤升。模型<em>勉强</em>拟合了训练数据，并为此付出剧烈振荡的代价。</li>
+          <li><strong>过参数化区域（$P \gg N$）。</strong> 越过尖峰之后，测试误差<em>再次下降</em>。这正是现代深度学习一直默默依赖的现象。</li>
+        </ul>
+        <div class="math-block" id="math-dd"></div>
+        <p>
+          其机制如下（Belkin 等，2018；Hastie 等，2019）：越过阈值之后，有无限多个权重向量都能达到零训练误差，而优化器会选择<em> $\ell_2$ 范数最小</em>的那一个。其中许多解是平滑的，梯度下降的隐式偏置（以及 $\lambda \to 0^+$ 时的岭回归）会找到它们。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-1a">
+        <div class="step-badge">第 1½ 步</div>
+        <h2>为何经典的偏差-方差理论预测出了错误的形状</h2>
+        <p>
+          任何机器学习教科书中的 U 形曲线都将测试误差分解为
+        </p>
+        <div class="math-block" id="math-bv"></div>
+        <p>
+          在达到阈值之前，方差主导了误差的上升。教科书在此止步。<strong>教科书中遗漏的是</strong>，越过 $P = N$ 之后，偏差<em>与</em>方差都可以下降，因为此时模型拥有了富余容量：许多特征方向所编码的只是噪声，而最小范数解会把权重分散到这些方向上，使每个单独方向承担的噪声更少 &mdash; 方差由此被平均化而降低。Belkin 等人在 2018 年将其命名为「<strong>现代插值区域</strong>」。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>实时曲线</h2>
+        <div class="train-controls">
+          <label>数据点 N &nbsp;<span id="dd-N-val">40</span> <input type="range" id="dd-N" min="10" max="200" step="2" value="40"></label>
+          <label>noise σ &nbsp;<span id="dd-sig-val">0.30</span> <input type="range" id="dd-sig" min="0.01" max="1" step="0.01" value="0.3"></label>
+          <label>岭回归 log₁₀λ &nbsp;<span id="dd-lam-val">−4.0</span> <input type="range" id="dd-lam" min="-6" max="0" step="0.1" value="-4"></label>
+          <button class="action-btn action-btn--ghost" id="dd-resample">重新采样</button>
+        </div>
+        <div class="dd-figure">
+          <canvas id="dd-curve" width="880" height="320"></canvas>
+          <figcaption>测试误差随特征数 P 的变化。竖直直线标出插值阈值 P=N。</figcaption>
+        </div>
+        <div class="dd-figure">
+          <canvas id="dd-fit" width="880" height="280"></canvas>
+          <figcaption>三种模型规模（小 / 阈值处 / 极大）下的最佳拟合预测。</figcaption>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-2a">
+        <div class="step-badge">第 2½ 步</div>
+        <h2>用三行代数说明尖峰为何出现</h2>
+        <p>
+          设随机特征矩阵为 $\Phi \in \mathbb{R}^{N \times P}$，岭回归系数 $\lambda$ 很小，则测试点处的预测为 $\hat y_* = \phi(x_*)^\top \hat w$。当 $P \to N$ 时，最小奇异值 $\sigma_{\min}(\Phi)$ 趋于零，岭回归的逆随之爆炸：
+        </p>
+        <div class="math-block" id="math-spike"></div>
+        <p>
+          较小的 $\sigma_i$ 对应训练数据几乎无法辨识的特征方向。若没有岭回归，这些方向会吸收巨大的权重去拟合噪声 — 方差随之爆炸。尖峰<em>恰好</em>出现在 $P = N$，因为此时 $\Phi$ 变为方阵，最小二乘被迫进行插值。越过 $P = N$ 后，系统变为欠定；最小范数解会再次收缩这些权重。
+        </p>
+        <p>
+          <strong>更强的岭回归（$\lambda \uparrow$）会削平尖峰。</strong> 增大岭回归 log₁₀λ，观察峰值收缩 — 这正是方差项被抑制的表现。代价是：远离阈值处的误差会略微升高。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-2b">
+        <div class="step-badge">第 2¾ 步</div>
+        <h2>实时演示：样本维度的双下降</h2>
+        <p>
+          将模型规模 $P$ 固定在高于原本插值阈值的位置。现在令训练集规模 $N$ 由小到大变化。当 $N$ 从下方趋近 $P$ 时，模型被迫离开过参数化区域、<em>重新穿越阈值</em>。测试误差可能随着训练数据增多而<em>上升</em> — 与每一门机器学习入门课所教的恰好相反。
+        </p>
+        <div class="train-controls">
+          <label>特征数 P &nbsp;<span id="sw-P-val">120</span> <input type="range" id="sw-P" min="20" max="300" step="2" value="120"></label>
+          <label>噪声 σ &nbsp;<span id="sw-sig-val">0.30</span> <input type="range" id="sw-sig" min="0.01" max="1" step="0.01" value="0.3"></label>
+        </div>
+        <div class="dd-figure">
+          <canvas id="sw-curve" width="880" height="300"></canvas>
+          <figcaption>固定 $P$ 时测试 RMSE 随训练集规模 $N$ 的变化。竖直直线标出 $N = P$ — 增加一个<em>跨越</em>该线的样本可能反而使模型变差。</figcaption>
+        </div>
+        <p>
+          Nakkiran 等（2019，“Deep Double Descent”）在固定模型、改变训练集规模时，于 CIFAR ResNet 上观察到了完全相同的形状。解决办法是加大权重衰减，或使用多得多的训练数据。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-2c">
+        <div class="step-badge">第 2⅞ 步</div>
+        <h2>轮次维度的双下降</h2>
+        <p>
+          第三个维度：固定 $P$ 与 $N$，观察测试误差随训练轮次的变化。长时间训练的 ResNet 会呈现这样的现象：测试误差先下降，在训练损失降为零的那个轮次前后上升，随后再次下降。其机制相同 — 网络在训练过程中随着其函数类逐渐「填满」，会经历一个有效的插值阈值。
+        </p>
+        <div class="callout callout--key">
+          <strong>三个旋钮，同一现象。</strong>
+          模型规模、数据集规模与训练时长各自都是一个可以逼近插值的维度。其中任何一个都能产生非单调的测试误差曲线。统一的概念是「<em>有效复杂度与有效数据量之比</em>」— 当二者相当时，情况就会变糟。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>其实际意义</h2>
+        <ul class="explanation-list">
+          <li><strong>不要惧怕过参数化。</strong>
+            对深度网络而言，只要配有合理的正则化手段（权重衰减、dropout、早停），「容量更大」通常比「容量更小」更安全。</li>
+          <li><strong>尖峰确实存在。</strong>
+            在恰好处于插值阈值处训练 CIFAR ResNet，其表现始终不如在相同计算预算下更小或大得多的网络。</li>
+          <li><strong>样本维度的双下降。</strong>
+            增加训练数据有时反而会<em>提高</em>测试误差，如果它把模型从过参数化重新推回到恰好插值的状态。这是真实存在的现象（Nakkiran 等，2019）。</li>
+        </ul>
+        <div class="callout callout--think">
+          <strong>最终结论。</strong>
+          U 形曲线并非现代深度学习正确的默认心智模型。一旦你在浏览器中亲眼见到第二次下降，你就再也不会以同样的方式相信「模型越大 = 过拟合越严重」了。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>与 NTK 及无限宽度的联系</h2>
+        <p>
+          神经正切核极限（Jacot 等，2018）指出，一个无限宽的网络若以梯度下降并取趋于零的学习率训练，其行为等同于一个固定的核回归器。“$P = N$” 处的尖峰，正是该核在训练数据上的 Gram 矩阵条件数变差之处；第二次下降则对应于一个实际过定系统上的无岭核极限。
+        </p>
+        <p>
+          这给出了一个清晰的解释：
+        </p>
+        <ul class="explanation-list">
+          <li>在 NTK 框架下，「更多参数」= 更多随机特征。</li>
+          <li>$P = N$ 处的尖峰，正是我们刚刚绘制的随机特征岭回归尖峰。</li>
+          <li>真实的神经网络<em>还会</em>学习特征，因此真实的形状是上述现象与叠加其上的特征学习式下降的混合。</li>
+        </ul>
+        <p>
+          Hastie、Montanari、Rosset &amp; Tibshirani（2019）给出了随机特征岭回归渐近风险的闭式表达式：当 $\lambda \to 0$ 时，测试风险恰好在 $P/N = 1$ 处达到峰值，此后单调下降，下降速率由特征映射的谱决定。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>如何避免被困在尖峰处</h2>
+        <ul class="explanation-list">
+          <li><strong>权重衰减（或任何 $\ell_2$ 正则）。</strong> 几乎能抹平尖峰。代价是：在远离阈值处测试误差有极轻微的上升。实践中这是默认做法。</li>
+          <li><strong>不要让模型规模停留在 $P \approx N$。</strong>
+            如果你在有意扩展模型，要么明显低于阈值，要么明显高于它。危险区域狭窄，但确实存在。</li>
+          <li><strong>早停</strong> 通过让训练在模型达到插值轮次之前终止，来减轻轮次维度的双下降。在现代 LLM 预训练中较少使用（因其训练时间很长）；但对小数据微调而言不可或缺。</li>
+          <li><strong>数据增强</strong> 通过抬高 $N$ 来移动阈值。这是一个可靠且无需改动架构的实用解法。</li>
+          <li><strong>标签噪声警示。</strong> 含噪标签会使尖峰更高更宽。应先清理标签；其他手段的帮助都相对有限。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>阅读清单</h2>
+        <ul class="explanation-list">
+          <li><strong>Belkin, Hsu, Ma, Mandal (2018)</strong> &mdash;
+            <em>Reconciling modern machine-learning practice and the
+            classical bias–variance trade-off。</em> 正是这篇论文命名了「双下降」，并将现代深度学习与经典核理论联系起来。</li>
+          <li><strong>Nakkiran, Kaplun, Bansal, Yang, Barak, Sutskever
+            (2019)</strong> &mdash; <em>Deep double descent: where
+            bigger models and more data hurt。</em> 对 ResNet / Transformer 的实证研究；定义了轮次维度与样本维度的变体。</li>
+          <li><strong>Hastie, Montanari, Rosset, Tibshirani (2019)</strong>
+            &mdash; <em>Surprises in high-dimensional ridgeless least
+            squares interpolation。</em> 关于随机特征岭回归的清晰理论论文，附有证明。</li>
+          <li><strong>Bartlett, Long, Lugosi, Tsigler (2020)</strong>
+            &mdash; <em>Benign overfitting in linear regression。</em>
+            给出了协方差谱上插值能够泛化的精确条件。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

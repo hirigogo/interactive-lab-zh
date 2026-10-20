@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>卷积可视化器</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+  :root{
+    --bg:#fdfcf9;--paper:#ffffff;--text:#2f2a22;--accent:#2c6fb7;
+    --warm:#d9622b;--border:#e2d8c6;--highlight:#fef3c7;
+    --cell:46px;--gap:2px;
+    --font-body:'Source Serif 4',Georgia,serif;
+    --font-ui:'Manrope',system-ui,sans-serif;
+  }
+
+  html{font-size:16px}
+  body{
+    background:var(--bg);color:var(--text);
+    font-family:var(--font-body);
+    line-height:1.5;
+    min-height:100vh;
+    display:flex;flex-direction:column;
+  }
+
+  /* ---------- HEADER ---------- */
+  header{
+    text-align:center;padding:2rem 1rem 1rem;
+  }
+  header h1{
+    font-family:var(--font-ui);font-weight:700;font-size:2rem;
+    color:var(--text);letter-spacing:-0.02em;
+  }
+  header p.tagline{
+    font-family:var(--font-ui);font-weight:400;font-size:1rem;
+    color:#7a7265;margin-top:.25rem;
+  }
+
+  /* ---------- MAIN ---------- */
+  main{flex:1;max-width:1200px;width:100%;margin:0 auto;padding:0 1.5rem 2rem}
+
+  /* ---------- KERNEL BUTTONS ---------- */
+  .kernel-bar{
+    display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;
+    margin:1.25rem 0;
+  }
+  .kernel-bar button{
+    font-family:var(--font-ui);font-weight:600;font-size:.85rem;
+    padding:.45rem 1rem;border-radius:6px;border:2px solid var(--border);
+    background:var(--paper);color:var(--text);cursor:pointer;
+    transition:all .15s ease;
+  }
+  .kernel-bar button:hover{border-color:var(--accent);color:var(--accent)}
+  .kernel-bar button.active{
+    background:var(--accent);color:#fff;border-color:var(--accent);
+  }
+
+  /* ---------- PANELS ---------- */
+  .panels{
+    display:flex;gap:2rem;justify-content:center;align-items:flex-start;
+    flex-wrap:wrap;margin-top:1rem;
+  }
+  .panel{
+    background:var(--paper);border:1px solid var(--border);
+    border-radius:10px;padding:1rem;
+    display:flex;flex-direction:column;align-items:center;
+  }
+  .panel h2{
+    font-family:var(--font-ui);font-weight:600;font-size:.9rem;
+    margin-bottom:.6rem;color:#7a7265;text-transform:uppercase;
+    letter-spacing:.06em;
+  }
+
+  /* ---------- GRIDS ---------- */
+  .grid{
+    display:inline-grid;gap:var(--gap);
+  }
+  .grid .cell{
+    width:var(--cell);height:var(--cell);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-ui);font-weight:600;font-size:.72rem;
+    border-radius:4px;border:1.5px solid var(--border);
+    transition:background .15s,border-color .15s,color .15s;
+    user-select:none;
+  }
+
+  /* Highlighted cells (kernel overlay on input) */
+  .cell.kernel-overlay{
+    border-color:var(--warm)!important;
+    box-shadow:inset 0 0 0 2px var(--highlight);
+  }
+  .cell.current-output{
+    border-color:var(--warm)!important;
+    box-shadow:0 0 0 2.5px var(--warm);
+  }
+
+  /* Kernel panel product display */
+  .kernel-product{
+    font-size:.62rem;font-weight:500;color:#7a7265;
+    margin-top:1px;
+  }
+
+  /* 自定义 kernel inputs */
+  .kernel-input{
+    width:var(--cell);height:var(--cell);
+    text-align:center;font-family:var(--font-ui);font-weight:600;
+    font-size:.82rem;border:1.5px solid var(--border);border-radius:4px;
+    background:var(--paper);color:var(--text);
+  }
+  .kernel-input:focus{outline:none;border-color:var(--accent)}
+
+  /* ---------- CONTROLS ---------- */
+  .controls-bar{
+    display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center;
+    align-items:center;margin:1.25rem 0;
+  }
+  .controls-bar button{
+    font-family:var(--font-ui);font-weight:600;font-size:.85rem;
+    padding:.5rem 1.3rem;border-radius:6px;border:none;cursor:pointer;
+    transition:all .15s;
+  }
+  .btn-step{background:var(--accent);color:#fff}
+  .btn-step:hover{background:#24599a}
+  .btn-play{background:var(--warm);color:#fff}
+  .btn-play:hover{background:#b8511f}
+  .btn-play.playing{background:#a3452a}
+  .btn-reset{background:var(--paper);color:var(--text);border:2px solid var(--border)!important}
+  .btn-reset:hover{border-color:var(--accent)!important;color:var(--accent)}
+
+  .param-group{
+    display:flex;align-items:center;gap:.4rem;
+    font-family:var(--font-ui);font-size:.82rem;font-weight:500;
+  }
+  .param-group label{color:#7a7265}
+  .param-group select,.param-group input[type=range]{
+    font-family:var(--font-ui);font-size:.82rem;
+    border:1.5px solid var(--border);border-radius:4px;
+    padding:.2rem .4rem;background:var(--paper);color:var(--text);
+  }
+  .param-group input[type=range]{width:80px;cursor:pointer}
+  .param-group .param-val{
+    display:inline-block;min-width:1.2em;text-align:center;
+    font-weight:700;color:var(--accent);
+  }
+
+  /* ---------- COMPUTATION TEXT ---------- */
+  .computation-box{
+    background:var(--paper);border:1px solid var(--border);border-radius:10px;
+    padding:1rem 1.25rem;margin:1rem 0;
+    font-family:var(--font-ui);font-size:.82rem;
+    line-height:1.7;overflow-x:auto;
+    max-width:100%;
+  }
+  .computation-box .comp-label{
+    font-weight:700;color:var(--accent);margin-bottom:.2rem;
+  }
+  .computation-box .comp-expr{
+    font-family:'SF Mono',Consolas,monospace;font-size:.78rem;
+    word-break:break-all;color:var(--text);
+  }
+  .comp-result{font-weight:700;color:var(--warm)}
+
+  /* ---------- FORMULA ---------- */
+  .formula-box{
+    text-align:center;margin:1rem 0;
+    font-family:var(--font-ui);font-size:.88rem;color:#7a7265;
+  }
+  .formula-box .katex-display{margin:.3rem 0}
+  .formula-label{font-weight:600;margin-bottom:.25rem}
+  .dim-result{
+    font-family:var(--font-ui);font-weight:700;font-size:.9rem;
+    color:var(--accent);margin-top:.3rem;
+  }
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    text-align:center;padding:1.5rem 1rem;
+    font-family:var(--font-ui);font-weight:500;font-size:.82rem;
+    color:#9a9084;border-top:1px solid var(--border);
+  }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media(max-width:860px){
+    .panels{flex-direction:column;align-items:center}
+    :root{--cell:38px}
+  }
+  @media(max-width:480px){
+    :root{--cell:32px}
+    header h1{font-size:1.4rem}
+  }
+
+  /* ---------- EDITABLE INPUT GRID ---------- */
+  .input-cell-edit{
+    width:var(--cell);height:var(--cell);
+    text-align:center;font-family:var(--font-ui);font-weight:600;
+    font-size:.72rem;border:1.5px solid var(--border);border-radius:4px;
+    background:transparent;color:inherit;cursor:text;
+    padding:0;
+  }
+  .input-cell-edit:focus{outline:none;border-color:var(--accent)}
+
+  /* ---------- INPUT SCENARIO BAR ---------- */
+  .scenario-bar{
+    display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;
+    margin:.5rem 0 1rem;
+    align-items:center;
+  }
+  .scenario-bar .scenario-label{
+    font-family:var(--font-ui);font-size:.78rem;color:#7a7265;
+    text-transform:uppercase;letter-spacing:.06em;font-weight:600;
+    margin-right:.4rem;
+  }
+  .scenario-bar button{
+    font-family:var(--font-ui);font-weight:600;font-size:.82rem;
+    padding:.35rem .85rem;border-radius:6px;border:2px solid var(--border);
+    background:var(--paper);color:var(--text);cursor:pointer;
+    transition:all .15s ease;
+  }
+  .scenario-bar button:hover{border-color:var(--warm);color:var(--warm)}
+  .scenario-bar button.active{
+    background:var(--warm);color:#fff;border-color:var(--warm);
+  }
+
+  /* ---------- HINT / TRY-THIS BANNER ---------- */
+  .try-banner{
+    background:var(--highlight);border-left:4px solid var(--warm);
+    border-radius:0 8px 8px 0;
+    padding:.7rem 1rem;margin:1rem auto;max-width:780px;
+    font-family:var(--font-ui);font-size:.88rem;color:var(--text);
+  }
+  .try-banner strong{color:var(--warm);font-weight:700;}
+
+  /* ---------- DEEP-DIVE / MISCONCEPTION / READING SECTIONS ---------- */
+  .deep-dive{
+    max-width:820px;margin:3rem auto 0;
+    background:var(--paper);border:1px solid var(--border);border-radius:14px;
+    padding:1.5rem 1.75rem;
+    box-shadow:0 4px 18px rgba(0,0,0,0.03);
+  }
+  .deep-dive h2{
+    font-family:var(--font-ui);font-weight:700;font-size:1.15rem;
+    color:var(--text);margin-bottom:.6rem;letter-spacing:-0.005em;
+  }
+  .deep-dive h3{
+    font-family:var(--font-ui);font-weight:700;font-size:.95rem;
+    color:var(--text);margin:1rem 0 .4rem;
+  }
+  .deep-dive p{font-size:.96rem;line-height:1.6;margin-bottom:.6rem;color:#3a342c;}
+  .deep-dive ul{margin:.4rem 0 .6rem 1.4rem;font-size:.95rem;line-height:1.55;color:#3a342c;}
+  .deep-dive li{margin-bottom:.35rem;}
+  .deep-dive code{
+    font-family:'SF Mono',Consolas,monospace;font-size:.85rem;
+    background:rgba(0,0,0,0.04);padding:.1rem .35rem;border-radius:4px;
+  }
+  .misconception{
+    background:var(--paper);border:1px solid var(--border);
+    border-left:4px solid var(--warm);
+    border-radius:0 10px 10px 0;
+    padding:.8rem 1rem;margin:.6rem 0;
+  }
+  .misconception .m-q{
+    font-family:var(--font-ui);font-weight:700;font-size:.85rem;
+    color:var(--warm);text-transform:uppercase;letter-spacing:.05em;
+    margin-bottom:.3rem;
+  }
+  .misconception .m-text{
+    font-size:.95rem;color:var(--text);line-height:1.55;
+  }
+  .extra-card{
+    background:#f6f8fc;border:1px solid #d8e1ee;
+    border-left:4px solid var(--accent);
+    border-radius:0 10px 10px 0;
+    padding:.9rem 1.1rem;margin:.8rem 0;
+    font-size:.95rem;color:var(--text);line-height:1.55;
+  }
+  .extra-card strong{color:var(--accent);font-weight:700;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>卷积可视化器</h1>
+  <p class="tagline">观察卷积核在图像上滑动，一次一个点积</p>
+</header>
+
+<main>
+  <!-- Input scenario presets (added 2026-05) -->
+  <div class="scenario-bar" id="scenarioBar">
+    <span class="scenario-label">输入：</span>
+    <button data-input="vbar" class="active">竖直条</button>
+    <button data-input="hbar">水平条</button>
+    <button data-input="cross">十字</button>
+    <button data-input="corner">角落</button>
+    <button data-input="flat">平坦（无边缘）</button>
+  </div>
+
+  <!-- Kernel presets -->
+  <div class="kernel-bar" id="kernelBar">
+    <button data-kernel="edgeH" class="active">边缘（水平）</button>
+    <button data-kernel="edgeV">边缘（竖直）</button>
+    <button data-kernel="sharpen">锐化</button>
+    <button data-kernel="blur">模糊</button>
+    <button data-kernel="custom">自定义</button>
+  </div>
+
+  <!-- Try-this hint that updates with kernel/input pairing -->
+  <div class="try-banner" id="tryBanner">
+    <strong>试试这个：</strong> 将<em>水平条</em>输入与<em>边缘（水平）</em>卷积核配对，
+    逐步推进 &mdash;&mdash; 最强的响应出现在条的<em>边缘处</em>，而在平坦区域为零。
+    随后切换到<em>竖直条</em>输入，观察<em>边缘（水平）</em>毫无反应 &mdash;&mdash; 它看不见竖直边缘。
+  </div>
+
+  <!-- 自定义 kernel editor (hidden by default) -->
+  <div id="customKernelWrap" style="display:none;text-align:center;margin-bottom:.75rem">
+    <div class="grid" id="customKernelGrid" style="grid-template-columns:repeat(3,var(--cell))"></div>
+    <button id="apply自定义" style="margin-top:.5rem;font-family:var(--font-ui);font-weight:600;font-size:.8rem;padding:.35rem .9rem;border-radius:5px;border:2px solid var(--accent);background:var(--paper);color:var(--accent);cursor:pointer">应用</button>
+  </div>
+
+  <!-- Three panels -->
+  <div class="panels">
+    <!-- Input -->
+    <div class="panel" id="inputPanel">
+      <h2>输入（8x8）</h2>
+      <div class="grid" id="inputGrid" style="grid-template-columns:repeat(8,var(--cell))"></div>
+      <p style="font-family:var(--font-ui);font-size:.7rem;color:#9a9084;margin-top:.5rem">点击某个单元格以编辑其数值</p>
+    </div>
+    <!-- Kernel / products -->
+    <div class="panel" id="kernelPanel">
+      <h2>卷积核（3x3）</h2>
+      <div class="grid" id="kernelGrid" style="grid-template-columns:repeat(3,var(--cell))"></div>
+      <div style="margin-top:.7rem">
+        <h2 style="font-size:.78rem;color:#7a7265;text-transform:uppercase;letter-spacing:.06em;font-family:var(--font-ui);font-weight:600">逐元素乘积</h2>
+        <div class="grid" id="productGrid" style="grid-template-columns:repeat(3,var(--cell))"></div>
+      </div>
+    </div>
+    <!-- Output -->
+    <div class="panel" id="outputPanel">
+      <h2 id="outputTitle">输出（6x6）</h2>
+      <div class="grid" id="outputGrid"></div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls-bar">
+    <button class="btn-step" id="btn步进">步进</button>
+    <button class="btn-play" id="btn播放">播放</button>
+    <button class="btn-reset" id="btn重置">重置</button>
+    <span class="param-group">
+      <label>填充</label>
+      <input type="range" id="padSlider" min="0" max="2" value="0">
+      <span class="param-val" id="padVal">0</span>
+    </span>
+    <span class="param-group">
+      <label>步长</label>
+      <select id="strideSelect">
+        <option value="1" selected>1</option>
+        <option value="2">2</option>
+      </select>
+    </span>
+    <span class="param-group">
+      <label>速度</label>
+      <select id="speedSelect">
+        <option value="600">慢</option>
+        <option value="333" selected>正常</option>
+        <option value="150">快</option>
+      </select>
+    </span>
+  </div>
+
+  <!-- Computation -->
+  <div class="computation-box" id="computationBox">
+    <div class="comp-label">当前位置处的点积：</div>
+    <div class="comp-expr" id="compExpr">按 <strong>步进</strong> 或 <strong>播放</strong> 开始。</div>
+  </div>
+
+  <!-- Formula -->
+  <div class="formula-box">
+    <div class="formula-label">输出维度公式</div>
+    <div id="formulaKatex"></div>
+    <div class="dim-result" id="dimResult"></div>
+  </div>
+
+  <!-- Misconceptions -->
+  <section class="deep-dive">
+    <h2>学生对卷积的三个常见误解</h2>
+    <div class="misconception">
+      <div class="m-q">「这不就是矩阵乘法吗？」</div>
+      <div class="m-text">
+        并不尽然。矩阵乘法将每一行与每一列两两组合。卷积则是<strong>局部的</strong>：将卷积核与一小块输入区域逐元素相乘，再求和得到一个标量。随后卷积核<strong>滑动</strong>到下一块区域。这种局部性（参数在各位置间共享）正是 CNN 具有平移等变性、且参数远少于全连接层的原因。
+      </div>
+    </div>
+    <div class="misconception">
+      <div class="m-q">「输出总是比输入小。」</div>
+      <div class="m-text">
+        只有在<em>零填充</em>的情况下才如此。将填充滑块调到
+        <code>P = 1</code>、卷积核尺寸 <code>K = 3</code> 时，输出的空间尺寸与输入<em>相同</em> &mdash;&mdash; 即「same」填充。现代深度 CNN 几乎处处使用 same 填充，从而不会因输入分辨率而限制网络深度。
+      </div>
+    </div>
+    <div class="misconception">
+      <div class="m-q">「卷积与互相关是一回事。」</div>
+      <div class="m-text">
+        从数学上讲二者并不相同 &mdash;&mdash; 真正的卷积会翻转卷积核。
+        在深度学习中，我们几乎总是实现<em>互相关</em>，却称之为卷积；反正网络会自行学习卷积核，因此翻转与否无关紧要。信号处理文献对这一区分则严格得多。
+      </div>
+    </div>
+  </section>
+
+  <!-- Extra connections -->
+  <section class="deep-dive">
+    <h2>这在 CNN 的整体脉络中的位置</h2>
+    <div class="extra-card">
+      <strong>你在此看到的卷积核是手工设计的</strong> &mdash;&mdash; 边缘（水平/竖直）、
+      锐化、模糊都是图像处理中的经典核。而在 CNN 中，网络从数据里
+      <em>学习</em> 卷积核的取值。第一个卷积层通常最终会学到类似 Gabor 的边缘检测器，其外观与你正在把玩的这些核惊人地相似。可视化 AlexNet 第一层学到的滤波器之所以成为深度学习中被复现最多的图之一，原因正在于此。
+    </div>
+    <div class="extra-card">
+      <strong>步长控制下采样。</strong> 步长为 2 时，每一步都将空间维度减半 &mdash;&mdash; 这是最大池化的经典替代方案。ResNet-50 在每个阶段的起始处使用步长为 2 的卷积，而非池化。
+      在上方试试步长 2，观察输出恰好按该倍数缩小。
+    </div>
+    <div class="extra-card">
+      <strong>感受野随深度增长。</strong> 一个 3×3 卷积看到 3×3 的区域。两个堆叠的 3×3 卷积看到 5×5 的区域。<code>k</code> 个堆叠的 3×3 卷积看到 <code>(2k+1)×(2k+1)</code> 的区域，而每层参数数量不变。这正是 VGG 带来阶梯式跃升的原因 &mdash;&mdash; 用一个 7×7 替换为三个 3×3，在相同感受野下参数更少、非线性更多。实时演示参见
+      <a href="../receptive-field-grower/" style="color:var(--accent);font-weight:600">感受野一文</a>。
+    </div>
+    <div class="extra-card">
+      <strong>滑动窗口的开销。</strong> 在 W×W 特征图上以步长 1 做 K×K 卷积，需要
+      <code>W² · K² · C_in · C_out</code> 次乘加运算。对 224×224 输入上的 ResNet-50 而言，仅第一个卷积层就有约 1.18 亿次 MAC &mdash;&mdash;
+      这正是 ImageNet 训练成为 GPU 分水岭的原因。
+    </div>
+  </section>
+
+  <!-- 参考文献 -->
+  <section class="deep-dive">
+    <h2>参考文献</h2>
+    <ul>
+      <li><strong>LeCun 等，1998</strong> &mdash;&mdash; <em>Gradient-based learning applied to document recognition.</em> 原始的 LeNet 论文；至今仍是关于学习式卷积最清晰的入门材料。</li>
+      <li><strong>Krizhevsky、Sutskever、Hinton，2012</strong> &mdash;&mdash; <em>ImageNet Classification with Deep CNNs.</em> 即 AlexNet；其第一层卷积核的可视化是经典参照。</li>
+      <li><strong>Simonyan 与 Zisserman，2014</strong> &mdash;&mdash; <em>Very Deep CNNs (VGG).</em> 以低参数成本堆叠 3×3 以扩大感受野的论证。</li>
+      <li><strong>He 等，2015</strong> &mdash;&mdash; <em>Deep Residual Learning.</em> 处处使用 same 填充；以步长为 2 的卷积替代池化。</li>
+      <li><strong>Dumoulin 与 Visin，2016</strong> &mdash;&mdash; <em>A guide to convolution arithmetic for deep learning.</em> 关于输出尺寸公式、转置卷积、空洞卷积的参考。</li>
+    </ul>
+  </section>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+
+/* ========== STATE ========== */
+const W=8, K=3;
+let padding=0, stride=1;
+let inputData=[];   // flat W*W
+let kernel=[];      // flat K*K  (always 3x3 for display; values may be fractional for blur)
+let kernelRaw=[];   // raw ints for display
+let is模糊=false;   // flag to show /9
+let outputData=[];  // flat outW*outW
+let outW=0;
+let curRow=0,curCol=0; // kernel position in output coords
+let posIndex=-1;    // linear position in output, -1 = not started
+let playing=false;
+let timer=null;
+
+/* ========== PRESETS ========== */
+const presets={
+  edgeH:[[-1,-1,-1],[0,0,0],[1,1,1]],
+  edgeV:[[-1,0,1],[-1,0,1],[-1,0,1]],
+  sharpen:[[0,-1,0],[-1,5,-1],[0,-1,0]],
+  blur:[[1,1,1],[1,1,1],[1,1,1]],
+};
+
+function defaultInput(){ return makeInput('vbar'); }
+
+function makeInput(name){
+  // All scenarios are 8x8 with values in [50, 200] — colour scale matches existing cellColor.
+  const d=new Array(W*W).fill(50);
+  if(name==='vbar'){
+    // Left half bright (vertical edge in the middle)
+    for(let r=0;r<W;r++) for(let c=0;c<W;c++) d[r*W+c] = (c<4?200:50);
+  } else if(name==='hbar'){
+    // Top half bright (horizontal edge in the middle)
+    for(let r=0;r<W;r++) for(let c=0;c<W;c++) d[r*W+c] = (r<4?200:50);
+  } else if(name==='cross'){
+    // Plus sign in the centre: rows 3-4 and cols 3-4 bright
+    for(let r=0;r<W;r++) for(let c=0;c<W;c++){
+      const inHRow = (r>=3 && r<=4);
+      const inVCol = (c>=3 && c<=4);
+      d[r*W+c] = (inHRow || inVCol) ? 200 : 50;
+    }
+  } else if(name==='corner'){
+    // Top-left 4x4 bright (both edges meet)
+    for(let r=0;r<W;r++) for(let c=0;c<W;c++) d[r*W+c] = (r<4 && c<4) ? 200 : 50;
+  } else if(name==='flat'){
+    // Uniform — both edge kernels return exactly 0
+    for(let i=0;i<W*W;i++) d[i] = 125;
+  }
+  return d;
+}
+
+function computeOutW(){
+  return Math.floor((W - K + 2*padding)/stride)+1;
+}
+
+/* ========== INIT ========== */
+function init(){
+  inputData=defaultInput();
+  setKernel('edgeH');
+  build自定义KernelGrid();
+  renderAll();
+  renderFormula();
+}
+
+function setKernel(name){
+  const m=presets[name];
+  is模糊=(name==='blur');
+  kernelRaw=m.flat();
+  kernel=is模糊? m.flat().map(v=>v/9): m.flat();
+  resetConvolution();
+}
+
+function set自定义Kernel(vals){
+  is模糊=false;
+  kernelRaw=vals.slice();
+  kernel=vals.slice();
+  resetConvolution();
+}
+
+function resetConvolution(){
+  outW=computeOutW();
+  outputData=new Array(outW*outW).fill(null);
+  posIndex=-1;curRow=0;curCol=0;
+  stop播放();
+  renderAll();
+  renderFormula();
+  document.getElementById('compExpr').innerHTML='按 <strong>步进</strong> 或 <strong>播放</strong> 开始。';
+}
+
+/* ========== PADDED INPUT ACCESS ========== */
+function paddedVal(r,c){
+  const rr=r-padding, cc=c-padding;
+  if(rr<0||rr>=W||cc<0||cc>=W) return 0;
+  return inputData[rr*W+cc];
+}
+
+/* ========== CONVOLUTION STEP ========== */
+function step(){
+  if(posIndex>=outW*outW-1) return false;
+  posIndex++;
+  curRow=Math.floor(posIndex/outW);
+  curCol=posIndex%outW;
+
+  // compute convolution value
+  const startR=curRow*stride;
+  const startC=curCol*stride;
+  let sum=0;
+  for(let kr=0;kr<K;kr++) for(let kc=0;kc<K;kc++){
+    sum+=paddedVal(startR+kr,startC+kc)*kernel[kr*K+kc];
+  }
+  outputData[posIndex]=Math.round(sum*100)/100;
+  renderAll();
+  renderComputation(startR,startC);
+  return true;
+}
+
+/* ========== PLAY / STOP ========== */
+function start播放(){
+  if(playing) return;
+  playing=true;
+  document.getElementById('btn播放').textContent='Pause';
+  document.getElementById('btn播放').classList.add('playing');
+  const speed=parseInt(document.getElementById('speedSelect').value);
+  tick();
+  function tick(){
+    if(!playing) return;
+    if(!step()){stop播放();return}
+    timer=setTimeout(tick,speed);
+  }
+}
+function stop播放(){
+  playing=false;
+  clearTimeout(timer);
+  document.getElementById('btn播放').textContent='播放';
+  document.getElementById('btn播放').classList.remove('playing');
+}
+
+/* ========== RENDERING ========== */
+
+function cellColor(val,maxAbs){
+  // map absolute value to darkness
+  if(val===null) return {bg:'#f5f2ec',fg:'#c0b8a8'};
+  const a=maxAbs===0?0:Math.abs(val)/maxAbs;
+  // lerp between paper white and a deep tone
+  const isNeg=val<0;
+  if(isNeg){
+    // blue-ish for negative
+    const r=Math.round(255-a*(255-60));
+    const g=Math.round(255-a*(255-90));
+    const b=Math.round(255-a*(255-180));
+    return {bg:`rgb(${r},${g},${b})`,fg:a>.55?'#fff':'#2f2a22'};
+  } else {
+    // warm grey to dark
+    const r=Math.round(255-a*(255-50));
+    const g=Math.round(255-a*(255-46));
+    const b=Math.round(255-a*(255-42));
+    return {bg:`rgb(${r},${g},${b})`,fg:a>.55?'#fff':'#2f2a22'};
+  }
+}
+
+function renderInputGrid(){
+  const g=document.getElementById('inputGrid');
+  // Determine padded dimensions for display
+  const padW=W+2*padding;
+  g.style.gridTemplateColumns=`repeat(${padW},var(--cell))`;
+  g.innerHTML='';
+
+  // current kernel overlay positions
+  const overlaySet=new Set();
+  if(posIndex>=0){
+    const sr=curRow*stride, sc=curCol*stride;
+    for(let kr=0;kr<K;kr++) for(let kc=0;kc<K;kc++){
+      overlaySet.add((sr+kr)*padW+(sc+kc));
+    }
+  }
+
+  const maxAbs=255;
+  for(let r=0;r<padW;r++) for(let c=0;c<padW;c++){
+    const isPad=(r<padding||r>=padding+W||c<padding||c>=padding+W);
+    const val=isPad?0:inputData[(r-padding)*W+(c-padding)];
+    const {bg,fg}=cellColor(val,maxAbs);
+    const idx=r*padW+c;
+    const isOverlay=overlaySet.has(idx);
+
+    const div=document.createElement('div');
+    div.className='cell'+(isOverlay?' kernel-overlay':'');
+    div.style.background=isOverlay?'var(--highlight)':bg;
+    div.style.color=isOverlay?'#2f2a22':fg;
+    if(isPad){div.style.opacity='0.45';div.style.borderStyle='dashed'}
+
+    // Editable: click to edit
+    if(!isPad){
+      div.textContent=val;
+      div.style.cursor='pointer';
+      const rr=r-padding,cc=c-padding;
+      div.addEventListener('dblclick',()=>{
+        const inp=document.createElement('input');
+        inp.type='number';inp.className='input-cell-edit';
+        inp.value=inputData[rr*W+cc];
+        inp.min=0;inp.max=255;
+        div.textContent='';div.appendChild(inp);inp.focus();inp.select();
+        function commit(){
+          let v=parseInt(inp.value);if(isNaN(v))v=0;
+          v=Math.max(0,Math.min(255,v));
+          inputData[rr*W+cc]=v;
+          resetConvolution();
+        }
+        inp.addEventListener('blur',commit);
+        inp.addEventListener('keydown',e=>{if(e.key==='Enter')commit()});
+      });
+    } else {
+      div.textContent=0;
+    }
+    g.appendChild(div);
+  }
+}
+
+function renderKernelGrid(){
+  const g=document.getElementById('kernelGrid');
+  g.innerHTML='';
+  const maxAbs=Math.max(...kernelRaw.map(Math.abs),1);
+  for(let i=0;i<K*K;i++){
+    const v=kernelRaw[i];
+    const {bg,fg}=cellColor(v,maxAbs);
+    const div=document.createElement('div');
+    div.className='cell';
+    div.style.background=bg;div.style.color=fg;
+    div.textContent=is模糊? '1/9' : v;
+    g.appendChild(div);
+  }
+}
+
+function renderProductGrid(){
+  const g=document.getElementById('productGrid');
+  g.innerHTML='';
+  if(posIndex<0){
+    for(let i=0;i<K*K;i++){
+      const div=document.createElement('div');
+      div.className='cell';div.style.background='#f5f2ec';div.style.color='#c0b8a8';
+      div.textContent='--';
+      g.appendChild(div);
+    }
+    return;
+  }
+  const sr=curRow*stride, sc=curCol*stride;
+  const products=[];
+  for(let kr=0;kr<K;kr++) for(let kc=0;kc<K;kc++){
+    products.push(paddedVal(sr+kr,sc+kc)*kernel[kr*K+kc]);
+  }
+  const maxAbs=Math.max(...products.map(Math.abs),1);
+  for(let i=0;i<K*K;i++){
+    const p=Math.round(products[i]*100)/100;
+    const {bg,fg}=cellColor(p,maxAbs);
+    const div=document.createElement('div');
+    div.className='cell';
+    div.style.background=bg;div.style.color=fg;
+    div.innerHTML=`<span style="font-size:.7rem">${fmtNum(p)}</span>`;
+    g.appendChild(div);
+  }
+}
+
+function renderOutputGrid(){
+  const g=document.getElementById('outputGrid');
+  g.style.gridTemplateColumns=`repeat(${outW},var(--cell))`;
+  g.innerHTML='';
+  document.getElementById('outputTitle').textContent=`Output (${outW}x${outW})`;
+
+  // find max abs for coloring
+  const filled=outputData.filter(v=>v!==null);
+  const maxAbs=filled.length?Math.max(...filled.map(Math.abs),1):1;
+
+  for(let i=0;i<outW*outW;i++){
+    const v=outputData[i];
+    const {bg,fg}=cellColor(v,maxAbs);
+    const div=document.createElement('div');
+    div.className='cell';
+    div.style.background=bg;div.style.color=fg;
+    if(i===posIndex) div.classList.add('current-output');
+    div.textContent=v===null?'':fmtNum(v);
+    g.appendChild(div);
+  }
+}
+
+function fmtNum(n){
+  if(n===null||n===undefined) return '';
+  if(Number.isInteger(n)) return n;
+  return n.toFixed(1);
+}
+
+function renderAll(){
+  renderInputGrid();
+  renderKernelGrid();
+  renderProductGrid();
+  renderOutputGrid();
+}
+
+function renderComputation(sr,sc){
+  const parts=[];
+  let sum=0;
+  for(let kr=0;kr<K;kr++) for(let kc=0;kc<K;kc++){
+    const iv=paddedVal(sr+kr,sc+kc);
+    const kv=kernel[kr*K+kc];
+    const kvDisplay=is模糊?'1/9':fmtNum(kernelRaw[kr*K+kc]);
+    const prod=iv*kv;
+    sum+=prod;
+    parts.push(`(${iv} &times; ${kvDisplay})`);
+  }
+  sum=Math.round(sum*100)/100;
+  document.getElementById('compExpr').innerHTML=
+    parts.join(' + ')+` = <span class="comp-result">${fmtNum(sum)}</span>`;
+}
+
+function renderFormula(){
+  const el=document.getElementById('formulaKatex');
+  const dim=document.getElementById('dimResult');
+  const oW=computeOutW();
+  // render with KaTeX if loaded
+  function doRender(){
+    try{
+      katex.render(
+        `O = \\left\\lfloor \\frac{W - K + 2P}{S} \\right\\rfloor + 1 = \\left\\lfloor \\frac{${W} - ${K} + 2 \\cdot ${padding}}{${stride}} \\right\\rfloor + 1 = ${oW}`,
+        el,{displayMode:true,throwOnError:false}
+      );
+    }catch(e){
+      el.textContent=`O = floor((${W} - ${K} + 2*${padding}) / ${stride}) + 1 = ${oW}`;
+    }
+    dim.textContent=`Output: ${oW} x ${oW}`;
+  }
+  if(window.katex) doRender();
+  else{
+    // wait for KaTeX
+    const iv=setInterval(()=>{if(window.katex){clearInterval(iv);doRender()}},100);
+    setTimeout(()=>clearInterval(iv),5000);
+  }
+}
+
+/* ========== CUSTOM KERNEL EDITOR ========== */
+function build自定义KernelGrid(){
+  const g=document.getElementById('customKernelGrid');
+  g.innerHTML='';
+  for(let i=0;i<9;i++){
+    const inp=document.createElement('input');
+    inp.type='number';inp.className='kernel-input';
+    inp.value=kernelRaw[i]||0;
+    inp.id='ck'+i;
+    g.appendChild(inp);
+  }
+}
+
+/* ========== EVENT LISTENERS ========== */
+
+// Input scenarios
+document.querySelectorAll('#scenarioBar button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('#scenarioBar button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    inputData=makeInput(btn.dataset.input);
+    resetConvolution();
+  });
+});
+
+// Kernel presets
+document.querySelectorAll('#kernelBar button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('#kernelBar button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const k=btn.dataset.kernel;
+    if(k==='custom'){
+      document.getElementById('customKernelWrap').style.display='block';
+      // populate custom grid with current kernel
+      for(let i=0;i<9;i++) document.getElementById('ck'+i).value=kernelRaw[i];
+    } else {
+      document.getElementById('customKernelWrap').style.display='none';
+      setKernel(k);
+      renderAll();renderFormula();
+    }
+  });
+});
+
+// 应用 custom kernel
+document.getElementById('apply自定义').addEventListener('click',()=>{
+  const vals=[];
+  for(let i=0;i<9;i++){
+    let v=parseFloat(document.getElementById('ck'+i).value);
+    if(isNaN(v))v=0;
+    vals.push(v);
+  }
+  set自定义Kernel(vals);
+  renderAll();renderFormula();
+});
+
+// 步进
+document.getElementById('btn步进').addEventListener('click',()=>{
+  stop播放();
+  step();
+});
+
+// 播放 / Pause
+document.getElementById('btn播放').addEventListener('click',()=>{
+  if(playing) stop播放(); else start播放();
+});
+
+// 重置
+document.getElementById('btn重置').addEventListener('click',()=>{
+  resetConvolution();
+});
+
+// 填充
+document.getElementById('padSlider').addEventListener('input',e=>{
+  padding=parseInt(e.target.value);
+  document.getElementById('padVal').textContent=padding;
+  resetConvolution();
+});
+
+// 步长
+document.getElementById('strideSelect').addEventListener('change',e=>{
+  stride=parseInt(e.target.value);
+  resetConvolution();
+});
+
+// 速度 (no reset needed, just affects next tick)
+
+/* ========== KEYBOARD SHORTCUTS ========== */
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
+  if(e.key===' '||e.key==='ArrowRight'){e.preventDefault();step()}
+  if(e.key==='p'){e.preventDefault();playing?stop播放():start播放()}
+  if(e.key==='r'){e.preventDefault();resetConvolution()}
+});
+
+/* ========== GO ========== */
+init();
+
+});
+</script>
+
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

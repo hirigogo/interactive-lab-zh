@@ -1,0 +1,646 @@
+{
+ "slug": "seq2seq-bottleneck",
+ "units": {
+  "Feeling the Seq2Seq bottleneck": {
+   "zh": "亲身体会 Seq2Seq 瓶颈",
+   "src": "Feeling the Seq2Seq bottleneck",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Long sentences break short context vectors. Build a 1-vector encoder yourself, test it on sentences of growing length, and see precisely when information starts falling out &mdash; the failure that made attention inevitable.": {
+   "zh": "长句会压垮短上下文向量。亲手搭建一个单向量编码器，用长度不断增长的句子测试它，精确地看到信息从何时开始流失——正是这一失败使注意力机制成为必然。",
+   "src": "Long sentences break short context vectors. Build a 1-vector encoder yourself, test it on sentences of growing length, and see precisely when information starts falling out &mdash; the failure that made attention inevitable.",
+   "tags": []
+  },
+  "@@T0@@~10 min@@T1@@\n          @@T2@@Deep Learning · Seq2Seq · Attention motivation@@T3@@": {
+   "zh": "@@T0@@约 10 分钟@@T1@@\n          @@T2@@深度学习 · Seq2Seq · 注意力机制的动机@@T3@@",
+   "src": "<span>~10 min</span>\n          <span>Deep Learning · Seq2Seq · Attention motivation</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "The suitcase problem": {
+   "zh": "行李箱问题",
+   "src": "The suitcase problem",
+   "tags": []
+  },
+  "Imagine you're going on a one-week holiday and the airline restricts you to a single 7 kg carry-on. You can just manage. Now imagine the same suitcase for a @@T0@@six-month expedition@@T1@@. The suitcase hasn't changed — your needs have. Everything that doesn't fit has to be left behind.": {
+   "zh": "设想你要去度一周假，航空公司限你只能带一件 7 千克的随身行李。你勉强应付得来。现在再设想用同一个行李箱去应付@@T0@@为期六个月的探险@@T1@@。行李箱没变——变的是你的需求。所有装不下的东西都只能留在原地。",
+   "src": "Imagine you're going on a one-week holiday and the airline restricts you to a single 7 kg carry-on. You can just manage. Now imagine the same suitcase for a <em>six-month expedition</em>. The suitcase hasn't changed — your needs have. Everything that doesn't fit has to be left behind.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The 2014 Seq2Seq model (Sutskever, Vinyals, Le) built a neural translator by packing the entire source sentence into a single fixed-size @@T0@@context vector@@T1@@ — call it 512 floats. Short sentences packed fine. Long sentences overflowed. This page lets you run that compression live and watch translation quality crater as sentence length grows.": {
+   "zh": "2014 年的 Seq2Seq 模型（Sutskever、Vinyals、Le）构建了一个神经翻译器，把整个源句打包进单个固定大小的@@T0@@上下文向量@@T1@@——不妨设其为 512 个浮点数。短句打包得很好，长句则会溢出。本页让你实时运行这一压缩过程，观察翻译质量如何随句子长度增长而崩塌。",
+   "src": "The 2014 Seq2Seq model (Sutskever, Vinyals, Le) built a neural translator by packing the entire source sentence into a single fixed-size <strong>context vector</strong> — call it 512 floats. Short sentences packed fine. Long sentences overflowed. This page lets you run that compression live and watch translation quality crater as sentence length grows.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@By the end of this page@@T1@@, you will have watched the context vector struggle, measured the BLEU drop, and understood exactly why Bahdanau et al. added attention a year later.": {
+   "zh": "@@T0@@读完本页时@@T1@@，你将会看到上下文向量如何挣扎，测量到 BLEU 的下降，并彻底明白为何 Bahdanau 等人一年之后加入了注意力机制。",
+   "src": "<strong>By the end of this page</strong>, you will have watched the context vector struggle, measured the BLEU drop, and understood exactly why Bahdanau et al. added attention a year later.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "Pick a sentence pair": {
+   "zh": "选择一对句子",
+   "src": "Pick a sentence pair",
+   "tags": []
+  },
+  "Three example translation tasks. Each has a short, medium, and long variant. Pick a scenario to begin.": {
+   "zh": "三个示例翻译任务。每个任务都有短、中、长三种变体。选择一个场景开始。",
+   "src": "Three example translation tasks. Each has a short, medium, and long variant. Pick a scenario to begin.",
+   "tags": []
+  },
+  "News sentence": {
+   "zh": "新闻句子",
+   "src": "News sentence",
+   "tags": []
+  },
+  "Short story": {
+   "zh": "短篇故事",
+   "src": "Short story",
+   "tags": []
+  },
+  "Academic prose": {
+   "zh": "学术文体",
+   "src": "Academic prose",
+   "tags": []
+  },
+  "Source length:": {
+   "zh": "源句长度：",
+   "src": "Source length:",
+   "tags": []
+  },
+  "@@T0@@Source tokens@@T1@@\n              @@T2@@–@@T3@@": {
+   "zh": "@@T0@@源词元数@@T1@@\n              @@T2@@–@@T3@@",
+   "src": "<span class=\"stat-label\">Source tokens</span>\n              <span class=\"stat-value\" id=\"src-tokens\">–</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"src-tokens\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Bits of info (approx.)@@T1@@\n              @@T2@@–@@T3@@": {
+   "zh": "@@T0@@信息量（比特，约）@@T1@@\n              @@T2@@–@@T3@@",
+   "src": "<span class=\"stat-label\">Bits of info (approx.)</span>\n              <span class=\"stat-value\" id=\"src-bits\">–</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"src-bits\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Pause.@@T1@@ A 12-word sentence has roughly 120 bits of entropy (≈10 bits per word). A 512-dim float vector can in principle encode ~16000 bits. So for short sentences, there's *plenty* of room. The trouble starts at ~50 words.": {
+   "zh": "@@T0@@先停一下。@@T1@@ 一个 12 词的句子约有 120 比特的熵（≈每词 10 比特）。一个 512 维浮点向量原则上可编码约 16000 比特。因此对短句而言，空间*绰绰有余*。麻烦从约 50 词处开始。",
+   "src": "<strong>Pause.</strong> A 12-word sentence has roughly 120 bits of entropy (≈10 bits per word). A 512-dim float vector can in principle encode ~16000 bits. So for short sentences, there's *plenty* of room. The trouble starts at ~50 words.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Compress into a context vector": {
+   "zh": "压缩进一个上下文向量",
+   "src": "Compress into a context vector",
+   "tags": []
+  },
+  "Now simulate the encoder. Each token is read sequentially; the hidden state is a 2D sketch of the full @@T0@@d@@T1@@-dim context. Slide the context dim to see how much room the encoder has.": {
+   "zh": "现在来模拟编码器。每个词元被顺序读取；隐藏状态是完整的 @@T0@@d@@T1@@ 维上下文的一个二维示意。拖动上下文维度，看看编码器有多少空间。",
+   "src": "Now simulate the encoder. Each token is read sequentially; the hidden state is a 2D sketch of the full <code>d</code>-dim context. Slide the context dim to see how much room the encoder has.",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Context dim d:": {
+   "zh": "上下文维度 d：",
+   "src": "Context dim d:",
+   "tags": []
+  },
+  "@@T0@@Context capacity@@T1@@\n              @@T2@@–@@T3@@": {
+   "zh": "@@T0@@上下文容量@@T1@@\n              @@T2@@–@@T3@@",
+   "src": "<span class=\"stat-label\">Context capacity</span>\n              <span class=\"stat-value\" id=\"ctx-cap\">–</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"ctx-cap\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Sentence entropy@@T1@@\n              @@T2@@–@@T3@@": {
+   "zh": "@@T0@@句子熵@@T1@@\n              @@T2@@–@@T3@@",
+   "src": "<span class=\"stat-label\">Sentence entropy</span>\n              <span class=\"stat-value\" id=\"sent-ent\">–</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"sent-ent\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Compression loss@@T1@@\n              @@T2@@–@@T3@@": {
+   "zh": "@@T0@@压缩损失@@T1@@\n              @@T2@@–@@T3@@",
+   "src": "<span class=\"stat-label\">Compression loss</span>\n              <span class=\"stat-value\" id=\"comp-loss\">–</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"comp-loss\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Read the picture.@@T1@@ Each encoder step compresses more source info into the same-size vector. Early tokens fade as later ones overwrite the representation. Sutskever's team observed exactly this and fixed it partly by @@T2@@reversing@@T3@@ the source (so early tokens are written last, closer to where the decoder reads).": {
+   "zh": "@@T0@@解读这幅图。@@T1@@ 编码器的每一步都把更多源信息压入同样大小的向量。早先的词元会逐渐褪去，因为后来的词元覆盖了该表示。Sutskever 的团队正是观察到了这一点，并通过@@T2@@反转@@T3@@源句部分解决了它（使早先的词元最后被写入，从而更靠近解码器读取之处）。",
+   "src": "<strong>Read the picture.</strong> Each encoder step compresses more source info into the same-size vector. Early tokens fade as later ones overwrite the representation. Sutskever's team observed exactly this and fixed it partly by <em>reversing</em> the source (so early tokens are written last, closer to where the decoder reads).",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Translation quality vs source length": {
+   "zh": "翻译质量与源句长度的关系",
+   "src": "Translation quality vs source length",
+   "tags": []
+  },
+  "The 2014 paper (Sutskever et al.) reported BLEU by source-sentence length. Here is their result, reproduced interactively: BLEU falls off a cliff past ~30 tokens.": {
+   "zh": "2014 年的论文（Sutskever 等人）按源句长度报告了 BLEU。以下是他们的结果以交互方式重现：BLEU 在超过约 30 个词元后急剧跌落。",
+   "src": "The 2014 paper (Sutskever et al.) reported BLEU by source-sentence length. Here is their result, reproduced interactively: BLEU falls off a cliff past ~30 tokens.",
+   "tags": []
+  },
+  "@@T0@@@@T1@@@@T2@@Seq2Seq (no attention)@@T3@@\n            @@T4@@@@T5@@@@T6@@Seq2Seq (reversed source)@@T7@@\n            @@T8@@@@T9@@@@T10@@Bahdanau attention (2015)@@T11@@": {
+   "zh": "@@T0@@@@T1@@@@T2@@Seq2Seq（无注意力）@@T3@@\n            @@T4@@@@T5@@@@T6@@Seq2Seq（反转源句）@@T7@@\n            @@T8@@@@T9@@@@T10@@Bahdanau 注意力（2015）@@T11@@",
+   "src": "<span><span class=\"swatch\" style=\"background:#d9622b\"></span>Seq2Seq (no attention)</span>\n            <span><span class=\"swatch\" style=\"background:#7b9e89\"></span>Seq2Seq (reversed source)</span>\n            <span><span class=\"swatch\" style=\"background:#4a6670\"></span>Bahdanau attention (2015)</span>",
+   "tags": [
+    "<span>",
+    "<span class=\"swatch\" style=\"background:#d9622b\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"swatch\" style=\"background:#7b9e89\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"swatch\" style=\"background:#4a6670\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@The story.@@T1@@ Reversing the source bought them 4-5 BLEU points — not because it fixed the bottleneck, but because it shifted *where* the leakage happens (last-read = closest-to-decoder). Attention replaced the fixed vector with a *flexible lookup* and leaped past both curves.": {
+   "zh": "@@T0@@故事。@@T1@@ 反转源句为他们换来了 4-5 个 BLEU 点——并非因为它修复了瓶颈，而是因为它改变了信息流失*发生的位置*（最后读取者 = 最靠近解码器者）。注意力用一个*灵活的查表*取代了固定向量，一举跃过了两条曲线。",
+   "src": "<strong>The story.</strong> Reversing the source bought them 4-5 BLEU points — not because it fixed the bottleneck, but because it shifted *where* the leakage happens (last-read = closest-to-decoder). Attention replaced the fixed vector with a *flexible lookup* and leaped past both curves.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "What information gets dropped first?": {
+   "zh": "哪些信息最先被丢弃？",
+   "src": "What information gets dropped first?",
+   "tags": []
+  },
+  "Here's a concrete example. Feed a sentence through the compressor, then ask it to recall specific parts. Watch which parts the decoder can still recover.": {
+   "zh": "这里有一个具体的例子。把一个句子送入压缩器，然后要求它回忆特定的部分。观察解码器还能恢复哪些部分。",
+   "src": "Here's a concrete example. Feed a sentence through the compressor, then ask it to recall specific parts. Watch which parts the decoder can still recover.",
+   "tags": []
+  },
+  "Which token to recall:": {
+   "zh": "回忆哪个词元：",
+   "src": "Which token to recall:",
+   "tags": []
+  },
+  "@@T0@@Position@@T1@@\n              @@T2@@–@@T3@@": {
+   "zh": "@@T0@@位置@@T1@@\n              @@T2@@–@@T3@@",
+   "src": "<span class=\"stat-label\">Position</span>\n              <span class=\"stat-value\" id=\"pos-val\">–</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"pos-val\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Recall accuracy@@T1@@\n              @@T2@@–@@T3@@": {
+   "zh": "@@T0@@回忆准确率@@T1@@\n              @@T2@@–@@T3@@",
+   "src": "<span class=\"stat-label\">Recall accuracy</span>\n              <span class=\"stat-value\" id=\"recall-acc\">–</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"recall-acc\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Pattern.@@T1@@ Middle tokens are lost first — they sit between the start (faded out) and end (most recent). This U-shape is why beam-search translations famously get \"the middle\" wrong for long sentences in pre-attention models.": {
+   "zh": "@@T0@@模式。@@T1@@ 中间的词元最先丢失——它们夹在开头（已褪去）与结尾（最新）之间。这一 U 形曲线正是为何在注意力之前的模型里，束搜索的翻译在长句上以弄错“中间部分”而著称。",
+   "src": "<strong>Pattern.</strong> Middle tokens are lost first — they sit between the start (faded out) and end (most recent). This U-shape is why beam-search translations famously get \"the middle\" wrong for long sentences in pre-attention models.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Attention · remove the bottleneck": {
+   "zh": "注意力 · 移除瓶颈",
+   "src": "Attention · remove the bottleneck",
+   "tags": []
+  },
+  "Rather than cramming everything into one vector, attention gives the decoder @@T0@@access to every encoder hidden state@@T1@@. At each decoding step, it weights them by relevance and averages.": {
+   "zh": "注意力不是把所有内容硬塞进一个向量，而是让解码器@@T0@@访问编码器的每一个隐藏状态@@T1@@。在每个解码步，它按相关性为它们加权并求平均。",
+   "src": "Rather than cramming everything into one vector, attention gives the decoder <em>access to every encoder hidden state</em>. At each decoding step, it weights them by relevance and averages.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@@@T1@@@@T2@@attention weight α_t,i@@T3@@": {
+   "zh": "@@T0@@@@T1@@@@T2@@注意力权重 α_t,i@@T3@@",
+   "src": "<span><span class=\"swatch\" style=\"background:#d9622b\"></span>attention weight α_t,i</span>",
+   "tags": [
+    "<span>",
+    "<span class=\"swatch\" style=\"background:#d9622b\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Mechanism.@@T1@@ Each target step t builds its context by sampling from @@T2@@all@@T3@@ source states h_1…h_T with learned weights α_t,i. Long sentences don't hurt — every source token remains accessible. That's it: attention dissolves the bottleneck.": {
+   "zh": "@@T0@@机制。@@T1@@ 每个目标步 t 通过从@@T2@@所有@@T3@@源状态 h_1…h_T 中以学得的权重 α_t,i 采样来构建其上下文。长句不再有害——每个源词元都保持可访问。就是这样：注意力化解了瓶颈。",
+   "src": "<strong>Mechanism.</strong> Each target step t builds its context by sampling from <em>all</em> source states h_1…h_T with learned weights α_t,i. Long sentences don't hurt — every source token remains accessible. That's it: attention dissolves the bottleneck.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "c_t = Σ_i α_{t,i} · h_i &nbsp;&nbsp;&nbsp; where &nbsp;&nbsp; α_{t,i} = softmax(score(s_t, h_i))": {
+   "zh": "c_t = Σ_i α_{t,i} · h_i &nbsp;&nbsp;&nbsp; 其中 &nbsp;&nbsp; α_{t,i} = softmax(score(s_t, h_i))",
+   "src": "c_t = Σ_i α_{t,i} · h_i &nbsp;&nbsp;&nbsp; where &nbsp;&nbsp; α_{t,i} = softmax(score(s_t, h_i))",
+   "tags": []
+  },
+  "Misconceptions": {
+   "zh": "常见误解",
+   "src": "Misconceptions",
+   "tags": []
+  },
+  "Three common confusions": {
+   "zh": "三种常见的混淆",
+   "src": "Three common confusions",
+   "tags": []
+  },
+  "@@T0@@False@@T1@@": {
+   "zh": "@@T0@@不实@@T1@@",
+   "src": "<span class=\"misconception-icon\">False</span>",
+   "tags": [
+    "<span class=\"misconception-icon\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@\"Just make the vector bigger.\"@@T1@@@@T2@@A 2048-dim vector delays the problem but doesn't solve it. The bottleneck is @@T3@@structural@@T4@@: one vector carries information from every position. You always run out eventually.": {
+   "zh": "@@T0@@“把向量做大就行。”@@T1@@@@T2@@一个 2048 维的向量只是推迟问题，而非解决它。这个瓶颈是@@T3@@结构性的@@T4@@：一个向量要承载来自每一个位置的信息。你终究会耗尽空间。",
+   "src": "<strong>\"Just make the vector bigger.\"</strong><br />A 2048-dim vector delays the problem but doesn't solve it. The bottleneck is <em>structural</em>: one vector carries information from every position. You always run out eventually.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@\"Reversing source is a hack.\"@@T1@@@@T2@@It's a hack, but a pragmatic one that revealed which end of the sentence the bottleneck hurts most. The fix (attention) came directly from recognising this leak.": {
+   "zh": "@@T0@@“反转源句只是一种取巧。”@@T1@@@@T2@@它是取巧，但是一种务实的取巧，揭示了瓶颈对句子哪一端伤害最大。真正的修复方案（注意力）正是从认识到这一泄露而来。",
+   "src": "<strong>\"Reversing source is a hack.\"</strong><br />It's a hack, but a pragmatic one that revealed which end of the sentence the bottleneck hurts most. The fix (attention) came directly from recognising this leak.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@\"Modern LLMs still use encoder-decoder.\"@@T1@@@@T2@@Most 2026 LLMs are @@T3@@decoder-only@@T4@@ — they don't encode the source into a vector at all; the whole conversation is one long sequence. Encoder-decoder survives in translation-specific models like T5.": {
+   "zh": "@@T0@@“现代 LLM 仍在使用编码器-解码器。”@@T1@@@@T2@@2026 年的大多数 LLM 都是@@T3@@仅解码器@@T4@@结构——它们根本不把源内容编码成向量；整段对话就是一条长序列。编码器-解码器则保留在 T5 等翻译专用模型中。",
+   "src": "<strong>\"Modern LLMs still use encoder-decoder.\"</strong><br />Most 2026 LLMs are <em>decoder-only</em> — they don't encode the source into a vector at all; the whole conversation is one long sequence. Encoder-decoder survives in translation-specific models like T5.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Bonus": {
+   "zh": "附加内容",
+   "src": "Bonus",
+   "tags": []
+  },
+  "Three lenses on the same fix": {
+   "zh": "审视同一修复方法的三种视角",
+   "src": "Three lenses on the same fix",
+   "tags": []
+  },
+  "Model (year)": {
+   "zh": "模型（年份）",
+   "src": "Model (year)",
+   "tags": []
+  },
+  "What it added": {
+   "zh": "新增内容",
+   "src": "What it added",
+   "tags": []
+  },
+  "BLEU on 50-token sentences": {
+   "zh": "50 词元句子上的 BLEU",
+   "src": "BLEU on 50-token sentences",
+   "tags": []
+  },
+  "Seq2Seq (2014)": {
+   "zh": "Seq2Seq（2014）",
+   "src": "Seq2Seq (2014)",
+   "tags": []
+  },
+  "encoder+decoder LSTM, one context vector": {
+   "zh": "编码器 + 解码器 LSTM，单个上下文向量",
+   "src": "encoder+decoder LSTM, one context vector",
+   "tags": []
+  },
+  "Reversed Seq2Seq (2014)": {
+   "zh": "反转 Seq2Seq（2014）",
+   "src": "Reversed Seq2Seq (2014)",
+   "tags": []
+  },
+  "flip source · same architecture": {
+   "zh": "翻转源句 · 架构相同",
+   "src": "flip source · same architecture",
+   "tags": []
+  },
+  "Bahdanau attention (2015)": {
+   "zh": "Bahdanau 注意力（2015）",
+   "src": "Bahdanau attention (2015)",
+   "tags": []
+  },
+  "decoder attends to all encoder states": {
+   "zh": "解码器关注所有编码器状态",
+   "src": "decoder attends to all encoder states",
+   "tags": []
+  },
+  "Transformer (2017)": {
+   "zh": "Transformer（2017）",
+   "src": "Transformer (2017)",
+   "tags": []
+  },
+  "attention everywhere · no recurrence": {
+   "zh": "处处是注意力 · 无循环结构",
+   "src": "attention everywhere · no recurrence",
+   "tags": []
+  },
+  "@@T0@@Final takeaway.@@T1@@ The Seq2Seq bottleneck is the pedagogical motivation for attention. Every subsequent architecture is \"attention, but with different routing\" — cross-attention in Transformers, cross-attention in Stable Diffusion, cross-attention in LLaVA. Once you've felt where the bottleneck hurts, the fix is obvious.": {
+   "zh": "@@T0@@最后总结。@@T1@@ Seq2Seq 瓶颈是注意力机制在教学上的动机来源。此后每一种架构都是“注意力，只是路由方式不同”——Transformer 中的交叉注意力、Stable Diffusion 中的交叉注意力、LLaVA 中的交叉注意力。一旦你体会过瓶颈在何处作痛，修复方案便不言自明。",
+   "src": "<strong>Final takeaway.</strong> The Seq2Seq bottleneck is the pedagogical motivation for attention. Every subsequent architecture is \"attention, but with different routing\" — cross-attention in Transformers, cross-attention in Stable Diffusion, cross-attention in LLaVA. Once you've felt where the bottleneck hurts, the fix is obvious.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Reading": {
+   "zh": "延伸阅读",
+   "src": "Reading",
+   "tags": []
+  },
+  "The trail of papers from bottleneck to Transformer": {
+   "zh": "从瓶颈到 Transformer 的论文脉络",
+   "src": "The trail of papers from bottleneck to Transformer",
+   "tags": []
+  },
+  "@@T0@@Sutskever, Vinyals, Le (2014)@@T1@@ — @@T2@@Sequence to Sequence Learning with Neural Networks.@@T3@@ The original encoder-decoder.": {
+   "zh": "@@T0@@Sutskever, Vinyals, Le (2014)@@T1@@ — @@T2@@Sequence to Sequence Learning with Neural Networks.@@T3@@ 最初的编码器-解码器模型。",
+   "src": "<strong>Sutskever, Vinyals, Le (2014)</strong> — <em>Sequence to Sequence Learning with Neural Networks.</em> The original encoder-decoder.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Cho et&nbsp;al. (2014)@@T1@@ — @@T2@@Learning Phrase Representations using RNN Encoder–Decoder.@@T3@@ The GRU-based parallel paper.": {
+   "zh": "@@T0@@Cho 等人 (2014)@@T1@@ — @@T2@@Learning Phrase Representations using RNN Encoder–Decoder.@@T3@@ 基于 GRU 的同期论文。",
+   "src": "<strong>Cho et&nbsp;al. (2014)</strong> — <em>Learning Phrase Representations using RNN Encoder–Decoder.</em> The GRU-based parallel paper.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Bahdanau, Cho, Bengio (2015)@@T1@@ — @@T2@@Neural Machine Translation by Jointly Learning to Align and Translate.@@T3@@ The first attention paper — fixes the bottleneck by letting the decoder look back.": {
+   "zh": "@@T0@@Bahdanau, Cho, Bengio (2015)@@T1@@ — @@T2@@Neural Machine Translation by Jointly Learning to Align and Translate.@@T3@@ 第一篇注意力论文——通过让解码器回看修复了瓶颈。",
+   "src": "<strong>Bahdanau, Cho, Bengio (2015)</strong> — <em>Neural Machine Translation by Jointly Learning to Align and Translate.</em> The first attention paper — fixes the bottleneck by letting the decoder look back.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Luong, Pham, Manning (2015)@@T1@@ — @@T2@@Effective Approaches to Attention-based Neural Machine Translation.@@T3@@ Dot-product attention, the form most modern systems use.": {
+   "zh": "@@T0@@Luong, Pham, Manning (2015)@@T1@@ — @@T2@@Effective Approaches to Attention-based Neural Machine Translation.@@T3@@ 点积注意力，即大多数现代系统所采用的形式。",
+   "src": "<strong>Luong, Pham, Manning (2015)</strong> — <em>Effective Approaches to Attention-based Neural Machine Translation.</em> Dot-product attention, the form most modern systems use.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Vaswani et&nbsp;al. (2017)@@T1@@ — @@T2@@Attention Is All You Need.@@T3@@ The Transformer — drops recurrence entirely.": {
+   "zh": "@@T0@@Vaswani 等人 (2017)@@T1@@ — @@T2@@Attention Is All You Need.@@T3@@ Transformer——彻底放弃了循环结构。",
+   "src": "<strong>Vaswani et&nbsp;al. (2017)</strong> — <em>Attention Is All You Need.</em> The Transformer — drops recurrence entirely.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Choose scenario": {
+   "zh": "选择场景",
+   "src": "Choose scenario",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "Seq2Seq 瓶颈",
+  "tagline": "观察翻译质量如何随源句变长而崩塌",
+  "summary": "Seq2Seq 把每一个源词元压缩进单个上下文向量，再由它生成目标句。输入一个源句、滑动其长度，观察上下文向量的“信息密度”如何下降。这正是使注意力机制（一年之后）成为必然的失败模式。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "输入一个源句；观察它被逐词元编码进固定大小的上下文。",
+   "延长源句——观察固定上下文的“饱和度”如何上升。",
+   "切换上下文维度（64 / 256 / 512），观察质量拐点的位置。",
+   "阅读 2014 年的性能曲线——在朴素 Seq2Seq 上，超过 30 个词元后 BLEU 下降约 30%。",
+   "预告：注意力让解码器可以窥视所有编码器状态，从而彻底绕开瓶颈。"
+  ],
+  "tags": [
+   "Seq2Seq",
+   "注意力机制的动机",
+   "RNN",
+   "NMT",
+   "交互式"
+  ]
+ },
+ "js": {
+  "sentence entropy ≈ [[[0]]] bits": {
+   "zh": "句子熵 ≈ [[[0]]] 比特",
+   "exprs": [
+    "${entropy}"
+   ],
+   "tags": [],
+   "src": "sentence entropy ≈ ${entropy} bits"
+  },
+  "context capacity ≈ [[[0]]] bits": {
+   "zh": "上下文容量 ≈ [[[0]]] 比特",
+   "exprs": [
+    "${Math.round(capacity)}"
+   ],
+   "tags": [],
+   "src": "context capacity ≈ ${Math.round(capacity)} bits"
+  },
+  "The minister announced new tariffs today.": {
+   "zh": "部长今日宣布了新的关税。",
+   "exprs": [],
+   "tags": [],
+   "src": "The minister announced new tariffs today."
+  },
+  "The minister announced new tariffs today, citing rising imports and the need to protect domestic industry during the coming fiscal year.": {
+   "zh": "部长今日宣布了新的关税，理由是国内进口不断攀升，且需要在即将到来的财年中保护本国产业。",
+   "exprs": [],
+   "tags": [],
+   "src": "The minister announced new tariffs today, citing rising imports and the need to protect domestic industry during the coming fiscal year."
+  },
+  "The minister announced new tariffs today, citing rising imports and the need to protect domestic industry during the coming fiscal year, though critics immediately pointed out that similar measures introduced five years ago under a different administration had failed to produce the promised results, and economists warned of retaliation from trading partners that could ultimately harm exporters.": {
+   "zh": "部长今日宣布了新的关税，理由是国内进口不断攀升，且需要在即将到来的财年中保护本国产业；不过批评者立刻指出，五年前由另一届政府推出的类似措施并未产生承诺的效果，经济学家也警告贸易伙伴可能采取报复，最终反而会伤害出口商。",
+   "exprs": [],
+   "tags": [],
+   "src": "The minister announced new tariffs today, citing rising imports and the need to protect domestic industry during the coming fiscal year, though critics immediately pointed out that similar measures introduced five years ago under a different administration had failed to produce the promised results, and economists warned of retaliation from trading partners that could ultimately harm exporters."
+  },
+  "She walked into the forest at dawn.": {
+   "zh": "她在黎明时分走进森林。",
+   "exprs": [],
+   "tags": [],
+   "src": "She walked into the forest at dawn."
+  },
+  "She walked into the forest at dawn, her boots crunching the frost and her breath clouding in the cold air as she followed the narrow trail upward.": {
+   "zh": "她在黎明时分走进森林，靴子踩碎霜层发出咯吱声，呼出的白气在冷空气中弥漫，她沿着狭窄的小径向上走去。",
+   "exprs": [],
+   "tags": [],
+   "src": "She walked into the forest at dawn, her boots crunching the frost and her breath clouding in the cold air as she followed the narrow trail upward."
+  },
+  "She walked into the forest at dawn, her boots crunching the frost and her breath clouding in the cold air as she followed the narrow trail upward, past the lightning-scarred oak where she had played as a child, toward the ridge where, if the old maps could be trusted, a hidden spring had fed the village for centuries before the road was built.": {
+   "zh": "她在黎明时分走进森林，靴子踩碎霜层发出咯吱声，呼出的白气在冷空气中弥漫，她沿着狭窄的小径向上走去，经过那棵留有雷击疤痕的橡树——她小时候曾在那里玩耍——朝着山脊走去；倘若那些旧地图可信，在公路修成之前，一处隐秘的泉水曾滋养了村庄数百年之久。",
+   "exprs": [],
+   "tags": [],
+   "src": "She walked into the forest at dawn, her boots crunching the frost and her breath clouding in the cold air as she followed the narrow trail upward, past the lightning-scarred oak where she had played as a child, toward the ridge where, if the old maps could be trusted, a hidden spring had fed the village for centuries before the road was built."
+  },
+  "We evaluate the model on three benchmarks.": {
+   "zh": "我们在三个基准上评估该模型。",
+   "exprs": [],
+   "tags": [],
+   "src": "We evaluate the model on three benchmarks."
+  },
+  "We evaluate the model on three benchmarks spanning classification, regression, and structured prediction, using standard train/validation splits and reporting results averaged over five random seeds.": {
+   "zh": "我们在覆盖分类、回归与结构化预测的三个基准上评估该模型，使用标准的训练/验证划分，并报告在五个随机种子上取平均的结果。",
+   "exprs": [],
+   "tags": [],
+   "src": "We evaluate the model on three benchmarks spanning classification, regression, and structured prediction, using standard train/validation splits and reporting results averaged over five random seeds."
+  },
+  "Source Serif 4, serif": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": "Source Serif 4, serif"
+  },
+  "encoder steps →": {
+   "zh": "编码器步数 →",
+   "exprs": [],
+   "tags": [],
+   "src": "encoder steps →"
+  },
+  "context vector": {
+   "zh": "上下文向量",
+   "exprs": [],
+   "tags": [],
+   "src": "context vector"
+  },
+  "bottleneck region": {
+   "zh": "瓶颈区域",
+   "exprs": [],
+   "tags": [],
+   "src": "bottleneck region"
+  },
+  "U-shaped recall · middle tokens lost first": {
+   "zh": "U 形回忆曲线 · 中间词元最先丢失",
+   "exprs": [],
+   "tags": [],
+   "src": "U-shaped recall · middle tokens lost first"
+  },
+  "source ·": {
+   "zh": "源句 ·",
+   "exprs": [],
+   "tags": [],
+   "src": "source ·"
+  },
+  "target ↓": {
+   "zh": "目标 ↓",
+   "exprs": [],
+   "tags": [],
+   "src": "target ↓"
+  }
+ }
+}

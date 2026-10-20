@@ -1,0 +1,1024 @@
+{
+ "slug": "vlm",
+ "units": {
+  "Vision-Language Models, End to End": {
+   "zh": "视觉语言模型：端到端全流程",
+   "src": "Vision-Language Models, End to End",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Modern VLMs are three boxes glued together (vision encoder,\n          projector, language model) and four training stages\n          (contrastive, image-grounded LM, instruction tuning,\n          preference alignment). A live mini-CLIP makes the\n          contrastive stage concrete, and we close with the\n          calibration trap real VLMs fall into on thermal images.": {
+   "zh": "现代 VLM 由三个彼此衔接的模块构成（视觉编码器、投影器、语言模型），并经历四个训练阶段（对比学习、图像奠基的语言建模、指令微调、偏好对齐）。一个实时运行的 mini-CLIP 使对比学习阶段具象可感；最后我们讨论真实 VLM 在热成像数据上陷入的定标陷阱。",
+   "src": "Modern VLMs are three boxes glued together (vision encoder,\n          projector, language model) and four training stages\n          (contrastive, image-grounded LM, instruction tuning,\n          preference alignment). A live mini-CLIP makes the\n          contrastive stage concrete, and we close with the\n          calibration trap real VLMs fall into on thermal images.",
+   "tags": []
+  },
+  "@@T0@@~22 min@@T1@@\n          @@T2@@Multimodal &middot; CLIP &middot; Instruction Tuning@@T3@@": {
+   "zh": "@@T0@@约 22 分钟@@T1@@\n          @@T2@@多模态 &middot; CLIP &middot; 指令微调@@T3@@",
+   "src": "<span>~22 min</span>\n          <span>Multimodal &middot; CLIP &middot; Instruction Tuning</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "The architecture in three boxes": {
+   "zh": "架构概览：三个模块",
+   "src": "The architecture in three boxes",
+   "tags": []
+  },
+  "Every modern VLM &mdash; LLaVA, Qwen-VL, Pixtral, GPT-4o,\n          Claude 3.5 with vision &mdash; is the same shape:": {
+   "zh": "每一个现代 VLM &mdash;&mdash; LLaVA、Qwen-VL、Pixtral、GPT-4o、具备视觉能力的 Claude 3.5 &mdash;&mdash; 都具有相同的形态：",
+   "src": "Every modern VLM &mdash; LLaVA, Qwen-VL, Pixtral, GPT-4o,\n          Claude 3.5 with vision &mdash; is the same shape:",
+   "tags": []
+  },
+  "@@T0@@Vision encoder.@@T1@@ Usually a CLIP- or\n            DINOv2-pretrained ViT. Takes an image, outputs a\n            sequence of patch embeddings (e.g. 256 tokens of 1024-d\n            for a 224×224 image at patch 14).": {
+   "zh": "@@T0@@视觉编码器。@@T1@@ 通常为经 CLIP 或 DINOv2 预训练的 ViT。输入一幅图像，输出一串 patch 嵌入（例如对 224×224 的图像、patch 尺寸为 14 时，得到 256 个 1024 维的词元）。",
+   "src": "<strong>Vision encoder.</strong> Usually a CLIP- or\n            DINOv2-pretrained ViT. Takes an image, outputs a\n            sequence of patch embeddings (e.g. 256 tokens of 1024-d\n            for a 224×224 image at patch 14).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Projector.@@T1@@ A small MLP (sometimes a\n            cross-attention) that maps the vision embeddings into\n            the LLM's hidden dimension and (often) reduces the token\n            count via pooling or Q-Former-style learned queries.": {
+   "zh": "@@T0@@投影器。@@T1@@ 一个规模较小的 MLP（有时为交叉注意力模块），将视觉嵌入映射到 LLM 的隐藏维度，并（通常）通过池化或 Q-Former 式的学习式查询来减少词元数量。",
+   "src": "<strong>Projector.</strong> A small MLP (sometimes a\n            cross-attention) that maps the vision embeddings into\n            the LLM's hidden dimension and (often) reduces the token\n            count via pooling or Q-Former-style learned queries.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Language model.@@T1@@ A pretrained decoder\n            LLM (Llama, Qwen, Mistral, GPT-OSS). Receives projected\n            image tokens prepended to the text token stream and\n            generates an output autoregressively.": {
+   "zh": "@@T0@@语言模型。@@T1@@ 一个预训练的 decoder 式 LLM（Llama、Qwen、Mistral、GPT-OSS）。它接收拼接在文本词元流之前的投影后图像词元，并以自回归方式生成输出。",
+   "src": "<strong>Language model.</strong> A pretrained decoder\n            LLM (Llama, Qwen, Mistral, GPT-OSS). Receives projected\n            image tokens prepended to the text token stream and\n            generates an output autoregressively.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The modern VLM stack. Frozen vs trained parts vary by training stage — see Step 2.": {
+   "zh": "现代 VLM 整体结构。冻结与训练的部分随训练阶段而变 &mdash;&mdash; 参见第 2 步。",
+   "src": "The modern VLM stack. Frozen vs trained parts vary by training stage — see Step 2.",
+   "tags": []
+  },
+  "@@T0@@The slogan.@@T1@@\n          A VLM is a language model that has been taught to read an\n          extra \"language\" &mdash; the language of patch embeddings.\n          Most of the magic is in the encoder; most of the\n          intelligence is in the LLM; the projector is a 60M-parameter\n          translator between them.": {
+   "zh": "@@T0@@一句话概括。@@T1@@\n          所谓 VLM，就是一个被教会了阅读另一种「语言」&mdash;&mdash; patch 嵌入的语言 &mdash;&mdash; 的语言模型。神奇之处主要在编码器，智能之处主要在 LLM，而投影器则是位于二者之间、拥有 6000 万参数的翻译器。",
+   "src": "<strong>The slogan.</strong>\n          A VLM is a language model that has been taught to read an\n          extra \"language\" &mdash; the language of patch embeddings.\n          Most of the magic is in the encoder; most of the\n          intelligence is in the LLM; the projector is a 60M-parameter\n          translator between them.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "Stage 1 — Contrastive image-text alignment (CLIP)": {
+   "zh": "阶段 1 &mdash;&mdash; 对比式图文对齐（CLIP）",
+   "src": "Stage 1 — Contrastive image-text alignment (CLIP)",
+   "tags": []
+  },
+  "Before a VLM can be assembled, the vision encoder usually\n          needs to be aligned with text. The standard recipe is\n          contrastive: train an image encoder $f_I$ and a text\n          encoder $f_T$ so that matched (image, caption) pairs are\n          near in cosine similarity, and unmatched pairs are far.": {
+   "zh": "在组装 VLM 之前，视觉编码器通常需要与文本对齐。标准做法是对比学习：训练图像编码器 $f_I$ 与文本编码器 $f_T$，使相匹配的（图像，描述）对在余弦相似度上彼此接近，而不相匹配的对彼此远离。",
+   "src": "Before a VLM can be assembled, the vision encoder usually\n          needs to be aligned with text. The standard recipe is\n          contrastive: train an image encoder $f_I$ and a text\n          encoder $f_T$ so that matched (image, caption) pairs are\n          near in cosine similarity, and unmatched pairs are far.",
+   "tags": []
+  },
+  "$\\tau$ is a learnable temperature. The loss is symmetric\n          (image-to-text + text-to-image cross-entropy, then averaged).\n          With 400M+ image-text pairs scraped from the web, this\n          learns a remarkably general visual vocabulary &mdash; CLIP\n          can zero-shot classify ImageNet at 76% top-1 without ever\n          seeing a labelled ImageNet image during training.": {
+   "zh": "$\\tau$ 是可学习的温度参数。该损失是对称的（图像到文本与文本到图像两个方向的交叉熵，再取平均）。在从网络抓取的 4 亿以上图文对上进行训练，可学得一套极为通用的视觉词汇 &mdash;&mdash; CLIP 无需在训练中见过任何带标签的 ImageNet 图像，即可在 ImageNet 上取得 76% top-1 的零样本分类精度。",
+   "src": "$\\tau$ is a learnable temperature. The loss is symmetric\n          (image-to-text + text-to-image cross-entropy, then averaged).\n          With 400M+ image-text pairs scraped from the web, this\n          learns a remarkably general visual vocabulary &mdash; CLIP\n          can zero-shot classify ImageNet at 76% top-1 without ever\n          seeing a labelled ImageNet image during training.",
+   "tags": []
+  },
+  "A mini-CLIP, live": {
+   "zh": "实时运行的 mini-CLIP",
+   "src": "A mini-CLIP, live",
+   "tags": []
+  },
+  "Below: 4 toy \"image\" types (coloured shapes) and 4 textual\n          \"captions\". A tiny image encoder and tiny text encoder\n          trained jointly with the InfoNCE loss. The 4×4 similarity\n          matrix should pull the diagonal (matched pairs) to high\n          values and push the off-diagonal entries low.": {
+   "zh": "下图给出 4 类玩具「图像」（彩色形状）与 4 条文本「描述」。一个微型图像编码器与一个微型文本编码器以 InfoNCE 损失联合训练。4×4 的相似度矩阵应将对角线元素（相匹配的对）拉向高值，并将非对角线元素压低。",
+   "src": "Below: 4 toy \"image\" types (coloured shapes) and 4 textual\n          \"captions\". A tiny image encoder and tiny text encoder\n          trained jointly with the InfoNCE loss. The 4×4 similarity\n          matrix should pull the diagonal (matched pairs) to high\n          values and push the off-diagonal entries low.",
+   "tags": []
+  },
+  "Start training": {
+   "zh": "开始训练",
+   "src": "Start training",
+   "tags": []
+  },
+  "Reinitialise": {
+   "zh": "重新初始化",
+   "src": "Reinitialise",
+   "tags": []
+  },
+  "temperature τ &nbsp;@@T0@@0.25@@T1@@": {
+   "zh": "温度 τ &nbsp;@@T0@@0.25@@T1@@",
+   "src": "temperature τ &nbsp;<span id=\"clip-tau-val\">0.25</span>",
+   "tags": [
+    "<span id=\"clip-tau-val\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@step @@T1@@0@@T2@@@@T3@@\n          @@T4@@contrastive loss @@T5@@—@@T6@@@@T7@@": {
+   "zh": "@@T0@@步数 @@T1@@0@@T2@@@@T3@@\n          @@T4@@对比损失 @@T5@@—@@T6@@@@T7@@",
+   "src": "<span class=\"train-stat\">step <strong id=\"clip-step\">0</strong></span>\n          <span class=\"train-stat\">contrastive loss <strong id=\"clip-loss\">—</strong></span>",
+   "tags": [
+    "<span class=\"train-stat\">",
+    "<strong id=\"clip-step\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"clip-loss\">",
+    "</strong>",
+    "</span>"
+   ]
+  },
+  "Toy data: 4 image types × 4 captions": {
+   "zh": "玩具数据：4 类图像 × 4 条描述",
+   "src": "Toy data: 4 image types × 4 captions",
+   "tags": []
+  },
+  "Cosine similarity matrix (image × text)": {
+   "zh": "余弦相似度矩阵（图像 × 文本）",
+   "src": "Cosine similarity matrix (image × text)",
+   "tags": []
+  },
+  "Loss curve": {
+   "zh": "损失曲线",
+   "src": "Loss curve",
+   "tags": []
+  },
+  "@@T0@@What to watch for.@@T1@@\n          Within ~50 steps the diagonal of the similarity matrix\n          should start to glow brighter than the off-diagonal. Drop\n          τ very low (e.g. 0.05) and training becomes unstable\n          (gradients explode); push τ very high (e.g. 1) and the\n          loss never separates pairs (saturates near $\\log K$).\n          Real CLIP uses a learnable τ initialised at $0.07$.": {
+   "zh": "@@T0@@观察要点。@@T1@@\n          在大约 50 步之内，相似度矩阵的对角线应开始比非对角线更亮。将 τ 调得极低（例如 0.05），训练会变得不稳定（梯度爆炸）；将 τ 调得极高（例如 1），损失则永远无法区分各对（在 $\\log K$ 附近饱和）。真实 CLIP 使用的可学习 τ 初始化为 $0.07$。",
+   "src": "<strong>What to watch for.</strong>\n          Within ~50 steps the diagonal of the similarity matrix\n          should start to glow brighter than the off-diagonal. Drop\n          τ very low (e.g. 0.05) and training becomes unstable\n          (gradients explode); push τ very high (e.g. 1) and the\n          loss never separates pairs (saturates near $\\log K$).\n          Real CLIP uses a learnable τ initialised at $0.07$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 1 ½": {
+   "zh": "第 1½ 步",
+   "src": "Step 1 ½",
+   "tags": []
+  },
+  "The image-language interface — projector designs": {
+   "zh": "图像与语言的接口 &mdash;&mdash; 投影器的设计方案",
+   "src": "The image-language interface — projector designs",
+   "tags": []
+  },
+  "Once the vision encoder is aligned, every patch becomes a\n          ~1024-dim feature vector. A 224×224 image at patch 14 has 256\n          such tokens; the LLM might want them in 4096-dim hidden space\n          and may not want all 256. The projector is the small network\n          between the encoder and the LLM that does both jobs. Four\n          designs dominate practice:": {
+   "zh": "一旦视觉编码器完成对齐，每个 patch 都成为约 1024 维的特征向量。对 224×224 的图像、patch 尺寸为 14 时，共得到 256 个这样的词元；而 LLM 可能希望它们处于 4096 维的隐藏空间中，且未必需要全部 256 个。投影器正是位于编码器与 LLM 之间、同时完成这两项任务的小型网络。实践中主流设计有四类：",
+   "src": "Once the vision encoder is aligned, every patch becomes a\n          ~1024-dim feature vector. A 224×224 image at patch 14 has 256\n          such tokens; the LLM might want them in 4096-dim hidden space\n          and may not want all 256. The projector is the small network\n          between the encoder and the LLM that does both jobs. Four\n          designs dominate practice:",
+   "tags": []
+  },
+  "@@T0@@Linear / 2-layer MLP (LLaVA-1.0, LLaVA-1.5).@@T1@@\n            Token-for-token: each patch embedding maps to one image token\n            in LLM space. Cheapest, surprisingly strong, but image-token\n            count = patch count which dominates context length at high\n            resolution.": {
+   "zh": "@@T0@@线性层 / 2 层 MLP（LLaVA-1.0、LLaVA-1.5）。@@T1@@\n            词元一一对应：每个 patch 嵌入映射为 LLM 空间中的一个图像词元。成本最低，效果却出奇地强；但图像词元数等于 patch 数，在高分辨率下会成为上下文长度的主要负担。",
+   "src": "<strong>Linear / 2-layer MLP (LLaVA-1.0, LLaVA-1.5).</strong>\n            Token-for-token: each patch embedding maps to one image token\n            in LLM space. Cheapest, surprisingly strong, but image-token\n            count = patch count which dominates context length at high\n            resolution.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Perceiver resampler / Q-Former (Flamingo, BLIP-2).@@T1@@\n            $K$ learned query tokens cross-attend to the patch features;\n            output is exactly $K$ image tokens regardless of image\n            resolution. Compute and context savings: ~32 query tokens\n            instead of 576. Cost: a separately trained module.": {
+   "zh": "@@T0@@Perceiver 重采样器 / Q-Former（Flamingo、BLIP-2）。@@T1@@\n            $K$ 个学习式查询词元对 patch 特征做交叉注意力；无论图像分辨率如何，输出恰好为 $K$ 个图像词元。可节省计算与上下文：约 32 个查询词元即可替代 576 个 patch 词元。代价是需要单独训练一个模块。",
+   "src": "<strong>Perceiver resampler / Q-Former (Flamingo, BLIP-2).</strong>\n            $K$ learned query tokens cross-attend to the patch features;\n            output is exactly $K$ image tokens regardless of image\n            resolution. Compute and context savings: ~32 query tokens\n            instead of 576. Cost: a separately trained module.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Cross-attention into the LLM (Flamingo, IDEFICS).@@T1@@\n            Insert dedicated cross-attention layers @@T2@@inside@@T3@@ the\n            LLM that attend to image tokens. The LLM \"sees\" the image\n            without spending self-attention budget on it.": {
+   "zh": "@@T0@@在 LLM 内部使用交叉注意力（Flamingo、IDEFICS）。@@T1@@\n            在 LLM @@T2@@内部@@T3@@ 插入专门的交叉注意力层，用于关注图像词元。如此，LLM「看见」图像，却无需为它消耗自注意力的预算。",
+   "src": "<strong>Cross-attention into the LLM (Flamingo, IDEFICS).</strong>\n            Insert dedicated cross-attention layers <em>inside</em> the\n            LLM that attend to image tokens. The LLM \"sees\" the image\n            without spending self-attention budget on it.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Token packing + AnyRes / dynamic tiling\n            (LLaVA-NeXT, Qwen-VL-2.5, GPT-4o, Pixtral).@@T1@@\n            High-resolution images are split into tiles; each tile is a\n            sub-image; tile features are concatenated. Lets the model\n            see a 1344×1344 image without a 1344-pixel-aware encoder.": {
+   "zh": "@@T0@@词元打包 + AnyRes / 动态分块\n            （LLaVA-NeXT、Qwen-VL-2.5、GPT-4o、Pixtral）。@@T1@@\n            将高分辨率图像切分为若干瓦片，每个瓦片是一幅子图像，其瓦片特征被拼接起来。如此，模型无需具备 1344 像素感知能力的编码器，也能处理 1344×1344 的图像。",
+   "src": "<strong>Token packing + AnyRes / dynamic tiling\n            (LLaVA-NeXT, Qwen-VL-2.5, GPT-4o, Pixtral).</strong>\n            High-resolution images are split into tiles; each tile is a\n            sub-image; tile features are concatenated. Lets the model\n            see a 1344×1344 image without a 1344-pixel-aware encoder.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The choice has measurable consequences:": {
+   "zh": "这一选择会带来可度量的后果：",
+   "src": "The choice has measurable consequences:",
+   "tags": []
+  },
+  "Design": {
+   "zh": "设计方案",
+   "src": "Design",
+   "tags": []
+  },
+  "Image tokens": {
+   "zh": "图像词元数",
+   "src": "Image tokens",
+   "tags": []
+  },
+  "Trainable params": {
+   "zh": "可训练参数量",
+   "src": "Trainable params",
+   "tags": []
+  },
+  "Strengths": {
+   "zh": "优势",
+   "src": "Strengths",
+   "tags": []
+  },
+  "Trade-offs": {
+   "zh": "权衡",
+   "src": "Trade-offs",
+   "tags": []
+  },
+  "@@T0@@Linear / MLP@@T1@@": {
+   "zh": "@@T0@@线性层 / MLP@@T1@@",
+   "src": "<strong>Linear / MLP</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "= patch count (256–576)": {
+   "zh": "= patch 数（256–576）",
+   "src": "= patch count (256–576)",
+   "tags": []
+  },
+  "Simplest; preserves spatial info": {
+   "zh": "最简单；保留空间信息",
+   "src": "Simplest; preserves spatial info",
+   "tags": []
+  },
+  "Long context bill": {
+   "zh": "上下文开销大",
+   "src": "Long context bill",
+   "tags": []
+  },
+  "@@T0@@Q-Former / Resampler@@T1@@": {
+   "zh": "@@T0@@Q-Former / 重采样器@@T1@@",
+   "src": "<strong>Q-Former / Resampler</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "32–64 (fixed)": {
+   "zh": "32–64（固定）",
+   "src": "32–64 (fixed)",
+   "tags": []
+  },
+  "Constant cost; trains in a separate stage": {
+   "zh": "开销恒定；需在单独阶段训练",
+   "src": "Constant cost; trains in a separate stage",
+   "tags": []
+  },
+  "Lossy compression; needs its own pretrain": {
+   "zh": "有损压缩；需要自行预训练",
+   "src": "Lossy compression; needs its own pretrain",
+   "tags": []
+  },
+  "@@T0@@Cross-attention@@T1@@": {
+   "zh": "@@T0@@交叉注意力@@T1@@",
+   "src": "<strong>Cross-attention</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "handled in-LLM": {
+   "zh": "在 LLM 内部处理",
+   "src": "handled in-LLM",
+   "tags": []
+  },
+  "Richest interaction; LLM sees full token set": {
+   "zh": "交互最丰富；LLM 可见完整词元集合",
+   "src": "Richest interaction; LLM sees full token set",
+   "tags": []
+  },
+  "Need to modify LLM; expensive train": {
+   "zh": "需修改 LLM；训练代价高",
+   "src": "Need to modify LLM; expensive train",
+   "tags": []
+  },
+  "@@T0@@Tile packing (AnyRes)@@T1@@": {
+   "zh": "@@T0@@瓦片打包（AnyRes）@@T1@@",
+   "src": "<strong>Tile packing (AnyRes)</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "k × tile-tokens": {
+   "zh": "k × 每瓦片词元数",
+   "src": "k × tile-tokens",
+   "tags": []
+  },
+  "High-res; OCR; charts": {
+   "zh": "高分辨率；OCR；图表",
+   "src": "High-res; OCR; charts",
+   "tags": []
+  },
+  "Large context; positional encoding tricks": {
+   "zh": "上下文庞大；需要位置编码技巧",
+   "src": "Large context; positional encoding tricks",
+   "tags": []
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Stage 2 — Image-grounded language pretraining": {
+   "zh": "阶段 2 &mdash;&mdash; 图像奠基的语言预训练",
+   "src": "Stage 2 — Image-grounded language pretraining",
+   "tags": []
+  },
+  "With the encoder aligned, you bolt on the language model.\n          The projector is randomly initialised; the encoder and LLM\n          are loaded pretrained.": {
+   "zh": "在编码器完成对齐之后，便可接入语言模型。投影器随机初始化；编码器与 LLM 则加载预训练权重。",
+   "src": "With the encoder aligned, you bolt on the language model.\n          The projector is randomly initialised; the encoder and LLM\n          are loaded pretrained.",
+   "tags": []
+  },
+  "Training data: image-caption pairs. Loss: standard next-token\n          cross-entropy on the caption, with image tokens as a prefix\n          context. @@T0@@Encoder and LLM are frozen@@T1@@; only\n          the projector trains. This is cheap (60M params), runs on a\n          handful of GPUs, and produces a model that can describe an\n          image but can't follow much instruction.": {
+   "zh": "训练数据为图文对。损失为描述文本上的标准下一词元交叉熵，并将图像词元作为前缀上下文。@@T0@@编码器与 LLM 均被冻结@@T1@@，仅训练投影器。此阶段成本低廉（6000 万参数），在少量 GPU 上即可运行，所得到的模型能够描述图像，但几乎无法遵循指令。",
+   "src": "Training data: image-caption pairs. Loss: standard next-token\n          cross-entropy on the caption, with image tokens as a prefix\n          context. <strong>Encoder and LLM are frozen</strong>; only\n          the projector trains. This is cheap (60M params), runs on a\n          handful of GPUs, and produces a model that can describe an\n          image but can't follow much instruction.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Why freeze the LLM here.@@T1@@\n          The projector starts random; if you let gradients flow into\n          the LLM at this stage, the LLM's existing language\n          competence collapses (catastrophic forgetting). Stage 2\n          gets the projector into the LLM's hidden-state distribution\n          first.": {
+   "zh": "@@T0@@为何在此处冻结 LLM。@@T1@@\n          投影器初始为随机状态；若在此阶段让梯度流入 LLM，LLM 已有的语言能力会崩溃（灾难性遗忘）。阶段 2 的作用是先将投影器纳入 LLM 的隐藏状态分布之中。",
+   "src": "<strong>Why freeze the LLM here.</strong>\n          The projector starts random; if you let gradients flow into\n          the LLM at this stage, the LLM's existing language\n          competence collapses (catastrophic forgetting). Stage 2\n          gets the projector into the LLM's hidden-state distribution\n          first.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Stage 3 — Instruction tuning": {
+   "zh": "阶段 3 &mdash;&mdash; 指令微调",
+   "src": "Stage 3 — Instruction tuning",
+   "tags": []
+  },
+  "Now the model can describe images but can't answer questions\n          about them or follow instructions. Stage 3 fixes that with a\n          curated dataset of triples\n          $(\\text{image}, \\text{instruction}, \\text{response})$.\n          Examples: \"Count the people in this photo.\" \"What's the\n          temperature reading on this thermometer?\" \"Write Python\n          that plots the chart in this image.\"": {
+   "zh": "此时模型已能描述图像，却无法就图像回答问题或遵循指令。阶段 3 通过一份精心构建的三元组数据集\n          $(\\text{image}, \\text{instruction}, \\text{response})$ 来解决这一问题。\n          例如：「数出这张照片中的人数。」「这支温度计上的读数是多少？」「编写 Python 代码，绘制出该图像中的图表。」",
+   "src": "Now the model can describe images but can't answer questions\n          about them or follow instructions. Stage 3 fixes that with a\n          curated dataset of triples\n          $(\\text{image}, \\text{instruction}, \\text{response})$.\n          Examples: \"Count the people in this photo.\" \"What's the\n          temperature reading on this thermometer?\" \"Write Python\n          that plots the chart in this image.\"",
+   "tags": []
+  },
+  "Loss: cross-entropy on the response tokens only (the image\n          and instruction tokens are masked out). The projector\n          continues to train; the LLM is now @@T0@@also@@T1@@ trained,\n          but with a low learning rate (LoRA on top of the LLM is\n          the most common implementation).": {
+   "zh": "损失仅计算响应词元上的交叉熵（图像词元与指令词元被掩蔽）。投影器继续训练；LLM 此时@@T0@@也@@T1@@开始训练，\n          但学习率较低（最常见的实现方式是在 LLM 上叠加 LoRA）。",
+   "src": "Loss: cross-entropy on the response tokens only (the image\n          and instruction tokens are masked out). The projector\n          continues to train; the LLM is now <em>also</em> trained,\n          but with a low learning rate (LoRA on top of the LLM is\n          the most common implementation).",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@What changes with scale.@@T1@@\n          Frontier VLMs (Gemini, GPT-4o, Claude) bake stages 1-3\n          together at trillion-token scale, with the encoder, projector\n          and LLM all trained jointly from early in training. The\n          frozen-stage recipe above is the academic-budget LLaVA\n          flavour; it's still the right starting point for any\n          domain-specific VLM you'd build in a lab.": {
+   "zh": "@@T0@@规模带来的变化。@@T1@@\n          前沿 VLM（Gemini、GPT-4o、Claude）在万亿词元的规模上将阶段 1-3 融合在一起，编码器、投影器与 LLM 自训练早期即联合训练。上文所述的冻结式流程是学术预算下的 LLaVA 风格做法；对于实验室中构建的任何领域专用 VLM，它仍然是恰当的起点。",
+   "src": "<strong>What changes with scale.</strong>\n          Frontier VLMs (Gemini, GPT-4o, Claude) bake stages 1-3\n          together at trillion-token scale, with the encoder, projector\n          and LLM all trained jointly from early in training. The\n          frozen-stage recipe above is the academic-budget LLaVA\n          flavour; it's still the right starting point for any\n          domain-specific VLM you'd build in a lab.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Stage 4 — Preference alignment (RLHF / DPO)": {
+   "zh": "阶段 4 &mdash;&mdash; 偏好对齐（RLHF / DPO）",
+   "src": "Stage 4 — Preference alignment (RLHF / DPO)",
+   "tags": []
+  },
+  "The instruction-tuned model still says wrong things, hedges,\n          or refuses unhelpfully. Stage 4 collects preference pairs\n          (human, or from a stronger model) of \"this answer is better\n          than that one\" and aligns the model to those preferences.": {
+   "zh": "经指令微调的模型仍会给出错误内容、含糊其辞，或做出无益的拒绝。阶段 4 收集「这个回答优于那个回答」的偏好对（来自人工或更强的模型），使模型与这些偏好对齐。",
+   "src": "The instruction-tuned model still says wrong things, hedges,\n          or refuses unhelpfully. Stage 4 collects preference pairs\n          (human, or from a stronger model) of \"this answer is better\n          than that one\" and aligns the model to those preferences.",
+   "tags": []
+  },
+  "@@T0@@RLHF.@@T1@@ Train a reward model on preference\n            pairs; fine-tune the VLM with PPO maximising the reward\n            minus a KL penalty back to the SFT model.": {
+   "zh": "@@T0@@RLHF。@@T1@@ 在偏好对上训练奖励模型；再用 PPO 微调 VLM，最大化奖励并减去相对 SFT 模型的 KL 惩罚。",
+   "src": "<strong>RLHF.</strong> Train a reward model on preference\n            pairs; fine-tune the VLM with PPO maximising the reward\n            minus a KL penalty back to the SFT model.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@DPO (Direct Preference Optimization).@@T1@@\n            A closed-form alternative that skips the reward model:\n            optimise the implicit reward directly. Cheaper, often\n            comparable.": {
+   "zh": "@@T0@@DPO（直接偏好优化）。@@T1@@\n            一种跳过奖励模型的闭式替代方案：直接优化隐式奖励。成本更低，效果往往相当。",
+   "src": "<strong>DPO (Direct Preference Optimization).</strong>\n            A closed-form alternative that skips the reward model:\n            optimise the implicit reward directly. Cheaper, often\n            comparable.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@RLAIF.@@T1@@ Use a stronger model as the\n            preference labeller. Now the dominant recipe for\n            mid-sized open VLMs.": {
+   "zh": "@@T0@@RLAIF。@@T1@@ 使用更强的模型作为偏好标注者。这已成为中等规模开源 VLM 的主流做法。",
+   "src": "<strong>RLAIF.</strong> Use a stronger model as the\n            preference labeller. Now the dominant recipe for\n            mid-sized open VLMs.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 4 ½": {
+   "zh": "第 4½ 步",
+   "src": "Step 4 ½",
+   "tags": []
+  },
+  "Fine-tuning a VLM — recipes that actually work": {
+   "zh": "微调 VLM &mdash;&mdash; 真正可行的方案",
+   "src": "Fine-tuning a VLM — recipes that actually work",
+   "tags": []
+  },
+  "Most labs don't @@T0@@train@@T1@@ a VLM; they fine-tune one. The\n          options form a ladder of cost vs flexibility:": {
+   "zh": "多数实验室并不从头 @@T0@@训练@@T1@@ 一个 VLM，而是对现有模型进行微调。各选项构成一个成本与灵活性的阶梯：",
+   "src": "Most labs don't <em>train</em> a VLM; they fine-tune one. The\n          options form a ladder of cost vs flexibility:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Prompt engineering only.@@T1@@ Free; works for\n            zero-shot tasks the base model already covers.": {
+   "zh": "@@T0@@仅做提示工程。@@T1@@ 无需成本；对基座模型已具备能力的零样本任务有效。",
+   "src": "<strong>Prompt engineering only.</strong> Free; works for\n            zero-shot tasks the base model already covers.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Retrieval-augmented (RAG).@@T1@@ Add a vector\n            database of domain images / captions; retrieve and prepend\n            at inference. No training; helps with tail knowledge.": {
+   "zh": "@@T0@@检索增强（RAG）。@@T1@@ 增加一个领域图像/描述的向量数据库；在推理时检索并前置拼接。无需训练；有助于长尾知识。",
+   "src": "<strong>Retrieval-augmented (RAG).</strong> Add a vector\n            database of domain images / captions; retrieve and prepend\n            at inference. No training; helps with tail knowledge.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@LoRA on the LLM (the default).@@T1@@ Adapt\n            $r$-rank low-rank deltas on the LLM's attention and MLP\n            weights. ~1% of LLM parameters; fits on a single GPU.\n            Common targets: $\\{\\,W_q, W_v\\,\\}$ at minimum;\n            $\\{\\,W_q, W_k, W_v, W_o, W_{up}, W_{down}, W_{gate}\\,\\}$\n            for stronger adaptation.": {
+   "zh": "@@T0@@在 LLM 上使用 LoRA（默认选择）。@@T1@@ 在 LLM 的注意力与 MLP 权重上添加 $r$ 阶低秩增量。约占 LLM 参数的 1%；单卡 GPU 即可容纳。\n            常见目标模块：至少为 $\\{\\,W_q, W_v\\,\\}$；\n            若需更强的适配，则为 $\\{\\,W_q, W_k, W_v, W_o, W_{up}, W_{down}, W_{gate}\\,\\}$。",
+   "src": "<strong>LoRA on the LLM (the default).</strong> Adapt\n            $r$-rank low-rank deltas on the LLM's attention and MLP\n            weights. ~1% of LLM parameters; fits on a single GPU.\n            Common targets: $\\{\\,W_q, W_v\\,\\}$ at minimum;\n            $\\{\\,W_q, W_k, W_v, W_o, W_{up}, W_{down}, W_{gate}\\,\\}$\n            for stronger adaptation.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Full fine-tune of projector + LLM (LoRA-free).@@T1@@\n            Best quality, multi-GPU. Needed when the domain shift is\n            large (medical images, satellites, thermal).": {
+   "zh": "@@T0@@对投影器 + LLM 做全量微调（不使用 LoRA）。@@T1@@\n            质量最佳，需多卡 GPU。当领域偏移较大时（医学影像、卫星图像、热成像）必须采用。",
+   "src": "<strong>Full fine-tune of projector + LLM (LoRA-free).</strong>\n            Best quality, multi-GPU. Needed when the domain shift is\n            large (medical images, satellites, thermal).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Full encoder + projector + LLM.@@T1@@ Required\n            when the modality is fundamentally new (depth, audio,\n            point clouds). Cost: ~500-2000 GPU-hours on $\\le$1B-param\n            base.": {
+   "zh": "@@T0@@全量编码器 + 投影器 + LLM。@@T1@@ 当模态是全新的（深度、音频、点云）时需要如此。\n            成本：在 $\\le$10 亿参数的基座上约需 500-2000 GPU 小时。",
+   "src": "<strong>Full encoder + projector + LLM.</strong> Required\n            when the modality is fundamentally new (depth, audio,\n            point clouds). Cost: ~500-2000 GPU-hours on $\\le$1B-param\n            base.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Practical recipe (single-GPU lab fine-tune)": {
+   "zh": "实用方案（单卡 GPU 实验室微调）",
+   "src": "Practical recipe (single-GPU lab fine-tune)",
+   "tags": []
+  },
+  "@@T0@@Backbone.@@T1@@ Llama-3.2-Vision-11B or\n            Qwen-VL-7B as the frozen-encoder base. Both ship\n            instruction-tuned weights.": {
+   "zh": "@@T0@@主干模型。@@T1@@ 以 Llama-3.2-Vision-11B 或 Qwen-VL-7B 作为冻结编码器的基座。二者均随附指令微调后的权重。",
+   "src": "<strong>Backbone.</strong> Llama-3.2-Vision-11B or\n            Qwen-VL-7B as the frozen-encoder base. Both ship\n            instruction-tuned weights.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Adapter.@@T1@@ LoRA rank $r = 16$ on\n            $\\{W_q, W_k, W_v, W_o\\}$ in every layer; $\\alpha = 32$;\n            dropout $0.05$.": {
+   "zh": "@@T0@@适配器。@@T1@@ 在每一层的 $\\{W_q, W_k, W_v, W_o\\}$ 上使用 LoRA 秩 $r = 16$；$\\alpha = 32$；\n            dropout 为 $0.05$。",
+   "src": "<strong>Adapter.</strong> LoRA rank $r = 16$ on\n            $\\{W_q, W_k, W_v, W_o\\}$ in every layer; $\\alpha = 32$;\n            dropout $0.05$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Data.@@T1@@ 5–50k domain image-instruction-answer\n            triples. Synthesise instructions with a stronger VLM if\n            you have only image-label pairs. Mix in 5–10% of the\n            base instruction data to prevent catastrophic forgetting.": {
+   "zh": "@@T0@@数据。@@T1@@ 5 万至 5 万条领域图像-指令-回答三元组。若你只有图像-标签对，可用更强的 VLM 合成指令。\n            混入 5–10% 的基础指令数据以防止灾难性遗忘。",
+   "src": "<strong>Data.</strong> 5–50k domain image-instruction-answer\n            triples. Synthesise instructions with a stronger VLM if\n            you have only image-label pairs. Mix in 5–10% of the\n            base instruction data to prevent catastrophic forgetting.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Optimiser.@@T1@@ AdamW, learning rate $1{\\times}10^{-4}$\n            for LoRA params, $1{\\times}10^{-5}$ for the projector\n            (if unfrozen). Cosine schedule with 3% warmup, 1–3 epochs.": {
+   "zh": "@@T0@@优化器。@@T1@@ AdamW，LoRA 参数的学习率为 $1{\\times}10^{-4}$，投影器的学习率为 $1{\\times}10^{-5}$\n            （若未冻结）。采用余弦调度，预热占 3%，训练 1–3 个 epoch。",
+   "src": "<strong>Optimiser.</strong> AdamW, learning rate $1{\\times}10^{-4}$\n            for LoRA params, $1{\\times}10^{-5}$ for the projector\n            (if unfrozen). Cosine schedule with 3% warmup, 1–3 epochs.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Eval.@@T1@@ Held-out val with the same prompt\n            distribution; track exact-match, BLEU/Rouge for free-form,\n            and a held-out hallucination probe.": {
+   "zh": "@@T0@@评估。@@T1@@ 使用与训练相同提示分布的留出验证集；跟踪 exact-match、自由文本的 BLEU/Rouge，\n            以及一个留出的幻觉探测集。",
+   "src": "<strong>Eval.</strong> Held-out val with the same prompt\n            distribution; track exact-match, BLEU/Rouge for free-form,\n            and a held-out hallucination probe.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Bugs to watch.@@T1@@ Frozen image tokens\n            still consuming context budget; mismatched image\n            preprocessing between train and eval (the silent killer);\n            tokenizer template drift between base and your prompts.": {
+   "zh": "@@T0@@需警惕的缺陷。@@T1@@ 冻结的图像词元仍在消耗上下文预算；训练与评估之间的图像预处理不一致（隐形杀手）；\n            基座与你的提示之间的 tokenizer 模板漂移。",
+   "src": "<strong>Bugs to watch.</strong> Frozen image tokens\n            still consuming context budget; mismatched image\n            preprocessing between train and eval (the silent killer);\n            tokenizer template drift between base and your prompts.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 4 ¾": {
+   "zh": "第 4¾ 步",
+   "src": "Step 4 ¾",
+   "tags": []
+  },
+  "Evaluation — what each benchmark actually measures": {
+   "zh": "评估 &mdash;&mdash; 各基准实际衡量的内容",
+   "src": "Evaluation — what each benchmark actually measures",
+   "tags": []
+  },
+  "A trained VLM number means nothing without knowing the eval.\n          The 2024-2026 standards:": {
+   "zh": "若不明确评估方式，受过训练的 VLM 所报出的数值毫无意义。2024-2026 年的标准评测如下：",
+   "src": "A trained VLM number means nothing without knowing the eval.\n          The 2024-2026 standards:",
+   "tags": []
+  },
+  "Benchmark": {
+   "zh": "基准",
+   "src": "Benchmark",
+   "tags": []
+  },
+  "What it tests": {
+   "zh": "考察内容",
+   "src": "What it tests",
+   "tags": []
+  },
+  "Format": {
+   "zh": "格式",
+   "src": "Format",
+   "tags": []
+  },
+  "Watch out for": {
+   "zh": "注意事项",
+   "src": "Watch out for",
+   "tags": []
+  },
+  "@@T0@@VQAv2 / GQA / OK-VQA@@T1@@": {
+   "zh": "@@T0@@VQAv2 / GQA / OK-VQA@@T1@@（视觉问答）",
+   "src": "<strong>VQAv2 / GQA / OK-VQA</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Open-ended visual QA": {
+   "zh": "开放式视觉问答",
+   "src": "Open-ended visual QA",
+   "tags": []
+  },
+  "1-word / short phrase": {
+   "zh": "单词 / 短语",
+   "src": "1-word / short phrase",
+   "tags": []
+  },
+  "Templated prompts; saturated": {
+   "zh": "提示模板化；已饱和",
+   "src": "Templated prompts; saturated",
+   "tags": []
+  },
+  "@@T0@@MMBench / MMVet@@T1@@": {
+   "zh": "@@T0@@MMBench / MMVet@@T1@@（综合能力）",
+   "src": "<strong>MMBench / MMVet</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Broad capability suite": {
+   "zh": "综合能力评测集",
+   "src": "Broad capability suite",
+   "tags": []
+  },
+  "Multi-choice + free-form": {
+   "zh": "多选 + 自由文本",
+   "src": "Multi-choice + free-form",
+   "tags": []
+  },
+  "Eval is itself a (judge) LLM call": {
+   "zh": "评估本身即为一次（评判）LLM 调用",
+   "src": "Eval is itself a (judge) LLM call",
+   "tags": []
+  },
+  "@@T0@@MMMU@@T1@@": {
+   "zh": "@@T0@@MMMU@@T1@@（多学科推理）",
+   "src": "<strong>MMMU</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "College-level multi-discipline reasoning": {
+   "zh": "大学水平的多学科推理",
+   "src": "College-level multi-discipline reasoning",
+   "tags": []
+  },
+  "Multi-choice": {
+   "zh": "多选",
+   "src": "Multi-choice",
+   "tags": []
+  },
+  "Heavy on diagram/chart understanding": {
+   "zh": "侧重图表理解",
+   "src": "Heavy on diagram/chart understanding",
+   "tags": []
+  },
+  "@@T0@@POPE / HallusionBench@@T1@@": {
+   "zh": "@@T0@@POPE / HallusionBench@@T1@@（幻觉探测）",
+   "src": "<strong>POPE / HallusionBench</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Hallucination on objects + scenes": {
+   "zh": "物体与场景上的幻觉",
+   "src": "Hallucination on objects + scenes",
+   "tags": []
+  },
+  "Yes/no, free-form": {
+   "zh": "是/否，自由文本",
+   "src": "Yes/no, free-form",
+   "tags": []
+  },
+  "Polarity bias; need balanced \"no\" cases": {
+   "zh": "存在极性偏差；需要均衡的「否」样本",
+   "src": "Polarity bias; need balanced \"no\" cases",
+   "tags": []
+  },
+  "@@T0@@ChartQA / DocVQA@@T1@@": {
+   "zh": "@@T0@@ChartQA / DocVQA@@T1@@（图表与文档）",
+   "src": "<strong>ChartQA / DocVQA</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Charts and document understanding": {
+   "zh": "图表与文档理解",
+   "src": "Charts and document understanding",
+   "tags": []
+  },
+  "Numeric / extractive": {
+   "zh": "数值 / 抽取式",
+   "src": "Numeric / extractive",
+   "tags": []
+  },
+  "Reads OCR; high-res tile packing helps": {
+   "zh": "依赖 OCR 读取；高分辨率瓦片打包有助益",
+   "src": "Reads OCR; high-res tile packing helps",
+   "tags": []
+  },
+  "@@T0@@MathVista / MathVerse@@T1@@": {
+   "zh": "@@T0@@MathVista / MathVerse@@T1@@（视觉数学）",
+   "src": "<strong>MathVista / MathVerse</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Visual math": {
+   "zh": "视觉数学",
+   "src": "Visual math",
+   "tags": []
+  },
+  "Numeric": {
+   "zh": "数值",
+   "src": "Numeric",
+   "tags": []
+  },
+  "Calibration on numbers; tool-use wins": {
+   "zh": "数值上的定标；工具使用效果更佳",
+   "src": "Calibration on numbers; tool-use wins",
+   "tags": []
+  },
+  "@@T0@@MMMU-Pro / Reason-Bench@@T1@@": {
+   "zh": "@@T0@@MMMU-Pro / Reason-Bench@@T1@@（扰动鲁棒性）",
+   "src": "<strong>MMMU-Pro / Reason-Bench</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Reasoning under image perturbation": {
+   "zh": "图像扰动下的推理",
+   "src": "Reasoning under image perturbation",
+   "tags": []
+  },
+  "Robustness to crop / rotation / colour": {
+   "zh": "对裁剪 / 旋转 / 颜色变化的鲁棒性",
+   "src": "Robustness to crop / rotation / colour",
+   "tags": []
+  },
+  "@@T0@@RefCOCO / GroundedVQA@@T1@@": {
+   "zh": "@@T0@@RefCOCO / GroundedVQA@@T1@@（视觉定位）",
+   "src": "<strong>RefCOCO / GroundedVQA</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Visual grounding (output a box)": {
+   "zh": "视觉定位（输出边界框）",
+   "src": "Visual grounding (output a box)",
+   "tags": []
+  },
+  "Coordinates": {
+   "zh": "坐标",
+   "src": "Coordinates",
+   "tags": []
+  },
+  "Coordinate format varies wildly": {
+   "zh": "坐标格式差异极大",
+   "src": "Coordinate format varies wildly",
+   "tags": []
+  },
+  "@@T0@@BLINK / Video-MME@@T1@@": {
+   "zh": "@@T0@@BLINK / Video-MME@@T1@@（纯视觉与视频）",
+   "src": "<strong>BLINK / Video-MME</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Vision-only and video tasks": {
+   "zh": "纯视觉与视频任务",
+   "src": "Vision-only and video tasks",
+   "tags": []
+  },
+  "Video models inherit different biases": {
+   "zh": "视频模型继承不同的偏差",
+   "src": "Video models inherit different biases",
+   "tags": []
+  },
+  "Pick 2 broad benchmarks (MMBench + MMMU) and 1 hallucination\n          probe (POPE) as the lab's house metrics; report all three on\n          every checkpoint. The most common deception: \"we beat GPT-4 on\n          VQAv2\" — VQAv2 has been saturated since 2022 and almost\n          nothing publishes there anymore.": {
+   "zh": "选取 2 个综合性基准（MMBench + MMMU）与 1 个幻觉探测集（POPE）作为实验室的常规指标；在每个 checkpoint 上都报告这三项结果。最常见的误导是「我们在 VQAv2 上超过了 GPT-4」&mdash;&mdash; VQAv2 自 2022 年起已饱和，如今几乎无人再在该基准上报告结果。",
+   "src": "Pick 2 broad benchmarks (MMBench + MMMU) and 1 hallucination\n          probe (POPE) as the lab's house metrics; report all three on\n          every checkpoint. The most common deception: \"we beat GPT-4 on\n          VQAv2\" — VQAv2 has been saturated since 2022 and almost\n          nothing publishes there anymore.",
+   "tags": []
+  },
+  "Step 4 ⅞": {
+   "zh": "第 4⅞ 步",
+   "src": "Step 4 ⅞",
+   "tags": []
+  },
+  "Image-text retrieval — recall@K, live": {
+   "zh": "图文检索 &mdash;&mdash; 实时展示 recall@K",
+   "src": "Image-text retrieval — recall@K, live",
+   "tags": []
+  },
+  "The CLIP-aligned encoders also give you free retrieval: take a\n          text query, embed it, find the nearest image embeddings.\n          Recall@K is the fraction of test queries whose true image\n          appears in the top-K retrieved. Watch the live mini-CLIP from\n          Step 1 produce its own retrieval matrix.": {
+   "zh": "经 CLIP 对齐的编码器还附带免费的检索能力：取一条文本查询，将其嵌入，再找出最接近的图像嵌入。\n          Recall@K 指真实图像出现在检索结果前 K 位的测试查询所占比例。可观察到第 1 步中的实时 mini-CLIP 给出其自身的检索矩阵。",
+   "src": "The CLIP-aligned encoders also give you free retrieval: take a\n          text query, embed it, find the nearest image embeddings.\n          Recall@K is the fraction of test queries whose true image\n          appears in the top-K retrieved. Watch the live mini-CLIP from\n          Step 1 produce its own retrieval matrix.",
+   "tags": []
+  },
+  "Image → text retrieval rank list (live)": {
+   "zh": "图像 → 文本检索排序列表（实时）",
+   "src": "Image → text retrieval rank list (live)",
+   "tags": []
+  },
+  "Recall@K vs training step": {
+   "zh": "Recall@K 随训练步数的变化",
+   "src": "Recall@K vs training step",
+   "tags": []
+  },
+  "@@T0@@What good retrieval looks like.@@T1@@\n          With four toy categories, the CLIP demo should hit 100%\n          recall@1 within ~80 steps. Real CLIP at scale: ~75–80%\n          recall@1 on Flickr30k with the largest backbones. The drop\n          tells you most of the difficulty is just having more\n          distractors and longer-tailed concepts.": {
+   "zh": "@@T0@@良好检索的表现。@@T1@@\n          在四类玩具数据下，CLIP 演示应在约 80 步内达到 100% 的 recall@1。而规模化的真实 CLIP，在使用最大主干时于 Flickr30k 上的 recall@1 约为 75–80%。\n          这一差距说明，主要困难在于干扰项更多、概念分布更加长尾。",
+   "src": "<strong>What good retrieval looks like.</strong>\n          With four toy categories, the CLIP demo should hit 100%\n          recall@1 within ~80 steps. Real CLIP at scale: ~75–80%\n          recall@1 on Flickr30k with the largest backbones. The drop\n          tells you most of the difficulty is just having more\n          distractors and longer-tailed concepts.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "The thermal-image trap (and the tool-use fix)": {
+   "zh": "热成像陷阱（以及基于工具使用的解决方案）",
+   "src": "The thermal-image trap (and the tool-use fix)",
+   "tags": []
+  },
+  "Real VLMs fail spectacularly on thermal imagery. The reason\n          is calibration: a thermal sensor outputs raw temperature\n          per pixel, which is then mapped to a colour-map for human\n          viewing. Two thermal images that look identical to a VLM\n          (same false-colour palette) can correspond to wildly\n          different absolute temperatures &mdash; the VLM only sees\n          colours, not the metadata.": {
+   "zh": "真实 VLM 在热成像上会惊人地失败。原因在于定标：热传感器输出的每个像素都是原始温度值，随后被映射为供人眼观看的色彩映射。\n          两幅对 VLM 而言外观完全相同（伪彩色调色板相同）的热图像，其绝对温度可能相差悬殊 &mdash;&mdash; 因为 VLM 只看到颜色，看不到元数据。",
+   "src": "Real VLMs fail spectacularly on thermal imagery. The reason\n          is calibration: a thermal sensor outputs raw temperature\n          per pixel, which is then mapped to a colour-map for human\n          viewing. Two thermal images that look identical to a VLM\n          (same false-colour palette) can correspond to wildly\n          different absolute temperatures &mdash; the VLM only sees\n          colours, not the metadata.",
+   "tags": []
+  },
+  "The fix isn't a bigger VLM. It's a tool-use loop:": {
+   "zh": "解决之道并非更大的 VLM，而是一个工具使用回路：",
+   "src": "The fix isn't a bigger VLM. It's a tool-use loop:",
+   "tags": []
+  },
+  "VLM looks at the image.": {
+   "zh": "VLM 查看图像。",
+   "src": "VLM looks at the image.",
+   "tags": []
+  },
+  "VLM emits a tool call: \"give me the temperature at\n            pixel (i, j)\".": {
+   "zh": "VLM 发出一次工具调用：「请给出像素 (i, j) 处的温度。」",
+   "src": "VLM emits a tool call: \"give me the temperature at\n            pixel (i, j)\".",
+   "tags": []
+  },
+  "Tool reads the raw radiometric TIFF and returns a\n            number in Kelvin.": {
+   "zh": "工具读取原始辐射度 TIFF，并返回以开尔文为单位的数值。",
+   "src": "Tool reads the raw radiometric TIFF and returns a\n            number in Kelvin.",
+   "tags": []
+  },
+  "VLM reasons over @@T0@@numbers@@T1@@, not colours.": {
+   "zh": "VLM 基于@@T0@@数值@@T1@@进行推理，而非基于颜色。",
+   "src": "VLM reasons over <em>numbers</em>, not colours.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "This is exactly the line of research behind\n          @@T0@@tool-augmented thermal VLMs@@T1@@ and the thermal-VLM benchmarking benchmark\n          &mdash; concrete demonstration that the dominant VLMs (GPT-4,\n          Claude, Gemini) fail on tasks where a tool-augmented\n          smaller model succeeds. The lesson generalises: any\n          modality whose pixels-look-the-same-but-mean-different-things\n          (thermal, hyperspectral, depth, audio spectrograms) wants a\n          tool layer.": {
+   "zh": "这正是 @@T0@@工具增强的热成像 VLM@@T1@@ 以及热成像 VLM 基准评测背后的研究方向\n          &mdash;&mdash; 它具体地证明了：主流 VLM（GPT-4、Claude、Gemini）在那些工具增强的小模型可以成功的任务上反而失败。这一经验可推广：\n          任何「像素外观相同但含义不同」的模态（热成像、高光谱、深度、音频频谱图）都需要一个工具层。",
+   "src": "This is exactly the line of research behind\n          <strong>tool-augmented thermal VLMs</strong> and the thermal-VLM benchmarking benchmark\n          &mdash; concrete demonstration that the dominant VLMs (GPT-4,\n          Claude, Gemini) fail on tasks where a tool-augmented\n          smaller model succeeds. The lesson generalises: any\n          modality whose pixels-look-the-same-but-mean-different-things\n          (thermal, hyperspectral, depth, audio spectrograms) wants a\n          tool layer.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          A VLM is a language model that learned to read pixel\n          tokens. The training stack is well-understood; the open\n          problems are alignment, hallucination on numbers, and\n          modality-specific calibration. For work, the\n          modality-specific calibration is where most of the research\n          payoff lives.": {
+   "zh": "@@T0@@最终要点。@@T1@@\n          VLM 是一个学会了阅读像素词元的语言模型。其训练流程已被充分理解；尚待解决的问题是对齐、数值上的幻觉，以及模态特有的定标。\n          在实践中，模态特有的定标正是大部分研究回报之所在。",
+   "src": "<strong>Final takeaway.</strong>\n          A VLM is a language model that learned to read pixel\n          tokens. The training stack is well-understood; the open\n          problems are alignment, hallucination on numbers, and\n          modality-specific calibration. For work, the\n          modality-specific calibration is where most of the research\n          payoff lives.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "视觉语言模型：端到端全流程",
+  "tagline": "从 CLIP 式对齐到指令微调 &mdash;&mdash; 完整的 VLM 训练流程，附带实时 mini-CLIP 演示",
+  "summary": "现代 VLM 是如何构建的（视觉编码器 + 投影器 + 语言模型），以及使其达成的四个训练阶段：对比式图文对齐、图像奠基的语言预训练、指令微调与偏好对齐。一个 mini-CLIP 在你的浏览器中实时运行，使对比学习部分具象可感；最后我们讨论热成像评估背后的工具使用思路，以及真实 VLM 在热成像数据上陷入的定标陷阱。",
+  "difficulty": "中级",
+  "collection": "多模态",
+  "highlights": [
+   "现代 VLM 整体结构示意图（视觉编码器 → 投影器 → LLM），并标注示例组件。",
+   "完整讲解四个训练阶段，说明各阶段的变化（数据、损失、冻结与训练的部分）。",
+   "实时 mini-CLIP：在浏览器中于 4 类玩具数据上训练微型图像与文本编码器；相似度矩阵逐步更新。",
+   "工具使用陷阱：为何 VLM 在热成像颜色 → 温度的定标上失败，以及工具调用式的解法如何修正它。"
+  ],
+  "tags": [
+   "VLM",
+   "CLIP",
+   "多模态",
+   "指令微调",
+   "RLHF",
+   "交互式"
+  ]
+ },
+ "js": {
+  "red square": {
+   "zh": "红色正方形",
+   "exprs": [],
+   "tags": [],
+   "src": "red square"
+  },
+  "green disc": {
+   "zh": "绿色圆盘",
+   "exprs": [],
+   "tags": [],
+   "src": "green disc"
+  },
+  "blue triangle": {
+   "zh": "蓝色三角形",
+   "exprs": [],
+   "tags": [],
+   "src": "blue triangle"
+  },
+  "yellow pentagon": {
+   "zh": "黄色五边形",
+   "exprs": [],
+   "tags": [],
+   "src": "yellow pentagon"
+  },
+  "\"a red shape\"": {
+   "zh": "「一个红色形状」",
+   "exprs": [],
+   "tags": [],
+   "src": "\"a red shape\""
+  },
+  "\"a green dot\"": {
+   "zh": "「一个绿色圆点」",
+   "exprs": [],
+   "tags": [],
+   "src": "\"a green dot\""
+  },
+  "\"a blue triangle\"": {
+   "zh": "「一个蓝色三角形」",
+   "exprs": [],
+   "tags": [],
+   "src": "\"a blue triangle\""
+  },
+  "\"a yellow pentagon\"": {
+   "zh": "「一个黄色五边形」",
+   "exprs": [],
+   "tags": [],
+   "src": "\"a yellow pentagon\""
+  },
+  "image     →     caption": {
+   "zh": "图像     →     描述",
+   "exprs": [],
+   "tags": [],
+   "src": "image     →     caption"
+  },
+  "Press Start training": {
+   "zh": "请点击「开始训练」",
+   "exprs": [],
+   "tags": [],
+   "src": "Press Start training"
+  },
+  "Vision encoder": {
+   "zh": "视觉编码器",
+   "exprs": [],
+   "tags": [],
+   "src": "Vision encoder"
+  },
+  "CLIP / DINOv2 ViT": {
+   "zh": "CLIP / DINOv2 ViT 主干",
+   "exprs": [],
+   "tags": [],
+   "src": "CLIP / DINOv2 ViT"
+  },
+  "patch tokens": {
+   "zh": "patch 词元",
+   "exprs": [],
+   "tags": [],
+   "src": "patch tokens"
+  },
+  "MLP / Q-Former": {
+   "zh": "MLP / Q-Former 投影器",
+   "exprs": [],
+   "tags": [],
+   "src": "MLP / Q-Former"
+  },
+  "image tokens": {
+   "zh": "图像词元",
+   "exprs": [],
+   "tags": [],
+   "src": "image tokens"
+  },
+  "Language model": {
+   "zh": "语言模型",
+   "exprs": [],
+   "tags": [],
+   "src": "Language model"
+  },
+  "Llama / Qwen / GPT": {
+   "zh": "Llama / Qwen / GPT 系 LLM",
+   "exprs": [],
+   "tags": [],
+   "src": "Llama / Qwen / GPT"
+  },
+  "+ instruction text tokens": {
+   "zh": "+ 指令文本词元",
+   "exprs": [],
+   "tags": [],
+   "src": "+ instruction text tokens"
+  },
+  "Start training": {
+   "zh": "开始训练",
+   "exprs": [],
+   "tags": [],
+   "src": "Start training"
+  }
+ }
+}

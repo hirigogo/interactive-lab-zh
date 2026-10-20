@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>引导机制使轨迹发生弯折</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+
+<style>
+:root {
+  --serif: 'Source Serif 4', Georgia, serif;
+  --sans: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+  --bg: #fdfcf9;
+  --paper: #ffffff;
+  --text: #2f2a22;
+  --muted: #6e665b;
+  --border: #e2d8c6;
+  --accent: #2c6fb7;
+  --warm: #d9622b;
+  --success: #1e7770;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; font-family: var(--serif); color: var(--text); background: var(--bg); line-height: 1.65; }
+
+.article { max-width: 980px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+.back-link { display: inline-block; margin-bottom: 1.5rem; color: var(--muted); text-decoration: none; font-family: var(--sans); font-size: 0.9rem; }
+.back-link:hover { color: var(--text); }
+.article-header { margin-bottom: 3rem; text-align: center; }
+.kicker { margin: 0 0 0.75rem; font-family: var(--sans); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); }
+h1 { margin: 0 auto 1rem; font-size: clamp(2.4rem, 5vw, 3.5rem); line-height: 1.1; letter-spacing: -0.02em; color: #1a1815; max-width: 20ch; }
+.abstract { margin: 0 auto 1rem; max-width: 62ch; font-size: 1.15rem; color: #4d463d; }
+.byline { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1.4rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-family: var(--sans); font-size: 0.92rem; }
+
+.step-section {
+  position: relative;
+  margin-top: 4rem;
+  padding: 3rem 2.5rem;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.03);
+}
+.step-badge {
+  position: absolute;
+  top: -16px;
+  left: 32px;
+  background: var(--accent);
+  color: white;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.4rem 1.2rem;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(44, 111, 183, 0.25);
+}
+h2 { margin: 0 0 1rem; font-size: clamp(1.6rem, 3.5vw, 2.2rem); line-height: 1.15; color: #1a1815; }
+h3 { margin-top: 2rem; margin-bottom: 0.8rem; font-size: 1.25rem; color: #1a1815; }
+p { max-width: 68ch; font-size: 1.1rem; }
+ul { max-width: 68ch; font-size: 1.1rem; padding-left: 1.4rem; }
+li { margin-bottom: 0.5rem; }
+.math-block { margin: 1.5rem 0; text-align: center; font-size: 1.05rem; overflow-x: auto; }
+
+.control-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.4rem;
+  margin: 1.6rem 0;
+}
+.control-block { display: flex; flex-direction: column; gap: 0.5rem; }
+.control-block label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.control-block label span { font-family: var(--mono); color: var(--warm); font-weight: 500; font-size: 0.95rem; }
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid var(--paper);
+  box-shadow: 0 2px 6px rgba(44,111,183,0.4);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid var(--paper);
+}
+
+.button-row { display: flex; gap: 0.6rem; flex-wrap: wrap; margin: 1rem 0; }
+.mode-button {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--paper);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.mode-button:hover { border-color: var(--accent); }
+.mode-button.is-active { background: var(--accent); color: white; border-color: var(--accent); }
+
+.class-toggle { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.class-toggle .mode-button { flex: 1 1 110px; }
+
+.interactive-figure { margin: 1.5rem 0; }
+.interactive-figure canvas {
+  display: block;
+  width: 100%;
+  background: #fbfaf6;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.interactive-figure figcaption { margin-top: 0.7rem; font-size: 0.92rem; color: var(--muted); text-align: center; font-style: italic; }
+
+.stat-strip { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0; }
+.stat-pill {
+  flex: 1 1 140px;
+  min-width: 140px;
+  background: var(--paper);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 0.9rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  text-align: left;
+}
+.stat-pill .stat-label { font-family: var(--sans); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+.stat-pill .stat-value { font-family: var(--mono); font-size: 1.5rem; font-weight: 600; color: var(--text); }
+.stat-pill--accent { border-color: var(--accent); }
+.stat-pill--accent .stat-value { color: var(--accent); }
+.stat-pill--warm { border-color: var(--warm); }
+.stat-pill--warm .stat-value { color: var(--warm); }
+.stat-pill--success { border-color: var(--success); }
+.stat-pill--success .stat-value { color: var(--success); }
+
+.callout {
+  margin: 2rem 0 0.5rem;
+  padding: 1.2rem 1.5rem;
+  border-radius: 12px;
+  border-left: 4px solid var(--accent);
+  background: rgba(44,111,183,0.05);
+  font-size: 1.02rem;
+}
+.callout strong { color: var(--accent); }
+.callout--think { border-left-color: var(--success); background: rgba(30,119,112,0.06); }
+.callout--think strong { color: var(--success); }
+.callout--warn { border-left-color: var(--warm); background: rgba(217,98,43,0.06); }
+.callout--warn strong { color: var(--warm); }
+
+footer { margin-top: 4rem; text-align: center; font-family: var(--sans); font-size: 0.85rem; color: var(--muted); }
+
+@media (max-width: 640px) { .step-section { padding: 2rem 1.4rem; } }
+</style>
+</head>
+<body>
+
+<article class="article">
+  <header class="article-header">
+    <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+    <p class="kicker">交互式讲解</p>
+    <h1>引导机制使轨迹发生弯折</h1>
+    <p class="abstract">
+      扩散模型从纯噪声出发，运行一个习得的 <em>反向</em> 过程，
+      将每个样本逐步带回数据分布，从而完成生成。若不加干预，它是
+      <strong>无条件的</strong> &mdash; 样本散布于各个众数之上。加入一个
+      指向所选类别的 <strong>引导</strong> 项，轨迹便会朝其弯折。
+      将旋钮调大，弯折愈发强烈&hellip;并最终坍缩到该类别的中心。保真度
+      上升，多样性下降。请在下方观察这一过程。
+    </p>
+    <div class="byline">
+      <span>约 9 分钟</span>
+      <span>深度学习 &middot; 扩散模型 &middot; 条件生成</span>
+    </div>
+  </header>
+
+  <section class="step-section" id="prelude">
+    <div class="step-badge">前言</div>
+    <h2>采样即为沿分数前行</h2>
+    <p>
+      反向过程将样本 $x$ 沿 <strong>分数</strong> $\nabla_x \log p(x)$ 的方向
+      移动 &mdash; 即朝概率上升的方向 &mdash; 同时缓慢地去除噪声。这一
+      无条件分数将每个样本拉向离它最近的数据众数，因此一个批次最终会
+      散布在 <em>所有</em> 众数之上。
+    </p>
+    <p>
+      要以类别 $c$ 为条件，我们需要 $p(x \mid c)$ 的分数。Bayes 法则
+      将其拆分为无条件分数加上一个分类器的梯度，而引导机制只是
+      用一个尺度 $w$ 对第二项 <em>加权放大</em>：
+    </p>
+    <div class="math-block">
+      $$\nabla_x \log p(x \mid c) = \nabla_x \log p(x) + \nabla_x \log p(c \mid x),$$
+      $$\tilde{s}(x) = \nabla_x \log p(x) + w\,\nabla_x \log p(c \mid x).$$
+    </div>
+    <p>
+      当 $w = 0$ 时，类别项消失，你便进行无条件采样。随着 $w$ 增大，
+      朝类别 $c$ 的牵引逐渐占据主导 &mdash; 无论是有分类器引导还是无分类器
+      引导，其机制皆在于此。
+    </p>
+  </section>
+
+  <section class="step-section" id="lab">
+    <div class="step-badge">演练区</div>
+    <h2>转动旋钮，观察牵引</h2>
+    <p>
+      平面中有三个类别簇（即数据分布）。按 <strong>运行</strong>，
+      一批带噪样本便运行反向过程，留下浅淡的轨迹。在
+      <strong>引导 $w = 0$</strong> 时，它们散布在全部三个簇上。提高
+      <strong>引导尺度</strong> 并选定一个 <strong>目标类别</strong>：轨迹便会朝
+      该簇弯折。将 $w$ 推至很大时，它们堆积到该簇中心 &mdash; 清晰、属于该类，且
+      彼此几乎相同。
+    </p>
+
+    <div class="control-row">
+      <div class="control-block">
+        <label style="margin-bottom:0.2rem;">目标类别 $c$</label>
+        <div class="class-toggle" id="classToggle">
+          <button class="mode-button is-active" data-cls="0">类别 A</button>
+          <button class="mode-button" data-cls="1">类别 B</button>
+          <button class="mode-button" data-cls="2">类别 C</button>
+        </div>
+      </div>
+      <div class="control-block">
+        <label>引导尺度 <span>$w$ = <span id="wVal">3.0</span></span></label>
+        <input type="range" id="w" min="0" max="8" step="0.1" value="3.0">
+      </div>
+      <div class="control-block">
+        <label>样本数 <span>$n$ = <span id="nVal">60</span></span></label>
+        <input type="range" id="n" min="10" max="140" step="5" value="60">
+      </div>
+    </div>
+
+    <div class="button-row">
+      <button class="mode-button is-active" id="runBtn">运行反向过程</button>
+      <button class="mode-button" id="trailBtn">轨迹：开启</button>
+    </div>
+
+    <figure class="interactive-figure">
+      <canvas id="diffCanvas" width="880" height="520" style="height:520px"></canvas>
+      <figcaption>
+        大方环代表三个类别簇；被选中的那个以高亮显示。圆点为样本；
+        浅色线条是它们从噪声到数据的反向扩散轨迹。改变 $w$ 或
+        目标类别，然后按 <em>运行</em> 重新采样。
+      </figcaption>
+    </figure>
+
+    <div class="stat-strip">
+      <div class="stat-pill stat-pill--success">
+        <span class="stat-label">命中目标类别的保真度</span>
+        <span class="stat-value" id="fidVal">&mdash;</span>
+      </div>
+      <div class="stat-pill stat-pill--accent">
+        <span class="stat-label">样本多样性（离散程度）</span>
+        <span class="stat-value" id="divVal">&mdash;</span>
+      </div>
+      <div class="stat-pill stat-pill--warm">
+        <span class="stat-label">引导尺度 $w$</span>
+        <span class="stat-value" id="wStat">&mdash;</span>
+      </div>
+    </div>
+
+    <div class="callout callout--warn">
+      <strong>将 $w$ 从 0 起逐步调高并重新运行。</strong> 观察这两个数值朝相反
+      方向变化：保真度（落在目标类别上的比例）上升，而多样性（样本的分散
+      程度）下降。这种取舍正是引导机制的标志 &mdash; 不存在
+      同时使二者最大化的设定。
+    </div>
+  </section>
+
+  <section class="step-section" id="why">
+    <div class="step-badge">回报</div>
+    <h2>保真度与多样性彼此相抗</h2>
+    <p>
+      引导机制将采样分布重新加权为大致 $p(x)\,p(c\mid x)^{w}$。指数越大，
+      类别后验越尖锐：概率质量集中到分类器最有把握之处 &mdash;
+      即目标簇的中心。这正是 <em>保真度</em> 所需要的
+      （样本毫无疑问地属于该类别），也恰好是摧毁
+      <em>多样性</em> 的原因（尾部与相邻众数被剥夺了概率质量）。
+    </p>
+    <ul>
+      <li><strong>$w = 0$：</strong> 纯无条件采样 &mdash; 每个众数都有体现，多样性最大，但无法控制。</li>
+      <li><strong>中等 $w$：</strong> 最佳区间 &mdash; 明确属于目标类别，同时仍具多样性。真实系统使用个位数的小尺度。</li>
+      <li><strong>很大的 $w$：</strong> 众数坍缩 &mdash; 样本过度饱和、几乎完全相同，且聚集在类别中心。</li>
+    </ul>
+    <div class="callout callout--think">
+      <strong>无分类器引导。</strong> 现代系统并不单独训练一个带噪图像分类器，
+      而是训练单一网络同时预测条件分数与无条件分数（通过
+      随机丢弃标签实现）。采样时它们作如下外推
+      $\tilde{\varepsilon} = (1{+}w)\,\varepsilon_c - w\,\varepsilon_{\varnothing}$，从而在无需额外分类器的情况下
+      得到同样的弯折轨迹。同一个旋钮，同样的取舍 &mdash; 这正是你在 Stable Diffusion 或
+      Imagen 中设定的引导尺度。
+    </div>
+  </section>
+
+  <footer>ES 667 深度学习讲解系列的一部分 &middot; 第 22 讲：扩散理论与引导机制</footer>
+</article>
+
+<script>
+/* ===================== fixed-seed RNG ===================== */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function makeRandn(rng) {
+  return function () {
+    let u = 0, v = 0;
+    while (u === 0) u = rng();
+    while (v === 0) v = rng();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  };
+}
+
+/* ===================== config ===================== */
+const DOM = { xmin: -6, xmax: 6, ymin: -6, ymax: 6 };
+// three class blobs (data distribution), fixed positions
+const BLOBS = [
+  { x: -3.0, y:  2.4, color: '#2c6fb7', name: 'A' },
+  { x:  3.2, y:  2.0, color: '#d9622b', name: 'B' },
+  { x:  0.2, y: -3.0, color: '#1e7770', name: 'C' },
+];
+const SIGMA = 0.9;                 // blob std
+const STEPS = 60;                  // reverse-process steps
+
+let targetCls = 0;
+let guidance = 3.0;
+let nSamples = 60;
+let showTrails = true;
+
+let samples = [];   // {trail: [[x,y],...], done}
+let animT = 0;
+let animId = null;
+
+/* ===================== scores ===================== */
+// unconditional score of the equal-weight Gaussian mixture over BLOBS
+function scoreUncond(x, y, sig) {
+  const inv = 1 / (sig * sig);
+  let wsum = 0; const ws = [];
+  for (const b of BLOBS) {
+    const d2 = (x - b.x) ** 2 + (y - b.y) ** 2;
+    const wgt = Math.exp(-0.5 * d2 * inv);
+    ws.push(wgt); wsum += wgt;
+  }
+  let sx = 0, sy = 0;
+  for (let i = 0; i < BLOBS.length; i++) {
+    const r = ws[i] / (wsum + 1e-12);
+    sx += r * (BLOBS[i].x - x) * inv;
+    sy += r * (BLOBS[i].y - y) * inv;
+  }
+  return [sx, sy];
+}
+// score toward a single target class (conditional score)
+function scoreCond(x, y, cls, sig) {
+  const inv = 1 / (sig * sig);
+  return [(BLOBS[cls].x - x) * inv, (BLOBS[cls].y - y) * inv];
+}
+// guided score: (1-w)*uncond + w*cond  =  uncond + w*(cond - uncond)
+function scoreGuided(x, y, cls, w, sig) {
+  const [ux, uy] = scoreUncond(x, y, sig);
+  const [cx, cy] = scoreCond(x, y, cls, sig);
+  return [ux + w * (cx - ux), uy + w * (cy - uy)];
+}
+
+/* ===================== simulate reverse process ===================== */
+// annealed Langevin-style: noise level decays over STEPS; each sample keeps its full trail.
+function simulate() {
+  const rng = mulberry32(12345);   // fixed seed -> reproducible initial noise + dynamics
+  const rn = makeRandn(rng);
+  samples = [];
+  for (let i = 0; i < nSamples; i++) {
+    let x = rn() * 3.2, y = rn() * 3.2;   // start from broad noise
+    const trail = [[x, y]];
+    for (let t = 0; t < STEPS; t++) {
+      const frac = t / STEPS;
+      const sig = SIGMA * (1 + 4.0 * (1 - frac));   // large early, -> SIGMA late (annealing)
+      const stepSize = 0.16 * (1 - 0.6 * frac);
+      const noiseAmp = 0.55 * (1 - frac);           // noise fades to ~0
+      const [gx, gy] = scoreGuided(x, y, targetCls, guidance, sig);
+      x += stepSize * gx + noiseAmp * rn() * 0.5;
+      y += stepSize * gy + noiseAmp * rn() * 0.5;
+      x = Math.max(DOM.xmin, Math.min(DOM.xmax, x));
+      y = Math.max(DOM.ymin, Math.min(DOM.ymax, y));
+      trail.push([x, y]);
+    }
+    samples.push({ trail });
+  }
+}
+
+/* ===================== canvas / mapping ===================== */
+let view = null;
+function fitCanvas(canvas) {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = Math.round(rect.width * dpr);
+  canvas.height = Math.round(rect.height * dpr);
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { ctx, w: rect.width, h: rect.height };
+}
+function toPx(x, y) {
+  return {
+    x: view.x0 + (x - DOM.xmin) * view.sx,
+    y: view.y0 + (DOM.ymax - y) * view.sy
+  };
+}
+
+/* ===================== draw ===================== */
+function draw(upto) {
+  const canvas = document.getElementById('diffCanvas');
+  const { ctx, w, h } = fitCanvas(canvas);
+  ctx.clearRect(0, 0, w, h);
+  const pad = 18;
+  const size = Math.min(w, h) - 2 * pad;
+  const x0 = (w - size) / 2, y0 = (h - size) / 2;
+  view = { x0, y0, sx: size / (DOM.xmax - DOM.xmin), sy: size / (DOM.ymax - DOM.ymin) };
+
+  // plane
+  ctx.fillStyle = '#fbfaf6'; ctx.fillRect(x0, y0, size, size);
+  ctx.strokeStyle = 'rgba(47,42,34,0.20)'; ctx.lineWidth = 1.2; ctx.strokeRect(x0, y0, size, size);
+
+  // blobs (data modes)
+  for (let i = 0; i < BLOBS.length; i++) {
+    const b = BLOBS[i];
+    const c = toPx(b.x, b.y);
+    const rr = SIGMA * view.sx;
+    const isTarget = i === targetCls;
+    // soft halo
+    const g = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, rr * 2.4);
+    g.addColorStop(0, hexA(b.color, isTarget ? 0.30 : 0.12));
+    g.addColorStop(1, hexA(b.color, 0));
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(c.x, c.y, rr * 2.4, 0, Math.PI * 2); ctx.fill();
+    // ring
+    ctx.beginPath(); ctx.arc(c.x, c.y, rr * 1.6, 0, Math.PI * 2);
+    ctx.strokeStyle = hexA(b.color, isTarget ? 0.95 : 0.4);
+    ctx.lineWidth = isTarget ? 3.5 : 2;
+    if (!isTarget) ctx.setLineDash([5, 4]);
+    ctx.stroke(); ctx.setLineDash([]);
+    // label
+    ctx.fillStyle = hexA(b.color, isTarget ? 1 : 0.55);
+    ctx.font = (isTarget ? '800 ' : '700 ') + '15px Manrope, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(b.name, c.x, c.y);
+    if (isTarget) {
+      ctx.font = '700 10px Manrope, sans-serif';
+      ctx.fillText('TARGET', c.x, c.y + rr * 1.6 + 12);
+    }
+  }
+
+  // trails
+  if (showTrails) {
+    for (const s of samples) {
+      const T = Math.min(upto, s.trail.length - 1);
+      if (T < 1) continue;
+      ctx.beginPath();
+      for (let t = 0; t <= T; t++) {
+        const p = toPx(s.trail[t][0], s.trail[t][1]);
+        t ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y);
+      }
+      ctx.strokeStyle = 'rgba(47,42,34,0.10)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+  }
+
+  // current sample positions
+  for (const s of samples) {
+    const T = Math.min(upto, s.trail.length - 1);
+    const p = toPx(s.trail[T][0], s.trail[T][1]);
+    const frac = T / (s.trail.length - 1);
+    // color: grey while still noisy, then the color of whichever mode it is nearest to,
+    // so w=0 visibly scatters across all modes and high w collapses to one colour.
+    let col = 'rgba(110,102,91,0.85)';
+    if (frac >= 0.15) {
+      let best = 0, bd = Infinity;
+      for (let i = 0; i < BLOBS.length; i++) {
+        const d = (s.trail[T][0] - BLOBS[i].x) ** 2 + (s.trail[T][1] - BLOBS[i].y) ** 2;
+        if (d < bd) { bd = d; best = i; }
+      }
+      col = hexA(BLOBS[best].color, 0.9);
+    }
+    ctx.fillStyle = col;
+    ctx.beginPath(); ctx.arc(p.x, p.y, 3.2, 0, Math.PI * 2); ctx.fill();
+    ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.stroke();
+  }
+
+  // title corner
+  ctx.fillStyle = '#5a5247'; ctx.font = '600 11px Manrope, sans-serif';
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillText('reverse process   noise → data', x0 + 8, y0 + 8);
+}
+
+function hexA(hex, a) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+}
+
+/* ===================== stats ===================== */
+function updateStats() {
+  if (!samples.length) return;
+  const tb = BLOBS[targetCls];
+  // fidelity: fraction whose final point is nearest to the target blob
+  let onTarget = 0, mx = 0, my = 0;
+  const finals = [];
+  for (const s of samples) {
+    const [x, y] = s.trail[s.trail.length - 1];
+    finals.push([x, y]); mx += x; my += y;
+    let best = 0, bd = Infinity;
+    for (let i = 0; i < BLOBS.length; i++) {
+      const d = (x - BLOBS[i].x) ** 2 + (y - BLOBS[i].y) ** 2;
+      if (d < bd) { bd = d; best = i; }
+    }
+    if (best === targetCls) onTarget++;
+  }
+  mx /= finals.length; my /= finals.length;
+  let varr = 0;
+  for (const [x, y] of finals) varr += (x - mx) ** 2 + (y - my) ** 2;
+  const spread = Math.sqrt(varr / finals.length);
+  document.getElementById('fidVal').textContent = Math.round(100 * onTarget / finals.length) + '%';
+  document.getElementById('divVal').textContent = spread.toFixed(2);
+  document.getElementById('wStat').textContent = guidance.toFixed(1);
+}
+
+/* ===================== animation ===================== */
+function stopAnim() { if (animId) { cancelAnimationFrame(animId); animId = null; } }
+function run() {
+  stopAnim();
+  simulate();
+  animT = 0;
+  const btn = document.getElementById('runBtn');
+  btn.textContent = 'Running…';
+  function frame() {
+    animT += 1.4;
+    const upto = Math.min(STEPS, Math.floor(animT));
+    draw(upto);
+    if (upto >= STEPS) {
+      updateStats();
+      btn.textContent = '运行反向过程';
+      animId = null;
+      return;
+    }
+    animId = requestAnimationFrame(frame);
+  }
+  animId = requestAnimationFrame(frame);
+}
+
+/* ===================== wiring ===================== */
+document.querySelectorAll('#classToggle .mode-button').forEach(b =>
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#classToggle .mode-button').forEach(x => x.classList.remove('is-active'));
+    b.classList.add('is-active');
+    targetCls = parseInt(b.dataset.cls);
+    run();
+  }));
+document.getElementById('w').addEventListener('input', (e) => {
+  guidance = parseFloat(e.target.value);
+  document.getElementById('wVal').textContent = guidance.toFixed(1);
+  document.getElementById('wStat').textContent = guidance.toFixed(1);
+  run();
+});
+document.getElementById('n').addEventListener('input', (e) => {
+  nSamples = parseInt(e.target.value);
+  document.getElementById('nVal').textContent = nSamples;
+  run();
+});
+document.getElementById('runBtn').addEventListener('click', run);
+document.getElementById('trailBtn').addEventListener('click', (e) => {
+  showTrails = !showTrails;
+  e.target.textContent = 'Trails: ' + (showTrails ? 'on' : 'off');
+  e.target.classList.toggle('is-active', showTrails);
+  draw(STEPS);
+});
+
+window.addEventListener('resize', () => draw(Math.min(STEPS, Math.floor(animT) || STEPS)));
+window.addEventListener('load', run);
+run();
+</script>
+
+
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

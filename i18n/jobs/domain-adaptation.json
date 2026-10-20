@@ -1,0 +1,799 @@
+{
+ "slug": "domain-adaptation",
+ "units": {
+  "Domain Shift in Vision, In Depth": {
+   "zh": "视觉中的域偏移：深入剖析",
+   "src": "Domain Shift in Vision, In Depth",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "The complete vision-focused tour: a taxonomy of shifts you'll\n          actually meet, ten techniques worked through end-to-end (BN\n          stats, CORAL, MMD, DANN, AdaBN, MixStyle, TENT, source-free\n          DA, FrePolad-flavour normalisation, prompt-tuning DA), a\n          decision tree for picking one, and a live 2-D demo to keep\n          the intuition honest.": {
+   "zh": "一次完整的视觉导向之旅：一份你实际会遇到的偏移分类法，十种端到端详加演练的技术（BN 统计量、CORAL、MMD、DANN、AdaBN、MixStyle、TENT、无源域自适应、FrePolad 风格归一化、提示微调式域自适应），一棵用于选择的决策树，以及一个保持直觉可靠的实时二维演示。",
+   "src": "The complete vision-focused tour: a taxonomy of shifts you'll\n          actually meet, ten techniques worked through end-to-end (BN\n          stats, CORAL, MMD, DANN, AdaBN, MixStyle, TENT, source-free\n          DA, FrePolad-flavour normalisation, prompt-tuning DA), a\n          decision tree for picking one, and a live 2-D demo to keep\n          the intuition honest.",
+   "tags": []
+  },
+  "@@T0@@~30 min@@T1@@\n          @@T2@@Distribution Shift &middot; Vision &middot; Adaptation@@T3@@": {
+   "zh": "@@T0@@约 30 分钟@@T1@@\n          @@T2@@分布偏移 &middot; 视觉 &middot; 自适应@@T3@@",
+   "src": "<span>~30 min</span>\n          <span>Distribution Shift &middot; Vision &middot; Adaptation</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Where the gap opens up": {
+   "zh": "差距从何而来",
+   "src": "Where the gap opens up",
+   "tags": []
+  },
+  "Test accuracy on the test set was 92%. Production accuracy\n          is 67%. Why? In every paper this is called \"domain shift\" or\n          \"distribution shift\", but those phrases hide six very\n          different problems. You have to know which one you have\n          before you can fix it.": {
+   "zh": "测试集上的准确率为 92%。生产环境中的准确率却是 67%。为什么？在每一篇论文里，这都称为「域偏移」或「分布偏移」，但这些说法掩盖了六个截然不同的问题。你必须先弄清自己面对的是哪一种，才可能修复它。",
+   "src": "Test accuracy on the test set was 92%. Production accuracy\n          is 67%. Why? In every paper this is called \"domain shift\" or\n          \"distribution shift\", but those phrases hide six very\n          different problems. You have to know which one you have\n          before you can fix it.",
+   "tags": []
+  },
+  "Type": {
+   "zh": "类型",
+   "src": "Type",
+   "tags": []
+  },
+  "Vision example": {
+   "zh": "视觉示例",
+   "src": "Vision example",
+   "tags": []
+  },
+  "Symptom": {
+   "zh": "症状",
+   "src": "Symptom",
+   "tags": []
+  },
+  "@@T0@@Covariate shift@@T1@@": {
+   "zh": "@@T0@@协变量偏移@@T1@@",
+   "src": "<strong>Covariate shift</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "$p(x)$ differs; $p(y\\mid x)$ same": {
+   "zh": "$p(x)$ 不同；$p(y\\mid x)$ 相同",
+   "src": "$p(x)$ differs; $p(y\\mid x)$ same",
+   "tags": []
+  },
+  "Same kilns, different sensor / season / illumination": {
+   "zh": "同一批窑炉，不同的传感器 / 季节 / 光照",
+   "src": "Same kilns, different sensor / season / illumination",
+   "tags": []
+  },
+  "Predictor still right where it triggers, but rarely triggers": {
+   "zh": "预测器在其触发之处仍然正确，但很少触发",
+   "src": "Predictor still right where it triggers, but rarely triggers",
+   "tags": []
+  },
+  "@@T0@@Label shift@@T1@@": {
+   "zh": "@@T0@@标签偏移@@T1@@",
+   "src": "<strong>Label shift</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "$p(y)$ differs": {
+   "zh": "$p(y)$ 不同",
+   "src": "$p(y)$ differs",
+   "tags": []
+  },
+  "10× more rare class in target": {
+   "zh": "目标域中稀有类的数量多出 10 倍",
+   "src": "10× more rare class in target",
+   "tags": []
+  },
+  "Confusion matrix tilts toward the new majority": {
+   "zh": "混淆矩阵向新的多数类倾斜",
+   "src": "Confusion matrix tilts toward the new majority",
+   "tags": []
+  },
+  "@@T0@@Concept drift@@T1@@": {
+   "zh": "@@T0@@概念漂移@@T1@@",
+   "src": "<strong>Concept drift</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "$p(y\\mid x)$ changes over time": {
+   "zh": "$p(y\\mid x)$ 随时间变化",
+   "src": "$p(y\\mid x)$ changes over time",
+   "tags": []
+  },
+  "Definition of \"fire\" expanded after policy change": {
+   "zh": "政策变更后「火灾」的定义被扩展",
+   "src": "Definition of \"fire\" expanded after policy change",
+   "tags": []
+  },
+  "Calibration silently breaks even with same accuracy": {
+   "zh": "即使准确率相同，校准也会悄然失效",
+   "src": "Calibration silently breaks even with same accuracy",
+   "tags": []
+  },
+  "@@T0@@Sub-population shift@@T1@@": {
+   "zh": "@@T0@@子群体偏移@@T1@@",
+   "src": "<strong>Sub-population shift</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "$p(\\text{group})$ differs": {
+   "zh": "$p(\\text{group})$ 不同",
+   "src": "$p(\\text{group})$ differs",
+   "tags": []
+  },
+  "Trained on one camera; deployed across many": {
+   "zh": "在单一相机上训练；却部署于众多相机",
+   "src": "Trained on one camera; deployed across many",
+   "tags": []
+  },
+  "Worst-group accuracy collapses": {
+   "zh": "最差群体准确率崩塌",
+   "src": "Worst-group accuracy collapses",
+   "tags": []
+  },
+  "@@T0@@Open-set shift@@T1@@": {
+   "zh": "@@T0@@开集偏移@@T1@@",
+   "src": "<strong>Open-set shift</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "New classes at test": {
+   "zh": "测试时出现新类别",
+   "src": "New classes at test",
+   "tags": []
+  },
+  "New land-use type appears": {
+   "zh": "出现新的土地利用类型",
+   "src": "New land-use type appears",
+   "tags": []
+  },
+  "Confidently wrong predictions on never-seen classes": {
+   "zh": "对从未见过的类别给出自信却错误的预测",
+   "src": "Confidently wrong predictions on never-seen classes",
+   "tags": []
+  },
+  "@@T0@@Adversarial shift@@T1@@": {
+   "zh": "@@T0@@对抗偏移@@T1@@",
+   "src": "<strong>Adversarial shift</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Targeted perturbation of $x$": {
+   "zh": "对 $x$ 的定向扰动",
+   "src": "Targeted perturbation of $x$",
+   "tags": []
+  },
+  "Stickers, sensor jamming, weather attacks": {
+   "zh": "贴纸、传感器干扰、天气攻击",
+   "src": "Stickers, sensor jamming, weather attacks",
+   "tags": []
+  },
+  "Catastrophic, point-wise": {
+   "zh": "灾难性的、逐点式的",
+   "src": "Catastrophic, point-wise",
+   "tags": []
+  },
+  "@@T0@@The slogan.@@T1@@\n          The right tool depends on the type of shift, the access you\n          have to target data (none / unlabelled / few-shot / fully\n          labelled), and your training budget. The next two sections\n          map techniques to each combination.": {
+   "zh": "@@T0@@要旨。@@T1@@正确的工具取决于偏移的类型、你能以多大程度获取目标数据（无 / 无标签 / 少样本 / 完全标注），以及你的训练预算。接下来两节将把各种技术对应到上述每一种组合。",
+   "src": "<strong>The slogan.</strong>\n          The right tool depends on the type of shift, the access you\n          have to target data (none / unlabelled / few-shot / fully\n          labelled), and your training budget. The next two sections\n          map techniques to each combination.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "The 2-D playground (live)": {
+   "zh": "二维试验场（实时）",
+   "src": "The 2-D playground (live)",
+   "tags": []
+  },
+  "Drift the target relative to source; watch the source-only\n          classifier collapse on target. Tick CORAL to feature-align;\n          watch most of the gap close. Energy heatmap and OOD ROC\n          show how confidently you can flag truly-OOD points.": {
+   "zh": "让目标域相对于源域发生漂移；观察仅在源域上训练的分类器在目标域上崩塌。勾选 CORAL 进行特征对齐；观察大部分差距被弥合。能量热力图与 OOD ROC 展示你能以多高的置信度标记出真正的 OOD 点。",
+   "src": "Drift the target relative to source; watch the source-only\n          classifier collapse on target. Tick CORAL to feature-align;\n          watch most of the gap close. Energy heatmap and OOD ROC\n          show how confidently you can flag truly-OOD points.",
+   "tags": []
+  },
+  "drift &nbsp;@@T0@@1.5@@T1@@": {
+   "zh": "漂移 &nbsp;@@T0@@1.5@@T1@@",
+   "src": "drift &nbsp;<span id=\"da-drift-val\">1.5</span>",
+   "tags": [
+    "<span id=\"da-drift-val\">",
+    "</span>"
+   ]
+  },
+  "apply CORAL alignment": {
+   "zh": "应用 CORAL 对齐",
+   "src": "apply CORAL alignment",
+   "tags": []
+  },
+  "Resample": {
+   "zh": "重新采样",
+   "src": "Resample",
+   "tags": []
+  },
+  "@@T0@@source acc @@T1@@—@@T2@@@@T3@@\n          @@T4@@target acc @@T5@@—@@T6@@@@T7@@\n          @@T8@@OOD AUC @@T9@@—@@T10@@@@T11@@": {
+   "zh": "@@T0@@源域准确率 @@T1@@—@@T2@@@@T3@@\n          @@T4@@目标域准确率 @@T5@@—@@T6@@@@T7@@\n          @@T8@@OOD AUC @@T9@@—@@T10@@@@T11@@",
+   "src": "<span class=\"train-stat\">source acc <strong id=\"da-src-acc\">—</strong></span>\n          <span class=\"train-stat\">target acc <strong id=\"da-tgt-acc\">—</strong></span>\n          <span class=\"train-stat\">OOD AUC <strong id=\"da-auc\">—</strong></span>",
+   "tags": [
+    "<span class=\"train-stat\">",
+    "<strong id=\"da-src-acc\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"da-tgt-acc\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"da-auc\">",
+    "</strong>",
+    "</span>"
+   ]
+  },
+  "Source (●) + target (×) + classifier": {
+   "zh": "源域（●）+ 目标域（×）+ 分类器",
+   "src": "Source (●) + target (×) + classifier",
+   "tags": []
+  },
+  "Energy score (lighter = more OOD)": {
+   "zh": "能量分数（越浅越 OOD）",
+   "src": "Energy score (lighter = more OOD)",
+   "tags": []
+  },
+  "OOD ROC (target vs distant noise)": {
+   "zh": "OOD ROC（目标域 vs 远端噪声）",
+   "src": "OOD ROC (target vs distant noise)",
+   "tags": []
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Ten vision-specific adaptation techniques, walked through": {
+   "zh": "十种视觉专用的自适应技术，逐一详述",
+   "src": "Ten vision-specific adaptation techniques, walked through",
+   "tags": []
+  },
+  "What follows is a working summary of the techniques you'll\n          meet in the literature and how to actually use each one in a\n          vision pipeline. Order: cheap → expensive.": {
+   "zh": "以下是对文献中常见技术的实用总结，以及如何在视觉流程中真正使用每一种。顺序：由廉价到昂贵。",
+   "src": "What follows is a working summary of the techniques you'll\n          meet in the literature and how to actually use each one in a\n          vision pipeline. Order: cheap → expensive.",
+   "tags": []
+  },
+  "2.1 BatchNorm-stats adaptation (AdaBN)": {
+   "zh": "2.1 BatchNorm 统计量自适应（AdaBN）",
+   "src": "2.1 BatchNorm-stats adaptation (AdaBN)",
+   "tags": []
+  },
+  "The cheapest fix in the book. Take your trained model;\n          re-compute the running mean / variance of every BatchNorm\n          layer using a few hundred unlabelled target images;\n          freeze the affine $\\gamma, \\beta$. Done in 30 seconds, no\n          back-prop. Often closes 30-60% of the gap when shift is\n          mostly low-level (illumination, sensor noise).": {
+   "zh": "书中最廉价的修复手段。取你已训练的模型；用数百张无标签的目标域图像重新计算每个 BatchNorm 层的滑动均值 / 方差；冻结仿射参数 $\\gamma, \\beta$。30 秒即可完成，无需反向传播。当偏移主要处于低层（光照、传感器噪声）时，往往能弥合 30-60% 的差距。",
+   "src": "The cheapest fix in the book. Take your trained model;\n          re-compute the running mean / variance of every BatchNorm\n          layer using a few hundred unlabelled target images;\n          freeze the affine $\\gamma, \\beta$. Done in 30 seconds, no\n          back-prop. Often closes 30-60% of the gap when shift is\n          mostly low-level (illumination, sensor noise).",
+   "tags": []
+  },
+  "@@T0@@Caveats.@@T1@@ Doesn't help if shift is semantic (new\n          objects, new classes). Doesn't help with plain LayerNorm /\n          GroupNorm models &mdash; those have no running stats to\n          re-fit. For ViTs, the analog is \"recalibrate the LayerNorm\n          affine on a held-out batch of target.\"": {
+   "zh": "@@T0@@注意事项。@@T1@@若偏移是语义层面的（新物体、新类别），它无济于事。对纯 LayerNorm / GroupNorm 模型也无济于事——这些模型没有可重新拟合的滑动统计量。对 ViT 而言，其对应做法是「在一批留出的目标域数据上重新校准 LayerNorm 的仿射参数」。",
+   "src": "<em>Caveats.</em> Doesn't help if shift is semantic (new\n          objects, new classes). Doesn't help with plain LayerNorm /\n          GroupNorm models &mdash; those have no running stats to\n          re-fit. For ViTs, the analog is \"recalibrate the LayerNorm\n          affine on a held-out batch of target.\"",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "2.2 CORAL — second-order moment matching": {
+   "zh": "2.2 CORAL——二阶矩匹配",
+   "src": "2.2 CORAL — second-order moment matching",
+   "tags": []
+  },
+  "Whiten source features by $C_S^{-1/2}$, re-colour by\n          $C_T^{1/2}$, train the head on the matched source. The\n          live demo above does exactly this. Strong baseline for\n          tabular and feature-level alignment; less effective on\n          raw pixels.": {
+   "zh": "用 $C_S^{-1/2}$ 对源域特征白化，再用 $C_T^{1/2}$ 重新着色，在匹配后的源域数据上训练头部。上方的实时演示正是如此。对于表格数据与特征层面的对齐而言是强基线；在原始像素上效果较弱。",
+   "src": "Whiten source features by $C_S^{-1/2}$, re-colour by\n          $C_T^{1/2}$, train the head on the matched source. The\n          live demo above does exactly this. Strong baseline for\n          tabular and feature-level alignment; less effective on\n          raw pixels.",
+   "tags": []
+  },
+  "2.3 MMD — kernel maximum mean discrepancy": {
+   "zh": "2.3 MMD——核最大均值差异",
+   "src": "2.3 MMD — kernel maximum mean discrepancy",
+   "tags": []
+  },
+  "Add a loss term that pushes the kernel-mean of source\n          features close to the kernel-mean of target features.\n          Implemented as the MK-MMD penalty in DAN (Long et al.,\n          2015) and DDC. Useful when you want to align distributions\n          beyond second-order statistics.": {
+   "zh": "增加一个损失项，将源域特征的核均值推向目标域特征的核均值。在 DAN（Long 等，2015）与 DDC 中以 MK-MMD 惩罚项实现。当你想对齐超出二阶统计量的分布时颇为有用。",
+   "src": "Add a loss term that pushes the kernel-mean of source\n          features close to the kernel-mean of target features.\n          Implemented as the MK-MMD penalty in DAN (Long et al.,\n          2015) and DDC. Useful when you want to align distributions\n          beyond second-order statistics.",
+   "tags": []
+  },
+  "2.4 DANN — domain-adversarial training": {
+   "zh": "2.4 DANN——域对抗训练",
+   "src": "2.4 DANN — domain-adversarial training",
+   "tags": []
+  },
+  "Add a small @@T0@@domain classifier@@T1@@ head that tries to\n          tell source from target. Train the feature extractor to\n          @@T2@@fool@@T3@@ it via gradient reversal (Ganin &amp;\n          Lempitsky, 2015). Features become domain-invariant and the\n          downstream task head still works. DANN is what every\n          subsequent adversarial DA method (CDAN, MDD, ADDA) refines.": {
+   "zh": "增加一个小型@@T0@@域分类器@@T1@@头部，试图区分源域与目标域。通过梯度反转训练特征提取器来@@T2@@欺骗@@T3@@它（Ganin 与 Lempitsky，2015）。特征变得域不变，而下游任务头部依然有效。此后每一种对抗式域自适应方法（CDAN、MDD、ADDA）都是对 DANN 的细化。",
+   "src": "Add a small <em>domain classifier</em> head that tries to\n          tell source from target. Train the feature extractor to\n          <em>fool</em> it via gradient reversal (Ganin &amp;\n          Lempitsky, 2015). Features become domain-invariant and the\n          downstream task head still works. DANN is what every\n          subsequent adversarial DA method (CDAN, MDD, ADDA) refines.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Implementation tip.@@T1@@ The gradient-reversal layer\n          is just the identity in forward and a sign-flipping\n          multiplier $-\\lambda$ in backward. Schedule $\\lambda$ from\n          0 to 1 over training; otherwise the adversarial signal is\n          too strong early and breaks the task head.": {
+   "zh": "@@T0@@实现提示。@@T1@@梯度反转层在前向传播中就是恒等映射，在反向传播中则是符号翻转的乘子 $-\\lambda$。在训练过程中将 $\\lambda$ 从 0 调度到 1；否则对抗信号在早期过强，会破坏任务头部。",
+   "src": "<em>Implementation tip.</em> The gradient-reversal layer\n          is just the identity in forward and a sign-flipping\n          multiplier $-\\lambda$ in backward. Schedule $\\lambda$ from\n          0 to 1 over training; otherwise the adversarial signal is\n          too strong early and breaks the task head.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "2.5 MixStyle — domain-augmenting style mix": {
+   "zh": "2.5 MixStyle——增广域的风格混合",
+   "src": "2.5 MixStyle — domain-augmenting style mix",
+   "tags": []
+  },
+  "Inside the network, mix the channel-wise mean and std of\n          two examples from different (or random) source domains\n          (Zhou et al., 2021). Cheap data augmentation that simulates\n          unseen styles. Strong for cross-camera and cross-illumination\n          shifts.": {
+   "zh": "在网络内部，混合来自不同（或随机）源域的两个样本的逐通道均值与标准差（Zhou 等，2021）。这是一种模拟未见风格的廉价数据增广。对跨相机与跨光照偏移颇为有效。",
+   "src": "Inside the network, mix the channel-wise mean and std of\n          two examples from different (or random) source domains\n          (Zhou et al., 2021). Cheap data augmentation that simulates\n          unseen styles. Strong for cross-camera and cross-illumination\n          shifts.",
+   "tags": []
+  },
+  "2.6 IRM &amp; group-DRO — robust ERM": {
+   "zh": "2.6 IRM 与 group-DRO——稳健 ERM",
+   "src": "2.6 IRM &amp; group-DRO — robust ERM",
+   "tags": []
+  },
+  "When you have multiple labelled source domains,\n          Invariant Risk Minimisation (Arjovsky et al., 2019) and\n          Group Distributionally Robust Optimisation (Sagawa et al.,\n          2020) train a model to do well on the worst environment, not\n          the average. Useful when the test domain is \"unseen but\n          related.\"": {
+   "zh": "当你有多个已标注的源域时，不变风险最小化（Arjovsky 等，2019）与群组分布稳健优化（Sagawa 等，2020）训练模型在最差环境而非平均意义上表现良好。当测试域「未见但相关」时颇为有用。",
+   "src": "When you have multiple labelled source domains,\n          Invariant Risk Minimisation (Arjovsky et al., 2019) and\n          Group Distributionally Robust Optimisation (Sagawa et al.,\n          2020) train a model to do well on the worst environment, not\n          the average. Useful when the test domain is \"unseen but\n          related.\"",
+   "tags": []
+  },
+  "2.7 Test-time adaptation — TENT &amp; SHOT": {
+   "zh": "2.7 测试时自适应——TENT 与 SHOT",
+   "src": "2.7 Test-time adaptation — TENT &amp; SHOT",
+   "tags": []
+  },
+  "Adapt at deployment with no source data. TENT (Wang et al.,\n          2021) updates the BatchNorm affine parameters by minimising\n          prediction entropy on the test batch. SHOT (Liang et al.,\n          2020) goes further: source-free DA where you only ship the\n          source-trained model, then adapt features on target with\n          self-training pseudo-labels. Both work on small streaming\n          batches; both can @@T0@@break@@T1@@ if the batch is class-imbalanced\n          or includes too much OOD &mdash; entropy minimisation\n          collapses to a single class.": {
+   "zh": "在部署时进行自适应，且无需源域数据。TENT（Wang 等，2021）通过最小化测试批次上的预测熵来更新 BatchNorm 的仿射参数。SHOT（Liang 等，2020）更进一步：无源域自适应，你只需交付在源域上训练的模型，然后在目标域上以自训练伪标签来适配特征。二者都适用于小型流式批次；若批次类别不平衡或包含过多 OOD，二者都可能@@T0@@失效@@T1@@——熵最小化会坍缩到单一类别。",
+   "src": "Adapt at deployment with no source data. TENT (Wang et al.,\n          2021) updates the BatchNorm affine parameters by minimising\n          prediction entropy on the test batch. SHOT (Liang et al.,\n          2020) goes further: source-free DA where you only ship the\n          source-trained model, then adapt features on target with\n          self-training pseudo-labels. Both work on small streaming\n          batches; both can <em>break</em> if the batch is class-imbalanced\n          or includes too much OOD &mdash; entropy minimisation\n          collapses to a single class.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "2.8 Pseudo-labelling + self-training": {
+   "zh": "2.8 伪标签与自训练",
+   "src": "2.8 Pseudo-labelling + self-training",
+   "tags": []
+  },
+  "The workhorse for semi-supervised DA. Use the source model\n          to produce labels on confident target samples, retrain the\n          model on (source labelled ∪ target pseudo-labelled).\n          Iterate. Combine with consistency regularisation\n          (FixMatch, MixMatch) for stronger results.": {
+   "zh": "半监督域自适应的主力方法。用源域模型在置信度高的目标域样本上生成标签，再在（源域已标注 ∪ 目标域伪标签）上重新训练模型。如此迭代。与一致性正则化（FixMatch、MixMatch）结合可获得更强的效果。",
+   "src": "The workhorse for semi-supervised DA. Use the source model\n          to produce labels on confident target samples, retrain the\n          model on (source labelled ∪ target pseudo-labelled).\n          Iterate. Combine with consistency regularisation\n          (FixMatch, MixMatch) for stronger results.",
+   "tags": []
+  },
+  "2.9 Prompt / adapter / LoRA-based DA on big backbones": {
+   "zh": "2.9 大型骨干网络上的提示 / 适配器 / LoRA 式域自适应",
+   "src": "2.9 Prompt / adapter / LoRA-based DA on big backbones",
+   "tags": []
+  },
+  "For large pretrained backbones (CLIP, DINOv2, SAM), a tiny\n          domain-specific prompt or LoRA adapter often closes the\n          gap with a fraction of the parameters of full DA training.\n          Visual Prompt Tuning, CoOp / CoCoOp, AdapterHub. Especially\n          attractive when the source data is private or unavailable.": {
+   "zh": "对于大型预训练骨干网络（CLIP、DINOv2、SAM），一个极小的域特定提示或 LoRA 适配器往往能以完整域自适应训练所需参数的零头弥合差距。Visual Prompt Tuning、CoOp / CoCoOp、AdapterHub。当源域数据属于隐私或不可获取时尤为有吸引力。",
+   "src": "For large pretrained backbones (CLIP, DINOv2, SAM), a tiny\n          domain-specific prompt or LoRA adapter often closes the\n          gap with a fraction of the parameters of full DA training.\n          Visual Prompt Tuning, CoOp / CoCoOp, AdapterHub. Especially\n          attractive when the source data is private or unavailable.",
+   "tags": []
+  },
+  "2.10 Diffusion-based domain translation": {
+   "zh": "2.10 基于扩散的域转换",
+   "src": "2.10 Diffusion-based domain translation",
+   "tags": []
+  },
+  "When source and target are @@T0@@visually@@T1@@ different\n          (sim-to-real, rainy → sunny, season change), train a\n          conditional diffusion model that translates a target image\n          into a source-flavoured one (or vice versa) before\n          inference. CycleGAN was the GAN-era version; today\n          ControlNet / IP-Adapter / SDXL-Turbo translations are\n          the practical stack.": {
+   "zh": "当源域与目标域在@@T0@@视觉上@@T1@@存在差异时（仿真到真实、雨天 → 晴天、季节变化），训练一个条件扩散模型，在推理之前将目标域图像转换为带有源域风格的图像（或反之）。CycleGAN 是 GAN 时代版本；如今 ControlNet / IP-Adapter / SDXL-Turbo 转换构成了实用的技术栈。",
+   "src": "When source and target are <em>visually</em> different\n          (sim-to-real, rainy → sunny, season change), train a\n          conditional diffusion model that translates a target image\n          into a source-flavoured one (or vice versa) before\n          inference. CycleGAN was the GAN-era version; today\n          ControlNet / IP-Adapter / SDXL-Turbo translations are\n          the practical stack.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "The decision tree — pick the technique in 30 seconds": {
+   "zh": "决策树——30 秒内选出技术",
+   "src": "The decision tree — pick the technique in 30 seconds",
+   "tags": []
+  },
+  "@@T0@@Q1: Do you have labelled target?@@T1@@\n            If @@T2@@any@@T3@@ labelled target → fine-tune a head + LoRA on\n            target; you don't need DA. Stop.": {
+   "zh": "@@T0@@问题 1：你有已标注的目标域数据吗？@@T1@@若@@T2@@有任何@@T3@@已标注的目标域数据 → 在目标域上微调头部 + LoRA；你不需要域自适应。结束。",
+   "src": "<strong>Q1: Do you have labelled target?</strong>\n            If <em>any</em> labelled target → fine-tune a head + LoRA on\n            target; you don't need DA. Stop.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Q2: Unlabelled target only, can re-train?@@T1@@\n            Try AdaBN first (free). If the model uses BatchNorm and the\n            shift is illumination / sensor / weather, this often closes\n            most of the gap. If insufficient, add CORAL or MMD on\n            features. If still insufficient, train DANN.": {
+   "zh": "@@T0@@问题 2：仅有未标注的目标域数据，能重新训练吗？@@T1@@先试 AdaBN（无需代价）。若模型使用 BatchNorm 且偏移属于光照 / 传感器 / 天气类型，这往往能弥合大部分差距。若不够，则在特征上加入 CORAL 或 MMD。若仍不够，则训练 DANN。",
+   "src": "<strong>Q2: Unlabelled target only, can re-train?</strong>\n            Try AdaBN first (free). If the model uses BatchNorm and the\n            shift is illumination / sensor / weather, this often closes\n            most of the gap. If insufficient, add CORAL or MMD on\n            features. If still insufficient, train DANN.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Q3: No target data at training time, just at\n            test?@@T1@@ Test-time adaptation: TENT for BN models;\n            SHOT for source-free; otherwise rely on a robustly-trained\n            backbone (DINOv2 features + small head).": {
+   "zh": "@@T0@@问题 3：训练时没有目标域数据，仅在测试时才有？@@T1@@测试时自适应：BN 模型用 TENT；无源域用 SHOT；否则依赖稳健训练的骨干网络（DINOv2 特征 + 小型头部）。",
+   "src": "<strong>Q3: No target data at training time, just at\n            test?</strong> Test-time adaptation: TENT for BN models;\n            SHOT for source-free; otherwise rely on a robustly-trained\n            backbone (DINOv2 features + small head).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Q4: Multiple labelled source domains, no target?@@T1@@\n            Domain generalisation: IRM / group-DRO / MixStyle augmentation.\n            Or pretrain on all sources and rely on regularisation.": {
+   "zh": "@@T0@@问题 4：有多个已标注的源域，但没有目标域？@@T1@@域泛化：IRM / group-DRO / MixStyle 增广。或者在所有源域上预训练并依赖正则化。",
+   "src": "<strong>Q4: Multiple labelled source domains, no target?</strong>\n            Domain generalisation: IRM / group-DRO / MixStyle augmentation.\n            Or pretrain on all sources and rely on regularisation.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Q5: Big visual gap (sim → real, day → night)?@@T1@@\n            Diffusion-based domain translation; or aggressive style\n            augmentation; or both.": {
+   "zh": "@@T0@@问题 5：视觉差距巨大（仿真 → 真实、白天 → 夜晚）？@@T1@@基于扩散的域转换；或激进的风格增广；或二者兼施。",
+   "src": "<strong>Q5: Big visual gap (sim → real, day → night)?</strong>\n            Diffusion-based domain translation; or aggressive style\n            augmentation; or both.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Q6: Privacy / no source access?@@T1@@\n            Source-free DA (SHOT, AdaContrast); ship only the model\n            and adapt on target with pseudo-labels + entropy\n            minimisation.": {
+   "zh": "@@T0@@问题 6：隐私限制 / 无法访问源域？@@T1@@无源域自适应（SHOT、AdaContrast）；只交付模型，并在目标域上以伪标签 + 熵最小化进行自适应。",
+   "src": "<strong>Q6: Privacy / no source access?</strong>\n            Source-free DA (SHOT, AdaContrast); ship only the model\n            and adapt on target with pseudo-labels + entropy\n            minimisation.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Default recipe for vision in 2026.@@T1@@\n          (1) DINOv2 backbone. (2) Linear / LoRA head on source. (3)\n          AdaBN if BN is in the architecture (it usually isn't for\n          ViT). (4) TENT at test time. (5) Wrap predictions in\n          @@T2@@conformal prediction@@T3@@\n          for guaranteed coverage. This stack handles most shifts\n          you'll see; reach for DANN / CORAL / MMD only when the\n          backbone is small or the gap is huge.": {
+   "zh": "@@T0@@2026 年视觉领域的默认配方。@@T1@@(1) DINOv2 骨干网络。(2) 在源域上训练线性 / LoRA 头部。(3) 若架构中含 BN 则用 AdaBN（ViT 通常不含）。(4) 测试时用 TENT。(5) 用@@T2@@保形预测@@T3@@包裹预测以获得有保证的覆盖率。这套组合能处理你会遇到的大部分偏移；只有当骨干网络很小或差距巨大时，才诉诸 DANN / CORAL / MMD。",
+   "src": "<strong>Default recipe for vision in 2026.</strong>\n          (1) DINOv2 backbone. (2) Linear / LoRA head on source. (3)\n          AdaBN if BN is in the architecture (it usually isn't for\n          ViT). (4) TENT at test time. (5) Wrap predictions in\n          <a href=\"../conformal/index.html\">conformal prediction</a>\n          for guaranteed coverage. This stack handles most shifts\n          you'll see; reach for DANN / CORAL / MMD only when the\n          backbone is small or the gap is huge.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<a href=\"../conformal/index.html\">",
+    "</a>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "OOD detection — knowing when not to predict": {
+   "zh": "OOD 检测——知道何时不该预测",
+   "src": "OOD detection — knowing when not to predict",
+   "tags": []
+  },
+  "Adaptation closes the gap when source and target overlap.\n          Truly out-of-distribution inputs need a separate detector\n          and a refuse-to-predict path. Five detectors worth knowing:": {
+   "zh": "当源域与目标域有重叠时，自适应能弥合差距。真正分布外的输入则需要一个独立的检测器以及一条拒绝预测的路径。有五种值得了解的检测器：",
+   "src": "Adaptation closes the gap when source and target overlap.\n          Truly out-of-distribution inputs need a separate detector\n          and a refuse-to-predict path. Five detectors worth knowing:",
+   "tags": []
+  },
+  "@@T0@@Max softmax probability (MSP).@@T1@@\n            Cheapest, surprisingly hard to beat at scale. Threshold\n            on $\\max_c p(c\\mid x)$.": {
+   "zh": "@@T0@@最大 softmax 概率（MSP）。@@T1@@最廉价，在大规模场景下出人意料地难以超越。对 $\\max_c p(c\\mid x)$ 设阈值。",
+   "src": "<strong>Max softmax probability (MSP).</strong>\n            Cheapest, surprisingly hard to beat at scale. Threshold\n            on $\\max_c p(c\\mid x)$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Energy score@@T1@@ (above). Strict improvement\n            on MSP; same compute. The default in 2024+.": {
+   "zh": "@@T0@@能量分数@@T1@@（见上）。相较 MSP 有严格提升；计算量相同。2024 年以来的默认选择。",
+   "src": "<strong>Energy score</strong> (above). Strict improvement\n            on MSP; same compute. The default in 2024+.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Mahalanobis on penultimate features.@@T1@@\n            Fit a Gaussian per class on training features; score new\n            inputs by min-class Mahalanobis distance. Good when the\n            backbone gives clean clusters.": {
+   "zh": "@@T0@@倒数第二层特征上的马氏距离。@@T1@@在训练特征上为每个类别拟合一个高斯分布；以最小类马氏距离为新的输入打分。当骨干网络给出的簇较为干净时效果良好。",
+   "src": "<strong>Mahalanobis on penultimate features.</strong>\n            Fit a Gaussian per class on training features; score new\n            inputs by min-class Mahalanobis distance. Good when the\n            backbone gives clean clusters.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@ViM, KNN-OOD.@@T1@@ Match against the\n            penultimate feature bank with virtual logits or a k-NN\n            distance. Strong on large vision benchmarks (OpenOOD).": {
+   "zh": "@@T0@@ViM、KNN-OOD。@@T1@@以虚拟 logit 或 k-NN 距离与倒数第二层的特征库进行匹配。在大型视觉基准（OpenOOD）上表现强劲。",
+   "src": "<strong>ViM, KNN-OOD.</strong> Match against the\n            penultimate feature bank with virtual logits or a k-NN\n            distance. Strong on large vision benchmarks (OpenOOD).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Outlier exposure.@@T1@@ Add a tiny dataset\n            of \"obvious OOD\" images during training with a uniform\n            target; the model learns to be uncertain off-distribution.\n            Cheap and reliable.": {
+   "zh": "@@T0@@离群样本暴露。@@T1@@在训练期间加入一个极小的、由「明显 OOD」图像构成的数据集，并以均匀分布作为目标；模型便学会在分布外保持不确定。廉价而可靠。",
+   "src": "<strong>Outlier exposure.</strong> Add a tiny dataset\n            of \"obvious OOD\" images during training with a uniform\n            target; the model learns to be uncertain off-distribution.\n            Cheap and reliable.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Worked example — sim-to-real for an object detector": {
+   "zh": "实例演练——面向目标检测器的仿真到真实迁移",
+   "src": "Worked example — sim-to-real for an object detector",
+   "tags": []
+  },
+  "Concrete pipeline for a common vision DA setup: train an\n          object detector in simulation, deploy on real photos.\n          Standard recipe in robotics / autonomy / agritech.": {
+   "zh": "针对一种常见视觉域自适应设置的具体流程：在仿真中训练目标检测器，部署到真实照片上。这是机器人 / 自动驾驶 / 农业科技中的标准配方。",
+   "src": "Concrete pipeline for a common vision DA setup: train an\n          object detector in simulation, deploy on real photos.\n          Standard recipe in robotics / autonomy / agritech.",
+   "tags": []
+  },
+  "@@T0@@Pretrain backbone on real photos (free).@@T1@@\n            DINOv2 or a CLIP-flavoured backbone. Don't train from\n            scratch on simulated data &mdash; you'll bake in the\n            sim aesthetic.": {
+   "zh": "@@T0@@在真实照片上预训练骨干网络（无需代价）。@@T1@@DINOv2 或带 CLIP 风格的骨干网络。不要在仿真数据上从零训练——你会把仿真的观感烙进模型。",
+   "src": "<strong>Pretrain backbone on real photos (free).</strong>\n            DINOv2 or a CLIP-flavoured backbone. Don't train from\n            scratch on simulated data &mdash; you'll bake in the\n            sim aesthetic.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Train detector on simulation (labelled).@@T1@@\n            Standard DETR / RT-DETR / YOLOv10 head; freeze backbone for\n            the first 5 epochs to avoid corrupting features.": {
+   "zh": "@@T0@@在仿真数据上训练检测器（已标注）。@@T1@@标准的 DETR / RT-DETR / YOLOv10 头部；前 5 个 epoch 冻结骨干网络以避免破坏特征。",
+   "src": "<strong>Train detector on simulation (labelled).</strong>\n            Standard DETR / RT-DETR / YOLOv10 head; freeze backbone for\n            the first 5 epochs to avoid corrupting features.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Add aggressive style augmentation.@@T1@@\n            MixStyle in feature space + colour-jitter + RandAugment\n            on the simulator output. Simulator weather diversity\n            helps too.": {
+   "zh": "@@T0@@加入激进的风格增广。@@T1@@在特征空间使用 MixStyle + 色彩抖动 + 对仿真器输出施加 RandAugment。仿真器的天气多样性也有帮助。",
+   "src": "<strong>Add aggressive style augmentation.</strong>\n            MixStyle in feature space + colour-jitter + RandAugment\n            on the simulator output. Simulator weather diversity\n            helps too.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Domain-translation pre-step (optional).@@T1@@\n            Run a sim-to-real CycleGAN / ControlNet over each batch\n            during training. Reduces the visual gap by a lot at the\n            cost of more compute per batch.": {
+   "zh": "@@T0@@域转换前置步骤（可选）。@@T1@@训练期间对每个批次运行仿真到真实的 CycleGAN / ControlNet 转换。可大幅缩小视觉差距，代价是每批次计算量增加。",
+   "src": "<strong>Domain-translation pre-step (optional).</strong>\n            Run a sim-to-real CycleGAN / ControlNet over each batch\n            during training. Reduces the visual gap by a lot at the\n            cost of more compute per batch.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Real-data fine-tune (if any labelled real\n            available).@@T1@@ Even 100 labelled real images +\n            existing 100k sim images, fine-tuned end-to-end with\n            10× lower lr, beats sim-only by a wide margin.": {
+   "zh": "@@T0@@真实数据微调（若有任何已标注的真实数据）。@@T1@@即便只有 100 张已标注的真实图像 + 现有的 10 万张仿真图像，以低 10 倍的学习率端到端微调，也能大幅胜过仅用仿真数据。",
+   "src": "<strong>Real-data fine-tune (if any labelled real\n            available).</strong> Even 100 labelled real images +\n            existing 100k sim images, fine-tuned end-to-end with\n            10× lower lr, beats sim-only by a wide margin.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Test-time adaptation.@@T1@@ TENT on detection\n            heads + a small EMA-of-self pseudo-labelling loop.": {
+   "zh": "@@T0@@测试时自适应。@@T1@@在检测头部上使用 TENT + 一个小型的自伪标签 EMA 循环。",
+   "src": "<strong>Test-time adaptation.</strong> TENT on detection\n            heads + a small EMA-of-self pseudo-labelling loop.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@OOD gate.@@T1@@ An energy-score threshold:\n            don't emit boxes if the patch energy is below threshold.\n            Always wraps a deployed detector.": {
+   "zh": "@@T0@@OOD 门控。@@T1@@一个能量分数阈值：若图像块的能量低于阈值则不输出边界框。始终包裹已部署的检测器。",
+   "src": "<strong>OOD gate.</strong> An energy-score threshold:\n            don't emit boxes if the patch energy is below threshold.\n            Always wraps a deployed detector.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Conformal calibration.@@T1@@ Conformalise the\n            detector's confidence so that \"0.85\" actually means 85%\n            precision; see the\n            @@T2@@conformal article@@T3@@.": {
+   "zh": "@@T0@@保形校准。@@T1@@对检测器的置信度做保形化，使「0.85」真正意味着 85% 的精确率；参见@@T2@@保形预测@@T3@@一文。",
+   "src": "<strong>Conformal calibration.</strong> Conformalise the\n            detector's confidence so that \"0.85\" actually means 85%\n            precision; see the\n            <a href=\"../conformal/index.html\">conformal article</a>.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<a href=\"../conformal/index.html\">",
+    "</a>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Worked example — multi-site medical / satellite shift": {
+   "zh": "实例演练——多站点医疗 / 卫星场景中的偏移",
+   "src": "Worked example — multi-site medical / satellite shift",
+   "tags": []
+  },
+  "When the \"domains\" are @@T0@@sites@@T1@@ (hospitals, sensor\n          stations, satellite passes), the problem is domain\n          generalisation, not single-target adaptation. Recipe:": {
+   "zh": "当「域」是@@T0@@站点@@T1@@（医院、传感器站点、卫星过境）时，问题在于域泛化，而非单目标域自适应。配方如下：",
+   "src": "When the \"domains\" are <em>sites</em> (hospitals, sensor\n          stations, satellite passes), the problem is domain\n          generalisation, not single-target adaptation. Recipe:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Hold-one-site-out evaluation.@@T1@@ Always.\n            Random splits leak by site and over-state generalisation\n            by 10-30 points.": {
+   "zh": "@@T0@@留一站点交叉验证。@@T1@@务必如此。随机划分会因站点而泄漏，并将泛化能力高估 10-30 个百分点。",
+   "src": "<strong>Hold-one-site-out evaluation.</strong> Always.\n            Random splits leak by site and over-state generalisation\n            by 10-30 points.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Per-site stratified sampling during training.@@T1@@\n            Equal weight per site, not per image. Keeps any site from\n            dominating the gradient.": {
+   "zh": "@@T0@@训练期间按站点分层采样。@@T1@@每个站点等权，而非每张图像等权。可防止任何单一站点主导梯度。",
+   "src": "<strong>Per-site stratified sampling during training.</strong>\n            Equal weight per site, not per image. Keeps any site from\n            dominating the gradient.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Group-DRO loss.@@T1@@ Optimise for the\n            worst-site loss. Costs a small accuracy hit on average,\n            wins on worst-case.": {
+   "zh": "@@T0@@Group-DRO 损失。@@T1@@针对最差站点的损失进行优化。平均准确率略有下降，最坏情况则取胜。",
+   "src": "<strong>Group-DRO loss.</strong> Optimise for the\n            worst-site loss. Costs a small accuracy hit on average,\n            wins on worst-case.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Site-conditioning at training, not at test.@@T1@@\n            Encode site as an embedding fed to the backbone during\n            training; @@T2@@at test@@T3@@ drop it and rely on\n            generalisation. Helps disentangle site effects from\n            class effects.": {
+   "zh": "@@T0@@仅在训练时而非测试时引入站点条件。@@T1@@训练期间将站点编码为嵌入并输入骨干网络；@@T2@@测试时@@T3@@将其丢弃，依靠泛化。有助于将站点效应与类别效应解耦。",
+   "src": "<strong>Site-conditioning at training, not at test.</strong>\n            Encode site as an embedding fed to the backbone during\n            training; <em>at test</em> drop it and rely on\n            generalisation. Helps disentangle site effects from\n            class effects.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Hierarchical Bayes per site.@@T1@@ See the\n            @@T2@@partial-pooling section@@T3@@;\n            each site has its own posterior, pulled toward a global\n            prior. Especially relevant for small data per site.": {
+   "zh": "@@T0@@按站点建立层次贝叶斯模型。@@T1@@参见@@T2@@部分池化一节@@T3@@；每个站点有自己的后验，并被拉向全局先验。当每站点数据量较小时尤为相关。",
+   "src": "<strong>Hierarchical Bayes per site.</strong> See the\n            <a href=\"../bayesian-posterior/index.html#step-pool\">partial-pooling section</a>;\n            each site has its own posterior, pulled toward a global\n            prior. Especially relevant for small data per site.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<a href=\"../bayesian-posterior/index.html#step-pool\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@OOD detector per site.@@T1@@ Train an OOD\n            detector that flags inputs that look unlike any seen site.": {
+   "zh": "@@T0@@按站点建立 OOD 检测器。@@T1@@训练一个 OOD 检测器，标记出与任何已见站点都不相似的输入。",
+   "src": "<strong>OOD detector per site.</strong> Train an OOD\n            detector that flags inputs that look unlike any seen site.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 7": {
+   "zh": "第 7 步",
+   "src": "Step 7",
+   "tags": []
+  },
+  "The bugs and gotchas": {
+   "zh": "陷阱与误区",
+   "src": "The bugs and gotchas",
+   "tags": []
+  },
+  "@@T0@@\"BN in eval mode is fine on target.\"@@T1@@\n            No. Eval mode locks running mean/var to source values;\n            TENT / AdaBN exist precisely because this loses points.": {
+   "zh": "@@T0@@「BatchNorm 在 eval 模式下对目标域没问题。」@@T1@@并非如此。eval 模式将滑动均值 / 方差锁定为源域的取值；TENT / AdaBN 之所以存在，恰恰是因为这样做会损失精度。",
+   "src": "<strong>\"BN in eval mode is fine on target.\"</strong>\n            No. Eval mode locks running mean/var to source values;\n            TENT / AdaBN exist precisely because this loses points.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@\"DANN converged\" but accuracy is bad.@@T1@@\n            Adversarial DA can find solutions where domain-invariant\n            features are also class-invariant. Always evaluate on\n            target accuracy, not the adversarial loss.": {
+   "zh": "@@T0@@「DANN 已收敛」但准确率很差。@@T1@@对抗式域自适应可能找到这样的解：域不变特征同时也是类别不变的。务必以目标域准确率评估，而非对抗损失。",
+   "src": "<strong>\"DANN converged\" but accuracy is bad.</strong>\n            Adversarial DA can find solutions where domain-invariant\n            features are also class-invariant. Always evaluate on\n            target accuracy, not the adversarial loss.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Random target preview during development.@@T1@@\n            Tempting to peek at target during model selection; it\n            biases your hyperparameter choice toward the test set.\n            Use @@T2@@unsupervised@@T3@@ selection criteria (e.g.,\n            self-confidence on target) when you don't have target\n            labels.": {
+   "zh": "@@T0@@开发期间随机预览目标域。@@T1@@在模型选择时偷看目标域很诱人；这会使你的超参数选择偏向测试集。当你没有目标域标签时，应使用@@T2@@无监督@@T3@@的选择标准（例如目标域上的自置信度）。",
+   "src": "<strong>Random target preview during development.</strong>\n            Tempting to peek at target during model selection; it\n            biases your hyperparameter choice toward the test set.\n            Use <em>unsupervised</em> selection criteria (e.g.,\n            self-confidence on target) when you don't have target\n            labels.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@\"My model just does worse with augmentation.\"@@T1@@\n            Style-augmentation and weather-aug help shifts they\n            simulate. If your shift is sensor-band reordering or\n            spectral, RGB-augmentation won't touch it.": {
+   "zh": "@@T0@@「我的模型加上增广后反而更差。」@@T1@@风格增广与天气增广只对它们所模拟的偏移有帮助。若你的偏移是传感器波段重排或频谱层面的，RGB 增广便无能为力。",
+   "src": "<strong>\"My model just does worse with augmentation.\"</strong>\n            Style-augmentation and weather-aug help shifts they\n            simulate. If your shift is sensor-band reordering or\n            spectral, RGB-augmentation won't touch it.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@OOD detector picked on the wrong score.@@T1@@\n            Energy &gt; MSP &gt; Mahalanobis on most benchmarks, but\n            OpenOOD shows the right pick depends on backbone and\n            shift type. Test all three; pick by AUROC on a synthetic\n            OOD set.": {
+   "zh": "@@T0@@OOD 检测器选错了分数。@@T1@@在多数基准上 Energy &gt; MSP &gt; 马氏距离，但 OpenOOD 表明正确的选择取决于骨干网络与偏移类型。三者都测一测；在合成的 OOD 集上按 AUROC 择优。",
+   "src": "<strong>OOD detector picked on the wrong score.</strong>\n            Energy &gt; MSP &gt; Mahalanobis on most benchmarks, but\n            OpenOOD shows the right pick depends on backbone and\n            shift type. Test all three; pick by AUROC on a synthetic\n            OOD set.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Simulation overfit.@@T1@@ Detectors trained\n            only on sim learn to recognise the simulator's renderer.\n            Real-world deployment fails. Domain randomisation or\n            sim-to-real translation is non-negotiable.": {
+   "zh": "@@T0@@仿真过拟合。@@T1@@仅在仿真数据上训练的检测器学会的是识别仿真器的渲染器。真实世界部署便会失败。域随机化或仿真到真实转换不可妥协。",
+   "src": "<strong>Simulation overfit.</strong> Detectors trained\n            only on sim learn to recognise the simulator's renderer.\n            Real-world deployment fails. Domain randomisation or\n            sim-to-real translation is non-negotiable.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Spectral / multi-modal shift.@@T1@@ CORAL on\n            RGB doesn't help when target is multi-spectral. Pretrain on\n            an\n            @@T2@@EO foundation\n            model@@T3@@ and adapt at the feature level instead.": {
+   "zh": "@@T0@@频谱 / 多模态偏移。@@T1@@当目标域是多光谱时，在 RGB 上做 CORAL 无济于事。应改为在@@T2@@对地观测基础模型@@T3@@上预训练，并在特征层面进行自适应。",
+   "src": "<strong>Spectral / multi-modal shift.</strong> CORAL on\n            RGB doesn't help when target is multi-spectral. Pretrain on\n            an\n            <a href=\"../eo-foundation-models/index.html\">EO foundation\n            model</a> and adapt at the feature level instead.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<a href=\"../eo-foundation-models/index.html\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          The hard part of domain shift in vision is rarely choosing a\n          loss function &mdash; it's diagnosing @@T2@@which@@T3@@ kind of\n          shift you have and matching the technique to it. The\n          decision tree in Step 3 plus an honest hold-one-site-out\n          evaluation in Step 6 will save you a year of debugging.": {
+   "zh": "@@T0@@最终结论。@@T1@@视觉中域偏移的难点很少在于选择损失函数——而在于诊断你面对的是@@T2@@哪一种@@T3@@偏移，并据此匹配相应技术。第 3 步中的决策树，加上第 6 步中诚实的留一站点评估，将为你省下一年的调试时间。",
+   "src": "<strong>Final takeaway.</strong>\n          The hard part of domain shift in vision is rarely choosing a\n          loss function &mdash; it's diagnosing <em>which</em> kind of\n          shift you have and matching the technique to it. The\n          decision tree in Step 3 plus an honest hold-one-site-out\n          evaluation in Step 6 will save you a year of debugging.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "域偏移及其自适应",
+  "tagline": "当训练分布与部署分布相互背离——以及应对之道",
+  "summary": "源域与目标域在一个二维分类玩具问题上逐渐漂移分离。观察朴素分类器在目标域上崩塌，然后加入 CORAL 特征对齐步骤（手工实现的协方差匹配）以及 OOD 能量分数。实时展示源域 / 目标域准确率与 OOD 检测 ROC。直接对应跨城市传感器校准场景。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "源域 / 目标域分布漂移滑块；观察朴素分类器在目标域上崩塌。",
+   "实时计算 CORAL 协方差对齐——无需目标域标签即可找回大部分丢失的准确率。",
+   "能量分数 OOD 检测器，并在留出的 OOD 集上给出 ROC 曲线。",
+   "贴合实验场景：跨城市传感器校准、季节变化的空气质量模型、卫星域迁移。"
+  ],
+  "tags": [
+   "域自适应",
+   "分布偏移",
+   "OOD 检测",
+   "迁移学习",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

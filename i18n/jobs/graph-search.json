@@ -1,0 +1,896 @@
+{
+ "slug": "graph-search",
+ "units": {
+  "Graph Search, Frontier by Frontier": {
+   "zh": "图搜索：逐层推进前沿",
+   "src": "Graph Search, Frontier by Frontier",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "BFS finds the shortest path on an unweighted graph but\n          wastes effort exploring blindly. Dijkstra handles edge\n          weights but ignores the goal. A* adds a heuristic and\n          goes straight there — when the heuristic is admissible.\n          Draw walls on a grid, watch four search algorithms expand\n          their frontiers, and see exactly where each one wastes\n          work.": {
+   "zh": "BFS 能在无权图上找到最短路径，却因盲目探索而浪费精力。Dijkstra 能处理边权，却无视目标所在。A* 引入启发式函数便能径直抵达——前提是该启发式是可采纳的。在网格上绘制墙壁，观察四种搜索算法如何扩展各自的前沿，并看清每一种究竟在何处浪费了工作。",
+   "src": "BFS finds the shortest path on an unweighted graph but\n          wastes effort exploring blindly. Dijkstra handles edge\n          weights but ignores the goal. A* adds a heuristic and\n          goes straight there — when the heuristic is admissible.\n          Draw walls on a grid, watch four search algorithms expand\n          their frontiers, and see exactly where each one wastes\n          work.",
+   "tags": []
+  },
+  "@@T0@@~16 min@@T1@@\n          @@T2@@Data structures &middot; Graph search &middot; A*@@T3@@": {
+   "zh": "@@T0@@约 16 分钟@@T1@@\n          @@T2@@数据结构 &middot; 图搜索 &middot; A*@@T3@@",
+   "src": "<span>~16 min</span>\n          <span>Data structures &middot; Graph search &middot; A*</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "One scaffold, four algorithms": {
+   "zh": "同一套脚手架，四种算法",
+   "src": "One scaffold, four algorithms",
+   "tags": []
+  },
+  "The four classic single-source shortest-path / reachability\n          algorithms — BFS, DFS, Dijkstra, A* — share a single\n          scaffold. Maintain a @@T0@@frontier@@T1@@ of nodes you've\n          discovered but not yet finalised. Pop one off, mark it\n          finalised, add its neighbours to the frontier. Repeat\n          until you reach the goal (or the frontier empties).": {
+   "zh": "四种经典的单源最短路径 / 可达性算法——BFS、DFS、Dijkstra、A*——共用同一套脚手架。维护一个@@T0@@前沿@@T1@@，其中存放已发现但尚未最终确定的节点。取出一个，标记为已确定，将其邻居加入前沿。重复此过程，直至抵达目标（或前沿清空）。",
+   "src": "The four classic single-source shortest-path / reachability\n          algorithms — BFS, DFS, Dijkstra, A* — share a single\n          scaffold. Maintain a <em>frontier</em> of nodes you've\n          discovered but not yet finalised. Pop one off, mark it\n          finalised, add its neighbours to the frontier. Repeat\n          until you reach the goal (or the frontier empties).",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "What changes between them? @@T0@@The data structure\n          backing the frontier.@@T1@@": {
+   "zh": "它们之间的差异何在？@@T0@@在于支撑前沿的数据结构。@@T1@@",
+   "src": "What changes between them? <strong>The data structure\n          backing the frontier.</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@BFS@@T1@@ uses a FIFO queue → pops the\n            shallowest node first → finds the shortest path on\n            unweighted graphs.": {
+   "zh": "@@T0@@BFS@@T1@@使用 FIFO 队列 → 先取出最浅的节点 → 在无权图上找到最短路径。",
+   "src": "<strong>BFS</strong> uses a FIFO queue → pops the\n            shallowest node first → finds the shortest path on\n            unweighted graphs.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@DFS@@T1@@ uses a LIFO stack → pops the\n            deepest node first → finds @@T2@@some@@T3@@ path, not the\n            shortest, but uses much less memory.": {
+   "zh": "@@T0@@DFS@@T1@@使用 LIFO 栈 → 先取出最深的节点 → 找到@@T2@@某条@@T3@@路径而非最短路径，但内存占用少得多。",
+   "src": "<strong>DFS</strong> uses a LIFO stack → pops the\n            deepest node first → finds <em>some</em> path, not the\n            shortest, but uses much less memory.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Dijkstra@@T1@@ uses a min-priority queue\n            keyed on path cost so far → pops the cheapest-from-start\n            node → optimal on weighted graphs with non-negative\n            edges.": {
+   "zh": "@@T0@@Dijkstra@@T1@@使用以当前路径代价为键的最小优先队列 → 取出离起点代价最低的节点 → 在边权非负的带权图上达到最优。",
+   "src": "<strong>Dijkstra</strong> uses a min-priority queue\n            keyed on path cost so far → pops the cheapest-from-start\n            node → optimal on weighted graphs with non-negative\n            edges.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@A*@@T1@@ uses a min-priority queue keyed on\n            $f(n) = g(n) + h(n)$ (cost so far plus heuristic\n            estimate to goal) → pops the most promising node →\n            optimal whenever $h$ is admissible.": {
+   "zh": "@@T0@@A*@@T1@@使用以 $f(n) = g(n) + h(n)$ 为键的最小优先队列（当前代价加上到目标的启发式估计）→ 取出最有希望的节点 → 只要 $h$ 可采纳即为最优。",
+   "src": "<strong>A*</strong> uses a min-priority queue keyed on\n            $f(n) = g(n) + h(n)$ (cost so far plus heuristic\n            estimate to goal) → pops the most promising node →\n            optimal whenever $h$ is admissible.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Different priority order, different behaviour, same\n          underlying loop.": {
+   "zh": "优先级顺序不同，行为便不同，底层循环却相同。",
+   "src": "Different priority order, different behaviour, same\n          underlying loop.",
+   "tags": []
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "Draw, run, watch": {
+   "zh": "绘制、运行、观察",
+   "src": "Draw, run, watch",
+   "tags": []
+  },
+  "Pick a tool, click cells to paint. Walls (black) block\n          movement. Mud (brown) is passable but costs 5× a normal\n          step — only Dijkstra and A* will care. Drag the green\n          start or red goal anywhere. Then press @@T0@@run@@T1@@.": {
+   "zh": "选择一种工具，点击单元格进行涂绘。墙壁（黑色）不可通行。泥地（棕色）可通行，但代价是普通步长的 5 倍——只有 Dijkstra 与 A* 会在意这一点。可将绿色起点或红色目标拖至任意位置。然后按下 @@T0@@运行@@T1@@。",
+   "src": "Pick a tool, click cells to paint. Walls (black) block\n          movement. Mud (brown) is passable but costs 5× a normal\n          step — only Dijkstra and A* will care. Drag the green\n          start or red goal anywhere. Then press <em>run</em>.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "algorithm": {
+   "zh": "算法",
+   "src": "algorithm",
+   "tags": []
+  },
+  "BFS (unweighted shortest path)": {
+   "zh": "BFS（无权最短路径）",
+   "src": "BFS (unweighted shortest path)",
+   "tags": []
+  },
+  "DFS": {
+   "zh": "DFS（深度优先搜索）",
+   "src": "DFS",
+   "tags": []
+  },
+  "Dijkstra": {
+   "zh": "Dijkstra（迪杰斯特拉）",
+   "src": "Dijkstra",
+   "tags": []
+  },
+  "A* (Manhattan heuristic)": {
+   "zh": "A*（曼哈顿启发式）",
+   "src": "A* (Manhattan heuristic)",
+   "tags": []
+  },
+  "greedy best-first": {
+   "zh": "贪心最佳优先",
+   "src": "greedy best-first",
+   "tags": []
+  },
+  "speed": {
+   "zh": "速度",
+   "src": "speed",
+   "tags": []
+  },
+  "slow": {
+   "zh": "慢",
+   "src": "slow",
+   "tags": []
+  },
+  "normal": {
+   "zh": "正常",
+   "src": "normal",
+   "tags": []
+  },
+  "fast": {
+   "zh": "快",
+   "src": "fast",
+   "tags": []
+  },
+  "instant": {
+   "zh": "即时",
+   "src": "instant",
+   "tags": []
+  },
+  "run": {
+   "zh": "运行",
+   "src": "run",
+   "tags": []
+  },
+  "step": {
+   "zh": "步进",
+   "src": "step",
+   "tags": []
+  },
+  "clear search": {
+   "zh": "清除搜索",
+   "src": "clear search",
+   "tags": []
+  },
+  "clear walls": {
+   "zh": "清除墙壁",
+   "src": "clear walls",
+   "tags": []
+  },
+  "random maze": {
+   "zh": "随机迷宫",
+   "src": "random maze",
+   "tags": []
+  },
+  "@@T0@@paint:@@T1@@": {
+   "zh": "@@T0@@涂绘：@@T1@@",
+   "src": "<span style=\"font-family: var(--sans); font-size: 0.92rem;\">paint:</span>",
+   "tags": [
+    "<span style=\"font-family: var(--sans); font-size: 0.92rem;\">",
+    "</span>"
+   ]
+  },
+  "wall": {
+   "zh": "墙壁",
+   "src": "wall",
+   "tags": []
+  },
+  "mud (cost 5)": {
+   "zh": "泥地（代价 5）",
+   "src": "mud (cost 5)",
+   "tags": []
+  },
+  "erase": {
+   "zh": "擦除",
+   "src": "erase",
+   "tags": []
+  },
+  "move start": {
+   "zh": "移动起点",
+   "src": "move start",
+   "tags": []
+  },
+  "move goal": {
+   "zh": "移动目标",
+   "src": "move goal",
+   "tags": []
+  },
+  "@@T0@@@@T1@@@@T2@@start@@T3@@\n          @@T4@@@@T5@@@@T6@@goal@@T7@@\n          @@T8@@@@T9@@@@T10@@wall@@T11@@\n          @@T12@@@@T13@@@@T14@@mud (cost 5)@@T15@@\n          @@T16@@@@T17@@@@T18@@frontier@@T19@@\n          @@T20@@@@T21@@@@T22@@explored@@T23@@\n          @@T24@@@@T25@@@@T26@@path@@T27@@": {
+   "zh": "@@T0@@@@T1@@@@T2@@起点@@T3@@\n          @@T4@@@@T5@@@@T6@@目标@@T7@@\n          @@T8@@@@T9@@@@T10@@墙壁@@T11@@\n          @@T12@@@@T13@@@@T14@@泥地（代价 5）@@T15@@\n          @@T16@@@@T17@@@@T18@@前沿@@T19@@\n          @@T20@@@@T21@@@@T22@@已探索@@T23@@\n          @@T24@@@@T25@@@@T26@@路径@@T27@@",
+   "src": "<span><span class=\"gs-legend-sw\" style=\"background: var(--cell-start);\"></span>start</span>\n          <span><span class=\"gs-legend-sw\" style=\"background: var(--cell-goal);\"></span>goal</span>\n          <span><span class=\"gs-legend-sw\" style=\"background: var(--cell-wall);\"></span>wall</span>\n          <span><span class=\"gs-legend-sw\" style=\"background: var(--cell-mud);\"></span>mud (cost 5)</span>\n          <span><span class=\"gs-legend-sw\" style=\"background: var(--cell-frontier);\"></span>frontier</span>\n          <span><span class=\"gs-legend-sw\" style=\"background: var(--cell-explored);\"></span>explored</span>\n          <span><span class=\"gs-legend-sw\" style=\"background: var(--cell-path);\"></span>path</span>",
+   "tags": [
+    "<span>",
+    "<span class=\"gs-legend-sw\" style=\"background: var(--cell-start);\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"gs-legend-sw\" style=\"background: var(--cell-goal);\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"gs-legend-sw\" style=\"background: var(--cell-wall);\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"gs-legend-sw\" style=\"background: var(--cell-mud);\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"gs-legend-sw\" style=\"background: var(--cell-frontier);\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"gs-legend-sw\" style=\"background: var(--cell-explored);\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"gs-legend-sw\" style=\"background: var(--cell-path);\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "draw walls, then press run.": {
+   "zh": "请绘制墙壁，然后按下运行。",
+   "src": "draw walls, then press run.",
+   "tags": []
+  },
+  "Things worth trying:": {
+   "zh": "值得尝试的操作：",
+   "src": "Things worth trying:",
+   "tags": []
+  },
+  "Clear walls, run BFS and A* on the same empty grid.\n            BFS explores a square-ish region of radius equal to the\n            distance to goal. A* draws an oval pointed at the goal.\n            Same shortest path, dramatically different work.": {
+   "zh": "清除墙壁，在同一空网格上运行 BFS 与 A*。BFS 会探索一个近似方形、半径等于到目标距离的区域。A* 则绘出一个指向目标的椭圆。最短路径相同，工作量却天差地别。",
+   "src": "Clear walls, run BFS and A* on the same empty grid.\n            BFS explores a square-ish region of radius equal to the\n            distance to goal. A* draws an oval pointed at the goal.\n            Same shortest path, dramatically different work.",
+   "tags": []
+  },
+  "Paint a long horizontal mud strip between start and\n            goal. Run BFS — it counts every step the same, so it\n            cuts straight through. Run Dijkstra — it routes around.": {
+   "zh": "在起点与目标之间绘制一条长长的水平泥地带。运行 BFS——它对每一步一视同仁，因此径直穿过。运行 Dijkstra——它会绕行。",
+   "src": "Paint a long horizontal mud strip between start and\n            goal. Run BFS — it counts every step the same, so it\n            cuts straight through. Run Dijkstra — it routes around.",
+   "tags": []
+  },
+  "Draw a C-shaped wall around the goal so the algorithm\n            has to back-track. Run greedy best-first; it dives at\n            the goal and only realises its mistake when blocked.\n            A* recovers; greedy doesn't.": {
+   "zh": "在目标周围绘制一道 C 形墙壁，使算法不得不回溯。运行贪心最佳优先；它会一头扎向目标，直到被挡住才意识到错误。A* 能够恢复；贪心则不能。",
+   "src": "Draw a C-shaped wall around the goal so the algorithm\n            has to back-track. Run greedy best-first; it dives at\n            the goal and only realises its mistake when blocked.\n            A* recovers; greedy doesn't.",
+   "tags": []
+  },
+  "Run DFS in an empty grid. It produces a wildly long\n            path, then runs to the end and gives up. DFS is wrong\n            for shortest-path problems and the demo makes it\n            visible.": {
+   "zh": "在空网格中运行 DFS。它会产生一条极其漫长的路径，随后走到尽头便放弃。DFS 不适用于最短路径问题，而这一演示使其显而易见。",
+   "src": "Run DFS in an empty grid. It produces a wildly long\n            path, then runs to the end and gives up. DFS is wrong\n            for shortest-path problems and the demo makes it\n            visible.",
+   "tags": []
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "BFS — the unweighted shortest-path tool": {
+   "zh": "BFS——无权图的最短路径工具",
+   "src": "BFS — the unweighted shortest-path tool",
+   "tags": []
+  },
+  "Pop from a FIFO queue. Each pop either is the goal\n          (return) or pushes its unvisited neighbours. Because the\n          queue is FIFO, every node is popped at its @@T0@@shallowest@@T1@@\n          discovery depth — the number of edges from the start.": {
+   "zh": "从 FIFO 队列中取出。每次取出要么是目标（返回），要么将其未访问的邻居入队。由于队列是 FIFO 的，每个节点都在其@@T0@@最浅@@T1@@的发现深度被取出——即距起点的边数。",
+   "src": "Pop from a FIFO queue. Each pop either is the goal\n          (return) or pushes its unvisited neighbours. Because the\n          queue is FIFO, every node is popped at its <em>shallowest</em>\n          discovery depth — the number of edges from the start.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "BFS is @@T0@@optimal@@T1@@ on unweighted graphs (or graphs\n          with uniform edge weights) and runs in $O(V + E)$ time.\n          It is @@T2@@not@@T3@@ optimal once edges have different\n          weights: BFS treats a mud cell the same as an empty one.\n          That's the problem Dijkstra fixes.": {
+   "zh": "BFS 在无权图（或边权一致的图）上是@@T0@@最优@@T1@@的，运行时间为 $O(V + E)$。一旦各边权重不同，它就@@T2@@不再@@T3@@最优：BFS 将泥地单元格与空地单元格同等对待。这正是 Dijkstra 所解决的问题。",
+   "src": "BFS is <em>optimal</em> on unweighted graphs (or graphs\n          with uniform edge weights) and runs in $O(V + E)$ time.\n          It is <em>not</em> optimal once edges have different\n          weights: BFS treats a mud cell the same as an empty one.\n          That's the problem Dijkstra fixes.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "DFS — depth-first, useful for the wrong reasons": {
+   "zh": "DFS——深度优先，因别的理由而有用",
+   "src": "DFS — depth-first, useful for the wrong reasons",
+   "tags": []
+  },
+  "Pop from a LIFO stack instead of a queue. You dive as\n          deep as possible before backtracking. DFS is the wrong\n          algorithm for shortest paths — but it's the right one for:": {
+   "zh": "从 LIFO 栈而非队列中取出。你会尽可能深入，直至需要回溯。DFS 对于最短路径是错误的算法——但下列场景中它却是正确的选择：",
+   "src": "Pop from a LIFO stack instead of a queue. You dive as\n          deep as possible before backtracking. DFS is the wrong\n          algorithm for shortest paths — but it's the right one for:",
+   "tags": []
+  },
+  "@@T0@@Topological sort.@@T1@@ Post-order DFS on a\n            DAG gives you a reverse topological ordering.": {
+   "zh": "@@T0@@拓扑排序。@@T1@@对 DAG 做后序 DFS 可得到逆拓扑序。",
+   "src": "<strong>Topological sort.</strong> Post-order DFS on a\n            DAG gives you a reverse topological ordering.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Cycle detection.@@T1@@ A back-edge during\n            DFS = cycle.": {
+   "zh": "@@T0@@环检测。@@T1@@DFS 期间出现回边即意味着存在环。",
+   "src": "<strong>Cycle detection.</strong> A back-edge during\n            DFS = cycle.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Connected components.@@T1@@ Each top-level\n            DFS call paints one component.": {
+   "zh": "@@T0@@连通分量。@@T1@@每次顶层 DFS 调用勾勒出一个分量。",
+   "src": "<strong>Connected components.</strong> Each top-level\n            DFS call paints one component.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Memory.@@T1@@ DFS uses $O(\\text{depth})$\n            memory; BFS uses $O(\\text{frontier width})$. On wide,\n            shallow graphs, DFS dominates.": {
+   "zh": "@@T0@@内存。@@T1@@DFS 使用 $O(\\text{depth})$ 内存；BFS 使用 $O(\\text{frontier width})$。在宽而浅的图上，DFS 占优。",
+   "src": "<strong>Memory.</strong> DFS uses $O(\\text{depth})$\n            memory; BFS uses $O(\\text{frontier width})$. On wide,\n            shallow graphs, DFS dominates.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Articulation points / bridges.@@T1@@\n            Tarjan's algorithm extracts both from a single DFS pass.": {
+   "zh": "@@T0@@割点 / 桥。@@T1@@Tarjan 算法通过单次 DFS 遍历同时提取二者。",
+   "src": "<strong>Articulation points / bridges.</strong>\n            Tarjan's algorithm extracts both from a single DFS pass.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The grid demo above does shortest path, which is the wrong\n          job for DFS — try it and observe the absurd path it\n          finds.": {
+   "zh": "上方的网格演示做的是最短路径，这对 DFS 而言是错误的差事——不妨一试，观察它找到的那条荒谬路径。",
+   "src": "The grid demo above does shortest path, which is the wrong\n          job for DFS — try it and observe the absurd path it\n          finds.",
+   "tags": []
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Dijkstra — BFS with a priority queue": {
+   "zh": "Dijkstra——带优先队列的 BFS",
+   "src": "Dijkstra — BFS with a priority queue",
+   "tags": []
+  },
+  "Replace BFS's FIFO queue with a @@T0@@min-priority queue@@T1@@\n          keyed on the current best-known cost from start. Pop the\n          node with the smallest cost. The first time you pop a\n          node, you have its final shortest-path cost. Update\n          neighbours by @@T2@@relaxation@@T3@@:": {
+   "zh": "将 BFS 的 FIFO 队列替换为以当前已知的最优起点代价为键的@@T0@@最小优先队列@@T1@@。取出代价最小的节点。第一次取出某节点时，你就得到了它的最终最短路径代价。通过@@T2@@松弛@@T3@@更新邻居：",
+   "src": "Replace BFS's FIFO queue with a <em>min-priority queue</em>\n          keyed on the current best-known cost from start. Pop the\n          node with the smallest cost. The first time you pop a\n          node, you have its final shortest-path cost. Update\n          neighbours by <em>relaxation</em>:",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "With a binary heap (see the @@T0@@trees\n          article@@T1@@) Dijkstra runs in $O((V + E) \\log V)$. With a\n          Fibonacci heap, $O(V \\log V + E)$, because the\n          @@T2@@decrease-key@@T3@@ operation becomes $O(1)$\n          amortised.": {
+   "zh": "使用二叉堆时（参见@@T0@@树@@T1@@一文），Dijkstra 运行时间为 $O((V + E) \\log V)$。使用斐波那契堆时为 $O(V \\log V + E)$，因为 @@T2@@decrease-key@@T3@@ 操作摊还后变为 $O(1)$。",
+   "src": "With a binary heap (see the <a href=\"../trees/index.html\">trees\n          article</a>) Dijkstra runs in $O((V + E) \\log V)$. With a\n          Fibonacci heap, $O(V \\log V + E)$, because the\n          <code>decrease-key</code> operation becomes $O(1)$\n          amortised.",
+   "tags": [
+    "<a href=\"../trees/index.html\">",
+    "</a>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@Non-negative edges only.@@T1@@\n          The proof of correctness depends on every edge having\n          non-negative weight. If you have negative edges, Dijkstra\n          is unsafe; use Bellman-Ford ($O(VE)$). If your graph is a\n          DAG, you can do better still: relax in topological order\n          for $O(V + E)$.": {
+   "zh": "@@T0@@仅限非负边。@@T1@@其正确性证明依赖于每条边都具有非负权重。若存在负权边，Dijkstra 便不再安全；应改用 Bellman-Ford（$O(VE)$）。若图为 DAG，还能做得更好：按拓扑序松弛，达到 $O(V + E)$。",
+   "src": "<strong>Non-negative edges only.</strong>\n          The proof of correctness depends on every edge having\n          non-negative weight. If you have negative edges, Dijkstra\n          is unsafe; use Bellman-Ford ($O(VE)$). If your graph is a\n          DAG, you can do better still: relax in topological order\n          for $O(V + E)$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "A* — Dijkstra with a hint": {
+   "zh": "A*——带提示的 Dijkstra",
+   "src": "A* — Dijkstra with a hint",
+   "tags": []
+  },
+  "Dijkstra has no notion of where the goal is. A* fixes\n          that: change the priority key from \"cost from start\" to\n          \"estimated total cost @@T0@@through this node@@T1@@\":": {
+   "zh": "Dijkstra 对目标身处何方毫无概念。A* 修正了这一点：将优先级的键从「自起点起的代价」改为「@@T0@@经由此节点@@T1@@的估计总代价」：",
+   "src": "Dijkstra has no notion of where the goal is. A* fixes\n          that: change the priority key from \"cost from start\" to\n          \"estimated total cost <em>through this node</em>\":",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "where $g(n)$ is the actual cost from start to $n$ and\n          $h(n)$ is a heuristic estimate of the remaining cost from\n          $n$ to goal. Three regimes:": {
+   "zh": "其中 $g(n)$ 为自起点到 $n$ 的实际代价，$h(n)$ 为从 $n$ 到目标的剩余代价的启发式估计。有三种情形：",
+   "src": "where $g(n)$ is the actual cost from start to $n$ and\n          $h(n)$ is a heuristic estimate of the remaining cost from\n          $n$ to goal. Three regimes:",
+   "tags": []
+  },
+  "@@T0@@$h \\equiv 0$.@@T1@@ A* reduces exactly to\n            Dijkstra. Slow, optimal.": {
+   "zh": "@@T0@@$h \\equiv 0$。@@T1@@A* 恰好退化为 Dijkstra。慢，但最优。",
+   "src": "<strong>$h \\equiv 0$.</strong> A* reduces exactly to\n            Dijkstra. Slow, optimal.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@$h$ exactly equals the true remaining cost.@@T1@@\n            A* expands only the nodes on the shortest path. Optimal,\n            fastest possible.": {
+   "zh": "@@T0@@$h$ 恰好等于真实的剩余代价。@@T1@@A* 只扩展最短路径上的节点。最优，且达到可能的最快速度。",
+   "src": "<strong>$h$ exactly equals the true remaining cost.</strong>\n            A* expands only the nodes on the shortest path. Optimal,\n            fastest possible.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@$h$ is anywhere between.@@T1@@ A* expands\n            roughly the band of nodes whose $f$-score is at most\n            the optimum. Tighter $h$ means tighter band.": {
+   "zh": "@@T0@@$h$ 介于两者之间。@@T1@@A* 大致扩展那些 $f$ 值不超过最优值的节点带。$h$ 越紧，带宽越窄。",
+   "src": "<strong>$h$ is anywhere between.</strong> A* expands\n            roughly the band of nodes whose $f$-score is at most\n            the optimum. Tighter $h$ means tighter band.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "For correctness we need $h$ to be @@T0@@admissible@@T1@@\n          — it must never overestimate the true remaining cost.\n          On a 4-connected grid with uniform-cost steps, the\n          Manhattan distance is admissible. On an 8-connected\n          (diagonal) grid, use Chebyshev or octile distance.\n          Euclidean distance is admissible everywhere but loose on\n          grid graphs.": {
+   "zh": "为保证正确性，我们需要 $h$ 是@@T0@@可采纳@@T1@@的——它绝不能高估真实的剩余代价。在步长一致的四连通网格上，曼哈顿距离是可采纳的。在八连通（含对角）网格上，应使用切比雪夫距离或 octile 距离。欧氏距离在任何地方都可采纳，但在网格图上较为宽松。",
+   "src": "For correctness we need $h$ to be <strong>admissible</strong>\n          — it must never overestimate the true remaining cost.\n          On a 4-connected grid with uniform-cost steps, the\n          Manhattan distance is admissible. On an 8-connected\n          (diagonal) grid, use Chebyshev or octile distance.\n          Euclidean distance is admissible everywhere but loose on\n          grid graphs.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "For A* to never re-expand a node we also want $h$ to be\n          @@T0@@consistent@@T1@@ (a.k.a. monotone):\n          $h(n) \\le c(n, n') + h(n')$ for every edge $(n, n')$.\n          Most \"obvious\" heuristics on grids — Manhattan, Euclidean\n          — are consistent.": {
+   "zh": "为使 A* 从不重新扩展节点，我们还要求 $h$ 是@@T0@@一致的@@T1@@（又称单调）：对每条边 $(n, n')$ 都有 $h(n) \\le c(n, n') + h(n')$。网格上大多数「显然」的启发式——曼哈顿、欧氏——都是一致的。",
+   "src": "For A* to never re-expand a node we also want $h$ to be\n          <strong>consistent</strong> (a.k.a. monotone):\n          $h(n) \\le c(n, n') + h(n')$ for every edge $(n, n')$.\n          Most \"obvious\" heuristics on grids — Manhattan, Euclidean\n          — are consistent.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Greedy best-first — the cautionary tale": {
+   "zh": "贪心最佳优先——前车之鉴",
+   "src": "Greedy best-first — the cautionary tale",
+   "tags": []
+  },
+  "What if you priority-order on @@T0@@just@@T1@@ $h(n)$,\n          ignoring the cost paid so far? That's @@T2@@greedy\n          best-first search@@T3@@. It feels like A* with the\n          $g$-term dropped, and it can find a path very quickly on\n          easy maps. But the moment a wall sits between the\n          greedy direction and the goal, it dives into a dead end\n          and slogs back out.": {
+   "zh": "若@@T0@@仅@@T1@@按 $h(n)$ 排序优先级，而无视已付出的代价，会怎样？那就是@@T2@@贪心最佳优先搜索@@T3@@。它感觉像是丢掉了 $g$ 项的 A*，在简单地图上能极快地找到一条路径。但一旦贪心方向与目标之间横着一道墙，它便会一头扎进死胡同，再艰难地挣扎出来。",
+   "src": "What if you priority-order on <em>just</em> $h(n)$,\n          ignoring the cost paid so far? That's <strong>greedy\n          best-first search</strong>. It feels like A* with the\n          $g$-term dropped, and it can find a path very quickly on\n          easy maps. But the moment a wall sits between the\n          greedy direction and the goal, it dives into a dead end\n          and slogs back out.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Greedy best-first is @@T0@@not@@T1@@ optimal. It produces\n          some path, which may be far from shortest. Useful when\n          (a) you trust the heuristic, (b) you want speed over\n          optimality, and (c) you can re-plan if the path is bad.\n          Otherwise: A*.": {
+   "zh": "贪心最佳优先@@T0@@并不@@T1@@最优。它会产生某条路径，可能远非最短。适用于以下情形：(a) 你信任该启发式；(b) 你更看重速度而非最优性；(c) 路径不佳时你可以重新规划。除此之外：请用 A*。",
+   "src": "Greedy best-first is <em>not</em> optimal. It produces\n          some path, which may be far from shortest. Useful when\n          (a) you trust the heuristic, (b) you want speed over\n          optimality, and (c) you can re-plan if the path is bad.\n          Otherwise: A*.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Try the C-shaped wall trap above with greedy best-first;\n          watch it bounce off the wall before recovering.": {
+   "zh": "用贪心最佳优先试试上方的 C 形墙陷阱；观察它如何撞上墙壁后才恢复。",
+   "src": "Try the C-shaped wall trap above with greedy best-first;\n          watch it bounce off the wall before recovering.",
+   "tags": []
+  },
+  "Step 7": {
+   "zh": "第 7 步",
+   "src": "Step 7",
+   "tags": []
+  },
+  "The cheat sheet": {
+   "zh": "速查表",
+   "src": "The cheat sheet",
+   "tags": []
+  },
+  "frontier": {
+   "zh": "前沿",
+   "src": "frontier",
+   "tags": []
+  },
+  "weights?": {
+   "zh": "带权？",
+   "src": "weights?",
+   "tags": []
+  },
+  "optimal?": {
+   "zh": "最优？",
+   "src": "optimal?",
+   "tags": []
+  },
+  "time": {
+   "zh": "时间复杂度",
+   "src": "time",
+   "tags": []
+  },
+  "typical use": {
+   "zh": "典型用途",
+   "src": "typical use",
+   "tags": []
+  },
+  "BFS": {
+   "zh": "BFS（广度优先搜索）",
+   "src": "BFS",
+   "tags": []
+  },
+  "FIFO queue": {
+   "zh": "FIFO 队列",
+   "src": "FIFO queue",
+   "tags": []
+  },
+  "unit only": {
+   "zh": "仅单位权重",
+   "src": "unit only",
+   "tags": []
+  },
+  "yes (unweighted)": {
+   "zh": "是（无权图）",
+   "src": "yes (unweighted)",
+   "tags": []
+  },
+  "shortest path on unweighted graphs, breadth-first traversals": {
+   "zh": "无权图上的最短路径、广度优先遍历",
+   "src": "shortest path on unweighted graphs, breadth-first traversals",
+   "tags": []
+  },
+  "LIFO stack": {
+   "zh": "LIFO 栈",
+   "src": "LIFO stack",
+   "tags": []
+  },
+  "any (ignored)": {
+   "zh": "任意（被忽略）",
+   "src": "any (ignored)",
+   "tags": []
+  },
+  "topological sort, cycle detection, articulation points": {
+   "zh": "拓扑排序、环检测、割点",
+   "src": "topological sort, cycle detection, articulation points",
+   "tags": []
+  },
+  "min-heap on $g$": {
+   "zh": "以 $g$ 为键的最小堆",
+   "src": "min-heap on $g$",
+   "tags": []
+  },
+  "non-negative": {
+   "zh": "非负",
+   "src": "non-negative",
+   "tags": []
+  },
+  "yes": {
+   "zh": "是",
+   "src": "yes",
+   "tags": []
+  },
+  "weighted shortest path; routing on roads": {
+   "zh": "带权最短路径；道路路由",
+   "src": "weighted shortest path; routing on roads",
+   "tags": []
+  },
+  "Bellman-Ford": {
+   "zh": "Bellman-Ford（贝尔曼-福特）",
+   "src": "Bellman-Ford",
+   "tags": []
+  },
+  "relax all edges $V$ times": {
+   "zh": "将所有边松弛 $V$ 次",
+   "src": "relax all edges $V$ times",
+   "tags": []
+  },
+  "any (incl. negative)": {
+   "zh": "任意（含负权）",
+   "src": "any (incl. negative)",
+   "tags": []
+  },
+  "weighted shortest path with negative edges, currency arbitrage": {
+   "zh": "含负权边的带权最短路径、货币套汇",
+   "src": "weighted shortest path with negative edges, currency arbitrage",
+   "tags": []
+  },
+  "min-heap on $g+h$": {
+   "zh": "以 $g+h$ 为键的最小堆",
+   "src": "min-heap on $g+h$",
+   "tags": []
+  },
+  "yes (admissible $h$)": {
+   "zh": "是（$h$ 可采纳）",
+   "src": "yes (admissible $h$)",
+   "tags": []
+  },
+  "like Dijkstra ×band-width": {
+   "zh": "类似 Dijkstra ×带宽度",
+   "src": "like Dijkstra ×band-width",
+   "tags": []
+  },
+  "game pathfinding, robot navigation, puzzle solving": {
+   "zh": "游戏寻路、机器人导航、解谜",
+   "src": "game pathfinding, robot navigation, puzzle solving",
+   "tags": []
+  },
+  "min-heap on $h$": {
+   "zh": "以 $h$ 为键的最小堆",
+   "src": "min-heap on $h$",
+   "tags": []
+  },
+  "any": {
+   "zh": "任意",
+   "src": "any",
+   "tags": []
+  },
+  "like Dijkstra": {
+   "zh": "类似 Dijkstra",
+   "src": "like Dijkstra",
+   "tags": []
+  },
+  "fast approximate routing, anytime planning": {
+   "zh": "快速近似路由、anytime 规划",
+   "src": "fast approximate routing, anytime planning",
+   "tags": []
+  },
+  "Step 8": {
+   "zh": "第 8 步",
+   "src": "Step 8",
+   "tags": []
+  },
+  "Sharp edges": {
+   "zh": "易错之处",
+   "src": "Sharp edges",
+   "tags": []
+  },
+  "@@T0@@BFS is iterative deepening's friend, not its\n            replacement.@@T1@@ If your graph is infinite (or\n            effectively so), BFS will blow memory on the frontier\n            before it finishes. Iterative deepening DFS (IDDFS)\n            keeps DFS's $O(\\text{depth})$ memory while still\n            finding shortest paths.": {
+   "zh": "@@T0@@BFS 是迭代加深的朋友，而非其替代。@@T1@@若你的图是无限的（或实际上无限），BFS 将在完成之前就把前沿的内存耗尽。迭代加深 DFS（IDDFS）保留了 DFS 的 $O(\\text{depth})$ 内存，同时仍能找到最短路径。",
+   "src": "<strong>BFS is iterative deepening's friend, not its\n            replacement.</strong> If your graph is infinite (or\n            effectively so), BFS will blow memory on the frontier\n            before it finishes. Iterative deepening DFS (IDDFS)\n            keeps DFS's $O(\\text{depth})$ memory while still\n            finding shortest paths.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@A* re-expansion.@@T1@@ With a heuristic\n            that is admissible but @@T2@@not consistent@@T3@@, a node\n            can be re-added to the frontier with a better $g$.\n            Handle this by checking if the popped node's $g$ matches\n            the recorded best; if not, skip.": {
+   "zh": "@@T0@@A* 的重新扩展。@@T1@@若启发式可采纳但@@T2@@不一致@@T3@@，某节点可能以更优的 $g$ 被重新加入前沿。处理方法是检查弹出节点的 $g$ 是否与记录的最优值相符；若不符则跳过。",
+   "src": "<strong>A* re-expansion.</strong> With a heuristic\n            that is admissible but <em>not consistent</em>, a node\n            can be re-added to the frontier with a better $g$.\n            Handle this by checking if the popped node's $g$ matches\n            the recorded best; if not, skip.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Tie-breaking in A* matters.@@T1@@ Two nodes\n            with equal $f$ can be popped in different orders, and\n            the order changes which path A* returns. Standard trick:\n            break ties by preferring the larger $g$ (closer to\n            goal). This often shrinks the explored set dramatically.": {
+   "zh": "@@T0@@A* 中的平局打破很重要。@@T1@@两个 $f$ 相等的节点可能以不同顺序被弹出，而该顺序会改变 A* 返回的路径。标准技巧：打破平局时优先选择较大的 $g$（更接近目标）。这往往能大幅缩小已探索集合。",
+   "src": "<strong>Tie-breaking in A* matters.</strong> Two nodes\n            with equal $f$ can be popped in different orders, and\n            the order changes which path A* returns. Standard trick:\n            break ties by preferring the larger $g$ (closer to\n            goal). This often shrinks the explored set dramatically.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Bidirectional search.@@T1@@ Run BFS / A*\n            from start @@T2@@and@@T3@@ goal simultaneously; stop when\n            the frontiers meet. Squares the work in the best case\n            ($O(b^{d/2})$ instead of $O(b^d)$ for branching factor\n            $b$ and depth $d$).": {
+   "zh": "@@T0@@双向搜索。@@T1@@同时从起点@@T2@@与@@T3@@目标运行 BFS / A*；当前沿相遇时停止。最好情况下将工作量开平方（分支因子为 $b$、深度为 $d$ 时，由 $O(b^d)$ 变为 $O(b^{d/2})$）。",
+   "src": "<strong>Bidirectional search.</strong> Run BFS / A*\n            from start <em>and</em> goal simultaneously; stop when\n            the frontiers meet. Squares the work in the best case\n            ($O(b^{d/2})$ instead of $O(b^d)$ for branching factor\n            $b$ and depth $d$).",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Jump-point search.@@T1@@ On uniform-cost\n            grids, you can skip whole runs of cells when nothing\n            interesting changes. Order-of-magnitude speed-up over\n            A* for game maps.": {
+   "zh": "@@T0@@跳点搜索。@@T1@@在单位代价网格上，当没有值得关注的变化时，可以整段跳过单元格。在游戏地图上比 A* 提速一个数量级。",
+   "src": "<strong>Jump-point search.</strong> On uniform-cost\n            grids, you can skip whole runs of cells when nothing\n            interesting changes. Order-of-magnitude speed-up over\n            A* for game maps.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@D* and LPA*.@@T1@@ When the graph is\n            changing (obstacles appear, edges close), replanning\n            from scratch is wasteful. D* Lite reuses information\n            from the previous run; the canonical algorithm behind\n            Mars-rover path planners.": {
+   "zh": "@@T0@@D* 与 LPA*。@@T1@@当图发生变化（障碍出现、边被关闭）时，从零重新规划颇为浪费。D* Lite 复用上一次运行的信息；它是火星车路径规划器背后的经典算法。",
+   "src": "<strong>D* and LPA*.</strong> When the graph is\n            changing (obstacles appear, edges close), replanning\n            from scratch is wasteful. D* Lite reuses information\n            from the previous run; the canonical algorithm behind\n            Mars-rover path planners.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 9": {
+   "zh": "第 9 步",
+   "src": "Step 9",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "推荐阅读",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Dijkstra, 1959@@T1@@ &mdash; @@T2@@A note on\n            two problems in connexion with graphs.@@T3@@ Two pages.\n            Stays the algorithm of choice for sixty-plus years.": {
+   "zh": "@@T0@@Dijkstra，1959@@T1@@ &mdash; @@T2@@A note on two problems in connexion with graphs.@@T3@@两页篇幅。六十余年来始终是首选算法。",
+   "src": "<strong>Dijkstra, 1959</strong> &mdash; <em>A note on\n            two problems in connexion with graphs.</em> Two pages.\n            Stays the algorithm of choice for sixty-plus years.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Hart, Nilsson, Raphael, 1968@@T1@@ &mdash;\n            @@T2@@A Formal Basis for the Heuristic Determination of\n            Minimum Cost Paths.@@T3@@ The original A* paper.": {
+   "zh": "@@T0@@Hart、Nilsson、Raphael，1968@@T1@@ &mdash; @@T2@@A Formal Basis for the Heuristic Determination of Minimum Cost Paths.@@T3@@A* 的原始论文。",
+   "src": "<strong>Hart, Nilsson, Raphael, 1968</strong> &mdash;\n            <em>A Formal Basis for the Heuristic Determination of\n            Minimum Cost Paths.</em> The original A* paper.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Pearl, 1984@@T1@@ &mdash; @@T2@@Heuristics:\n            Intelligent Search Strategies for Computer Problem\n            Solving.@@T3@@ The definitive treatment of admissibility,\n            consistency, and the A* family.": {
+   "zh": "@@T0@@Pearl，1984@@T1@@ &mdash; @@T2@@Heuristics: Intelligent Search Strategies for Computer Problem Solving.@@T3@@关于可采纳性、一致性以及 A* 家族的权威论述。",
+   "src": "<strong>Pearl, 1984</strong> &mdash; <em>Heuristics:\n            Intelligent Search Strategies for Computer Problem\n            Solving.</em> The definitive treatment of admissibility,\n            consistency, and the A* family.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Koenig &amp; Likhachev, 2002@@T1@@ &mdash;\n            @@T2@@D* Lite.@@T3@@ Incremental replanning for dynamic\n            graphs.": {
+   "zh": "@@T0@@Koenig 与 Likhachev，2002@@T1@@ &mdash; @@T2@@D* Lite.@@T3@@面向动态图的增量重规划。",
+   "src": "<strong>Koenig &amp; Likhachev, 2002</strong> &mdash;\n            <em>D* Lite.</em> Incremental replanning for dynamic\n            graphs.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Harabor &amp; Grastien, 2011@@T1@@ &mdash;\n            @@T2@@Online Graph Pruning for Pathfinding on Grid Maps.@@T3@@\n            Jump-point search; A* on grids without the wasted work.": {
+   "zh": "@@T0@@Harabor 与 Grastien，2011@@T1@@ &mdash; @@T2@@Online Graph Pruning for Pathfinding on Grid Maps.@@T3@@跳点搜索；在网格上无冗余工作地进行 A*。",
+   "src": "<strong>Harabor &amp; Grastien, 2011</strong> &mdash;\n            <em>Online Graph Pruning for Pathfinding on Grid Maps.</em>\n            Jump-point search; A* on grids without the wasted work.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Sturtevant's Moving AI repository@@T1@@ &mdash;\n            standard benchmark maps for pathfinding research,\n            including the Baldur's Gate II and StarCraft maps.": {
+   "zh": "@@T0@@Sturtevant 的 Moving AI 仓库@@T1@@ &mdash; 寻路研究的标准基准地图，包括 Baldur's Gate II 与 StarCraft 地图。",
+   "src": "<strong>Sturtevant's Moving AI repository</strong> &mdash;\n            standard benchmark maps for pathfinding research,\n            including the Baldur's Gate II and StarCraft maps.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "图搜索：逐层推进前沿",
+  "tagline": "BFS、DFS、Dijkstra、A*——四种搜索策略在同一网格迷宫中竞速",
+  "summary": "BFS 能在无权图上找到最短路径，却盲目探索。Dijkstra 能处理权重，却无视目标。A* 引入启发式函数，如箭一般径直抵达——前提是该启发式可采纳。在网格上绘制墙壁与权重区域，观察四种经典搜索算法如何扩展各自的前沿，并看清每一种究竟在何处浪费了工作。",
+  "difficulty": "中级",
+  "collection": "数据结构",
+  "highlights": [
+   "点击网格绘制墙壁；拖拽起点或目标；选择 BFS / DFS / Dijkstra / A* 并观察前沿如何扩展。",
+   "并排对比：同一迷宫、四种搜索，看清每种算法不必要地探索了哪些单元格。",
+   "加入高代价地形（泥地），观察 Dijkstra 如何绕行，而 BFS 径直穿过。",
+   "切换 A* 的启发式函数（曼哈顿、欧氏、零），观察从 Dijkstra 到贪心最佳优先的连续谱。",
+   "实时报告路径长度、扩展的单元格数与最优性。"
+  ],
+  "tags": [
+   "BFS",
+   "DFS",
+   "Dijkstra",
+   "A*",
+   "图搜索",
+   "交互式"
+  ]
+ },
+ "js": {
+  "[[[0]]]px Manrope, sans-serif": {
+   "zh": "[[[0]]]px Manrope,sans-serif",
+   "exprs": [
+    "${Math.floor(CELL_PX * 0.55)}"
+   ],
+   "tags": [],
+   "src": "${Math.floor(CELL_PX * 0.55)}px Manrope, sans-serif"
+  },
+  "@@T0@@[[[0]]]@@T1@@ — goal unreachable. expanded @@T2@@[[[1]]]@@T3@@ / [[[2]]] cells.": {
+   "zh": "@@T0@@[[[0]]]@@T1@@——目标不可达。已扩展 @@T2@@[[[1]]]@@T3@@ / [[[2]]] 个单元格。",
+   "exprs": [
+    "${algo}",
+    "${v.expanded}",
+    "${totalCells}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "<strong>${algo}</strong> — goal unreachable. expanded <strong>${v.expanded}</strong> / ${totalCells} cells."
+  },
+  "@@T0@@[[[0]]]@@T1@@ done. path length @@T2@@[[[1]]]@@T3@@ steps, cost @@T4@@[[[2]]]@@T5@@, explored @@T6@@[[[3]]]@@T7@@ cells.": {
+   "zh": "@@T0@@[[[0]]]@@T1@@ 完成。路径长度 @@T2@@[[[1]]]@@T3@@ 步，代价 @@T4@@[[[2]]]@@T5@@，已探索 @@T6@@[[[3]]]@@T7@@ 个单元格。",
+   "exprs": [
+    "${algo}",
+    "${path ? path.length - 1 : 0}",
+    "${cost}",
+    "${v.expanded}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "<strong>${algo}</strong> done. path length <strong>${path ? path.length - 1 : 0}</strong> steps, cost <strong>${cost}</strong>, explored <strong>${v.expanded}</strong> cells."
+  },
+  "cleared search. draw walls or press run.": {
+   "zh": "已清除搜索。请绘制墙壁或按下运行。",
+   "exprs": [],
+   "tags": [],
+   "src": "cleared search. draw walls or press run."
+  },
+  "grid cleared.": {
+   "zh": "网格已清除。",
+   "exprs": [],
+   "tags": [],
+   "src": "grid cleared."
+  },
+  "random maze generated.": {
+   "zh": "已生成随机迷宫。",
+   "exprs": [],
+   "tags": [],
+   "src": "random maze generated."
+  },
+  "default scenario: a wall with a gap. press <strong>run</strong>.": {
+   "zh": "默认场景：一道留有缺口的墙。请按下 <strong>运行</strong>。",
+   "exprs": [],
+   "tags": [],
+   "src": "default scenario: a wall with a gap. press <strong>run</strong>."
+  }
+ }
+}

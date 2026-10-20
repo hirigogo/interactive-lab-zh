@@ -1,0 +1,293 @@
+{
+ "slug": "lstm-gates",
+ "units": {
+  "LSTM Gates Playground": {
+   "zh": "LSTM 门控实验场",
+   "src": "LSTM Gates Playground",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "An LSTM cell has three gates: a forget gate decides what to erase from the cell state, an input gate decides what to write, and an output gate decides what to read. Drag each slider, feed an input sequence, and watch the cell state flow — or freeze in place.": {
+   "zh": "一个 LSTM 单元有三道门：遗忘门决定从细胞状态中擦除什么，输入门决定写入什么，输出门决定读出什么。拖动每个滑块，送入一段输入序列，观察细胞状态如何流动 &mdash;&mdash; 或者冻结不动。",
+   "src": "An LSTM cell has three gates: a forget gate decides what to erase from the cell state, an input gate decides what to write, and an output gate decides what to read. Drag each slider, feed an input sequence, and watch the cell state flow — or freeze in place.",
+   "tags": []
+  },
+  "@@T0@@~8 min@@T1@@@@T2@@Deep Learning · RNN · LSTM@@T3@@": {
+   "zh": "@@T0@@约 8 分钟@@T1@@@@T2@@深度学习 · RNN · LSTM@@T3@@",
+   "src": "<span>~8 min</span><span>Deep Learning · RNN · LSTM</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Vanilla RNNs struggle with long-range dependencies. Gradients multiplied through a chain of W@@T0@@⊤@@T1@@·diag(tanh') either vanish or explode. Hochreiter &amp; Schmidhuber's 1997 insight: give the recurrence its own state that is updated by @@T2@@gates@@T3@@ — sigmoid values in [0, 1] — instead of a matrix multiply.": {
+   "zh": "朴素 RNN 难以处理长程依赖。梯度经过一连串 W@@T0@@⊤@@T1@@·diag(tanh') 连乘之后，要么消失，要么爆炸。Hochreiter 与 Schmidhuber 在 1997 年的洞见在于：让循环拥有自己的状态，并由@@T2@@门控@@T3@@ &mdash;&mdash; 即 [0, 1] 区间内的 sigmoid 值 &mdash;&mdash; 来更新该状态，而非通过矩阵乘法。",
+   "src": "Vanilla RNNs struggle with long-range dependencies. Gradients multiplied through a chain of W<sup>⊤</sup>·diag(tanh') either vanish or explode. Hochreiter &amp; Schmidhuber's 1997 insight: give the recurrence its own state that is updated by <em>gates</em> — sigmoid values in [0, 1] — instead of a matrix multiply.",
+   "tags": [
+    "<sup>",
+    "</sup>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The cell state becomes a conveyor belt. At each timestep, the forget gate multiplies, the input gate adds, and only the output gate decides how much to expose as the hidden state.": {
+   "zh": "细胞状态由此成为一条传送带。在每个时间步，遗忘门做乘法，输入门做加法，而只有输出门决定将多少内容暴露为隐藏状态。",
+   "src": "The cell state becomes a conveyor belt. At each timestep, the forget gate multiplies, the input gate adds, and only the output gate decides how much to expose as the hidden state.",
+   "tags": []
+  },
+  "The playground": {
+   "zh": "实验场",
+   "src": "The playground",
+   "tags": []
+  },
+  "@@T0@@forget (f)@@T1@@": {
+   "zh": "@@T0@@遗忘门 (f)@@T1@@",
+   "src": "<span style=\"color: #a8324b;\">forget (f)</span>",
+   "tags": [
+    "<span style=\"color: #a8324b;\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@input (i)@@T1@@": {
+   "zh": "@@T0@@输入门 (i)@@T1@@",
+   "src": "<span style=\"color: #7b9e89;\">input (i)</span>",
+   "tags": [
+    "<span style=\"color: #7b9e89;\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@output (o)@@T1@@": {
+   "zh": "@@T0@@输出门 (o)@@T1@@",
+   "src": "<span style=\"color: #4a6670;\">output (o)</span>",
+   "tags": [
+    "<span style=\"color: #4a6670;\">",
+    "</span>"
+   ]
+  },
+  "Scenario · two pulses": {
+   "zh": "场景 · 两个脉冲",
+   "src": "Scenario · two pulses",
+   "tags": []
+  },
+  "Scenario · sentiment flip (\"brilliant ... bad\")": {
+   "zh": "场景 · 情感反转（「brilliant ... bad」）",
+   "src": "Scenario · sentiment flip (\"brilliant ... bad\")",
+   "tags": []
+  },
+  "Scenario · sustained signal + noise": {
+   "zh": "场景 · 持续信号 + 噪声",
+   "src": "Scenario · sustained signal + noise",
+   "tags": []
+  },
+  "Remember forever (f=1, i=0)": {
+   "zh": "永久记忆（f=1, i=0）",
+   "src": "Remember forever (f=1, i=0)",
+   "tags": []
+  },
+  "Forget always (f=0)": {
+   "zh": "始终遗忘（f=0）",
+   "src": "Forget always (f=0)",
+   "tags": []
+  },
+  "Overwrite always (f=0, i=1)": {
+   "zh": "始终覆写（f=0, i=1）",
+   "src": "Overwrite always (f=0, i=1)",
+   "tags": []
+  },
+  "Default": {
+   "zh": "默认",
+   "src": "Default",
+   "tags": []
+  },
+  "Input spikes at t=3 and t=7 · solid line = cell state c_t · dashed = hidden state h_t": {
+   "zh": "输入在 t=3 与 t=7 处出现尖峰 · 实线 = 细胞状态 c_t · 虚线 = 隐藏状态 h_t",
+   "src": "Input spikes at t=3 and t=7 · solid line = cell state c_t · dashed = hidden state h_t",
+   "tags": []
+  },
+  "Try these presets": {
+   "zh": "可尝试这些预设",
+   "src": "Try these presets",
+   "tags": []
+  },
+  "@@T0@@Remember forever@@T1@@ — f=1, i=0. The cell state freezes after the first input. This is how LSTMs hold long-range information.": {
+   "zh": "@@T0@@永久记忆@@T1@@ &mdash;&mdash; f=1, i=0。细胞状态在首个输入之后便冻结。LSTM 正是以这种方式保存长程信息。",
+   "src": "<strong>Remember forever</strong> — f=1, i=0. The cell state freezes after the first input. This is how LSTMs hold long-range information.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Forget always@@T1@@ — f=0. Every timestep erases. Like vanilla RNN with tanh saturation.": {
+   "zh": "@@T0@@始终遗忘@@T1@@ &mdash;&mdash; f=0。每个时间步都擦除。效果类似于 tanh 饱和的朴素 RNN。",
+   "src": "<strong>Forget always</strong> — f=0. Every timestep erases. Like vanilla RNN with tanh saturation.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Overwrite always@@T1@@ — f=0, i=1. Cell state tracks the latest input only.": {
+   "zh": "@@T0@@始终覆写@@T1@@ &mdash;&mdash; f=0, i=1。细胞状态只跟踪最新的输入。",
+   "src": "<strong>Overwrite always</strong> — f=0, i=1. Cell state tracks the latest input only.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@The key equation.@@T1@@ c_t = f_t · c_{t-1} + i_t · c̃_t. The forget gate is a @@T2@@multiplicative@@T3@@ path (no matrix multiply), so gradients through the cell state don't explode or vanish — they scale by f_t, which the network learns to keep near 1 when memory matters.": {
+   "zh": "@@T0@@关键方程。@@T1@@ c_t = f_t · c_{t-1} + i_t · c̃_t。遗忘门是一条@@T2@@乘法式@@T3@@路径（不含矩阵乘法），因此经由细胞状态的梯度既不会爆炸也不会消失 &mdash;&mdash; 它们按 f_t 缩放，而在记忆重要时，网络会学会让 f_t 保持在接近 1 的数值。",
+   "src": "<strong>The key equation.</strong> c_t = f_t · c_{t-1} + i_t · c̃_t. The forget gate is a <em>multiplicative</em> path (no matrix multiply), so gradients through the cell state don't explode or vanish — they scale by f_t, which the network learns to keep near 1 when memory matters.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "LSTM vs GRU": {
+   "zh": "LSTM 与 GRU 对比",
+   "src": "LSTM vs GRU",
+   "tags": []
+  },
+  "GRU (Cho 2014) merges the forget and input gates into one \"update\" gate, and merges c and h. Fewer parameters, often comparable accuracy. Picking between them in 2026 is mostly personal preference; both are dwarfed by Transformers on most tasks. But for tiny devices and streaming, they are still the workhorses.": {
+   "zh": "GRU（Cho，2014）将遗忘门与输入门合并为一个「更新」门，并把 c 与 h 合并。参数更少，精度往往相当。到 2026 年，在二者之间取舍基本属于个人偏好；在大多数任务上二者都被 Transformer 远远超越。但在微型设备与流式场景中，它们仍是主力。",
+   "src": "GRU (Cho 2014) merges the forget and input gates into one \"update\" gate, and merges c and h. Fewer parameters, often comparable accuracy. Picking between them in 2026 is mostly personal preference; both are dwarfed by Transformers on most tasks. But for tiny devices and streaming, they are still the workhorses.",
+   "tags": []
+  },
+  "BPTT and the vanishing-gradient story": {
+   "zh": "BPTT 与梯度消失的故事",
+   "src": "BPTT and the vanishing-gradient story",
+   "tags": []
+  },
+  "Training an RNN is backprop-through-time (BPTT): unroll the recurrence, treat it like a feed-forward net with shared weights, and propagate gradients backward through time. The fatal problem in a plain RNN: at every step backward, the gradient is multiplied by the same Jacobian of the recurrent map. If that Jacobian's spectral radius is &lt; 1, gradients vanish exponentially; if &gt; 1, they explode.": {
+   "zh": "训练 RNN 即沿时间反向传播（BPTT）：将循环展开，视其为权重共享的前馈网络，并沿时间反向传播梯度。朴素 RNN 致命的问题在于：每回退一步，梯度都会乘以同一个循环映射的 Jacobian。若该 Jacobian 的谱半径 &lt; 1，梯度将指数级消失；若 &gt; 1，则会爆炸。",
+   "src": "Training an RNN is backprop-through-time (BPTT): unroll the recurrence, treat it like a feed-forward net with shared weights, and propagate gradients backward through time. The fatal problem in a plain RNN: at every step backward, the gradient is multiplied by the same Jacobian of the recurrent map. If that Jacobian's spectral radius is &lt; 1, gradients vanish exponentially; if &gt; 1, they explode.",
+   "tags": []
+  },
+  "Why LSTMs fix it: the cell state $c_t$ carries information forward via $c_t = f_t \\odot c_{t-1} + i_t \\odot g_t$. The Jacobian $\\partial c_t / \\partial c_{t-1} = f_t$ is just the forget-gate value — a per-step learnable scalar in $(0,1)$. When the model wants to remember, $f_t \\approx 1$ and the gradient flows back unchanged. @@T0@@That's the actual reason LSTMs train.@@T1@@": {
+   "zh": "LSTM 为何能解决这一问题：细胞状态 $c_t$ 通过 $c_t = f_t \\odot c_{t-1} + i_t \\odot g_t$ 向前传递信息。其 Jacobian $\\partial c_t / \\partial c_{t-1} = f_t$ 恰恰就是遗忘门的取值 &mdash;&mdash; 一个位于 $(0,1)$ 区间、可逐步学习的标量。当模型想要记住时，$f_t \\approx 1$，梯度便原封不动地回流。@@T0@@这才是 LSTM 能够被训练的真正原因。@@T1@@",
+   "src": "Why LSTMs fix it: the cell state $c_t$ carries information forward via $c_t = f_t \\odot c_{t-1} + i_t \\odot g_t$. The Jacobian $\\partial c_t / \\partial c_{t-1} = f_t$ is just the forget-gate value — a per-step learnable scalar in $(0,1)$. When the model wants to remember, $f_t \\approx 1$ and the gradient flows back unchanged. <em>That's the actual reason LSTMs train.</em>",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Peephole / ConvLSTM / xLSTM": {
+   "zh": "窥孔式 / ConvLSTM / xLSTM 变体",
+   "src": "Peephole / ConvLSTM / xLSTM",
+   "tags": []
+  },
+  "@@T0@@Peephole LSTM.@@T1@@ Gates also see the cell state $c_{t-1}$. Marginal accuracy on long-dependency tasks.": {
+   "zh": "@@T0@@Peephole LSTM。@@T1@@ 各门同时也能看到细胞状态 $c_{t-1}$。在长依赖任务上精度提升有限。",
+   "src": "<strong>Peephole LSTM.</strong> Gates also see the cell state $c_{t-1}$. Marginal accuracy on long-dependency tasks.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@GRU.@@T1@@ One fewer gate; one fewer state; comparable on most tasks; cheaper.": {
+   "zh": "@@T0@@GRU。@@T1@@ 少一道门；少一个状态；在多数任务上表现相当；成本更低。",
+   "src": "<strong>GRU.</strong> One fewer gate; one fewer state; comparable on most tasks; cheaper.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@ConvLSTM.@@T1@@ Replace the matmuls with convolutions; useful for spatio-temporal data (radar, video, satellite time series).": {
+   "zh": "@@T0@@ConvLSTM。@@T1@@ 以卷积替代矩阵乘法；适用于时空数据（雷达、视频、卫星时间序列）。",
+   "src": "<strong>ConvLSTM.</strong> Replace the matmuls with convolutions; useful for spatio-temporal data (radar, video, satellite time series).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@xLSTM (2024).@@T1@@ Updated gates + matrix-valued memory; scales further; competitive with small Mambas on language modelling.": {
+   "zh": "@@T0@@xLSTM（2024）。@@T1@@ 更新后的门控 + 矩阵值记忆；可进一步扩展；在语言建模上与小型 Mamba 不相上下。",
+   "src": "<strong>xLSTM (2024).</strong> Updated gates + matrix-valued memory; scales further; competitive with small Mambas on language modelling.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "When to reach for an LSTM in 2026": {
+   "zh": "2026 年何时该选用 LSTM",
+   "src": "When to reach for an LSTM in 2026",
+   "tags": []
+  },
+  "Streaming inference where state-space carrying matters per step (low-latency speech, time-series forecasting at the edge).": {
+   "zh": "状态空间承载逐步都至关重要的流式推理（低延迟语音、边缘端时间序列预测）。",
+   "src": "Streaming inference where state-space carrying matters per step (low-latency speech, time-series forecasting at the edge).",
+   "tags": []
+  },
+  "Tiny embedded devices where Transformers' KV cache is too expensive.": {
+   "zh": "Transformer 的 KV cache 过于昂贵的微型嵌入式设备。",
+   "src": "Tiny embedded devices where Transformers' KV cache is too expensive.",
+   "tags": []
+  },
+  "As a baseline before reaching for @@T0@@Mamba@@T1@@ or\n        @@T2@@PatchTST@@T3@@ on long-horizon time series.": {
+   "zh": "在长时段时间序列上转向 @@T0@@Mamba@@T1@@ 或\n        @@T2@@PatchTST@@T3@@ 之前，作为基线。",
+   "src": "As a baseline before reaching for <a href=\"../mamba/index.html\">Mamba</a> or\n        <a href=\"../ts-transformer/index.html\">PatchTST</a> on long-horizon time series.",
+   "tags": [
+    "<a href=\"../mamba/index.html\">",
+    "</a>",
+    "<a href=\"../ts-transformer/index.html\">",
+    "</a>"
+   ]
+  },
+  "Beyond that, modern Transformers and SSMs dominate. The LSTM lives on as the cleanest pedagogical model for the\n      @@T0@@vanishing-gradient problem@@T1@@ and the simplest model where \"memory\" is an explicit, gated state.": {
+   "zh": "除此之外，现代 Transformer 与 SSM 占据主导。LSTM 之所以沿用至今，是因为它是讲解@@T0@@梯度消失问题@@T1@@最清晰的教学模型，也是「记忆」被显式表达为门控状态的最简模型。",
+   "src": "Beyond that, modern Transformers and SSMs dominate. The LSTM lives on as the cleanest pedagogical model for the\n      <a href=\"../vanishing-gradients/index.html\">vanishing-gradient problem</a> and the simplest model where \"memory\" is an explicit, gated state.",
+   "tags": [
+    "<a href=\"../vanishing-gradients/index.html\">",
+    "</a>"
+   ]
+  },
+  "Companion: @@T0@@Mamba / SSMs@@T1@@ · @@T2@@vanishing gradients@@T3@@ · @@T4@@PatchTST forecasting@@T5@@.": {
+   "zh": "配套阅读：@@T0@@Mamba / SSM@@T1@@ · @@T2@@梯度消失@@T3@@ · @@T4@@PatchTST 预测@@T5@@。",
+   "src": "Companion: <a href=\"../mamba/index.html\">Mamba / SSMs</a> · <a href=\"../vanishing-gradients/index.html\">vanishing gradients</a> · <a href=\"../ts-transformer/index.html\">PatchTST forecasting</a>.",
+   "tags": [
+    "<a href=\"../mamba/index.html\">",
+    "</a>",
+    "<a href=\"../vanishing-gradients/index.html\">",
+    "</a>",
+    "<a href=\"../ts-transformer/index.html\">",
+    "</a>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "LSTM 门控实验场",
+  "tagline": "拖动遗忘/输入/输出门，观察细胞状态的流动",
+  "summary": "三道 sigmoid 门守护着 LSTM 的细胞状态 &mdash;&mdash; 遗忘门决定擦除什么，输入门决定写入什么，输出门决定读出什么。拖动每个滑块，送入一段序列，逐步观察细胞状态的变化。「传送带」的直觉由此变得字面可感。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "将 f_t（遗忘）、i_t（输入）、o_t（输出）从 0 拖到 1。",
+   "送入一段 10 步的输入序列；观察细胞状态如传送带般演化。",
+   "令 f = 1、i = 0 达到饱和 &mdash;&mdash; 细胞状态被冻结，记忆得以无限期保存。",
+   "令 f = 0 达到饱和 &mdash;&mdash; 每个时间步都擦除；网络遗忘一切。",
+   "切换到「朴素 RNN」模式，观察没有门控时梯度如何崩溃。"
+  ],
+  "tags": [
+   "LSTM",
+   "RNN",
+   "门控",
+   "深度学习",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

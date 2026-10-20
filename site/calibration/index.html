@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>校准与可靠性图</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>校准与可靠性图</h1>
+        <p class="abstract">
+          一个给出 “0.97” 的模型，应当在 97% 的情况下是正确的。但多数模型并非如此。可靠性图精确告诉你偏离了多少；ECE 将其概括为一个数；温度缩放则将其压平 &mdash; 仅需一个标量参数，无需重新训练。
+        </p>
+        <div class="byline">
+          <span>约 15 分钟</span>
+          <span>不确定性量化 &middot; 校准 &middot; 可靠性</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>“经过校准”究竟意味着什么</h2>
+        <p>
+          若在所有被预测为置信度 $p$ 的样本中，实际正确的比例恰为 $p$，则称该分类器是校准的。对一切 $p$ 皆然，始终如此。现代神经网络以过度自信而闻名：对某个留出的测试点，softmax 给出 0.97，其实际正确比例更可能是约 85% 而非 97%（Guo 等，2017）。
+        </p>
+        <div class="callout callout--key">
+          <strong>一句话概括。</strong>
+          准确率与校准度彼此独立。一个模型可以准确率高达 90% 却校准得很差；也可以准确率仅 60% 却校准得完美。任何与安全相关的部署都同时关注这两者。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>可靠性图</h2>
+        <p>
+          按置信度将预测分箱。对每个箱，绘制（平均预测置信度）对（经验准确率）。对已校准的分类器，这些点落在对角线上。位于对角线上方：置信不足；位于下方：过度自信。
+        </p>
+        <div class="math-block" id="math-cal"></div>
+        <p>
+          <strong>ECE</strong>（期望校准误差）是 $|\text{bin acc} - \text{bin
+          confidence}|$ 的加权平均。<strong>MCE</strong>（最大校准误差）则是最差的箱。<strong>Brier 分数</strong> 与 <strong>NLL</strong> 是将校准与锐化结合起来的评分规则。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>训练一个分类器，观察其如何失准</h2>
+        <p>
+          在二维数据集上训练一个三分类 RBF 逻辑回归；我们刻意训练越过校准的最佳点，将其推入现代深度网络常有的一味过度自信的状态。
+        </p>
+        <div class="train-controls">
+          <button class="action-btn" id="cal-toggle">开始训练</button>
+          <button class="action-btn action-btn--ghost" id="cal-reset">重新初始化</button>
+          <label>温度 T &nbsp;<span id="cal-T-val">1.00</span> <input type="range" id="cal-T" min="0.5" max="6" step="0.05" value="1"></label>
+          <span class="train-stat">步数 <strong id="cal-step">0</strong></span>
+          <span class="train-stat">准确率 <strong id="cal-acc">—</strong></span>
+          <span class="train-stat">ECE <strong id="cal-ece">—</strong></span>
+        </div>
+        <div class="cal-grid">
+          <div class="cal-panel">
+            <div class="panel-label">测试数据上的决策边界</div>
+            <canvas id="cal-board" width="380" height="380"></canvas>
+          </div>
+          <div class="cal-panel">
+            <div class="panel-label">可靠性图</div>
+            <canvas id="cal-reliab" width="380" height="380"></canvas>
+          </div>
+          <div class="cal-panel">
+            <div class="panel-label">指标随时间变化</div>
+            <canvas id="cal-metrics" width="380" height="380"></canvas>
+          </div>
+        </div>
+        <div class="callout callout--think">
+          <strong>观察要点。</strong>
+          在前约 50 步中，准确率与 ECE 同时改善。越过约 150 步后，准确率趋于平台，但各箱开始偏离对角线向下漂移 &mdash; 模型变得过度自信了。将 T 从 1 滑向约 2，观察各箱上移至对角线，而准确率完全保持不变。这就是温度缩放。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>温度缩放 —— 一个参数，收效显著</h2>
+        <p>
+          在推断时将 softmax $p_c = e^{z_c} / \sum e^{z_{c'}}$ 替换为 $p_c^{(T)} = e^{z_c / T} / \sum e^{z_{c'} / T}$。在留出的验证集上通过最小化 NLL 来拟合 $T$。对过度自信的网络，$T$ 通常取 $\in [1, 3]$；你无需触碰权重即可恢复大部分校准度。
+        </p>
+        <div class="math-block" id="math-temp"></div>
+        <p>
+          当仅靠温度不足以解决问题时，还有其他方案：<strong>Platt 缩放</strong>（在 logit 上做逻辑回归，适用于二分类）、<strong>等渗回归</strong>（非参数单调拟合）、<strong>直方图分箱</strong>、<strong>向量 / 矩阵缩放</strong>（逐类温度）。选择其中最简单而有效者。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-recipes">
+        <div class="step-badge">第 3 ½ 步</div>
+        <h2>四种事后校准器，并排比较</h2>
+        <p>
+          温度缩放是一个单参数的修正手段。但有时一个参数并不够。以下是实践中会遇到的四种事后校准器，它们在同一留出验证集上拟合，随后在同一测试集上评估：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>温度缩放。</strong> 一个标量 $T$。开销低廉，保持准确率。最常用的默认选择。</li>
+          <li><strong>Platt 缩放。</strong> 对最大 logit 作逻辑回归：$p = \sigma(a\,z_{\max} + b)$。两个参数。二分类问题上的强基线。</li>
+          <li><strong>等渗回归。</strong> 在分箱可靠性曲线上作非参数单调拟合。参数较多，但能在不扭曲排序的前提下可靠地完成校准。</li>
+          <li><strong>向量缩放。</strong> 在 softmax 之前对 logit 施加逐类温度 $T_c$。共 $C$ 个参数；当过度自信程度依赖类别时尤为有用。</li>
+        </ul>
+        <div class="cal-multi-figure">
+          <canvas id="cal-multi" width="880" height="380"></canvas>
+          <figcaption>同一个已训练分类器上四种事后校准器的可靠性图。每个面板下方给出 ECE。</figcaption>
+        </div>
+        <div class="callout callout--key">
+          <strong>结论。</strong> 温度缩放在准确率 + 简洁性 + 参数数量上几乎总是胜出。等渗回归与向量缩放在严重失准的多分类问题上可能略胜一筹，但需要更多参数。Platt 缩放仅适用于二分类，且在很大程度上已被温度缩放所涵盖。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>为何这一点重要</h2>
+        <ul class="explanation-list">
+          <li><strong>已部署的告警系统。</strong> 一个带有 0.95 校准置信度的“高风险”告警是可据以行动的；而相同数值若出自一个过度自信的模型，则只是噪声。</li>
+          <li><strong>医疗 / 安全攸关的决策。</strong> 其输出用于支撑治疗方案或运行决策的模型<em>必须</em> 交付经过校准的概率 —— 否则下游决策便建立在错误的依据之上。</li>
+          <li><strong>主动学习 + 贝叶斯优化。</strong>
+            采集函数（BALD、EI）读取置信度；校准一旦失效，每一个考虑不确定性的下游选择都会随之失效。</li>
+          <li><strong>保形三明治。</strong> 保形预测（参见
+            <a href="../conformal/index.html">保形一文</a>）
+            能给出覆盖率保证，但当基模型校准良好时间隔会更紧。先校准，后保形。</li>
+        </ul>
+        <div class="callout callout--think">
+          <strong>最终要点。</strong>
+          每一个已部署的模型都应当随附一张可靠性图和一个 ECE 数值。这不过是 30 行代码，却能告诉你这些置信度究竟有没有意义。若没有意义，温度缩放就是最廉价的修补手段。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>神经网络为何从一开始就会失准</h2>
+        <p>
+          Guo 等（2017）将现代的过度自信追溯到三个原因：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>容量。</strong> 更大的模型可以通过把 logit 推向 $\pm \infty$ 而将训练 NLL 压至零。这以最强自信的 softmax 完美拟合训练集；留出分布却滞后。测试时的置信度最终系统性地偏高。</li>
+          <li><strong>权重衰减的减少。</strong> 现代训练所用的权重衰减远少于早先的模型；缺少这一隐式正则化器，logit 便会漂移得更大。</li>
+          <li><strong>BatchNorm。</strong> 经验上它与更差的校准相关联，可能是因为逐批统计量给 logit 引入了随机性，而模型通过平均意义上过度押注来加以补偿。</li>
+        </ul>
+        <p>
+          好消息是：在独立同分布的测试集上，温度缩放能修正上述几乎所有问题。坏消息是：<strong>在分布偏移之下，仅靠温度缩放已不再足够</strong> —— 在分布内验证集上得到的最优 $T$ 对发生偏移的测试分布是错误的。Ovadia 等（2019）以实验证明了这一点。缓解手段包括：使用 mixup / 标签平滑训练（内禀校准），或采用保形预测（它在可交换性假设下具有覆盖率保证，而该假设仍会被偏移所破坏，只是破坏程度不那么灾难性）。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>超越分类 —— 回归的校准</h2>
+        <p>
+          对回归而言，“已校准”意味着：90% 的预测区间应当在 90% 的情况下覆盖真实值。可靠性图此时被覆盖率对名义水平的图所取代：
+        </p>
+        <div class="math-block" id="math-reg-cal"></div>
+        <p>
+          回归的期望校准误差为 $\int_0^1 |\mathrm{coverage}(\alpha) - \alpha|\, d\alpha$。修正回归失准的工具包括：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>使用 pinball 损失的分位数回归</strong> 无需分布假设即可直接学习条件分位数。</li>
+          <li><strong>保形化分位数回归（CQR）</strong> 将分位数模型包裹进保形预测，以获得无需分布假设的覆盖率保证。</li>
+          <li><strong>对 CDF 作等渗回归。</strong> 拟合一个单调变换 $\hat F(y|x) \mapsto F(y|x)$，将模型的 CDF 映射到经验 CDF。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-7">
+        <div class="step-badge">第 7 步</div>
+        <h2>推荐阅读</h2>
+        <ul class="explanation-list">
+          <li><strong>Guo、Pleiss、Sun、Weinberger（2017）</strong> &mdash; <em>On Calibration of Modern Neural Networks.</em> 定义了 ECE；提出了温度缩放。</li>
+          <li><strong>Platt（1999）</strong> &mdash; <em>Probabilistic outputs for SVMs.</em> Platt 缩放。</li>
+          <li><strong>Zadrozny &amp; Elkan（2002）</strong> &mdash; <em>Transforming Classifier Scores into Accurate Multiclass Probability Estimates.</em> 等渗回归。</li>
+          <li><strong>Ovadia 等（2019）</strong> &mdash; <em>Can You Trust Your Model's Uncertainty?</em> 关于分布外校准的论文。</li>
+          <li><strong>Kuleshov、Fenner、Ermon（2018）</strong> &mdash; <em>Accurate Uncertainties for Deep Learning Using Calibrated Regression.</em></li>
+          <li><strong>Niculescu-Mizil &amp; Caruana（2005）</strong> &mdash; <em>Predicting Good Probabilities With Supervised Learning.</em> 经典的各种校准器对比论文。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

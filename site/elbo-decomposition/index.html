@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ELBO 分解详解</title>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="../shared.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>ELBO 分解详解</h1>
+        <p class="abstract">
+          证据下界（ELBO）就是 VAE 的损失 &mdash; 它不过是
+          <em>两项之和</em>：重构代价与到先验的 KL 散度。
+          在训练过程中观察二者的相互抗衡。
+        </p>
+        <div class="byline">
+          <span>约 12 分钟</span>
+          <span>VAE &middot; 生成模型</span>
+        </div>
+      </header>
+
+      <section class="step-section">
+        <div class="step-badge">第 1 步</div>
+        <h2>损失函数</h2>
+        <p>$\mathcal{L} = \underbrace{-\mathbb{E}_{q_\phi(z|x)}[\log p_\theta(x|z)]}_{\text{reconstruction}} + \beta \cdot \underbrace{\text{KL}(q_\phi(z|x) \,\Vert\, p(z))}_{\text{regularizer}}$</p>
+        <p>$\beta = 1$ 给出经典的 VAE；$\beta = 0$ 退化为普通的 AE；
+          较大的 $\beta$ 会以牺牲重构质量为代价，推动潜变量走向解耦。</p>
+      </section>
+
+      <section class="step-section">
+        <div class="step-badge">动手试试</div>
+        <h2>交互组件</h2>
+        <div id="widget-root">
+          <p><em>在浏览器中训练一个微型的 MNIST VAE。</em></p>
+          <p><em>实时显示：两条柱状条（重构 + KL）、二维潜变量散点图、重构网格。</em></p>
+          <p><em>滑块：β 从 0 到 50。</em></p>
+          <p style="color:#888"><em>状态：脚手架。实现尚待完成。</em></p>
+        </div>
+      </section>
+
+      <section class="step-section">
+        <div class="step-badge">第 2 步</div>
+        <h2>你应当观察到的现象</h2>
+        <ul class="explanation-list">
+          <li><strong>$\beta = 0$ &middot; 重构清晰，但潜变量一片混乱。</strong></li>
+          <li><strong>$\beta = 1$ &middot; 二者均衡；样本看起来像数字。</strong></li>
+          <li><strong>$\beta = 50$ &middot; 重构模糊，但潜变量的各轴捕捉到了干净的因子（笔画粗细、倾斜度）。</strong></li>
+        </ul>
+      </section>
+    </article>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

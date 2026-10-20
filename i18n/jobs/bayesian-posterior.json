@@ -1,0 +1,809 @@
+{
+ "slug": "bayesian-posterior",
+ "units": {
+  "The Posterior, Built Up": {
+   "zh": "一步步构建后验分布",
+   "src": "The Posterior, Built Up",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Drag a prior, click data points onto an axis, and watch the\n          posterior crystallize. Then go conjugate, separate posterior\n          predictive from a MAP plug-in, race grid evaluation against\n          Metropolis MCMC against variational inference on a non-conjugate\n          posterior, and finish with Bayesian linear regression whose\n          uncertainty band bows out exactly where data is missing &mdash;\n          every number computed live in pure JS.": {
+   "zh": "拖动一个先验，在坐标轴上点击添加数据点，观察后验如何逐渐成形。随后进入共轭情形，把后验预测分布与 MAP 代入法区分开，在一个非共轭后验上让网格求值、Metropolis MCMC 与变分推断同场竞速，最后以贝叶斯线性回归收尾——其不确定带恰好在数据缺失处向外张开，所有数值都由纯 JS 实时计算。",
+   "src": "Drag a prior, click data points onto an axis, and watch the\n          posterior crystallize. Then go conjugate, separate posterior\n          predictive from a MAP plug-in, race grid evaluation against\n          Metropolis MCMC against variational inference on a non-conjugate\n          posterior, and finish with Bayesian linear regression whose\n          uncertainty band bows out exactly where data is missing &mdash;\n          every number computed live in pure JS.",
+   "tags": []
+  },
+  "@@T0@@~25 min@@T1@@\n          @@T2@@Probability &middot; Bayesian Inference &middot; Uncertainty@@T3@@": {
+   "zh": "@@T0@@约 25 分钟@@T1@@\n          @@T2@@概率 &middot; 贝叶斯推断 &middot; 不确定性@@T3@@",
+   "src": "<span>~25 min</span>\n          <span>Probability &middot; Bayesian Inference &middot; Uncertainty</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "From \"the right answer\" to a distribution over answers": {
+   "zh": "从“那个正确答案”到答案的分布",
+   "src": "From \"the right answer\" to a distribution over answers",
+   "tags": []
+  },
+  "Maximum likelihood gives you one number for an unknown parameter\n          $\\theta$ &mdash; the value most consistent with the data. The\n          Bayesian alternative says: the data don't pick a single\n          $\\theta$, they update your @@T0@@belief@@T1@@ over all possible\n          values. That belief is a probability distribution; the recipe\n          for updating it is one line of math:": {
+   "zh": "最大似然为未知参数 $\\theta$ 给出一个数字——即与数据最为相符的那个取值。贝叶斯方案则认为：数据并不挑出单个 $\\theta$，而是更新你对所有可能取值的@@T0@@信念@@T1@@。这一信念是一个概率分布；更新它的配方只有一行数学：",
+   "src": "Maximum likelihood gives you one number for an unknown parameter\n          $\\theta$ &mdash; the value most consistent with the data. The\n          Bayesian alternative says: the data don't pick a single\n          $\\theta$, they update your <em>belief</em> over all possible\n          values. That belief is a probability distribution; the recipe\n          for updating it is one line of math:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Three ingredients: the\n          @@T0@@prior $p(\\theta)$@@T1@@ (what you\n          believed before), the\n          @@T2@@likelihood $p(\\mathcal{D}\\mid\\theta)$@@T3@@\n          (how the data depend on $\\theta$), and the\n          @@T4@@posterior $p(\\theta \\mid \\mathcal{D})$@@T5@@\n          (your updated belief). The denominator is just a normalising\n          constant that makes the posterior integrate to 1; we'll mostly\n          ignore it.": {
+   "zh": "三种成分：@@T0@@先验 $p(\\theta)$@@T1@@（你此前所持的信念）、@@T2@@似然 $p(\\mathcal{D}\\mid\\theta)$@@T3@@（数据如何依赖于 $\\theta$），以及@@T4@@后验 $p(\\theta \\mid \\mathcal{D})$@@T5@@（你更新后的信念）。分母只是一个使后验积分为 1 的归一化常数；我们大多会忽略它。",
+   "src": "Three ingredients: the\n          <span class=\"prior-tag\">prior $p(\\theta)$</span> (what you\n          believed before), the\n          <span class=\"lik-tag\">likelihood $p(\\mathcal{D}\\mid\\theta)$</span>\n          (how the data depend on $\\theta$), and the\n          <span class=\"post-tag\">posterior $p(\\theta \\mid \\mathcal{D})$</span>\n          (your updated belief). The denominator is just a normalising\n          constant that makes the posterior integrate to 1; we'll mostly\n          ignore it.",
+   "tags": [
+    "<span class=\"prior-tag\">",
+    "</span>",
+    "<span class=\"lik-tag\">",
+    "</span>",
+    "<span class=\"post-tag\">",
+    "</span>"
+   ]
+  },
+  "The whole rest of this article is one slogan rendered in nine\n          increasingly hard ways:": {
+   "zh": "本文其余全部内容，不过是把一句口号用九种越来越困难的方式呈现出来：",
+   "src": "The whole rest of this article is one slogan rendered in nine\n          increasingly hard ways:",
+   "tags": []
+  },
+  "@@T0@@The slogan.@@T1@@\n          posterior $\\propto$ prior $\\times$ likelihood. That's\n          @@T2@@everything@@T3@@. All the hard machinery (MCMC, VI, GPs,\n          Bayesian deep learning) is just how we do that one product\n          when we can't write it down in closed form.": {
+   "zh": "@@T0@@这句口号。@@T1@@\n          后验 $\\propto$ 先验 $\\times$ 似然。这就是@@T2@@全部@@T3@@。所有艰难的机器（MCMC、VI、GP、贝叶斯深度学习）都只是在无法写出闭式解时，如何完成这一个乘积而已。",
+   "src": "<strong>The slogan.</strong>\n          posterior $\\propto$ prior $\\times$ likelihood. That's\n          <em>everything</em>. All the hard machinery (MCMC, VI, GPs,\n          Bayesian deep learning) is just how we do that one product\n          when we can't write it down in closed form.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "Prior × likelihood = posterior, by hand": {
+   "zh": "手工计算：先验 × 似然 = 后验",
+   "src": "Prior × likelihood = posterior, by hand",
+   "tags": []
+  },
+  "Easiest setting: a single unknown mean $\\theta$ of a Gaussian\n          with known variance $\\sigma^2$. Conjugate prior is also\n          Gaussian. The posterior is closed-form:": {
+   "zh": "最简单的设定：高斯分布的单个未知均值 $\\theta$，方差 $\\sigma^2$ 已知。共轭先验同样是高斯分布。后验具有闭式解：",
+   "src": "Easiest setting: a single unknown mean $\\theta$ of a Gaussian\n          with known variance $\\sigma^2$. Conjugate prior is also\n          Gaussian. The posterior is closed-form:",
+   "tags": []
+  },
+  "Drag the prior with the slider below; click on the data axis to\n          add observations (or use the buttons). The three curves\n          recompute live: the\n          @@T0@@prior@@T1@@ in cool blue, the\n          @@T2@@likelihood@@T3@@ as a function of\n          $\\theta$ in warm orange, and the\n          @@T4@@posterior@@T5@@ in deep teal. The\n          posterior is the prior squeezed by the likelihood &mdash;\n          literally the pointwise product, normalised.": {
+   "zh": "用下面的滑块拖动先验；在数据轴上点击以添加观测（或使用按钮）。三条曲线实时重算：@@T0@@先验@@T1@@为冷蓝色，作为 $\\theta$ 的函数的@@T2@@似然@@T3@@为暖橙色，@@T4@@后验@@T5@@为深青色。后验是被似然挤压后的先验——字面意义上就是逐点相乘后再归一化。",
+   "src": "Drag the prior with the slider below; click on the data axis to\n          add observations (or use the buttons). The three curves\n          recompute live: the\n          <span class=\"prior-tag\">prior</span> in cool blue, the\n          <span class=\"lik-tag\">likelihood</span> as a function of\n          $\\theta$ in warm orange, and the\n          <span class=\"post-tag\">posterior</span> in deep teal. The\n          posterior is the prior squeezed by the likelihood &mdash;\n          literally the pointwise product, normalised.",
+   "tags": [
+    "<span class=\"prior-tag\">",
+    "</span>",
+    "<span class=\"lik-tag\">",
+    "</span>",
+    "<span class=\"post-tag\">",
+    "</span>"
+   ]
+  },
+  "prior mean &nbsp;@@T0@@0.0@@T1@@": {
+   "zh": "先验均值 &nbsp;@@T0@@0.0@@T1@@",
+   "src": "prior mean &nbsp;<span id=\"g1-mu0-val\">0.0</span>",
+   "tags": [
+    "<span id=\"g1-mu0-val\">",
+    "</span>"
+   ]
+  },
+  "prior std &nbsp;@@T0@@1.0@@T1@@": {
+   "zh": "先验标准差 &nbsp;@@T0@@1.0@@T1@@",
+   "src": "prior std &nbsp;<span id=\"g1-s0-val\">1.0</span>",
+   "tags": [
+    "<span id=\"g1-s0-val\">",
+    "</span>"
+   ]
+  },
+  "obs std σ &nbsp;@@T0@@1.0@@T1@@": {
+   "zh": "观测标准差 σ &nbsp;@@T0@@1.0@@T1@@",
+   "src": "obs std σ &nbsp;<span id=\"pp-sig-val\">1.0</span>",
+   "tags": [
+    "<span id=\"pp-sig-val\">",
+    "</span>"
+   ]
+  },
+  "Click the axis to add a data point. Data points show up as ticks on the bottom rule.": {
+   "zh": "点击坐标轴以添加数据点。数据点会以刻度形式出现在底部标尺上。",
+   "src": "Click the axis to add a data point. Data points show up as ticks on the bottom rule.",
+   "tags": []
+  },
+  "Add 1 random sample (true θ = 1.5)": {
+   "zh": "添加 1 个随机样本（真实 θ = 1.5）",
+   "src": "Add 1 random sample (true θ = 1.5)",
+   "tags": []
+  },
+  "+5 samples": {
+   "zh": "+5 个样本",
+   "src": "+5 samples",
+   "tags": []
+  },
+  "Clear data": {
+   "zh": "清空数据",
+   "src": "Clear data",
+   "tags": []
+  },
+  "@@T0@@n = @@T1@@0@@T2@@@@T3@@\n          @@T4@@posterior &nbsp;μ̂ = @@T5@@—@@T6@@, σ̂ = @@T7@@—@@T8@@@@T9@@": {
+   "zh": "@@T0@@n = @@T1@@0@@T2@@@@T3@@\n          @@T4@@后验 &nbsp;μ̂ = @@T5@@—@@T6@@, σ̂ = @@T7@@—@@T8@@@@T9@@",
+   "src": "<span class=\"train-stat\">n = <strong id=\"g1-n\">0</strong></span>\n          <span class=\"train-stat\">posterior &nbsp;μ̂ = <strong id=\"g1-postmu\">—</strong>, σ̂ = <strong id=\"g1-posts\">—</strong></span>",
+   "tags": [
+    "<span class=\"train-stat\">",
+    "<strong id=\"g1-n\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"g1-postmu\">",
+    "</strong>",
+    "<strong id=\"g1-posts\">",
+    "</strong>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Read the curves.@@T1@@\n          With no data the posterior @@T2@@is@@T3@@ the prior. Add one\n          sample; the posterior starts shifting toward it. As you keep\n          adding, the posterior tightens around the data mean and the\n          prior loses influence. That's it &mdash; the entire Bayesian\n          ritual.": {
+   "zh": "@@T0@@解读这些曲线。@@T1@@\n          没有数据时，后验@@T2@@就是@@T3@@先验。加入一个样本，后验开始向它偏移。随着你不断添加，后验围绕数据均值收紧，先验的影响力逐渐消退。仅此而已——整套贝叶斯仪式就是如此。",
+   "src": "<strong>Read the curves.</strong>\n          With no data the posterior <em>is</em> the prior. Add one\n          sample; the posterior starts shifting toward it. As you keep\n          adding, the posterior tightens around the data mean and the\n          prior loses influence. That's it &mdash; the entire Bayesian\n          ritual.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "How fast does data sharpen the posterior?": {
+   "zh": "数据以多快的速度锐化后验？",
+   "src": "How fast does data sharpen the posterior?",
+   "tags": []
+  },
+  "The posterior precision (inverse variance) is the\n          @@T0@@sum@@T1@@ of the prior precision and the data precision:": {
+   "zh": "后验精度（方差的倒数）等于先验精度与数据精度之@@T0@@和@@T1@@：",
+   "src": "The posterior precision (inverse variance) is the\n          <em>sum</em> of the prior precision and the data precision:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Two clean consequences. First, posterior variance falls like\n          $1/n$ &mdash; classical \"data sharpens beliefs\" but with a\n          principled rate. Second, the prior contributes a fixed amount\n          of pseudo-data: a tight prior with $\\sigma_0 = 0.1$ is \"worth\"\n          $\\sigma^2 / \\sigma_0^2 = 100$ data points for $\\sigma=1$.": {
+   "zh": "有两个清晰的推论。第一，后验方差按 $1/n$ 下降——这正是经典的“数据锐化信念”，但有了一个有原则的速率。第二，先验贡献了固定数量的伪数据：当 $\\sigma=1$ 时，一个 $\\sigma_0 = 0.1$ 的紧致先验“相当于” $\\sigma^2 / \\sigma_0^2 = 100$ 个数据点。",
+   "src": "Two clean consequences. First, posterior variance falls like\n          $1/n$ &mdash; classical \"data sharpens beliefs\" but with a\n          principled rate. Second, the prior contributes a fixed amount\n          of pseudo-data: a tight prior with $\\sigma_0 = 0.1$ is \"worth\"\n          $\\sigma^2 / \\sigma_0^2 = 100$ data points for $\\sigma=1$.",
+   "tags": []
+  },
+  "Posterior std vs sample size for three prior strengths. Theory line is $\\sigma_n = (\\tau_0 + n/\\sigma^2)^{-1/2}$.": {
+   "zh": "三种先验强度下后验标准差随样本量的变化。理论曲线为 $\\sigma_n = (\\tau_0 + n/\\sigma^2)^{-1/2}$。",
+   "src": "Posterior std vs sample size for three prior strengths. Theory line is $\\sigma_n = (\\tau_0 + n/\\sigma^2)^{-1/2}$.",
+   "tags": []
+  },
+  "The horizontal asymptote at $1/\\sigma_0$ goes away as $n$\n          grows; eventually the data precision dominates whatever prior\n          you brought.": {
+   "zh": "在 $1/\\sigma_0$ 处的水平渐近线会随着 $n$ 增大而消失；最终数据精度会压倒你带来的任何先验。",
+   "src": "The horizontal asymptote at $1/\\sigma_0$ goes away as $n$\n          grows; eventually the data precision dominates whatever prior\n          you brought.",
+   "tags": []
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "The conjugate coin (Beta-Binomial)": {
+   "zh": "共轭硬币（Beta-二项分布）",
+   "src": "The conjugate coin (Beta-Binomial)",
+   "tags": []
+  },
+  "Bernoulli observations, parameter $\\theta = $ probability of\n          heads, prior $\\theta \\sim \\mathrm{Beta}(\\alpha, \\beta)$. After\n          $k$ heads in $n$ flips:": {
+   "zh": "伯努利观测，参数 $\\theta = $ 正面朝上的概率，先验 $\\theta \\sim \\mathrm{Beta}(\\alpha, \\beta)$。在 $n$ 次抛掷中出现 $k$ 次正面之后：",
+   "src": "Bernoulli observations, parameter $\\theta = $ probability of\n          heads, prior $\\theta \\sim \\mathrm{Beta}(\\alpha, \\beta)$. After\n          $k$ heads in $n$ flips:",
+   "tags": []
+  },
+  "Conjugacy means \"the posterior stays in the same family\"\n          &mdash; here Beta. Update is just adding counts to the\n          parameters. Click the buttons below to flip a real coin and\n          watch the Beta posterior reshape live.": {
+   "zh": "共轭意味着“后验仍留在同一分布族中”——此处即 Beta 分布。更新不过就是把计数加到参数上。点击下面的按钮抛一枚真实的硬币，观察 Beta 后验如何实时改变形状。",
+   "src": "Conjugacy means \"the posterior stays in the same family\"\n          &mdash; here Beta. Update is just adding counts to the\n          parameters. Click the buttons below to flip a real coin and\n          watch the Beta posterior reshape live.",
+   "tags": []
+  },
+  "prior α &nbsp;@@T0@@1.0@@T1@@": {
+   "zh": "先验 α &nbsp;@@T0@@1.0@@T1@@",
+   "src": "prior α &nbsp;<span id=\"bb-a-val\">1.0</span>",
+   "tags": [
+    "<span id=\"bb-a-val\">",
+    "</span>"
+   ]
+  },
+  "prior β &nbsp;@@T0@@1.0@@T1@@": {
+   "zh": "先验 β &nbsp;@@T0@@1.0@@T1@@",
+   "src": "prior β &nbsp;<span id=\"bb-b-val\">1.0</span>",
+   "tags": [
+    "<span id=\"bb-b-val\">",
+    "</span>"
+   ]
+  },
+  "Beta(α, β) prior in blue, Beta(α+k, β+n−k) posterior in teal. Coin's true bias = 0.65 (drawn for the random buttons).": {
+   "zh": "蓝色为 Beta(α, β) 先验，青色为 Beta(α+k, β+n−k) 后验。硬币的真实偏置 = 0.65（为随机按钮所设定）。",
+   "src": "Beta(α, β) prior in blue, Beta(α+k, β+n−k) posterior in teal. Coin's true bias = 0.65 (drawn for the random buttons).",
+   "tags": []
+  },
+  "+1 head": {
+   "zh": "+1 正面",
+   "src": "+1 head",
+   "tags": []
+  },
+  "+1 tail": {
+   "zh": "+1 反面",
+   "src": "+1 tail",
+   "tags": []
+  },
+  "Flip 10 fair coins": {
+   "zh": "抛 10 次公平硬币",
+   "src": "Flip 10 fair coins",
+   "tags": []
+  },
+  "Flip 10 (bias 0.8)": {
+   "zh": "抛 10 次（偏置 0.8）",
+   "src": "Flip 10 (bias 0.8)",
+   "tags": []
+  },
+  "Clear flips": {
+   "zh": "清空抛掷记录",
+   "src": "Clear flips",
+   "tags": []
+  },
+  "@@T0@@k / n = @@T1@@0/0@@T2@@@@T3@@\n          @@T4@@posterior mean = @@T5@@—@@T6@@, 95% CI = @@T7@@—@@T8@@@@T9@@": {
+   "zh": "@@T0@@k / n = @@T1@@0/0@@T2@@@@T3@@\n          @@T4@@后验均值 = @@T5@@—@@T6@@，95% 置信区间 = @@T7@@—@@T8@@@@T9@@",
+   "src": "<span class=\"train-stat\">k / n = <strong id=\"bb-kn\">0/0</strong></span>\n          <span class=\"train-stat\">posterior mean = <strong id=\"bb-mean\">—</strong>, 95% CI = <strong id=\"bb-ci\">—</strong></span>",
+   "tags": [
+    "<span class=\"train-stat\">",
+    "<strong id=\"bb-kn\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"bb-mean\">",
+    "</strong>",
+    "<strong id=\"bb-ci\">",
+    "</strong>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Why Beta(1, 1) is uniform.@@T1@@ Setting $\\alpha = \\beta = 1$\n          gives the flat prior on [0,1]: every coin bias is a priori\n          equally likely. With this prior the posterior mean after\n          $k$ heads in $n$ flips is $(k+1)/(n+2)$ &mdash; Laplace's\n          rule of succession. @@T2@@That@@T3@@ is what your stats teacher\n          mumbled about why we add 1 to the numerator and 2 to the\n          denominator in small-sample probabilities.": {
+   "zh": "@@T0@@为何 Beta(1, 1) 是均匀分布。@@T1@@ 令 $\\alpha = \\beta = 1$\n          得到 [0,1] 上的平坦先验：每一种硬币偏置在事前都等可能。在此先验下，$n$ 次抛掷中出现 $k$ 次正面后的后验均值为 $(k+1)/(n+2)$——即 Laplace 的成功法则。@@T2@@这@@T3@@正是你的统计老师含糊解释过的、为何在小样本概率中给分子加 1、给分母加 2 的原因。",
+   "src": "<strong>Why Beta(1, 1) is uniform.</strong> Setting $\\alpha = \\beta = 1$\n          gives the flat prior on [0,1]: every coin bias is a priori\n          equally likely. With this prior the posterior mean after\n          $k$ heads in $n$ flips is $(k+1)/(n+2)$ &mdash; Laplace's\n          rule of succession. <em>That</em> is what your stats teacher\n          mumbled about why we add 1 to the numerator and 2 to the\n          denominator in small-sample probabilities.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Posterior predictive ≠ plug-in MAP": {
+   "zh": "后验预测分布 ≠ 代入式 MAP",
+   "src": "Posterior predictive ≠ plug-in MAP",
+   "tags": []
+  },
+  "The posterior is the right object for the parameter. But\n          downstream we usually care about predicting @@T0@@new\n          data@@T1@@. There are two ways to do that:": {
+   "zh": "后验是关于参数的正确对象。但在下游我们通常关心的是预测@@T0@@新数据@@T1@@。有两种做法：",
+   "src": "The posterior is the right object for the parameter. But\n          downstream we usually care about predicting <em>new\n          data</em>. There are two ways to do that:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Plug-in MAP / MLE.@@T1@@ Pick one $\\theta$\n            (the maximum) and predict $p(x_{\\text{new}}\\mid\\hat\\theta)$.": {
+   "zh": "@@T0@@代入式 MAP / MLE。@@T1@@ 挑选一个 $\\theta$（最大值处），并预测 $p(x_{\\text{new}}\\mid\\hat\\theta)$。",
+   "src": "<strong>Plug-in MAP / MLE.</strong> Pick one $\\theta$\n            (the maximum) and predict $p(x_{\\text{new}}\\mid\\hat\\theta)$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Posterior predictive.@@T1@@ Average over every\n            $\\theta$ weighted by the posterior:\n            $\\;p(x_{\\text{new}}\\mid\\mathcal{D}) = \\int p(x_{\\text{new}}\\mid\\theta)\\,p(\\theta\\mid\\mathcal{D})\\,d\\theta$.": {
+   "zh": "@@T0@@后验预测分布。@@T1@@ 对所有 $\theta$ 按后验加权求平均：$\\;p(x_{\text{new}}\\mid\\mathcal{D}) = \\int p(x_{\text{new}}\\mid\theta)\\,p(\theta\\mid\\mathcal{D})\\,d\theta$。",
+   "src": "<strong>Posterior predictive.</strong> Average over every\n            $\\theta$ weighted by the posterior:\n            $\\;p(x_{\\text{new}}\\mid\\mathcal{D}) = \\int p(x_{\\text{new}}\\mid\\theta)\\,p(\\theta\\mid\\mathcal{D})\\,d\\theta$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Plug-in is faster but lies about uncertainty. The posterior\n          predictive is wider whenever you don't yet know $\\theta$\n          precisely &mdash; precisely the regime where calibration\n          matters most. Watch the gap shrink as $n$ grows.": {
+   "zh": "代入式更快，但在不确定性上说了谎。只要你尚未精确知道 $\\theta$，后验预测分布就会更宽——而这正是校准最为关键的区间。观察随着 $n$ 增大，这一差距如何缩小。",
+   "src": "Plug-in is faster but lies about uncertainty. The posterior\n          predictive is wider whenever you don't yet know $\\theta$\n          precisely &mdash; precisely the regime where calibration\n          matters most. Watch the gap shrink as $n$ grows.",
+   "tags": []
+  },
+  "For the same Gaussian-Gaussian setup as Step 1 with a fresh sample drawn from the predictive distributions: dashed = plug-in MAP, solid = full posterior predictive.": {
+   "zh": "对第 1 步中同样的高斯-高斯设定，从各预测分布中抽取一个新样本：虚线 = 代入式 MAP，实线 = 完整的后验预测分布。",
+   "src": "For the same Gaussian-Gaussian setup as Step 1 with a fresh sample drawn from the predictive distributions: dashed = plug-in MAP, solid = full posterior predictive.",
+   "tags": []
+  },
+  "n samples &nbsp;@@T0@@3@@T1@@": {
+   "zh": "样本数 n &nbsp;@@T0@@3@@T1@@",
+   "src": "n samples &nbsp;<span id=\"pp-n-val\">3</span>",
+   "tags": [
+    "<span id=\"pp-n-val\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@What this costs you in practice.@@T1@@\n          A neural net that outputs softmax over classes is a plug-in:\n          it pretends the weights are fixed. When the weights are still\n          uncertain (i.e., always, on real data), the predictive\n          distribution should be wider. That gap shows up as an\n          overconfident, miscalibrated model &mdash; the bug Bayesian\n          deep learning is trying to fix.": {
+   "zh": "@@T0@@这在实践中会带来什么代价。@@T1@@\n          一个在类别上输出 softmax 的神经网络就是代入式的：它假装权重是固定的。当权重仍不确定时（在真实数据上，这几乎总是如此），预测分布本应更宽。这一差距表现为一个过度自信、校准失当的模型——这正是贝叶斯深度学习试图修复的缺陷。",
+   "src": "<strong>What this costs you in practice.</strong>\n          A neural net that outputs softmax over classes is a plug-in:\n          it pretends the weights are fixed. When the weights are still\n          uncertain (i.e., always, on real data), the predictive\n          distribution should be wider. That gap shows up as an\n          overconfident, miscalibrated model &mdash; the bug Bayesian\n          deep learning is trying to fix.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "What if the posterior isn't a nice family?": {
+   "zh": "如果后验不属于一个漂亮的分布族呢？",
+   "src": "What if the posterior isn't a nice family?",
+   "tags": []
+  },
+  "Conjugate priors give us closed-form posteriors. Real\n          posteriors &mdash; from a neural net, a hierarchical model,\n          a non-Gaussian likelihood &mdash; usually aren't conjugate.\n          Three families of algorithms cover all of practice:": {
+   "zh": "共轭先验给了我们闭式的后验。真实的后验——来自神经网络、层次模型或非高斯似然——通常并不共轭。三类算法覆盖了全部实践：",
+   "src": "Conjugate priors give us closed-form posteriors. Real\n          posteriors &mdash; from a neural net, a hierarchical model,\n          a non-Gaussian likelihood &mdash; usually aren't conjugate.\n          Three families of algorithms cover all of practice:",
+   "tags": []
+  },
+  "@@T0@@Grid evaluation.@@T1@@ Compute the unnormalised\n            posterior on a grid; normalise. Exact, dies above ~3 dimensions.": {
+   "zh": "@@T0@@网格求值。@@T1@@ 在网格上计算未归一化的后验，再归一化。精确，但在超过约 3 维后失效。",
+   "src": "<strong>Grid evaluation.</strong> Compute the unnormalised\n            posterior on a grid; normalise. Exact, dies above ~3 dimensions.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@MCMC (we use Metropolis-Hastings).@@T1@@ Random\n            walk on $\\theta$ that converges in distribution to the\n            posterior. Exact in the limit, finite-sample-noisy.": {
+   "zh": "@@T0@@MCMC（我们使用 Metropolis-Hastings）。@@T1@@ 在 $\\theta$ 上的随机游走，其分布收敛到后验。在极限意义下精确，但有限样本下有噪声。",
+   "src": "<strong>MCMC (we use Metropolis-Hastings).</strong> Random\n            walk on $\\theta$ that converges in distribution to the\n            posterior. Exact in the limit, finite-sample-noisy.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Variational inference (VI).@@T1@@ Pick a tractable\n            family (we use a Gaussian) and fit it by minimising the\n            KL divergence to the true posterior. Fast but biased\n            &mdash; especially for multimodal targets.": {
+   "zh": "@@T0@@变分推断（VI）。@@T1@@ 选择一个易处理的分布族（我们使用高斯分布），通过最小化与真实后验之间的 KL 散度来拟合它。快速但有偏——对多峰目标尤为如此。",
+   "src": "<strong>Variational inference (VI).</strong> Pick a tractable\n            family (we use a Gaussian) and fit it by minimising the\n            KL divergence to the true posterior. Fast but biased\n            &mdash; especially for multimodal targets.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Below: a deliberately cooked, bimodal, non-conjugate posterior.\n          Grid runs once. The MCMC chain walks live; you can watch\n          samples slowly fill out both modes (or get stuck in one).\n          The VI fit is a single Gaussian dropped on top &mdash; almost\n          always centered on one mode and miscalling the other.": {
+   "zh": "下面是一个刻意构造的双峰、非共轭后验。网格只运行一次。MCMC 链实时游走；你可以看到样本慢慢填满两个峰（或卡在其中一个）。VI 拟合则是叠加在上面的单个高斯分布——它几乎总是以一个峰为中心，而把另一个峰判断错。",
+   "src": "Below: a deliberately cooked, bimodal, non-conjugate posterior.\n          Grid runs once. The MCMC chain walks live; you can watch\n          samples slowly fill out both modes (or get stuck in one).\n          The VI fit is a single Gaussian dropped on top &mdash; almost\n          always centered on one mode and miscalling the other.",
+   "tags": []
+  },
+  "Solid = true (grid) posterior. Histogram bars = MCMC samples. Dashed orange = best-fit Gaussian (VI).": {
+   "zh": "实线 = 真实（网格）后验。直方条 = MCMC 样本。橙色虚线 = 最优拟合高斯分布（VI）。",
+   "src": "Solid = true (grid) posterior. Histogram bars = MCMC samples. Dashed orange = best-fit Gaussian (VI).",
+   "tags": []
+  },
+  "Run MCMC": {
+   "zh": "运行 MCMC",
+   "src": "Run MCMC",
+   "tags": []
+  },
+  "Reset chain": {
+   "zh": "重置链",
+   "src": "Reset chain",
+   "tags": []
+  },
+  "step size &nbsp;@@T0@@0.30@@T1@@": {
+   "zh": "步长 &nbsp;@@T0@@0.30@@T1@@",
+   "src": "step size &nbsp;<span id=\"nc-stepsize-val\">0.30</span>",
+   "tags": [
+    "<span id=\"nc-stepsize-val\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@samples = @@T1@@0@@T2@@@@T3@@\n          @@T4@@accept rate = @@T5@@—@@T6@@@@T7@@": {
+   "zh": "@@T0@@样本数 = @@T1@@0@@T2@@@@T3@@\n          @@T4@@接受率 = @@T5@@—@@T6@@@@T7@@",
+   "src": "<span class=\"train-stat\">samples = <strong id=\"nc-n\">0</strong></span>\n          <span class=\"train-stat\">accept rate = <strong id=\"nc-rate\">—</strong></span>",
+   "tags": [
+    "<span class=\"train-stat\">",
+    "<strong id=\"nc-n\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"nc-rate\">",
+    "</strong>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Reading the picture.@@T1@@\n          Grid is exact but exhaustive. MCMC histogram converges to\n          grid but takes @@T2@@many@@T3@@ samples (and the right step\n          size: too small → no movement, too large → all rejections).\n          VI is fast and pleasing-looking but quietly wrong wherever\n          your true posterior isn't unimodal-Gaussian. This is the\n          single most consequential uncertainty in modern Bayesian\n          deep learning.": {
+   "zh": "@@T0@@解读这幅图。@@T1@@\n          网格精确但穷尽。MCMC 直方图会收敛到网格结果，但需要@@T2@@大量@@T3@@样本（以及恰当的步长：太小则不动，太大则全部被拒）。VI 快速且赏心悦目，但在真实后验并非单峰高斯之处会悄然出错。这是现代贝叶斯深度学习中最具影响的一项不确定性。",
+   "src": "<strong>Reading the picture.</strong>\n          Grid is exact but exhaustive. MCMC histogram converges to\n          grid but takes <em>many</em> samples (and the right step\n          size: too small → no movement, too large → all rejections).\n          VI is fast and pleasing-looking but quietly wrong wherever\n          your true posterior isn't unimodal-Gaussian. This is the\n          single most consequential uncertainty in modern Bayesian\n          deep learning.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Bayesian linear regression — uncertainty that bows out": {
+   "zh": "贝叶斯线性回归——向外张开的不确定性",
+   "src": "Bayesian linear regression — uncertainty that bows out",
+   "tags": []
+  },
+  "One last conjugate model with a famous picture. Linear\n          regression with Gaussian prior on the weights and Gaussian\n          observation noise has a Gaussian posterior over weights, and\n          a Gaussian posterior predictive at every input $x$:": {
+   "zh": "最后一个带著名图示的共轭模型。对权重施加高斯先验、并对观测噪声建模为高斯的线性回归，其权重上的后验是高斯的，且在每个输入 $x$ 处的后验预测分布也是高斯的：",
+   "src": "One last conjugate model with a famous picture. Linear\n          regression with Gaussian prior on the weights and Gaussian\n          observation noise has a Gaussian posterior over weights, and\n          a Gaussian posterior predictive at every input $x$:",
+   "tags": []
+  },
+  "Click anywhere to add a data point. The fit line and its\n          uncertainty band recompute live. Notice the band: thin where\n          you have data, fat where you don't. @@T0@@That@@T1@@ is what\n          honest uncertainty looks like, and it is exactly what Gaussian\n          processes generalise.": {
+   "zh": "在任意位置点击以添加数据点。拟合直线及其不确定带实时重算。留意这条带：有数据处窄，无数据处宽。@@T0@@这@@T1@@就是诚实的不确定性应有的样子，而这正是高斯过程所推广的东西。",
+   "src": "Click anywhere to add a data point. The fit line and its\n          uncertainty band recompute live. Notice the band: thin where\n          you have data, fat where you don't. <em>That</em> is what\n          honest uncertainty looks like, and it is exactly what Gaussian\n          processes generalise.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Click to add a data point; right-click (or shift-click) to remove. Solid blue: posterior mean. Shaded teal band: ±2 posterior-predictive σ.": {
+   "zh": "点击以添加数据点；右键点击（或按住 Shift 点击）以移除。蓝色实线：后验均值。青色阴影带：±2 后验预测标准差。",
+   "src": "Click to add a data point; right-click (or shift-click) to remove. Solid blue: posterior mean. Shaded teal band: ±2 posterior-predictive σ.",
+   "tags": []
+  },
+  "prior weight std &nbsp;@@T0@@1.0@@T1@@": {
+   "zh": "先验权重标准差 &nbsp;@@T0@@1.0@@T1@@",
+   "src": "prior weight std &nbsp;<span id=\"blr-priorw-val\">1.0</span>",
+   "tags": [
+    "<span id=\"blr-priorw-val\">",
+    "</span>"
+   ]
+  },
+  "obs noise σ &nbsp;@@T0@@0.4@@T1@@": {
+   "zh": "观测噪声 σ &nbsp;@@T0@@0.4@@T1@@",
+   "src": "obs noise σ &nbsp;<span id=\"blr-noise-val\">0.4</span>",
+   "tags": [
+    "<span id=\"blr-noise-val\">",
+    "</span>"
+   ]
+  },
+  "Clear points": {
+   "zh": "清空数据点",
+   "src": "Clear points",
+   "tags": []
+  },
+  "Seed sine demo": {
+   "zh": "载入正弦演示",
+   "src": "Seed sine demo",
+   "tags": []
+  },
+  "@@T0@@The big takeaway.@@T1@@\n          The uncertainty band tells you where the model is allowed to\n          be wrong. A model that hands you a point estimate where you\n          have no data is lying about what it knows. Bayesian inference\n          gives you the right answer to \"how unsure am I?\" for free,\n          as a side effect of doing the math correctly.": {
+   "zh": "@@T0@@最重要的收获。@@T1@@\n          不确定带告诉你模型在何处被允许出错。在你没有数据之处却给你一个点估计的模型，是在就其已知的东西撒谎。贝叶斯推断在你正确做数学的副作用中，免费给出了“我有多不确定？”这一问题的正确答案。",
+   "src": "<strong>The big takeaway.</strong>\n          The uncertainty band tells you where the model is allowed to\n          be wrong. A model that hands you a point estimate where you\n          have no data is lying about what it knows. Bayesian inference\n          gives you the right answer to \"how unsure am I?\" for free,\n          as a side effect of doing the math correctly.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 6 ½": {
+   "zh": "第 6½ 步",
+   "src": "Step 6 ½",
+   "tags": []
+  },
+  "Hierarchical models — partial pooling, the Bayesian superpower": {
+   "zh": "层次模型——部分池化，贝叶斯的超能力",
+   "src": "Hierarchical models — partial pooling, the Bayesian superpower",
+   "tags": []
+  },
+  "Suppose you have several related groups: many sites, sensors,\n          schools, patients, batches. Each has a small pile of\n          observations. You can fit one model per group (\"no pooling\")\n          or one model for everything (\"complete pooling\"). Both are\n          wrong in known ways. The Bayesian fix is\n          @@T0@@partial pooling@@T1@@: a hierarchical prior that\n          lets each group have its own mean while pulling outliers\n          toward the global mean.": {
+   "zh": "假设你有若干相互关联的组：许多站点、传感器、学校、患者、批次。每组都有一小堆观测。你可以每组各拟合一个模型（“不池化”），也可以对所有数据拟合一个模型（“完全池化”）。两者都以已知的方式出错。贝叶斯的修正是@@T0@@部分池化@@T1@@：一个层次先验，让每组拥有自己的均值，同时把离群者拉向全局均值。",
+   "src": "Suppose you have several related groups: many sites, sensors,\n          schools, patients, batches. Each has a small pile of\n          observations. You can fit one model per group (\"no pooling\")\n          or one model for everything (\"complete pooling\"). Both are\n          wrong in known ways. The Bayesian fix is\n          <strong>partial pooling</strong>: a hierarchical prior that\n          lets each group have its own mean while pulling outliers\n          toward the global mean.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "$\\mu$ is the global mean; $\\tau$ is how strongly groups are\n          pulled toward it; $\\theta_g$ is the group-specific mean. The\n          posterior of $\\theta_g$ is shrunk toward $\\mu$ by an amount\n          that depends on $\\tau$ and the group's data count $n_g$.": {
+   "zh": "$\\mu$ 是全局均值；$\\tau$ 表示各组被拉向它的强度；$\\theta_g$ 是组特有的均值。$\\theta_g$ 的后验被收缩向 $\\mu$，收缩量取决于 $\\tau$ 与该组的数据量 $n_g$。",
+   "src": "$\\mu$ is the global mean; $\\tau$ is how strongly groups are\n          pulled toward it; $\\theta_g$ is the group-specific mean. The\n          posterior of $\\theta_g$ is shrunk toward $\\mu$ by an amount\n          that depends on $\\tau$ and the group's data count $n_g$.",
+   "tags": []
+  },
+  "shrinkage τ &nbsp;@@T0@@1.00@@T1@@": {
+   "zh": "收缩强度 τ &nbsp;@@T0@@1.00@@T1@@",
+   "src": "shrinkage τ &nbsp;<span id=\"hp-tau-val\">1.00</span>",
+   "tags": [
+    "<span id=\"hp-tau-val\">",
+    "</span>"
+   ]
+  },
+  "obs noise σ &nbsp;@@T0@@1.00@@T1@@": {
+   "zh": "观测噪声 σ &nbsp;@@T0@@1.00@@T1@@",
+   "src": "obs noise σ &nbsp;<span id=\"hp-sig-val\">1.00</span>",
+   "tags": [
+    "<span id=\"hp-sig-val\">",
+    "</span>"
+   ]
+  },
+  "include data-poor group (n=2)": {
+   "zh": "包含数据匮乏的组（n=2）",
+   "src": "include data-poor group (n=2)",
+   "tags": []
+  },
+  "Resample groups": {
+   "zh": "重新抽样各组",
+   "src": "Resample groups",
+   "tags": []
+  },
+  "Eight groups along the x-axis. Black dots: observations. Big symbols: per-group MLE (orange ×), partial-pool posterior mean (teal ●), and complete-pool global mean (blue dashed line). Watch the data-poor group's estimate pull toward the global mean as τ shrinks.": {
+   "zh": "沿 x 轴排列的八个组。黑点：观测值。大符号：各组的 MLE（橙色 ×）、部分池化后验均值（青色 ●），以及完全池化的全局均值（蓝色虚线）。观察随着 τ 减小，数据匮乏组的估计如何被拉向全局均值。",
+   "src": "Eight groups along the x-axis. Black dots: observations. Big symbols: per-group MLE (orange ×), partial-pool posterior mean (teal ●), and complete-pool global mean (blue dashed line). Watch the data-poor group's estimate pull toward the global mean as τ shrinks.",
+   "tags": []
+  },
+  "@@T0@@The shrinkage formula.@@T1@@\n          For Gaussian data, the posterior mean of group $g$ is a\n          weighted average:\n          $\\hat\\theta_g = w_g \\bar y_g + (1 - w_g)\\,\\mu,$\n          $\\;w_g = \\frac{n_g/\\sigma^2}{n_g/\\sigma^2 + 1/\\tau^2}.$\n          Big $n_g$ or small $\\tau$ ⇒ trust the group; small $n_g$ or\n          big $\\tau$ ⇒ trust the global mean. Partial pooling\n          interpolates the two extremes @@T2@@per group@@T3@@.": {
+   "zh": "@@T0@@收缩公式。@@T1@@\n          对于高斯数据，第 $g$ 组的后验均值是一个加权平均：$\\hat\\theta_g = w_g \\bar y_g + (1 - w_g)\\,\\mu,$ $\\;w_g = \\frac{n_g/\\sigma^2}{n_g/\\sigma^2 + 1/\\tau^2}.$ $n_g$ 大或 $\\tau$ 小 ⇒ 相信该组；$n_g$ 小或 $\\tau$ 大 ⇒ 相信全局均值。部分池化@@T2@@逐组地@@T3@@在两个极端之间插值。",
+   "src": "<strong>The shrinkage formula.</strong>\n          For Gaussian data, the posterior mean of group $g$ is a\n          weighted average:\n          $\\hat\\theta_g = w_g \\bar y_g + (1 - w_g)\\,\\mu,$\n          $\\;w_g = \\frac{n_g/\\sigma^2}{n_g/\\sigma^2 + 1/\\tau^2}.$\n          Big $n_g$ or small $\\tau$ ⇒ trust the group; small $n_g$ or\n          big $\\tau$ ⇒ trust the global mean. Partial pooling\n          interpolates the two extremes <em>per group</em>.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Why this matters: data-poor groups borrow strength from\n          data-rich ones @@T0@@without@@T1@@ being forced to agree with\n          them. James &amp; Stein, 1961, proved that this estimator\n          dominates the per-group MLE in mean squared error &mdash;\n          in three or more dimensions, no-pool is provably suboptimal.": {
+   "zh": "为何这很重要：数据匮乏的组从数据丰富的组借用力量，@@T0@@而无需@@T1@@被迫与它们保持一致。James 与 Stein（1961）证明：在均方误差意义下，该估计量优于各组的 MLE——在三维及以上，不池化可被证明是次优的。",
+   "src": "Why this matters: data-poor groups borrow strength from\n          data-rich ones <em>without</em> being forced to agree with\n          them. James &amp; Stein, 1961, proved that this estimator\n          dominates the per-group MLE in mean squared error &mdash;\n          in three or more dimensions, no-pool is provably suboptimal.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 7": {
+   "zh": "第 7 步",
+   "src": "Step 7",
+   "tags": []
+  },
+  "Five things people get wrong": {
+   "zh": "人们常搞错的五件事",
+   "src": "Five things people get wrong",
+   "tags": []
+  },
+  "@@T0@@Myth@@T1@@": {
+   "zh": "@@T0@@迷思@@T1@@",
+   "src": "<span class=\"misconception-icon\">Myth</span>",
+   "tags": [
+    "<span class=\"misconception-icon\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@\"Bayesian = subjective, frequentist = objective.\"@@T1@@@@T2@@\n              Both pick assumptions: frequentists pick a sampling\n              model and a procedure (significance level, estimator);\n              Bayesians pick a sampling model and a prior. Bayes makes\n              the assumption explicit, which is the actual difference.": {
+   "zh": "@@T0@@“贝叶斯派 = 主观，频率派 = 客观。”@@T1@@@@T2@@\n              两者都要选取假设：频率派选取一个抽样模型与一套流程（显著性水平、估计量）；贝叶斯派选取一个抽样模型与一个先验。贝叶斯把假设显式化，这才是真正的差别。",
+   "src": "<strong>\"Bayesian = subjective, frequentist = objective.\"</strong><br />\n              Both pick assumptions: frequentists pick a sampling\n              model and a procedure (significance level, estimator);\n              Bayesians pick a sampling model and a prior. Bayes makes\n              the assumption explicit, which is the actual difference.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@\"With enough data the prior doesn't matter.\"@@T1@@@@T2@@\n              True for low-dimensional, well-identified parameters\n              (Step 2 made this concrete). False in high-dimensional\n              models, hierarchical models, or any setting where the\n              likelihood is flat in some directions &mdash; which is\n              most of modern deep learning.": {
+   "zh": "@@T0@@“数据足够多时先验就无所谓了。”@@T1@@@@T2@@\n              对低维、可良好辨识的参数而言成立（第 2 步已具体展示）。但在高维模型、层次模型，或任何似然在某些方向上平坦的设定中都不成立——而现代深度学习大多如此。",
+   "src": "<strong>\"With enough data the prior doesn't matter.\"</strong><br />\n              True for low-dimensional, well-identified parameters\n              (Step 2 made this concrete). False in high-dimensional\n              models, hierarchical models, or any setting where the\n              likelihood is flat in some directions &mdash; which is\n              most of modern deep learning.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@\"MCMC always converges to the truth.\"@@T1@@@@T2@@\n              In the infinite-sample limit, yes. With finite chains and\n              poor proposals (Step 5), MCMC spends a long time in a\n              single mode, returns a confidently wrong histogram, and\n              tells you it converged. Always run multiple chains.": {
+   "zh": "@@T0@@“MCMC 总会收敛到真相。”@@T1@@@@T2@@\n              在无限样本的极限下，是的。但在有限链与糟糕的建议分布下（第 5 步），MCMC 会在单个峰中停留很久，返回一个自信却错误的直方图，还告诉你它已收敛。务必运行多条链。",
+   "src": "<strong>\"MCMC always converges to the truth.\"</strong><br />\n              In the infinite-sample limit, yes. With finite chains and\n              poor proposals (Step 5), MCMC spends a long time in a\n              single mode, returns a confidently wrong histogram, and\n              tells you it converged. Always run multiple chains.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@\"VI is just a faster MCMC.\"@@T1@@@@T2@@\n              VI is fundamentally biased: it returns the closest member\n              of your variational family, even if no member of the\n              family looks like the truth. On multimodal posteriors a\n              Gaussian VI fit can put zero mass on the second mode\n              while still claiming to have \"converged\".": {
+   "zh": "@@T0@@“VI 只是更快的 MCMC。”@@T1@@@@T2@@\n              VI 本质上有偏：它返回你变分族中最近的那个成员，即便该族中没有任何成员看起来像真相。在多峰后验上，高斯 VI 拟合可能在第二个峰上给出零质量，却仍声称自己已经“收敛”。",
+   "src": "<strong>\"VI is just a faster MCMC.\"</strong><br />\n              VI is fundamentally biased: it returns the closest member\n              of your variational family, even if no member of the\n              family looks like the truth. On multimodal posteriors a\n              Gaussian VI fit can put zero mass on the second mode\n              while still claiming to have \"converged\".",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@\"A Bayesian neural network is just one trained with a prior.\"@@T1@@@@T2@@\n              The prior is the easy part. The hard part is getting a\n              calibrated @@T3@@posterior@@T4@@ over a 100M-dimensional\n              parameter space, which neither MCMC nor VI does honestly\n              today. SGLD, Laplace, deep ensembles, and SWAG are\n              practical compromises &mdash; none of them is \"the\n              Bayesian answer\".": {
+   "zh": "@@T0@@“贝叶斯神经网络不过是带先验训练的网络。”@@T1@@@@T2@@\n              先验是容易的部分。困难的部分是在 1 亿维的参数空间上获得一个校准良好的@@T3@@后验@@T4@@，而今天的 MCMC 与 VI 都做不到诚实地完成它。SGLD、Laplace 近似、深度集成与 SWAG 都是实用的折中——它们中没有一个是“贝叶斯答案”。",
+   "src": "<strong>\"A Bayesian neural network is just one trained with a prior.\"</strong><br />\n              The prior is the easy part. The hard part is getting a\n              calibrated <em>posterior</em> over a 100M-dimensional\n              parameter space, which neither MCMC nor VI does honestly\n              today. SGLD, Laplace, deep ensembles, and SWAG are\n              practical compromises &mdash; none of them is \"the\n              Bayesian answer\".",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@\"Bayesian inference is overkill if you only want a point estimate.\"@@T1@@@@T2@@\n              The posterior @@T3@@mean@@T4@@ minimises mean-squared error\n              for any loss; the MAP minimises 0–1 loss. They're often\n              different, and pretending the MAP is the right summary\n              has cost more papers than overfitting has.": {
+   "zh": "@@T0@@“如果你只想要一个点估计，贝叶斯推断是大材小用。”@@T1@@@@T2@@\n              后验@@T3@@均值@@T4@@对任意损失都能最小化均方误差；MAP 则最小化 0–1 损失。二者常常不同，而假装 MAP 是正确的概括方式所毁掉的论文，比过拟合还多。",
+   "src": "<strong>\"Bayesian inference is overkill if you only want a point estimate.\"</strong><br />\n              The posterior <em>mean</em> minimises mean-squared error\n              for any loss; the MAP minimises 0–1 loss. They're often\n              different, and pretending the MAP is the right summary\n              has cost more papers than overfitting has.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 8": {
+   "zh": "第 8 步",
+   "src": "Step 8",
+   "tags": []
+  },
+  "Where this lives in your research": {
+   "zh": "这套框架在你的研究中处于何处",
+   "src": "Where this lives in your research",
+   "tags": []
+  },
+  "Three places the Bayesian frame buys you something concrete\n          rather than aesthetic:": {
+   "zh": "贝叶斯框架能在三处给你带来具体而非审美上的收益：",
+   "src": "Three places the Bayesian frame buys you something concrete\n          rather than aesthetic:",
+   "tags": []
+  },
+  "@@T0@@Calibrated uncertainty in deployed models.@@T1@@\n            A sensor model that says \"I don't know\" off-distribution is\n            safer than one that says \"0.97\" everywhere. Reliability\n            diagrams + temperature scaling + deep ensembles get you\n            most of the way; full Bayesian deep learning is the\n            principled limit.": {
+   "zh": "@@T0@@部署模型中的校准不确定性。@@T1@@\n            一个在分布外会说“我不知道”的传感器模型，比一个到处都说“0.97”的模型更安全。可靠性图 + 温度缩放 + 深度集成能带你走完大半路程；完整的贝叶斯深度学习则是有原则的极限。",
+   "src": "<strong>Calibrated uncertainty in deployed models.</strong>\n            A sensor model that says \"I don't know\" off-distribution is\n            safer than one that says \"0.97\" everywhere. Reliability\n            diagrams + temperature scaling + deep ensembles get you\n            most of the way; full Bayesian deep learning is the\n            principled limit.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Hierarchical models for sparse, structured data.@@T1@@\n            Patients, sites, sensors, languages, individuals &mdash;\n            anywhere you have many groups with few observations each,\n            partial pooling beats both \"one model per group\" and\n            \"one model for all\" by a lot. This is the Bayesian\n            superpower for data with regional structure.": {
+   "zh": "@@T0@@面向稀疏、结构化数据的层次模型。@@T1@@\n            患者、站点、传感器、语言、个体——凡是你拥有许多组、而每组只有少量观测之处，部分池化都远远胜过“每组一个模型”与“所有数据一个模型”。这是贝叶斯在处理具有区域结构的数据时的超能力。",
+   "src": "<strong>Hierarchical models for sparse, structured data.</strong>\n            Patients, sites, sensors, languages, individuals &mdash;\n            anywhere you have many groups with few observations each,\n            partial pooling beats both \"one model per group\" and\n            \"one model for all\" by a lot. This is the Bayesian\n            superpower for data with regional structure.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Inverse problems and physics-informed ML.@@T1@@\n            Energy disaggregation, source apportionment for air quality,\n            satellite pixel unmixing, sleep-stage estimation &mdash;\n            the unknown is a high-dimensional latent and the forward\n            model is partially known. Bayes is the language of inverse\n            problems; everything else is an approximation to it.": {
+   "zh": "@@T0@@逆问题与物理信息机器学习。@@T1@@\n            能量分解、空气质量的源解析、卫星像元解混、睡眠分期估计——其中的未知量是高维潜变量，而前向模型只被部分已知。贝叶斯是逆问题的语言；其余一切都只是对它的近似。",
+   "src": "<strong>Inverse problems and physics-informed ML.</strong>\n            Energy disaggregation, source apportionment for air quality,\n            satellite pixel unmixing, sleep-stage estimation &mdash;\n            the unknown is a high-dimensional latent and the forward\n            model is partially known. Bayes is the language of inverse\n            problems; everything else is an approximation to it.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          The posterior is a probability distribution. You don't need\n          new math to reason about it &mdash; just patience to compute\n          the product on the right side of Bayes' rule. The eight\n          interactives above are eight versions of that one product.\n          Everything else (MCMC, VI, GPs, BNNs) is plumbing.": {
+   "zh": "@@T0@@最后总结。@@T1@@\n          后验是一个概率分布。要推理它并不需要新的数学——只需要耐心，计算贝叶斯法则右端的那个乘积。上面八个交互模块就是那一个乘积的八种版本。其余一切（MCMC、VI、GP、BNN）都是管道工程。",
+   "src": "<strong>Final takeaway.</strong>\n          The posterior is a probability distribution. You don't need\n          new math to reason about it &mdash; just patience to compute\n          the product on the right side of Bayes' rule. The eight\n          interactives above are eight versions of that one product.\n          Everything else (MCMC, VI, GPs, BNNs) is plumbing.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "一步步构建后验分布",
+  "tagline": "先验 × 似然 = 后验——八个实时实验，把贝叶斯推断从公式变成直觉",
+  "summary": "拖动一个高斯先验，在坐标轴上点击数据点，观察后验如何逐渐成形。随后进入共轭情形（Beta-二项硬币），把后验预测分布与 MAP 代入法区分开，在一个非共轭后验上让网格求值、MCMC 与变分推断同场竞速，最后以贝叶斯线性回归收尾——其不确定带在远离数据处向外张开，所有数值都由纯 JS 实时计算。",
+  "difficulty": "中级",
+  "collection": "概率与统计推断",
+  "highlights": [
+   "拖动高斯先验、点击数据，实时观察后验如何收缩与偏移。",
+   "在一枚真实的 Beta-二项硬币上比较先验强度与样本量，看数据何时取胜。",
+   "比较 MAP 代入法狭窄的预测分布与完整的后验预测分布——二者之差正是忽略不确定性的代价。",
+   "在一个非共轭、多峰的后验上让网格求值、Metropolis MCMC 与高斯变分拟合同场竞速。",
+   "带不确定带的贝叶斯线性回归——不确定带恰在数据缺失处向外张开，这正是高斯过程显得诚实的原因。"
+  ],
+  "tags": [
+   "贝叶斯",
+   "推断",
+   "不确定性",
+   "MCMC",
+   "变分推断",
+   "交互式"
+  ]
+ },
+ "js": {
+  "MAP std = [[[0]]],   posterior-predictive std = [[[1]]]   (gap = [[[2]]])": {
+   "zh": "MAP 标准差 = [[[0]]]，  后验预测标准差 = [[[1]]]   （差距 = [[[2]]]）",
+   "exprs": [
+    "${mapStd.toFixed(2)}",
+    "${ppStd.toFixed(2)}",
+    "${(ppStd - mapStd).toFixed(2)}"
+   ],
+   "tags": [],
+   "src": "MAP std = ${mapStd.toFixed(2)},   posterior-predictive std = ${ppStd.toFixed(2)}   (gap = ${(ppStd - mapStd).toFixed(2)})"
+  },
+  "global pool μ = [[[0]]]": {
+   "zh": "全局池化 μ = [[[0]]]",
+   "exprs": [
+    "${mu.toFixed(2)}"
+   ],
+   "tags": [],
+   "src": "global pool μ = ${mu.toFixed(2)}"
+  },
+  "sample size n": {
+   "zh": "样本量 n",
+   "exprs": [],
+   "tags": [],
+   "src": "sample size n"
+  },
+  "posterior std σₙ": {
+   "zh": "后验标准差 σₙ",
+   "exprs": [],
+   "tags": [],
+   "src": "posterior std σₙ"
+  },
+  "predictive density": {
+   "zh": "预测密度",
+   "exprs": [],
+   "tags": [],
+   "src": "predictive density"
+  },
+  "plug-in MAP predictive": {
+   "zh": "代入式 MAP 预测",
+   "exprs": [],
+   "tags": [],
+   "src": "plug-in MAP predictive"
+  },
+  "posterior predictive": {
+   "zh": "后验预测",
+   "exprs": [],
+   "tags": [],
+   "src": "posterior predictive"
+  },
+  "MCMC samples": {
+   "zh": "MCMC 样本",
+   "exprs": [],
+   "tags": [],
+   "src": "MCMC samples"
+  },
+  "VI Gaussian fit": {
+   "zh": "VI 高斯拟合",
+   "exprs": [],
+   "tags": [],
+   "src": "VI Gaussian fit"
+  },
+  "Pause MCMC": {
+   "zh": "暂停 MCMC",
+   "exprs": [],
+   "tags": [],
+   "src": "Pause MCMC"
+  },
+  "Run MCMC": {
+   "zh": "运行 MCMC",
+   "exprs": [],
+   "tags": [],
+   "src": "Run MCMC"
+  }
+ }
+}

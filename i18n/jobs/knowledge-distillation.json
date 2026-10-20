@@ -1,0 +1,455 @@
+{
+ "slug": "knowledge-distillation",
+ "units": {
+  "Knowledge Distillation, Live": {
+   "zh": "知识蒸馏，实时演示",
+   "src": "Knowledge Distillation, Live",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "A tiny student trained in your browser absorbs a smooth\n          pretrained teacher through softmax temperature. Toggle three\n          loss recipes, slide the temperature, and watch the student's\n          decision boundary snap to the teacher's much faster than hard\n          labels alone allow.": {
+   "zh": "一个在你的浏览器中训练的小型学生模型，通过 softmax 温度\n          吸收一个平滑的预训练教师模型。切换三种损失\n          配方，滑动温度，观察学生模型的决策边界如何\n          比单靠硬标签所允许的更快地贴合教师的边界。",
+   "src": "A tiny student trained in your browser absorbs a smooth\n          pretrained teacher through softmax temperature. Toggle three\n          loss recipes, slide the temperature, and watch the student's\n          decision boundary snap to the teacher's much faster than hard\n          labels alone allow.",
+   "tags": []
+  },
+  "@@T0@@~18 min@@T1@@\n          @@T2@@Deep Learning &middot; Compression &middot; Teacher-Student@@T3@@": {
+   "zh": "@@T0@@约 18 分钟@@T1@@\n          @@T2@@深度学习 &middot; 模型压缩 &middot; 教师-学生@@T3@@",
+   "src": "<span>~18 min</span>\n          <span>Deep Learning &middot; Compression &middot; Teacher-Student</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Why a small model can learn from a big model better than from the data": {
+   "zh": "为何小模型向大模型学习能胜过直接从数据学习",
+   "src": "Why a small model can learn from a big model better than from the data",
+   "tags": []
+  },
+  "You have a big, accurate teacher. You want a small, fast student\n          that runs on a phone, a sensor node, an edge GPU. The naive\n          recipe: train the student from scratch on the same data. The\n          better recipe: train the student to imitate the teacher's\n          softened outputs. The student often beats the data-only\n          baseline by a lot &mdash; with the same parameters, on the same\n          dataset.": {
+   "zh": "你有一个庞大而准确的教师模型。你想要一个又小又快、\n          能跑在手机、传感器节点或边缘 GPU 上的学生模型。朴素\n          配方：用相同数据从头训练学生。\n          更好的配方：训练学生去模仿教师\n          软化后的输出。学生往往大幅胜过仅用数据的\n          基线&mdash;在相同参数、相同数据集之下。",
+   "src": "You have a big, accurate teacher. You want a small, fast student\n          that runs on a phone, a sensor node, an edge GPU. The naive\n          recipe: train the student from scratch on the same data. The\n          better recipe: train the student to imitate the teacher's\n          softened outputs. The student often beats the data-only\n          baseline by a lot &mdash; with the same parameters, on the same\n          dataset.",
+   "tags": []
+  },
+  "The trick is information that's invisible in hard labels.\n          A cat picture has a hard label \"cat\", but a teacher's softmax\n          says \"cat 0.93, lynx 0.04, tiger 0.02, dog 0.01\". That ordering\n          carries @@T0@@dark knowledge@@T1@@ &mdash; the teacher's\n          opinion about how classes relate. The student picks it up for\n          free.": {
+   "zh": "诀窍在于那些在硬标签中不可见的信息。\n          一张猫的图片具有硬标签「猫」，但教师的 softmax\n          却说「猫 0.93、猞猁 0.04、虎 0.02、狗 0.01」。这种排序\n          携带了 @@T0@@暗知识@@T1@@ &mdash;即教师\n          关于各类别如何关联的看法。学生得以免费获得它。",
+   "src": "The trick is information that's invisible in hard labels.\n          A cat picture has a hard label \"cat\", but a teacher's softmax\n          says \"cat 0.93, lynx 0.04, tiger 0.02, dog 0.01\". That ordering\n          carries <strong>dark knowledge</strong> &mdash; the teacher's\n          opinion about how classes relate. The student picks it up for\n          free.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Hinton's slogan.@@T1@@\n          \"Soft targets reveal more about the structure of the data than\n          hard labels.\" Once you've seen this article's animation, the\n          phrase will mean something.": {
+   "zh": "@@T0@@Hinton 的一句话。@@T1@@\n          「软目标比硬标签揭示了更多关于数据结构的信息。」\n          一旦你看了本文的动画，这句话就会变得有意义。",
+   "src": "<strong>Hinton's slogan.</strong>\n          \"Soft targets reveal more about the structure of the data than\n          hard labels.\" Once you've seen this article's animation, the\n          phrase will mean something.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "Soften with temperature": {
+   "zh": "用温度软化",
+   "src": "Soften with temperature",
+   "tags": []
+  },
+  "Standard softmax converts logits $z_c$ into probabilities\n          $p_c$. Knowledge distillation introduces a temperature $T$:": {
+   "zh": "标准 softmax 将 logit $z_c$ 转换为概率\n          $p_c$。知识蒸馏引入一个温度 $T$：",
+   "src": "Standard softmax converts logits $z_c$ into probabilities\n          $p_c$. Knowledge distillation introduces a temperature $T$:",
+   "tags": []
+  },
+  "$T=1$ is the usual softmax. Larger $T$ flattens the\n          distribution, exposing more of the relative ordering. As $T\n          \\to \\infty$ everything becomes uniform; as $T \\to 0$ it\n          becomes one-hot. The whole game is to pick a $T$ where the\n          non-winning classes still carry useful structure.": {
+   "zh": "$T=1$ 即通常的 softmax。较大的 $T$ 会把\n          分布压平，从而暴露出更多的相对排序。当 $T\n          \\to \\infty$ 时一切都变为均匀；当 $T \\to 0$ 时\n          则变为单热（one-hot）。整场博弈的关键就是选一个 $T$，使\n          那些未胜出的类别仍然携带有用的结构。",
+   "src": "$T=1$ is the usual softmax. Larger $T$ flattens the\n          distribution, exposing more of the relative ordering. As $T\n          \\to \\infty$ everything becomes uniform; as $T \\to 0$ it\n          becomes one-hot. The whole game is to pick a $T$ where the\n          non-winning classes still carry useful structure.",
+   "tags": []
+  },
+  "temperature T &nbsp;@@T0@@4.0@@T1@@": {
+   "zh": "温度 T &nbsp;@@T0@@4.0@@T1@@",
+   "src": "temperature T &nbsp;<span id=\"t-val\">4.0</span>",
+   "tags": [
+    "<span id=\"t-val\">",
+    "</span>"
+   ]
+  },
+  "Same teacher logits at four temperatures. Bars are softmax probabilities; numbers are the same logits scaled by 1/T.": {
+   "zh": "同一组教师 logit 在四个温度下的情形。柱形表示 softmax 概率；数字是同一组 logit 按 1/T 缩放后的结果。",
+   "src": "Same teacher logits at four temperatures. Bars are softmax probabilities; numbers are the same logits scaled by 1/T.",
+   "tags": []
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "The two losses, side by side": {
+   "zh": "两种损失，并排对比",
+   "src": "The two losses, side by side",
+   "tags": []
+  },
+  "The student gets two supervision signals:": {
+   "zh": "学生获得两路监督信号：",
+   "src": "The student gets two supervision signals:",
+   "tags": []
+  },
+  "@@T0@@Hard cross-entropy@@T1@@ against the dataset\n            label $y$.": {
+   "zh": "@@T0@@硬交叉熵@@T1@@，针对数据集的\n            标签 $y$。",
+   "src": "<strong>Hard cross-entropy</strong> against the dataset\n            label $y$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Soft KL@@T1@@ from the teacher's softened\n            probabilities $p^{(T)}$ to the student's softened\n            probabilities $q^{(T)}$, both at temperature $T$.": {
+   "zh": "@@T0@@软 KL@@T1@@，从教师软化后的\n            概率 $p^{(T)}$ 到学生软化后的\n            概率 $q^{(T)}$，两者都在温度 $T$ 下。",
+   "src": "<strong>Soft KL</strong> from the teacher's softened\n            probabilities $p^{(T)}$ to the student's softened\n            probabilities $q^{(T)}$, both at temperature $T$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The $T^2$ multiplier in the KD term keeps gradients on the\n          same scale at any $T$ (Hinton et al., 2015). $\\alpha$ trades\n          off how much the student listens to data vs. teacher.": {
+   "zh": "KD 项中的 $T^2$ 乘子使梯度在任意 $T$ 下都保持在\n          相同的量级（Hinton 等人，2015）。$\\alpha$ 权衡\n          学生听数据与听教师的相对程度。",
+   "src": "The $T^2$ multiplier in the KD term keeps gradients on the\n          same scale at any $T$ (Hinton et al., 2015). $\\alpha$ trades\n          off how much the student listens to data vs. teacher.",
+   "tags": []
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Watch the student learn": {
+   "zh": "观察学生模型的学习",
+   "src": "Watch the student learn",
+   "tags": []
+  },
+  "The teacher below is a fixed Gaussian-mixture classifier on a\n          2-D plane: smooth, accurate, but 'big' in the sense that we\n          assume we don't get to ship it. The student is a single\n          linear layer (just $2 \\times K$ weights) &mdash; barely more\n          than logistic regression. Train it three ways and compare.": {
+   "zh": "下方的教师是一个在 二维平面上固定的高斯混合分类器：\n          平滑、准确，但在我们假定无法部署它的意义上显得「庞大」。\n          学生则是一个单层的线性层（仅 $2 \\times K$ 个权重）&mdash;比\n          逻辑回归多不了什么。用三种方式训练它并加以比较。",
+   "src": "The teacher below is a fixed Gaussian-mixture classifier on a\n          2-D plane: smooth, accurate, but 'big' in the sense that we\n          assume we don't get to ship it. The student is a single\n          linear layer (just $2 \\times K$ weights) &mdash; barely more\n          than logistic regression. Train it three ways and compare.",
+   "tags": []
+  },
+  "Start training": {
+   "zh": "开始训练",
+   "src": "Start training",
+   "tags": []
+  },
+  "Reinitialise student": {
+   "zh": "重新初始化学生",
+   "src": "Reinitialise student",
+   "tags": []
+  },
+  "recipe": {
+   "zh": "配方",
+   "src": "recipe",
+   "tags": []
+  },
+  "Hard CE only": {
+   "zh": "仅硬 CE",
+   "src": "Hard CE only",
+   "tags": []
+  },
+  "Pure KD (teacher only)": {
+   "zh": "纯 KD（仅教师）",
+   "src": "Pure KD (teacher only)",
+   "tags": []
+  },
+  "Hybrid (KD + α·CE)": {
+   "zh": "混合（KD + α·CE）",
+   "src": "Hybrid (KD + α·CE)",
+   "tags": []
+  },
+  "@@T0@@step @@T1@@0@@T2@@@@T3@@\n          @@T4@@student acc @@T5@@—@@T6@@@@T7@@\n          @@T8@@teacher acc @@T9@@—@@T10@@@@T11@@": {
+   "zh": "@@T0@@步数 @@T1@@0@@T2@@@@T3@@\n          @@T4@@学生准确率 @@T5@@—@@T6@@@@T7@@\n          @@T8@@教师准确率 @@T9@@—@@T10@@@@T11@@",
+   "src": "<span class=\"train-stat\">step <strong id=\"kd-step\">0</strong></span>\n          <span class=\"train-stat\">student acc <strong id=\"kd-acc\">—</strong></span>\n          <span class=\"train-stat\">teacher acc <strong id=\"kd-tacc\">—</strong></span>",
+   "tags": [
+    "<span class=\"train-stat\">",
+    "<strong id=\"kd-step\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"kd-acc\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"kd-tacc\">",
+    "</strong>",
+    "</span>"
+   ]
+  },
+  "Teacher decision regions": {
+   "zh": "教师决策区域",
+   "src": "Teacher decision regions",
+   "tags": []
+  },
+  "Student decision regions": {
+   "zh": "学生决策区域",
+   "src": "Student decision regions",
+   "tags": []
+  },
+  "Loss curve": {
+   "zh": "损失曲线",
+   "src": "Loss curve",
+   "tags": []
+  },
+  "@@T0@@What to watch for.@@T1@@\n          With @@T2@@Hard CE only@@T3@@, the student's boundary is jagged\n          and slow &mdash; it has only the hard label per point. With\n          @@T4@@Pure KD@@T5@@ at $T=4$, the student inherits the teacher's\n          smooth confidence everywhere, including in regions with no\n          training points. @@T6@@Hybrid@@T7@@ usually wins: data anchors\n          the labels, the teacher fills in the rest. Try setting $T=1$\n          to kill the dark knowledge and see distillation collapse to\n          ordinary cross-entropy.": {
+   "zh": "@@T0@@应当留意什么。@@T1@@\n          在@@T2@@仅硬 CE@@T3@@之下，学生的边界参差不齐\n          且收敛缓慢&mdash;对每个点它只有硬标签。在\n          @@T4@@纯 KD@@T5@@ 于 $T=4$ 之下，学生在各处都继承了教师\n          平滑的置信度，包括没有训练点的区域。@@T6@@混合@@T7@@ 通常取胜：数据\n          锚定标签，教师填补其余部分。试着把 $T=1$\n          以扼杀暗知识，观察蒸馏如何退化为\n          普通的交叉熵。",
+   "src": "<strong>What to watch for.</strong>\n          With <em>Hard CE only</em>, the student's boundary is jagged\n          and slow &mdash; it has only the hard label per point. With\n          <em>Pure KD</em> at $T=4$, the student inherits the teacher's\n          smooth confidence everywhere, including in regions with no\n          training points. <em>Hybrid</em> usually wins: data anchors\n          the labels, the teacher fills in the rest. Try setting $T=1$\n          to kill the dark knowledge and see distillation collapse to\n          ordinary cross-entropy.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Where does the gain come from?": {
+   "zh": "收益从何而来？",
+   "src": "Where does the gain come from?",
+   "tags": []
+  },
+  "Three angles on the same phenomenon:": {
+   "zh": "对同一现象的三种视角：",
+   "src": "Three angles on the same phenomenon:",
+   "tags": []
+  },
+  "@@T0@@Label smoothing on steroids.@@T1@@ Hard labels\n            are one-hot. The teacher's softened probabilities are a\n            @@T2@@per-input@@T3@@ smoothing that depends on the actual\n            geometry of the classes. Generic label smoothing replaces\n            one-hot with a fixed mixture; KD replaces it with a learned\n            mixture that knows your data.": {
+   "zh": "@@T0@@加强版的标签平滑。@@T1@@ 硬标签\n            是单热的。教师软化后的概率是一种\n            @@T2@@针对每个输入@@T3@@、取决于类别实际\n            几何形态的平滑。通用的标签平滑把\n            单热替换为一个固定的混合；KD 则把它替换为一个\n            了解你数据的、学习得到的混合。",
+   "src": "<strong>Label smoothing on steroids.</strong> Hard labels\n            are one-hot. The teacher's softened probabilities are a\n            <em>per-input</em> smoothing that depends on the actual\n            geometry of the classes. Generic label smoothing replaces\n            one-hot with a fixed mixture; KD replaces it with a learned\n            mixture that knows your data.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Pseudo-data outside the training set.@@T1@@\n            The teacher answers the student's questions even at points\n            the student never saw labelled &mdash; effectively giving\n            the student a free, infinitely-large dataset (whose ground\n            truth happens to be the teacher).": {
+   "zh": "@@T0@@训练集之外的伪数据。@@T1@@\n            即使在学生从未见过标签的点上，教师也在回答学生的\n            问题&mdash;实际上是给了学生一个免费的、无穷大的数据集\n            （其真值恰好就是教师本身）。",
+   "src": "<strong>Pseudo-data outside the training set.</strong>\n            The teacher answers the student's questions even at points\n            the student never saw labelled &mdash; effectively giving\n            the student a free, infinitely-large dataset (whose ground\n            truth happens to be the teacher).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Gradient richness.@@T1@@ A one-hot target gives\n            a gradient that pushes one logit up and (everything-else)\n            down equally. A softened target gives a gradient that\n            pushes @@T2@@each@@T3@@ non-winner by a different amount &mdash;\n            far more information per backward pass.": {
+   "zh": "@@T0@@梯度更丰富。@@T1@@ 单热目标给出的\n            梯度把一个 logit 推高，把（其余所有）等量地\n            压低。软化目标给出的梯度则以不同的幅度推动@@T2@@每一个@@T3@@\n            非胜出项&mdash;每次反向传播携带的信息远远更多。",
+   "src": "<strong>Gradient richness.</strong> A one-hot target gives\n            a gradient that pushes one logit up and (everything-else)\n            down equally. A softened target gives a gradient that\n            pushes <em>each</em> non-winner by a different amount &mdash;\n            far more information per backward pass.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Per-class gradient magnitude on a single example, hard target vs soft target at $T=4$. Same total signal, redistributed.": {
+   "zh": "单个样本上各个类别的梯度幅度，硬目标与 $T=4$ 下的软目标对比。总信号量相同，只是被重新分配。",
+   "src": "Per-class gradient magnitude on a single example, hard target vs soft target at $T=4$. Same total signal, redistributed.",
+   "tags": []
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "The variants you'll meet in papers": {
+   "zh": "你将在论文中遇到的变体",
+   "src": "The variants you'll meet in papers",
+   "tags": []
+  },
+  "@@T0@@Logit / response distillation.@@T1@@ The\n            classical recipe above. Cheapest. Works surprisingly well.": {
+   "zh": "@@T0@@Logit / 响应蒸馏。@@T1@@ 即上述的\n            经典配方。代价最低。效果出奇地好。",
+   "src": "<strong>Logit / response distillation.</strong> The\n            classical recipe above. Cheapest. Works surprisingly well.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Feature distillation.@@T1@@ Match intermediate\n            activations or attention maps (FitNets, Romero et&nbsp;al.;\n            attention transfer, Zagoruyko &amp; Komodakis). Useful when\n            the student's capacity bottleneck is hidden, not in the\n            output head.": {
+   "zh": "@@T0@@特征蒸馏。@@T1@@ 匹配中间层的\n            激活或注意力图（FitNets，Romero 等人；\n            注意力迁移，Zagoruyko &amp; Komodakis）。当\n            学生的容量瓶颈位于隐藏层而非\n            输出头时，这一点很有用。",
+   "src": "<strong>Feature distillation.</strong> Match intermediate\n            activations or attention maps (FitNets, Romero et&nbsp;al.;\n            attention transfer, Zagoruyko &amp; Komodakis). Useful when\n            the student's capacity bottleneck is hidden, not in the\n            output head.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Self-distillation.@@T1@@ Student and teacher\n            share an architecture; student is initialised from a\n            previous training run. Adds 1–3% accuracy \"for free\".": {
+   "zh": "@@T0@@自蒸馏。@@T1@@ 学生与教师\n            共享同一架构；学生从先前的一次训练结果\n            初始化。可以「免费」提升 1–3% 的准确率。",
+   "src": "<strong>Self-distillation.</strong> Student and teacher\n            share an architecture; student is initialised from a\n            previous training run. Adds 1–3% accuracy \"for free\".",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Online / mutual KD.@@T1@@ No frozen teacher;\n            two students teach each other (Zhang et&nbsp;al., 2018).\n            Useful when you don't have a pretrained big model to start\n            with.": {
+   "zh": "@@T0@@在线 / 互蒸馏。@@T1@@ 没有冻结的教师；\n            两个学生互相教学（Zhang 等人，2018）。\n            当你没有预训练好的大模型\n            作为起点时很有用。",
+   "src": "<strong>Online / mutual KD.</strong> No frozen teacher;\n            two students teach each other (Zhang et&nbsp;al., 2018).\n            Useful when you don't have a pretrained big model to start\n            with.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Born-again networks.@@T1@@ Distil to the same\n            architecture; iterate. Each \"generation\" tends to gain a\n            little (Furlanello et&nbsp;al., 2018).": {
+   "zh": "@@T0@@重生网络。@@T1@@ 蒸馏到相同的\n            架构；迭代进行。每一「代」往往都有一点\n            增益（Furlanello 等人，2018）。",
+   "src": "<strong>Born-again networks.</strong> Distil to the same\n            architecture; iterate. Each \"generation\" tends to gain a\n            little (Furlanello et&nbsp;al., 2018).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Five things to remember": {
+   "zh": "需要记住的五点",
+   "src": "Five things to remember",
+   "tags": []
+  },
+  "@@T0@@Tip@@T1@@": {
+   "zh": "@@T0@@提示@@T1@@",
+   "src": "<span class=\"misconception-icon\">Tip</span>",
+   "tags": [
+    "<span class=\"misconception-icon\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Pick T per task, not by intuition.@@T1@@ Sweep\n              $T \\in \\{2, 4, 8, 16\\}$ on val. Big-vocabulary models\n              (LLMs) often want $T \\le 2$; small-class-count vision\n              tasks like CIFAR-10 work at $T=4$ to $8$.": {
+   "zh": "@@T0@@按任务挑选 T，而非凭直觉。@@T1@@ 在验证集上扫描\n              $T \\in \\{2, 4, 8, 16\\}$。大词表模型\n              （LLM）往往需要 $T \\le 2$；类别数较少的视觉\n              任务（如 CIFAR-10）在 $T=4$ 至 $8$ 之间表现良好。",
+   "src": "<strong>Pick T per task, not by intuition.</strong> Sweep\n              $T \\in \\{2, 4, 8, 16\\}$ on val. Big-vocabulary models\n              (LLMs) often want $T \\le 2$; small-class-count vision\n              tasks like CIFAR-10 work at $T=4$ to $8$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@α matters.@@T1@@ Pure KD ($\\alpha=0$) inherits\n              the teacher's mistakes. Adding back even $\\alpha=0.1$ of\n              hard CE keeps the student grounded in the actual labels.": {
+   "zh": "@@T0@@α 很重要。@@T1@@ 纯 KD（$\\alpha=0$）会\n              继承教师的错误。哪怕加回 $\\alpha=0.1$ 的\n              硬 CE，也能让学生立足于真实标签。",
+   "src": "<strong>α matters.</strong> Pure KD ($\\alpha=0$) inherits\n              the teacher's mistakes. Adding back even $\\alpha=0.1$ of\n              hard CE keeps the student grounded in the actual labels.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Train the teacher with label smoothing\n              @@T1@@off@@T2@@.@@T3@@ Smoothed teachers throw away the\n              dark knowledge that makes KD work (Müller et al., 2019).\n              Counterintuitive but real.": {
+   "zh": "@@T0@@训练教师时@@T1@@关闭@@T2@@标签平滑。@@T3@@ 经过平滑的教师\n              会丢弃使 KD 得以奏效的\n              暗知识（Müller 等人，2019）。\n              有违直觉，但确实如此。",
+   "src": "<strong>Train the teacher with label smoothing\n              <em>off</em>.</strong> Smoothed teachers throw away the\n              dark knowledge that makes KD work (Müller et al., 2019).\n              Counterintuitive but real.",
+   "tags": [
+    "<strong>",
+    "<em>",
+    "</em>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@KD is data augmentation in disguise.@@T1@@\n              You can distil on unlabelled data &mdash; just use the\n              teacher's soft labels as targets. Often this single trick\n              beats more complex semi-supervised pipelines.": {
+   "zh": "@@T0@@KD 是一种伪装的数据增强。@@T1@@\n              你可以在无标签数据上蒸馏&mdash;只需用\n              教师的软标签作为目标。往往仅此一招\n              就能胜过更复杂的半监督流程。",
+   "src": "<strong>KD is data augmentation in disguise.</strong>\n              You can distil on unlabelled data &mdash; just use the\n              teacher's soft labels as targets. Often this single trick\n              beats more complex semi-supervised pipelines.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Distil @@T1@@before@@T2@@ quantising / pruning.@@T3@@\n              KD compresses information; quantisation discards bits.\n              Doing them in the wrong order leaves accuracy on the\n              floor.": {
+   "zh": "@@T0@@在量化 / 剪枝@@T1@@之前@@T2@@先蒸馏。@@T3@@\n              KD 压缩信息；量化丢弃比特。\n              若次序颠倒，准确率会\n              惨不忍睹。",
+   "src": "<strong>Distil <em>before</em> quantising / pruning.</strong>\n              KD compresses information; quantisation discards bits.\n              Doing them in the wrong order leaves accuracy on the\n              floor.",
+   "tags": [
+    "<strong>",
+    "<em>",
+    "</em>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          Distillation is the cheapest, simplest, most reliable way to\n          shrink a model — and the only way to put a big model's\n          opinions about @@T2@@uncertainty@@T3@@ into a small one. Anywhere\n          you ship a small model, the teacher should be in the loop.": {
+   "zh": "@@T0@@最终要点。@@T1@@\n          蒸馏是压缩模型最廉价、最简单、最可靠的方式\n          &mdash;也是唯一能把大模型关于@@T2@@不确定性@@T3@@的\n          看法注入小模型的方式。在任何你部署小模型的\n          地方，教师都应参与其中。",
+   "src": "<strong>Final takeaway.</strong>\n          Distillation is the cheapest, simplest, most reliable way to\n          shrink a model — and the only way to put a big model's\n          opinions about <em>uncertainty</em> into a small one. Anywhere\n          you ship a small model, the teacher should be in the loop.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "知识蒸馏，实时演示",
+  "tagline": "小型学生模型复制大型教师模型软化后的预测 —— 并胜过硬标签训练",
+  "summary": "观察一个在你的浏览器中训练的小型线性学生模型，如何通过 softmax 温度吸收一个平滑预训练教师模型的「暗知识」。切换仅硬标签与仅 KD 与混合三种损失，滑动温度 T，看学生模型的决策边界如何比单靠硬标签所允许的更快地贴合教师的边界。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "在浏览器中实时训练一个微型学生模型，对手是手工调好的平滑教师模型。",
+   "切换三种损失配方（硬 CE、纯 KD、KD+CE 混合），观察准确率差距。",
+   "滑动温度 T 以暴露「暗知识」—— 硬标签所丢弃的类别间相对结构。",
+   "决策边界画布每 4 步梯度更新刷新一次，使知识迁移的几何形态清晰可见。"
+  ],
+  "tags": [
+   "蒸馏",
+   "教师-学生",
+   "Softmax 温度",
+   "模型压缩",
+   "交互式"
+  ]
+ },
+ "js": {
+  "step [[[0]]] · loss [[[1]]]": {
+   "zh": "步数 [[[0]]] · 损失 [[[1]]]",
+   "exprs": [
+    "${KD.step}",
+    "${KD.losses.length ? KD.losses[KD.losses.length - 1].toFixed(3) : '—'}"
+   ],
+   "tags": [],
+   "src": "step ${KD.step} · loss ${KD.losses.length ? KD.losses[KD.losses.length - 1].toFixed(3) : '—'}"
+  },
+  "Loss curve appears here": {
+   "zh": "损失曲线显示在这里",
+   "exprs": [],
+   "tags": [],
+   "src": "Loss curve appears here"
+  },
+  "Hard target gradient ∂L/∂z": {
+   "zh": "硬目标梯度 ∂L/∂z",
+   "exprs": [],
+   "tags": [],
+   "src": "Hard target gradient ∂L/∂z"
+  },
+  "Pause training": {
+   "zh": "暂停训练",
+   "exprs": [],
+   "tags": [],
+   "src": "Pause training"
+  },
+  "Start training": {
+   "zh": "开始训练",
+   "exprs": [],
+   "tags": [],
+   "src": "Start training"
+  }
+ }
+}

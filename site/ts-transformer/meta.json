@@ -1,0 +1,26 @@
+{
+  "slug": "ts-transformer",
+  "title": "打补丁的时间序列 Transformer",
+  "date": "2026-05-09",
+  "tagline": "为何 PatchTST 把序列切成 ViT 风格的补丁，并最终战胜了 LSTM",
+  "summary": "在一个空气质量风格的信号上并排进行长视界预测：季节性朴素基线、ARIMA、一个小型 LSTM，以及 PatchTST。滑动补丁长度，观察预测如何变化。文章结尾讨论状态空间模型（Mamba）所处的位置及其后续发展。",
+  "readingTime": "20 min",
+  "difficulty": "中级",
+  "collection": "时间序列",
+  "order": 17,
+  "status": "published",
+  "tags": [
+    "时间序列",
+    "预测",
+    "Transformer",
+    "PatchTST",
+    "Mamba",
+    "交互式"
+  ],
+  "highlights": [
+    "实时生成合成的空气质量风格信号（日 + 周 + 噪声 + 漂移）；基线、类 ARIMA、类 LSTM 与类 PatchTST 的预测曲线叠加呈现。",
+    "滑动补丁长度与视界，观察四个模型的 RMSE 如何更新。",
+    "带位置编码的补丁词元化示意图，使 transformer 一侧变得具体。",
+    "与实验室对齐：AirDelhi 移动传感器、JoulesEye / ApneaEye 呼吸频率、能量分解。"
+  ]
+}

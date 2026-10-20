@@ -1,0 +1,1121 @@
+{
+ "slug": "rag",
+ "units": {
+  "RAG, From Scratch": {
+   "zh": "从零实现 RAG",
+   "src": "RAG, From Scratch",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Ask a chatbot who won yesterday's election and it confidently makes\n          something up. The fix? Give it the right documents @@T0@@before@@T1@@ it\n          answers. That's RAG&mdash;retrieval-augmented generation&mdash;and you\n          can build it from two ideas you already know.": {
+   "zh": "问聊天机器人昨天选举谁获胜，它会自信地编造一个答案。解决之道？在它作答@@T0@@之前@@T1@@把正确的文档交给它。这就是 RAG&mdash;检索增强生成&mdash;而你可以用两个早已熟悉的思想把它搭建出来。",
+   "src": "Ask a chatbot who won yesterday's election and it confidently makes\n          something up. The fix? Give it the right documents <em>before</em> it\n          answers. That's RAG&mdash;retrieval-augmented generation&mdash;and you\n          can build it from two ideas you already know.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Drag points, switch domains, and watch token generation unfold. Every\n          step of the pipeline is interactive.": {
+   "zh": "拖动数据点、切换领域，观察词元的逐步生成。流水线的每个步骤都是可交互的。",
+   "src": "Drag points, switch domains, and watch token generation unfold. Every\n          step of the pipeline is interactive.",
+   "tags": []
+  },
+  "@@T0@@~12 min@@T1@@\n          @@T2@@Deep Learning@@T3@@\n          @@T4@@Retrieval@@T5@@\n          @@T6@@Language Models@@T7@@": {
+   "zh": "@@T0@@约 12 分钟@@T1@@\n          @@T2@@深度学习@@T3@@\n          @@T4@@检索@@T5@@\n          @@T6@@语言模型@@T7@@",
+   "src": "<span>~12 min</span>\n          <span>Deep Learning</span>\n          <span>Retrieval</span>\n          <span>Language Models</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Part I": {
+   "zh": "第一部分",
+   "src": "Part I",
+   "tags": []
+  },
+  "The problem: frozen knowledge": {
+   "zh": "问题所在：冻结的知识",
+   "src": "The problem: frozen knowledge",
+   "tags": []
+  },
+  "A language model's knowledge is baked into its weights during training.\n          Once training ends, those weights are frozen. This creates three problems\n          that show up constantly in practice:": {
+   "zh": "语言模型的知识在训练期间被固化在权重之中。训练一旦结束，这些权重便被冻结。由此产生三个在实践中反复出现的问题：",
+   "src": "A language model's knowledge is baked into its weights during training.\n          Once training ends, those weights are frozen. This creates three problems\n          that show up constantly in practice:",
+   "tags": []
+  },
+  "@@T0@@Stale knowledge.@@T1@@\n              Ask about something that happened after the training cutoff and the\n              model has no idea. It will either refuse or, worse, guess confidently.": {
+   "zh": "@@T0@@知识过时。@@T1@@\n              询问训练截止日期之后发生的事，模型一无所知。它要么拒绝回答，要么更糟&mdash;自信地瞎猜。",
+   "src": "<strong>Stale knowledge.</strong>\n              Ask about something that happened after the training cutoff and the\n              model has no idea. It will either refuse or, worse, guess confidently.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Missing domain facts.@@T1@@\n              Your company's internal docs, a niche research paper, a new city's\n              bus schedule&mdash;none of it was in the training data.": {
+   "zh": "@@T0@@缺失领域事实。@@T1@@\n              你公司的内部文档、一篇小众研究论文、某座新城市的\n              公交时刻表&mdash;这些都不在训练数据之中。",
+   "src": "<strong>Missing domain facts.</strong>\n              Your company's internal docs, a niche research paper, a new city's\n              bus schedule&mdash;none of it was in the training data.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Hallucination.@@T1@@\n              When the model doesn't know something, it often invents a plausible-sounding\n              but wrong answer instead of saying \"I don't know.\"": {
+   "zh": "@@T0@@幻觉。@@T1@@\n              当模型不知道某事时，它往往不去说「我不知道」，而是编造一个听起来合理\n              却错误的答案。",
+   "src": "<strong>Hallucination.</strong>\n              When the model doesn't know something, it often invents a plausible-sounding\n              but wrong answer instead of saying \"I don't know.\"",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@The core idea.@@T1@@\n          Instead of retraining the model every time knowledge changes, give it an\n          @@T2@@open-book exam@@T3@@. Fetch the relevant documents at query time and\n          paste them into the prompt. The model reads them and answers from the\n          text&mdash;not from memory. That is RAG.": {
+   "zh": "@@T0@@核心思想。@@T1@@\n          与其在知识每次变化时都重新训练模型，不如让它参加一场\n          @@T2@@开卷考试@@T3@@。在查询时取回相关文档，\n          并将它们粘贴进提示词。模型阅读这些文本并据此作答&mdash;而非凭记忆作答。这就是 RAG。",
+   "src": "<strong>The core idea.</strong>\n          Instead of retraining the model every time knowledge changes, give it an\n          <em>open-book exam</em>. Fetch the relevant documents at query time and\n          paste them into the prompt. The model reads them and answers from the\n          text&mdash;not from memory. That is RAG.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Part II": {
+   "zh": "第二部分",
+   "src": "Part II",
+   "tags": []
+  },
+  "Two building blocks": {
+   "zh": "两个基本构件",
+   "src": "Two building blocks",
+   "tags": []
+  },
+  "RAG combines exactly two ideas. If you've taken an intro ML course, you\n          already know both. Let's make sure we agree on them before wiring them\n          together.": {
+   "zh": "RAG 恰好组合了两个思想。如果你上过机器学习入门课程，两者你都已经知道。在把它们连接起来之前，我们先确认对它们的理解一致。",
+   "src": "RAG combines exactly two ideas. If you've taken an intro ML course, you\n          already know both. Let's make sure we agree on them before wiring them\n          together.",
+   "tags": []
+  },
+  "Building Block 1": {
+   "zh": "构件 1",
+   "src": "Building Block 1",
+   "tags": []
+  },
+  "Next-token prediction (LM)": {
+   "zh": "下一词元预测（语言模型）",
+   "src": "Next-token prediction (LM)",
+   "tags": []
+  },
+  "A language model takes a sequence of tokens and predicts what comes\n              next. GPT, LLaMA, Claude&mdash;they all work this way, one token at\n              a time. Everything the model \"knows\" lives in its weights. This is\n              called @@T0@@parametric memory@@T1@@&mdash;fixed once training\n              ends.": {
+   "zh": "语言模型接收一个词元序列，并预测接下来是什么。GPT、LLaMA、Claude&mdash;它们都以此方式工作，一次预测一个词元。模型「所知道」的一切都存在于其权重之中。这被称为 @@T0@@参数化记忆@@T1@@&mdash;训练结束后便固定下来。",
+   "src": "A language model takes a sequence of tokens and predicts what comes\n              next. GPT, LLaMA, Claude&mdash;they all work this way, one token at\n              a time. Everything the model \"knows\" lives in its weights. This is\n              called <strong>parametric memory</strong>&mdash;fixed once training\n              ends.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Building Block 2": {
+   "zh": "构件 2",
+   "src": "Building Block 2",
+   "tags": []
+  },
+  "k-Nearest Neighbours (kNN)": {
+   "zh": "k 近邻（kNN）",
+   "src": "k-Nearest Neighbours (kNN)",
+   "tags": []
+  },
+  "Represent items as vectors (points in space). Given a query vector,\n              find the k closest points. No learning at query time&mdash;pure\n              geometry. If two documents are about similar topics, their vectors\n              will be close together.": {
+   "zh": "将项目表示为向量（空间中的点）。给定一个查询向量，\n              找出最近的 k 个点。查询时无需学习&mdash;纯粹的\n              几何。若两份文档主题相近，它们的向量\n              便会彼此靠近。",
+   "src": "Represent items as vectors (points in space). Given a query vector,\n              find the k closest points. No learning at query time&mdash;pure\n              geometry. If two documents are about similar topics, their vectors\n              will be close together.",
+   "tags": []
+  },
+  "@@T0@@Pause and think.@@T1@@\n          The LM generates fluent text but can hallucinate facts. kNN finds\n          relevant documents but can't write sentences. RAG chains them:\n          kNN retrieves the facts, and the LM turns them into an answer.\n          Neither can do the job alone.": {
+   "zh": "@@T0@@暂停思考。@@T1@@\n          语言模型能生成流畅的文本，却可能凭空捏造事实。kNN 能找到\n          相关文档，却写不出句子。RAG 将二者串联：\n          kNN 检索事实，语言模型将其转化为答案。\n          二者单独都无法完成这项任务。",
+   "src": "<strong>Pause and think.</strong>\n          The LM generates fluent text but can hallucinate facts. kNN finds\n          relevant documents but can't write sentences. RAG chains them:\n          kNN retrieves the facts, and the LM turns them into an answer.\n          Neither can do the job alone.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part III": {
+   "zh": "第三部分",
+   "src": "Part III",
+   "tags": []
+  },
+  "The RAG pipeline": {
+   "zh": "RAG 流水线",
+   "src": "The RAG pipeline",
+   "tags": []
+  },
+  "Five steps. We'll walk through each one interactively.": {
+   "zh": "共五步。我们将交互式地逐一走过每一步。",
+   "src": "Five steps. We'll walk through each one interactively.",
+   "tags": []
+  },
+  "@@T0@@q@@T1@@@@T2@@Query@@T3@@": {
+   "zh": "@@T0@@q@@T1@@@@T2@@查询@@T3@@",
+   "src": "<span class=\"pipe-icon\">q</span><span class=\"pipe-label\">Query</span>",
+   "tags": [
+    "<span class=\"pipe-icon\">",
+    "</span>",
+    "<span class=\"pipe-label\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@E@@T1@@@@T2@@Embed@@T3@@": {
+   "zh": "@@T0@@E@@T1@@@@T2@@嵌入@@T3@@",
+   "src": "<span class=\"pipe-icon\">E</span><span class=\"pipe-label\">Embed</span>",
+   "tags": [
+    "<span class=\"pipe-icon\">",
+    "</span>",
+    "<span class=\"pipe-label\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@kNN@@T1@@@@T2@@Retrieve@@T3@@": {
+   "zh": "@@T0@@kNN@@T1@@@@T2@@检索@@T3@@",
+   "src": "<span class=\"pipe-icon\">kNN</span><span class=\"pipe-label\">Retrieve</span>",
+   "tags": [
+    "<span class=\"pipe-icon\">",
+    "</span>",
+    "<span class=\"pipe-label\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@[ ]@@T1@@@@T2@@Prompt@@T3@@": {
+   "zh": "@@T0@@[ ]@@T1@@@@T2@@提示词@@T3@@",
+   "src": "<span class=\"pipe-icon\">[ ]</span><span class=\"pipe-label\">Prompt</span>",
+   "tags": [
+    "<span class=\"pipe-icon\">",
+    "</span>",
+    "<span class=\"pipe-label\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@LM@@T1@@@@T2@@Generate@@T3@@": {
+   "zh": "@@T0@@LM@@T1@@@@T2@@生成@@T3@@",
+   "src": "<span class=\"pipe-icon\">LM</span><span class=\"pipe-label\">Generate</span>",
+   "tags": [
+    "<span class=\"pipe-icon\">",
+    "</span>",
+    "<span class=\"pipe-label\">",
+    "</span>"
+   ]
+  },
+  "There are two stages. @@T0@@Offline@@T1@@ (done once): embed all\n          your documents and store them in a searchable index.\n          @@T2@@Online@@T3@@ (at query time): push the user's question\n          through the full pipeline. Let's build both, step by step.": {
+   "zh": "共分两个阶段。@@T0@@离线阶段@@T1@@（只做一次）：嵌入全部\n          文档，并将其存入可检索的索引。\n          @@T2@@在线阶段@@T3@@（查询时）：将用户的问题\n          推过整条流水线。我们逐步搭建这两者。",
+   "src": "There are two stages. <strong>Offline</strong> (done once): embed all\n          your documents and store them in a searchable index.\n          <strong>Online</strong> (at query time): push the user's question\n          through the full pipeline. Let's build both, step by step.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "First, pick a domain. This determines the corpus (the documents the\n          model can search over):": {
+   "zh": "首先，选择一个领域。这决定了语料库（模型可检索的文档集合）：",
+   "src": "First, pick a domain. This determines the corpus (the documents the\n          model can search over):",
+   "tags": []
+  },
+  "Air Quality": {
+   "zh": "空气质量",
+   "src": "Air Quality",
+   "tags": []
+  },
+  "Cooking": {
+   "zh": "烹饪",
+   "src": "Cooking",
+   "tags": []
+  },
+  "History": {
+   "zh": "历史",
+   "src": "History",
+   "tags": []
+  },
+  "Medical": {
+   "zh": "医学",
+   "src": "Medical",
+   "tags": []
+  },
+  "Part IV: Step 1": {
+   "zh": "第四部分：第 1 步",
+   "src": "Part IV: Step 1",
+   "tags": []
+  },
+  "Embed the documents": {
+   "zh": "嵌入文档",
+   "src": "Embed the documents",
+   "tags": []
+  },
+  "Here are the five documents in our mini-corpus. In a real system, you'd\n          have thousands or millions&mdash;but five is enough to see the mechanism.": {
+   "zh": "以下是我们迷你语料库中的五份文档。在真实系统中，会有成千上万乃至\n          数百万份&mdash;但五份已足以看清其机制。",
+   "src": "Here are the five documents in our mini-corpus. In a real system, you'd\n          have thousands or millions&mdash;but five is enough to see the mechanism.",
+   "tags": []
+  },
+  "An @@T0@@encoder model@@T1@@ (like Sentence-BERT) reads each\n          document and outputs a @@T2@@vector@@T3@@&mdash;a list of numbers\n          that captures the document's meaning. Documents about similar topics\n          produce similar vectors. In real systems these are 768-dimensional or\n          more, but to keep things visual we'll use @@T4@@2D embeddings@@T5@@.": {
+   "zh": "@@T0@@编码器模型@@T1@@（如 Sentence-BERT）读取每份\n          文档并输出一个 @@T2@@向量@@T3@@&mdash;一串捕捉文档语义的\n          数值。主题相近的文档会产生相似的向量。在真实系统中，这些向量为 768 维或\n          更高，但为了便于可视化，我们采用 @@T4@@二维嵌入@@T5@@。",
+   "src": "An <strong>encoder model</strong> (like Sentence-BERT) reads each\n          document and outputs a <strong>vector</strong>&mdash;a list of numbers\n          that captures the document's meaning. Documents about similar topics\n          produce similar vectors. In real systems these are 768-dimensional or\n          more, but to keep things visual we'll use <strong>2D embeddings</strong>.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Document embeddings in 2D": {
+   "zh": "文档的二维嵌入",
+   "src": "Document embeddings in 2D",
+   "tags": []
+  },
+  "Each blue dot below is a document, plotted at its 2D embedding\n          coordinates. Notice how topically related documents cluster together.": {
+   "zh": "下方每个蓝点是一份文档，按其二维嵌入坐标\n          绘制。注意主题相关的文档如何聚拢在一起。",
+   "src": "Each blue dot below is a document, plotted at its 2D embedding\n          coordinates. Notice how topically related documents cluster together.",
+   "tags": []
+  },
+  "@@T0@@docs  = split(corpus)       @@T1@@# chunk text into passages@@T2@@\nemb   = encoder(docs)       @@T3@@# embed each chunk &rarr; vector@@T4@@\nindex = FAISS(emb)          @@T5@@# build a searchable index@@T6@@@@T7@@": {
+   "zh": "@@T0@@docs  = split(corpus)       @@T1@@# 将文本切分为段落@@T2@@\nemb   = encoder(docs)       @@T3@@# 嵌入每个块 &rarr; 向量@@T4@@\nindex = FAISS(emb)          @@T5@@# 构建可检索的索引@@T6@@@@T7@@",
+   "src": "<code>docs  = split(corpus)       <span class=\"cm\"># chunk text into passages</span>\nemb   = encoder(docs)       <span class=\"cm\"># embed each chunk &rarr; vector</span>\nindex = FAISS(emb)          <span class=\"cm\"># build a searchable index</span></code>",
+   "tags": [
+    "<code>",
+    "<span class=\"cm\">",
+    "</span>",
+    "<span class=\"cm\">",
+    "</span>",
+    "<span class=\"cm\">",
+    "</span>",
+    "</code>"
+   ]
+  },
+  "@@T0@@What makes a good embedding?@@T1@@\n          \"Delhi PM2.5 in winter\" should land near \"Kolkata winter smog\" and far\n          from \"Gulab jamun is deep-fried.\" The encoder learns these distances\n          during its own training on large text corpora.": {
+   "zh": "@@T0@@什么样的嵌入才算好？@@T1@@\n          「德里的冬季 PM2.5」应当落在「加尔各答的冬季雾霾」附近，而远离\n          「玫瑰奶球是油炸的」。编码器在其自身于大规模文本语料上的训练过程中\n          学会了这些距离。",
+   "src": "<strong>What makes a good embedding?</strong>\n          \"Delhi PM2.5 in winter\" should land near \"Kolkata winter smog\" and far\n          from \"Gulab jamun is deep-fried.\" The encoder learns these distances\n          during its own training on large text corpora.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part V: Step 2": {
+   "zh": "第五部分：第 2 步",
+   "src": "Part V: Step 2",
+   "tags": []
+  },
+  "Embed the query": {
+   "zh": "嵌入查询",
+   "src": "Embed the query",
+   "tags": []
+  },
+  "A user asks a question. We pass it through the @@T0@@same@@T1@@ encoder\n          to get a query vector. Because the encoder maps semantically similar\n          text to nearby points, the query will land close to relevant documents.": {
+   "zh": "用户提出一个问题。我们将其通过@@T0@@同一个@@T1@@编码器\n          以获得查询向量。由于编码器将语义相近的文本映射到邻近的点，\n          查询便会落在相关文档附近。",
+   "src": "A user asks a question. We pass it through the <em>same</em> encoder\n          to get a query vector. Because the encoder maps semantically similar\n          text to nearby points, the query will land close to relevant documents.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Query@@T1@@\n          @@T2@@@@T3@@": {
+   "zh": "@@T0@@查询@@T1@@\n          @@T2@@@@T3@@",
+   "src": "<span class=\"query-label\">Query</span>\n          <span id=\"queryText\"></span>",
+   "tags": [
+    "<span class=\"query-label\">",
+    "</span>",
+    "<span id=\"queryText\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Query embedding:@@T1@@\n            @@T2@@@@T3@@": {
+   "zh": "@@T0@@查询嵌入：@@T1@@\n            @@T2@@@@T3@@",
+   "src": "<span class=\"embed-demo__label\">Query embedding:</span>\n            <code id=\"queryEmbDisplay\"></code>",
+   "tags": [
+    "<span class=\"embed-demo__label\">",
+    "</span>",
+    "<code id=\"queryEmbDisplay\">",
+    "</code>"
+   ]
+  },
+  "Now both the documents and the query live in the same vector space.\n          Below is the 2D embedding canvas. The @@T0@@orange dot@@T1@@\n          is the query; the blue dots are documents.\n          @@T2@@Drag the orange query point@@T3@@ to explore&mdash;the two\n          nearest documents will be highlighted with distance lines in real time.": {
+   "zh": "现在文档与查询同处一个向量空间。\n          下方是二维嵌入画布。@@T0@@橙色点@@T1@@\n          是查询；蓝色点是文档。\n          @@T2@@拖动橙色查询点@@T3@@ 进行探索&mdash;最近的两份\n          文档将实时以距离线高亮显示。",
+   "src": "Now both the documents and the query live in the same vector space.\n          Below is the 2D embedding canvas. The <span style=\"color:var(--coral);font-weight:700\">orange dot</span>\n          is the query; the blue dots are documents.\n          <strong>Drag the orange query point</strong> to explore&mdash;the two\n          nearest documents will be highlighted with distance lines in real time.",
+   "tags": [
+    "<span style=\"color:var(--coral);font-weight:700\">",
+    "</span>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Drag the @@T0@@query point@@T1@@\n            to explore. Notice how the retrieval table, the prompt builder, and the attention heatmap below all update in real time!": {
+   "zh": "拖动 @@T0@@查询点@@T1@@\n            进行探索。注意下方的检索表、提示词构建器与注意力热力图如何实时同步更新！",
+   "src": "Drag the <span style=\"color:var(--coral);font-weight:700\">query point</span>\n            to explore. Notice how the retrieval table, the prompt builder, and the attention heatmap below all update in real time!",
+   "tags": [
+    "<span style=\"color:var(--coral);font-weight:700\">",
+    "</span>"
+   ]
+  },
+  "Part VI: Step 3": {
+   "zh": "第六部分：第 3 步",
+   "src": "Part VI: Step 3",
+   "tags": []
+  },
+  "Retrieve with kNN": {
+   "zh": "用 kNN 检索",
+   "src": "Retrieve with kNN",
+   "tags": []
+  },
+  "Now we compute the Euclidean distance between the query vector and\n          every document vector:": {
+   "zh": "现在我们计算查询向量与\n          每个文档向量之间的欧氏距离：",
+   "src": "Now we compute the Euclidean distance between the query vector and\n          every document vector:",
+   "tags": []
+  },
+  "Sort by distance. The top-k (here k=2) closest documents \"win\" and\n          become our retrieved context. Here's the live distance table&mdash;drag\n          the query point above and watch it update:": {
+   "zh": "按距离排序。最近的 top-k（此处 k=2）份文档「胜出」，\n          成为我们检索到的上下文。以下是实时的距离表&mdash;拖动\n          上方的查询点，观察它如何更新：",
+   "src": "Sort by distance. The top-k (here k=2) closest documents \"win\" and\n          become our retrieved context. Here's the live distance table&mdash;drag\n          the query point above and watch it update:",
+   "tags": []
+  },
+  "Document": {
+   "zh": "文档",
+   "src": "Document",
+   "tags": []
+  },
+  "Embedding": {
+   "zh": "嵌入",
+   "src": "Embedding",
+   "tags": []
+  },
+  "Distance": {
+   "zh": "距离",
+   "src": "Distance",
+   "tags": []
+  },
+  "Retrieved?": {
+   "zh": "是否检索到？",
+   "src": "Retrieved?",
+   "tags": []
+  },
+  "@@T0@@Why top-k, not all?@@T1@@\n          LMs have a finite context window (typically 4K&ndash;128K tokens). We\n          can't paste every document, so we pick the k most relevant ones.\n          Choosing k is a trade-off: too small and you miss context; too large\n          and irrelevant documents drown the signal.": {
+   "zh": "@@T0@@为何取 top-k 而非全部？@@T1@@\n          语言模型的上下文窗口有限（通常为 4K&ndash;128K 词元）。我们\n          无法粘贴每一份文档，因此只选取最相关的 k 份。\n          选择 k 是一种权衡：太小会遗漏上下文；太大\n          则无关文档会淹没信号。",
+   "src": "<strong>Why top-k, not all?</strong>\n          LMs have a finite context window (typically 4K&ndash;128K tokens). We\n          can't paste every document, so we pick the k most relevant ones.\n          Choosing k is a trade-off: too small and you miss context; too large\n          and irrelevant documents drown the signal.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part VII: Step 4": {
+   "zh": "第七部分：第 4 步",
+   "src": "Part VII: Step 4",
+   "tags": []
+  },
+  "Build the prompt": {
+   "zh": "构建提示词",
+   "src": "Build the prompt",
+   "tags": []
+  },
+  "This is where retrieval meets generation. We take the retrieved\n          documents and the user's question and concatenate them into a single\n          text block&mdash;the prompt that the LM will read:": {
+   "zh": "这里是检索与生成交汇之处。我们取检索到的\n          文档与用户的问题，将它们拼接成一个\n          文本块&mdash;即语言模型将要阅读的提示词：",
+   "src": "This is where retrieval meets generation. We take the retrieved\n          documents and the user's question and concatenate them into a single\n          text block&mdash;the prompt that the LM will read:",
+   "tags": []
+  },
+  "@@T0@@Context (retrieved docs)@@T1@@": {
+   "zh": "@@T0@@上下文（检索到的文档）@@T1@@",
+   "src": "<span class=\"prompt-tag prompt-tag--ctx\">Context (retrieved docs)</span>",
+   "tags": [
+    "<span class=\"prompt-tag prompt-tag--ctx\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Question (user query)@@T1@@": {
+   "zh": "@@T0@@问题（用户查询）@@T1@@",
+   "src": "<span class=\"prompt-tag prompt-tag--q\">Question (user query)</span>",
+   "tags": [
+    "<span class=\"prompt-tag prompt-tag--q\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@q_emb  = encoder(query)            @@T1@@# step 2: embed the query@@T2@@\ndocs   = index.search(q_emb, k=2)  @@T3@@# step 3: retrieve top-2@@T4@@\nprompt = concat(docs, query)        @@T5@@# step 4: assemble prompt@@T6@@\noutput = LLM(prompt)                @@T7@@# step 5: generate answer@@T8@@@@T9@@": {
+   "zh": "@@T0@@q_emb  = encoder(query)            @@T1@@# 第 2 步：嵌入查询@@T2@@\ndocs   = index.search(q_emb, k=2)  @@T3@@# 第 3 步：检索 top-2@@T4@@\nprompt = concat(docs, query)        @@T5@@# 第 4 步：组装提示词@@T6@@\noutput = LLM(prompt)                @@T7@@# 第 5 步：生成答案@@T8@@@@T9@@",
+   "src": "<code>q_emb  = encoder(query)            <span class=\"cm\"># step 2: embed the query</span>\ndocs   = index.search(q_emb, k=2)  <span class=\"cm\"># step 3: retrieve top-2</span>\nprompt = concat(docs, query)        <span class=\"cm\"># step 4: assemble prompt</span>\noutput = LLM(prompt)                <span class=\"cm\"># step 5: generate answer</span></code>",
+   "tags": [
+    "<code>",
+    "<span class=\"cm\">",
+    "</span>",
+    "<span class=\"cm\">",
+    "</span>",
+    "<span class=\"cm\">",
+    "</span>",
+    "<span class=\"cm\">",
+    "</span>",
+    "</code>"
+   ]
+  },
+  "After prompt assembly, @@T0@@RAG's retrieval job is done@@T1@@.\n          From here on it's standard language modelling&mdash;the LM reads the\n          prompt and generates an answer, one token at a time.": {
+   "zh": "提示词组装完成后，@@T0@@RAG 的检索任务便告结束@@T1@@。\n          此后便是标准的语言建模&mdash;语言模型阅读\n          提示词，逐词元生成答案。",
+   "src": "After prompt assembly, <strong>RAG's retrieval job is done</strong>.\n          From here on it's standard language modelling&mdash;the LM reads the\n          prompt and generates an answer, one token at a time.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part VIII: Step 5": {
+   "zh": "第八部分：第 5 步",
+   "src": "Part VIII: Step 5",
+   "tags": []
+  },
+  "Generate the answer": {
+   "zh": "生成答案",
+   "src": "Generate the answer",
+   "tags": []
+  },
+  "The LM generates tokens one at a time, conditioned on the full prompt\n          (context + question). Mathematically, it's still plain next-token\n          prediction:": {
+   "zh": "语言模型以完整的提示词（上下文 + 问题）为条件，\n          逐词元生成。在数学上，它仍然是纯粹的下一词元\n          预测：",
+   "src": "The LM generates tokens one at a time, conditioned on the full prompt\n          (context + question). Mathematically, it's still plain next-token\n          prediction:",
+   "tags": []
+  },
+  "But the context tokens profoundly change @@T0@@which@@T1@@ tokens are\n          likely. Without context, the model might hallucinate. With context, it\n          can ground its answer in real text. Click to watch generation unfold:": {
+   "zh": "但上下文词元深刻地改变了@@T0@@哪些@@T1@@词元\n          更可能出现。没有上下文时，模型可能产生幻觉。有了上下文，它\n          便能将答案建立在真实文本之上。点击观察生成过程的展开：",
+   "src": "But the context tokens profoundly change <em>which</em> tokens are\n          likely. Without context, the model might hallucinate. With context, it\n          can ground its answer in real text. Click to watch generation unfold:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Generate answer": {
+   "zh": "生成答案",
+   "src": "Generate answer",
+   "tags": []
+  },
+  "Reset": {
+   "zh": "重置",
+   "src": "Reset",
+   "tags": []
+  },
+  "Tokens @@T0@@highlighted in green@@T1@@ come directly\n          from the retrieved context. The model isn't \"copying\" in a literal\n          sense&mdash;it's just that the context makes those specific words\n          overwhelmingly likely under next-token prediction.": {
+   "zh": "@@T0@@以绿色高亮@@T1@@的词元直接\n          来自检索到的上下文。模型并非在做字面意义上的「复制」&mdash;只是\n          在下一词元预测下，上下文使这些特定词语\n          变得极可能出现。",
+   "src": "Tokens <span class=\"hl-ctx\">highlighted in green</span> come directly\n          from the retrieved context. The model isn't \"copying\" in a literal\n          sense&mdash;it's just that the context makes those specific words\n          overwhelmingly likely under next-token prediction.",
+   "tags": [
+    "<span class=\"hl-ctx\">",
+    "</span>"
+   ]
+  },
+  "How does the LM use the context?": {
+   "zh": "语言模型如何使用上下文？",
+   "src": "How does the LM use the context?",
+   "tags": []
+  },
+  "Through @@T0@@self-attention@@T1@@. When generating each output\n          token, the model attends to all tokens in the prompt&mdash;including the\n          retrieved documents. It naturally focuses on the most relevant context\n          tokens:": {
+   "zh": "通过 @@T0@@自注意力机制@@T1@@。在生成每个输出\n          词元时，模型会关注提示词中的所有词元&mdash;包括\n          检索到的文档。它自然地聚焦于最相关的上下文\n          词元：",
+   "src": "Through <strong>self-attention</strong>. When generating each output\n          token, the model attends to all tokens in the prompt&mdash;including the\n          retrieved documents. It naturally focuses on the most relevant context\n          tokens:",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Darker cells = higher attention weight. When the model generates\n          \"Delhi,\" it attends heavily to \"Delhi\" in the context. When it generates\n          \"PM2.5,\" it attends to \"PM2.5.\" The attention mechanism is what makes\n          RAG work at the neural network level.": {
+   "zh": "单元格颜色越深 = 注意力权重越高。当模型生成\n          「Delhi」时，它会高度关注上下文中的「Delhi」。当它生成\n          「PM2.5」时，它会关注「PM2.5」。注意力机制正是\n          RAG 在神经网络层面得以奏效的原因。",
+   "src": "Darker cells = higher attention weight. When the model generates\n          \"Delhi,\" it attends heavily to \"Delhi\" in the context. When it generates\n          \"PM2.5,\" it attends to \"PM2.5.\" The attention mechanism is what makes\n          RAG work at the neural network level.",
+   "tags": []
+  },
+  "Side by side: with vs. without RAG": {
+   "zh": "并排对比：有 RAG 与无 RAG",
+   "src": "Side by side: with vs. without RAG",
+   "tags": []
+  },
+  "Without RAG": {
+   "zh": "无 RAG",
+   "src": "Without RAG",
+   "tags": []
+  },
+  "The model relies solely on its weights. May hallucinate or hedge.": {
+   "zh": "模型仅依赖其权重。可能产生幻觉或含糊其辞。",
+   "src": "The model relies solely on its weights. May hallucinate or hedge.",
+   "tags": []
+  },
+  "\"Air pollution in Delhi is a significant concern, particularly during certain seasons...\"\n              @@T0@@Vague, hedging@@T1@@": {
+   "zh": "「德里的空气污染是一个值得关注的重大问题，尤其在特定季节……」\n              @@T0@@含糊、有所保留@@T1@@",
+   "src": "\"Air pollution in Delhi is a significant concern, particularly during certain seasons...\"\n              <span class=\"verdict verdict--bad\">Vague, hedging</span>",
+   "tags": [
+    "<span class=\"verdict verdict--bad\">",
+    "</span>"
+   ]
+  },
+  "With RAG": {
+   "zh": "有 RAG",
+   "src": "With RAG",
+   "tags": []
+  },
+  "The context contains the fact. Attention surfaces it into the answer.": {
+   "zh": "上下文中包含该事实。注意力机制将其提升到答案之中。",
+   "src": "The context contains the fact. Attention surfaces it into the answer.",
+   "tags": []
+  },
+  "\"Air pollution in Delhi during winter is very high, often reaching hazardous PM2.5 levels.\"\n              @@T0@@Specific, grounded@@T1@@": {
+   "zh": "「德里冬季的空气污染非常严重，PM2.5 水平常达到危害级别。」\n              @@T0@@具体、有据可依@@T1@@",
+   "src": "\"Air pollution in Delhi during winter is very high, often reaching hazardous PM2.5 levels.\"\n              <span class=\"verdict verdict--good\">Specific, grounded</span>",
+   "tags": [
+    "<span class=\"verdict verdict--good\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Instruction tuning matters.@@T1@@\n          A base LM might continue the prompt as though it were part of a\n          document, rather than answering the question. An instruction-tuned\n          model has learned \"Context + Question &rarr; Answer.\" Same\n          next-token prediction math, but the weights are aligned to produce\n          helpful answers.": {
+   "zh": "@@T0@@指令微调至关重要。@@T1@@\n          基座语言模型可能会把提示词当作某份文档的一部分来续写，\n          而不是回答问题。经过指令微调的\n          模型已然学会「上下文 + 问题 &rarr; 答案」。\n          下一词元预测的数学不变，但权重经过对齐，以产出\n          有用的回答。",
+   "src": "<strong>Instruction tuning matters.</strong>\n          A base LM might continue the prompt as though it were part of a\n          document, rather than answering the question. An instruction-tuned\n          model has learned \"Context + Question &rarr; Answer.\" Same\n          next-token prediction math, but the weights are aligned to produce\n          helpful answers.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part IX": {
+   "zh": "第九部分",
+   "src": "Part IX",
+   "tags": []
+  },
+  "Try different domains": {
+   "zh": "尝试不同领域",
+   "src": "Try different domains",
+   "tags": []
+  },
+  "The beauty of RAG is that the pipeline is domain-agnostic. Swap the\n          corpus and the same five steps work on air quality, cooking, history,\n          or medicine. Switch domains and watch every step adapt:": {
+   "zh": "RAG 的优美之处在于整条流水线与领域无关。只要更换\n          语料库，同样的五个步骤便可适用于空气质量、烹饪、历史\n          或医学。切换领域，观察每一步如何相应调整：",
+   "src": "The beauty of RAG is that the pipeline is domain-agnostic. Swap the\n          corpus and the same five steps work on air quality, cooking, history,\n          or medicine. Switch domains and watch every step adapt:",
+   "tags": []
+  },
+  "Corpus": {
+   "zh": "语料库",
+   "src": "Corpus",
+   "tags": []
+  },
+  "Query": {
+   "zh": "查询",
+   "src": "Query",
+   "tags": []
+  },
+  "Retrieved (k = 2)": {
+   "zh": "已检索（k = 2）",
+   "src": "Retrieved (k = 2)",
+   "tags": []
+  },
+  "Assembled prompt": {
+   "zh": "组装后的提示词",
+   "src": "Assembled prompt",
+   "tags": []
+  },
+  "Generated answer": {
+   "zh": "生成的答案",
+   "src": "Generated answer",
+   "tags": []
+  },
+  "Part X": {
+   "zh": "第十部分",
+   "src": "Part X",
+   "tags": []
+  },
+  "Why RAG works": {
+   "zh": "RAG 为何有效",
+   "src": "Why RAG works",
+   "tags": []
+  },
+  "The intuition is simple: instead of asking the model to recall a fact\n          from memory, you hand it a sheet of notes. But we can make this precise.": {
+   "zh": "直觉很简单：与其要求模型凭记忆回忆某个事实，\n          不如递给它一张笔记。但我们可以把这一点说得更精确。",
+   "src": "The intuition is simple: instead of asking the model to recall a fact\n          from memory, you hand it a sheet of notes. But we can make this precise.",
+   "tags": []
+  },
+  "Without RAG, the model generates purely from parametric memory:": {
+   "zh": "无 RAG 时，模型完全基于参数化记忆进行生成：",
+   "src": "Without RAG, the model generates purely from parametric memory:",
+   "tags": []
+  },
+  "With RAG, we marginalise over retrieved documents:": {
+   "zh": "有 RAG 时，我们对检索到的文档求边缘化：",
+   "src": "With RAG, we marginalise over retrieved documents:",
+   "tags": []
+  },
+  "In practice, we approximate with the top-k documents:": {
+   "zh": "在实践中，我们用 top-k 文档来近似：",
+   "src": "In practice, we approximate with the top-k documents:",
+   "tags": []
+  },
+  "Three concrete benefits": {
+   "zh": "三项具体的收益",
+   "src": "Three concrete benefits",
+   "tags": []
+  },
+  "@@T0@@Reduces hallucination.@@T1@@ The LM has actual text to\n            reference, making it far less likely to invent facts.": {
+   "zh": "@@T0@@减少幻觉。@@T1@@ 语言模型有真实的文本可供\n            参照，从而远不易凭空捏造事实。",
+   "src": "<strong>Reduces hallucination.</strong> The LM has actual text to\n            reference, making it far less likely to invent facts.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Always up-to-date.@@T1@@ Need fresher knowledge? Update\n            the document store. No retraining needed&mdash;just re-index.": {
+   "zh": "@@T0@@始终最新。@@T1@@ 需要更新的知识？更新\n            文档库即可。无需重新训练&mdash;只需重建索引。",
+   "src": "<strong>Always up-to-date.</strong> Need fresher knowledge? Update\n            the document store. No retraining needed&mdash;just re-index.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Cheaper than fine-tuning.@@T1@@ The model's weights stay\n            frozen. Only the index changes. You don't need GPUs to update knowledge.": {
+   "zh": "@@T0@@比微调更经济。@@T1@@ 模型权重保持\n            冻结。只有索引发生变化。更新知识无需 GPU。",
+   "src": "<strong>Cheaper than fine-tuning.</strong> The model's weights stay\n            frozen. Only the index changes. You don't need GPUs to update knowledge.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "RAG vs kNN-LM: a subtle distinction": {
+   "zh": "RAG 与 kNN-LM：一处微妙的区别",
+   "src": "RAG vs kNN-LM: a subtle distinction",
+   "tags": []
+  },
+  "Method": {
+   "zh": "方法",
+   "src": "Method",
+   "tags": []
+  },
+  "Retrieval unit": {
+   "zh": "检索单元",
+   "src": "Retrieval unit",
+   "tags": []
+  },
+  "How it's used": {
+   "zh": "使用方式",
+   "src": "How it's used",
+   "tags": []
+  },
+  "@@T0@@kNN-LM@@T1@@": {
+   "zh": "@@T0@@kNN-LM@@T1@@（kNN 语言模型）",
+   "src": "<strong>kNN-LM</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Individual tokens": {
+   "zh": "单个词元",
+   "src": "Individual tokens",
+   "tags": []
+  },
+  "Interpolated into output logits at each step": {
+   "zh": "在每一步插值进输出 logit",
+   "src": "Interpolated into output logits at each step",
+   "tags": []
+  },
+  "@@T0@@RAG@@T1@@": {
+   "zh": "@@T0@@RAG@@T1@@（检索增强生成）",
+   "src": "<strong>RAG</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Whole documents": {
+   "zh": "整份文档",
+   "src": "Whole documents",
+   "tags": []
+  },
+  "Prepended to the input prompt": {
+   "zh": "前置到输入提示词之前",
+   "src": "Prepended to the input prompt",
+   "tags": []
+  },
+  "@@T0@@The one-line summary.@@T1@@\n          RAG = kNN over knowledge + LM over text.\n          Parametric memory (what the model learned) + non-parametric memory\n          (what you retrieved just now).": {
+   "zh": "@@T0@@一句话总结。@@T1@@\n          RAG = 对知识做 kNN + 对文本做语言模型。\n          参数化记忆（模型所学）+ 非参数化记忆\n          （你刚刚检索到的内容）。",
+   "src": "<strong>The one-line summary.</strong>\n          RAG = kNN over knowledge + LM over text.\n          Parametric memory (what the model learned) + non-parametric memory\n          (what you retrieved just now).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part XI": {
+   "zh": "第十一部分",
+   "src": "Part XI",
+   "tags": []
+  },
+  "When RAG fails": {
+   "zh": "RAG 何时失效",
+   "src": "When RAG fails",
+   "tags": []
+  },
+  "RAG is powerful, but it's not magic. Understanding the failure modes\n          will save you hours of debugging:": {
+   "zh": "RAG 强大，但并非魔法。理解其失效模式\n          将为你省下大量调试时间：",
+   "src": "RAG is powerful, but it's not magic. Understanding the failure modes\n          will save you hours of debugging:",
+   "tags": []
+  },
+  "1. The retriever fetches wrong documents": {
+   "zh": "1. 检索器取回错误的文档",
+   "src": "1. The retriever fetches wrong documents",
+   "tags": []
+  },
+  "If the embedding model doesn't understand your domain well, it\n              may retrieve documents that look similar on the surface but are\n              semantically wrong. Garbage context in &rarr; garbage answer out.\n              @@T0@@The embedding model's quality is the ceiling for RAG.@@T1@@": {
+   "zh": "若嵌入模型对你的领域理解不足，它\n              可能检索到表面上相似但语义上错误的文档。\n              垃圾上下文输入 &rarr; 垃圾答案输出。\n              @@T0@@嵌入模型的质量就是 RAG 性能的上限。@@T1@@",
+   "src": "If the embedding model doesn't understand your domain well, it\n              may retrieve documents that look similar on the surface but are\n              semantically wrong. Garbage context in &rarr; garbage answer out.\n              <em>The embedding model's quality is the ceiling for RAG.</em>",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "2. Context dilution (k too large)": {
+   "zh": "2. 上下文稀释（k 过大）",
+   "src": "2. Context dilution (k too large)",
+   "tags": []
+  },
+  "Stuffing too many documents into the prompt spreads attention thin.\n              The one relevant document gets buried among nine irrelevant ones.\n              Smaller, more precise k often beats larger k.": {
+   "zh": "向提示词塞入过多文档会使注意力被摊薄。\n              那一份相关文档被掩埋在九份无关文档之中。\n              更小、更精确的 k 常常胜过更大的 k。",
+   "src": "Stuffing too many documents into the prompt spreads attention thin.\n              The one relevant document gets buried among nine irrelevant ones.\n              Smaller, more precise k often beats larger k.",
+   "tags": []
+  },
+  "3. Redundant documents waste context": {
+   "zh": "3. 冗余文档浪费上下文",
+   "src": "3. Redundant documents waste context",
+   "tags": []
+  },
+  "Five documents that all say the same thing use up precious context\n              window without adding new information. Diversity-aware retrieval\n              (like MMR&mdash;maximal marginal relevance) helps.": {
+   "zh": "五份内容雷同的文档会占用宝贵的上下文\n              窗口，却不增添任何新信息。多样性感知的检索\n              （如 MMR&mdash;最大边际相关性）对此有所帮助。",
+   "src": "Five documents that all say the same thing use up precious context\n              window without adding new information. Diversity-aware retrieval\n              (like MMR&mdash;maximal marginal relevance) helps.",
+   "tags": []
+  },
+  "4. No multi-hop reasoning": {
+   "zh": "4. 无法进行多跳推理",
+   "src": "4. No multi-hop reasoning",
+   "tags": []
+  },
+  "If the answer requires combining facts from document A and\n              document B, the LM often fails. It tends to copy from one\n              document rather than synthesise across several. This is an\n              active area of research.": {
+   "zh": "若答案需要综合文档 A 与文档 B 中的\n              事实，语言模型往往力不能及。它倾向于从单份\n              文档中抄袭，而非跨多份文档进行综合。这是一个\n              活跃的研究方向。",
+   "src": "If the answer requires combining facts from document A and\n              document B, the LM often fails. It tends to copy from one\n              document rather than synthesise across several. This is an\n              active area of research.",
+   "tags": []
+  },
+  "@@T0@@Citations are not proof.@@T1@@\n          Even if the model writes \"[Source 1],\" it may cite the wrong document\n          or misrepresent what it says. Citations in LM output are a learned\n          output pattern, not a grounding mechanism. Always verify.": {
+   "zh": "@@T0@@引用并不等于证据。@@T1@@\n          即便模型写下「[来源 1]」，它也可能引用了错误的文档，\n          或曲解了该文档的内容。语言模型输出中的引用是一种习得的\n          输出模式，而非一种有据可依的机制。务必核实。",
+   "src": "<strong>Citations are not proof.</strong>\n          Even if the model writes \"[Source 1],\" it may cite the wrong document\n          or misrepresent what it says. Citations in LM output are a learned\n          output pattern, not a grounding mechanism. Always verify.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part XII": {
+   "zh": "第十二部分",
+   "src": "Part XII",
+   "tags": []
+  },
+  "What we built": {
+   "zh": "我们构建了什么",
+   "src": "What we built",
+   "tags": []
+  },
+  "@@T0@@RAG = Retrieval + Generation.@@T1@@ Find the nearest\n            documents in embedding space, paste them into the prompt, and let\n            the LM answer from the text.": {
+   "zh": "@@T0@@RAG = 检索 + 生成。@@T1@@ 在嵌入空间中找出最近的\n            文档，将其粘贴进提示词，然后让\n            语言模型依据文本作答。",
+   "src": "<strong>RAG = Retrieval + Generation.</strong> Find the nearest\n            documents in embedding space, paste them into the prompt, and let\n            the LM answer from the text.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Five steps.@@T1@@ Embed &rarr; Index &rarr; Retrieve\n            &rarr; Build prompt &rarr; Generate.": {
+   "zh": "@@T0@@五个步骤。@@T1@@ 嵌入 &rarr; 建索引 &rarr; 检索\n            &rarr; 构建提示词 &rarr; 生成。",
+   "src": "<strong>Five steps.</strong> Embed &rarr; Index &rarr; Retrieve\n            &rarr; Build prompt &rarr; Generate.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Better input, not better model.@@T1@@ RAG doesn't\n            change the model's weights&mdash;it changes what the model sees.\n            The underlying math is still next-token prediction.": {
+   "zh": "@@T0@@改善输入，而非改善模型。@@T1@@ RAG 并不\n            改变模型权重&mdash;它改变模型所看到的内容。\n            底层的数学依旧是下一词元预测。",
+   "src": "<strong>Better input, not better model.</strong> RAG doesn't\n            change the model's weights&mdash;it changes what the model sees.\n            The underlying math is still next-token prediction.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Attention is the mechanism.@@T1@@ The LM attends to\n            context tokens via self-attention, naturally copying relevant facts\n            into its output.": {
+   "zh": "@@T0@@注意力机制是其机理。@@T1@@ 语言模型通过\n            自注意力机制关注上下文词元，自然地将相关事实\n            引入其输出。",
+   "src": "<strong>Attention is the mechanism.</strong> The LM attends to\n            context tokens via self-attention, naturally copying relevant facts\n            into its output.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Know the limits.@@T1@@ Bad embeddings, diluted context,\n            redundant docs, and multi-hop reasoning are where RAG breaks down.\n            No tool is a silver bullet.": {
+   "zh": "@@T0@@认清其局限。@@T1@@ 劣质嵌入、稀释的上下文、\n            冗余文档以及多跳推理，正是 RAG 失效之处。\n            没有任何工具是万灵药。",
+   "src": "<strong>Know the limits.</strong> Bad embeddings, diluted context,\n            redundant docs, and multi-hop reasoning are where RAG breaks down.\n            No tool is a silver bullet.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "从零实现 RAG",
+  "tagline": "检索近邻、以条件约束语言模型 —— 检索增强生成的实际工作原理",
+  "summary": "逐步演示如何用两个你早已熟悉的概念搭建 RAG：下一词元预测与 k 近邻。包含交互式二维嵌入、实时检索、提示词组装，以及跨越空气质量、烹饪与历史的示例。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "在二维嵌入空间中拖动查询点，观察 kNN 检索如何选出最近的文档。",
+   "查看完整流水线：嵌入、检索、构建提示词、生成 —— 每一步都配有具体示例。",
+   "在四个领域（空气质量、烹饪、历史、医学）之间切换，观察 RAG 如何适应不同的知识。",
+   "从概率角度理解 RAG 为何有效：参数化记忆 + 非参数化记忆。"
+  ],
+  "tags": [
+   "RAG",
+   "语言模型",
+   "检索",
+   "交互式"
+  ]
+ },
+ "js": {
+  "Air Quality": {
+   "zh": "空气质量",
+   "exprs": [],
+   "tags": [],
+   "src": "Air Quality"
+  },
+  "Delhi PM2.5 in winter is very high": {
+   "zh": "德里冬季的 PM2.5 非常高",
+   "exprs": [],
+   "tags": [],
+   "src": "Delhi PM2.5 in winter is very high"
+  },
+  "Mumbai has moderate air pollution": {
+   "zh": "孟买的空气污染程度中等",
+   "exprs": [],
+   "tags": [],
+   "src": "Mumbai has moderate air pollution"
+  },
+  "Bangalore air quality is relatively good": {
+   "zh": "班加罗尔的空气质量相对较好",
+   "exprs": [],
+   "tags": [],
+   "src": "Bangalore air quality is relatively good"
+  },
+  "Chennai coastal winds reduce pollution levels": {
+   "zh": "金奈的沿海风降低了污染水平",
+   "exprs": [],
+   "tags": [],
+   "src": "Chennai coastal winds reduce pollution levels"
+  },
+  "Kolkata winter smog worsens each year": {
+   "zh": "加尔各答的冬季雾霾逐年加重",
+   "exprs": [],
+   "tags": [],
+   "src": "Kolkata winter smog worsens each year"
+  },
+  "How is air pollution in Delhi in winter?": {
+   "zh": "德里冬季的空气污染如何？",
+   "exprs": [],
+   "tags": [],
+   "src": "How is air pollution in Delhi in winter?"
+  },
+  "Air pollution in Delhi during winter is very high, often reaching hazardous PM2.5 levels.": {
+   "zh": "德里冬季的空气污染非常严重，PM2.5 水平常达到危害级别。",
+   "exprs": [],
+   "tags": [],
+   "src": "Air pollution in Delhi during winter is very high, often reaching hazardous PM2.5 levels."
+  },
+  "Pollution severity": {
+   "zh": "污染严重程度",
+   "exprs": [],
+   "tags": [],
+   "src": "Pollution severity"
+  },
+  "Seasonal intensity": {
+   "zh": "季节性强度",
+   "exprs": [],
+   "tags": [],
+   "src": "Seasonal intensity"
+  },
+  "Biryani uses basmati rice, saffron, and slow dum cooking": {
+   "zh": "印度香饭使用巴斯马蒂米、藏红花，并以慢火焖制",
+   "exprs": [],
+   "tags": [],
+   "src": "Biryani uses basmati rice, saffron, and slow dum cooking"
+  },
+  "Dosa batter needs urad dal fermented overnight": {
+   "zh": "多萨面糊需要黑吉豆经一夜发酵",
+   "exprs": [],
+   "tags": [],
+   "src": "Dosa batter needs urad dal fermented overnight"
+  },
+  "Paneer tikka is marinated in yogurt and grilled": {
+   "zh": "奶酪串以酸奶腌制后烤制",
+   "exprs": [],
+   "tags": [],
+   "src": "Paneer tikka is marinated in yogurt and grilled"
+  },
+  "Sambar requires tamarind and a specific spice powder": {
+   "zh": "桑巴汤需要罗望子与特定香料粉",
+   "exprs": [],
+   "tags": [],
+   "src": "Sambar requires tamarind and a specific spice powder"
+  },
+  "Gulab jamun is deep-fried and soaked in sugar syrup": {
+   "zh": "玫瑰奶球经过油炸并浸入糖浆",
+   "exprs": [],
+   "tags": [],
+   "src": "Gulab jamun is deep-fried and soaked in sugar syrup"
+  },
+  "How do you make biryani?": {
+   "zh": "印度香饭怎么做？",
+   "exprs": [],
+   "tags": [],
+   "src": "How do you make biryani?"
+  },
+  "Biryani is made using basmati rice with saffron, layered and cooked in a slow dum style for rich flavour.": {
+   "zh": "印度香饭以巴斯马蒂米加藏红花制成，分层后以慢火焖制，风味浓郁。",
+   "exprs": [],
+   "tags": [],
+   "src": "Biryani is made using basmati rice with saffron, layered and cooked in a slow dum style for rich flavour."
+  },
+  "Cooking complexity": {
+   "zh": "烹饪复杂度",
+   "exprs": [],
+   "tags": [],
+   "src": "Cooking complexity"
+  },
+  "Preparation time": {
+   "zh": "准备时间",
+   "exprs": [],
+   "tags": [],
+   "src": "Preparation time"
+  },
+  "The Mughal Empire was founded by Babur in 1526": {
+   "zh": "莫卧儿帝国由巴布尔于 1526 年建立",
+   "exprs": [],
+   "tags": [],
+   "src": "The Mughal Empire was founded by Babur in 1526"
+  },
+  "The British East India Company arrived in 1600": {
+   "zh": "英国东印度公司于 1600 年抵达",
+   "exprs": [],
+   "tags": [],
+   "src": "The British East India Company arrived in 1600"
+  },
+  "India gained independence on 15 August 1947": {
+   "zh": "印度于 1947 年 8 月 15 日获得独立",
+   "exprs": [],
+   "tags": [],
+   "src": "India gained independence on 15 August 1947"
+  },
+  "The Maratha Empire rose to prominence in the 17th century": {
+   "zh": "马拉塔帝国于 17 世纪崛起",
+   "exprs": [],
+   "tags": [],
+   "src": "The Maratha Empire rose to prominence in the 17th century"
+  },
+  "The partition of India in 1947 created Pakistan": {
+   "zh": "1947 年的印度分治催生了巴基斯坦",
+   "exprs": [],
+   "tags": [],
+   "src": "The partition of India in 1947 created Pakistan"
+  },
+  "When did India become independent?": {
+   "zh": "印度何时独立？",
+   "exprs": [],
+   "tags": [],
+   "src": "When did India become independent?"
+  },
+  "India gained independence on 15 August 1947, ending nearly two centuries of British colonial rule.": {
+   "zh": "印度于 1947 年 8 月 15 日获得独立，结束了近两个世纪的英国殖民统治。",
+   "exprs": [],
+   "tags": [],
+   "src": "India gained independence on 15 August 1947, ending nearly two centuries of British colonial rule."
+  },
+  "Chronological position": {
+   "zh": "时间顺序位置",
+   "exprs": [],
+   "tags": [],
+   "src": "Chronological position"
+  },
+  "Political significance": {
+   "zh": "政治意义",
+   "exprs": [],
+   "tags": [],
+   "src": "Political significance"
+  },
+  "Type 2 diabetes is managed with metformin and lifestyle changes": {
+   "zh": "2 型糖尿病通过二甲双胍与生活方式改变进行管理",
+   "exprs": [],
+   "tags": [],
+   "src": "Type 2 diabetes is managed with metformin and lifestyle changes"
+  },
+  "Hypertension requires regular BP monitoring and ACE inhibitors": {
+   "zh": "高血压需要定期监测血压并使用 ACE 抑制剂",
+   "exprs": [],
+   "tags": [],
+   "src": "Hypertension requires regular BP monitoring and ACE inhibitors"
+  },
+  "Asthma patients use bronchodilator inhalers for acute attacks": {
+   "zh": "哮喘患者急性发作时使用支气管扩张剂吸入器",
+   "exprs": [],
+   "tags": [],
+   "src": "Asthma patients use bronchodilator inhalers for acute attacks"
+  },
+  "Dengue fever presents with high fever, rash, and low platelets": {
+   "zh": "登革热表现为高热、皮疹与血小板偏低",
+   "exprs": [],
+   "tags": [],
+   "src": "Dengue fever presents with high fever, rash, and low platelets"
+  },
+  "Tuberculosis treatment uses a 6-month DOTS regimen": {
+   "zh": "结核病治疗采用为期 6 个月的 DOTS 方案",
+   "exprs": [],
+   "tags": [],
+   "src": "Tuberculosis treatment uses a 6-month DOTS regimen"
+  },
+  "How is diabetes treated?": {
+   "zh": "糖尿病如何治疗？",
+   "exprs": [],
+   "tags": [],
+   "src": "How is diabetes treated?"
+  },
+  "Type 2 diabetes is typically managed with metformin along with diet and exercise as first-line lifestyle changes.": {
+   "zh": "2 型糖尿病通常以二甲双胍，配合饮食与运动作为一线生活方式干预来管理。",
+   "exprs": [],
+   "tags": [],
+   "src": "Type 2 diabetes is typically managed with metformin along with diet and exercise as first-line lifestyle changes."
+  },
+  "Treatment complexity": {
+   "zh": "治疗复杂度",
+   "exprs": [],
+   "tags": [],
+   "src": "Treatment complexity"
+  },
+  "Acute vs chronic": {
+   "zh": "急性与慢性",
+   "exprs": [],
+   "tags": [],
+   "src": "Acute vs chronic"
+  },
+  "Context:": {
+   "zh": "上下文：",
+   "exprs": [],
+   "tags": [],
+   "src": "Context:"
+  },
+  "Question: ": {
+   "zh": "问题：",
+   "exprs": [],
+   "tags": [],
+   "src": "Question: "
+  },
+  "Context:\\n": {
+   "zh": "上下文：\\n",
+   "exprs": [],
+   "tags": [],
+   "src": "Context:\\n"
+  }
+ }
+}

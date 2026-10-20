@@ -1,0 +1,353 @@
+{
+ "slug": "gru-gates",
+ "units": {
+  "GRU Gates: Keep or Update": {
+   "zh": "GRU 门控：保留还是更新",
+   "src": "GRU Gates: Keep or Update",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "A GRU cell has one job at each step: decide how much of the old state to keep\n      and how much to replace with something new. That decision is a learned\n      @@T0@@interpolation@@T1@@. Slide the update gate $z$ and watch the new state glide\n      between \"remember the past\" and \"take the candidate\" &mdash; while the reset gate\n      $r$ controls how much of the past the candidate is even allowed to see.": {
+   "zh": "GRU 单元在每一步只有一项任务：决定旧状态中保留多少、用新内容替换多少。这一决策是一种可学习的 @@T0@@插值@@T1@@。滑动更新门 $z$，观察新状态如何在「记住过去」与「采纳候选」之间滑动 &mdash;&mdash; 而重置门 $r$ 则控制候选状态究竟能看到多少过去。",
+   "src": "A GRU cell has one job at each step: decide how much of the old state to keep\n      and how much to replace with something new. That decision is a learned\n      <em>interpolation</em>. Slide the update gate $z$ and watch the new state glide\n      between \"remember the past\" and \"take the candidate\" &mdash; while the reset gate\n      $r$ controls how much of the past the candidate is even allowed to see.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~8 min@@T1@@\n      @@T2@@Deep Learning &middot; RNN &middot; GRU@@T3@@": {
+   "zh": "@@T0@@约 8 分钟@@T1@@\n      @@T2@@深度学习 &middot; RNN &middot; GRU@@T3@@",
+   "src": "<span>~8 min</span>\n      <span>Deep Learning &middot; RNN &middot; GRU</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Two gates, one interpolation": {
+   "zh": "两个门，一次插值",
+   "src": "Two gates, one interpolation",
+   "tags": []
+  },
+  "Where a plain RNN overwrites its state every step, a GRU protects it with two\n      sigmoid gates. The @@T0@@reset gate@@T1@@ $r$ decides how much of the past\n      leaks into a fresh @@T2@@candidate@@T3@@ state $\\tilde{h}_t$; the @@T4@@update\n      gate@@T5@@ $z$ then blends that candidate with the old state:": {
+   "zh": "普通 RNN 每一步都会覆盖其状态，而 GRU 用两个 sigmoid 门来保护它。@@T0@@重置门@@T1@@ $r$ 决定有多少过去渗入一个新的 @@T2@@候选@@T3@@ 状态 $\\tilde{h}_t$；@@T4@@更新门@@T5@@ $z$ 随后将该候选与旧状态混合：",
+   "src": "Where a plain RNN overwrites its state every step, a GRU protects it with two\n      sigmoid gates. The <strong>reset gate</strong> $r$ decides how much of the past\n      leaks into a fresh <em>candidate</em> state $\\tilde{h}_t$; the <strong>update\n      gate</strong> $z$ then blends that candidate with the old state:",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Read that second equation as a dial. When $z_t = 0$ the cell copies the past\n      through untouched ($h_t = h_{t-1}$); when $z_t = 1$ it throws the past away and\n      adopts the candidate; anywhere in between it is a weighted average. Gates are\n      just @@T0@@learned interpolators@@T1@@.": {
+   "zh": "可把第二个方程读作一个旋钮。当 $z_t = 0$ 时，单元将过去原封不动地传递下去（$h_t = h_{t-1}$）；当 $z_t = 1$ 时，它丢弃过去并采纳候选；两者之间的任何取值都是一个加权平均。门其实只是 @@T0@@可学习的插值器@@T1@@。",
+   "src": "Read that second equation as a dial. When $z_t = 0$ the cell copies the past\n      through untouched ($h_t = h_{t-1}$); when $z_t = 1$ it throws the past away and\n      adopts the candidate; anywhere in between it is a weighted average. Gates are\n      just <em>learned interpolators</em>.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Lab": {
+   "zh": "实验台",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Turn the dials": {
+   "zh": "转动旋钮",
+   "src": "Turn the dials",
+   "tags": []
+  },
+  "Set the previous state $h_{t-1}$ and an input $x_t$, then move the two gates. The\n      candidate box updates its arithmetic as you change $r$; the number line shows the\n      new state $h_t$ sliding along the segment between the past and the candidate at\n      exactly fraction $z$.": {
+   "zh": "设定前一状态 $h_{t-1}$ 与输入 $x_t$，然后移动两个门。当你改变 $r$ 时，候选框中的算术会更新；数轴显示新状态 $h_t$ 在连接过去与候选的线段上，恰好按比例 $z$ 滑动。",
+   "src": "Set the previous state $h_{t-1}$ and an input $x_t$, then move the two gates. The\n      candidate box updates its arithmetic as you change $r$; the number line shows the\n      new state $h_t$ sliding along the segment between the past and the candidate at\n      exactly fraction $z$.",
+   "tags": []
+  },
+  "@@T0@@Presets:@@T1@@": {
+   "zh": "@@T0@@预设：@@T1@@",
+   "src": "<span style=\"font-family:var(--sans);font-size:0.82rem;color:var(--muted);font-weight:600;\">Presets:</span>",
+   "tags": [
+    "<span style=\"font-family:var(--sans);font-size:0.82rem;color:var(--muted);font-weight:600;\">",
+    "</span>"
+   ]
+  },
+  "Copy-through (z=0)": {
+   "zh": "原样传递（z=0）",
+   "src": "Copy-through (z=0)",
+   "tags": []
+  },
+  "Overwrite (z=1)": {
+   "zh": "覆盖（z=1）",
+   "src": "Overwrite (z=1)",
+   "tags": []
+  },
+  "Ignore past (r=0)": {
+   "zh": "忽略过去（r=0）",
+   "src": "Ignore past (r=0)",
+   "tags": []
+  },
+  "Balanced": {
+   "zh": "均衡",
+   "src": "Balanced",
+   "tags": []
+  },
+  "Update gate @@T0@@$z$ = @@T1@@0.50@@T2@@@@T3@@": {
+   "zh": "更新门 @@T0@@$z$ = @@T1@@0.50@@T2@@@@T3@@",
+   "src": "Update gate <span>$z$ = <span id=\"zVal\">0.50</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"zVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Reset gate @@T0@@$r$ = @@T1@@0.70@@T2@@@@T3@@": {
+   "zh": "重置门 @@T0@@$r$ = @@T1@@0.70@@T2@@@@T3@@",
+   "src": "Reset gate <span>$r$ = <span id=\"rVal\">0.70</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"rVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Previous state @@T0@@$h_{t-1}$ = @@T1@@0.60@@T2@@@@T3@@": {
+   "zh": "前一状态 @@T0@@$h_{t-1}$ = @@T1@@0.60@@T2@@@@T3@@",
+   "src": "Previous state <span>$h_{t-1}$ = <span id=\"hpVal\">0.60</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"hpVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Input signal @@T0@@$x_t$ = @@T1@@0.40@@T2@@@@T3@@": {
+   "zh": "输入信号 @@T0@@$x_t$ = @@T1@@0.40@@T2@@@@T3@@",
+   "src": "Input signal <span>$x_t$ = <span id=\"xVal\">0.40</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"xVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Top: the new state $h_t$ (green) sits on the segment from the past $h_{t-1}$ (blue) to the candidate $\\tilde{h}_t$ (orange), at fraction $z$. Bottom: the update gate as a keep-vs-update proportion bar.": {
+   "zh": "上方：新状态 $h_t$（绿色）位于从过去 $h_{t-1}$（蓝色）到候选 $\\tilde{h}_t$（橙色）的线段上，比例处为 $z$。下方：更新门作为「保留 vs 更新」的比例条。",
+   "src": "Top: the new state $h_t$ (green) sits on the segment from the past $h_{t-1}$ (blue) to the candidate $\\tilde{h}_t$ (orange), at fraction $z$. Bottom: the update gate as a keep-vs-update proportion bar.",
+   "tags": []
+  },
+  "@@T0@@Keep the past $(1-z)\\,h_{t-1}$@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@保留过去 $(1-z)\\,h_{t-1}$@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Keep the past $(1-z)\\,h_{t-1}$</span>\n        <span class=\"stat-value\" id=\"keepVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"keepVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Take candidate $z\\,\\tilde{h}_t$@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@采纳候选 $z\\,\\tilde{h}_t$@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Take candidate $z\\,\\tilde{h}_t$</span>\n        <span class=\"stat-value\" id=\"takeVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"takeVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@New state $h_t = (1-z)\\,h_{t-1} + z\\,\\tilde{h}_t$@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@新状态 $h_t = (1-z)\\,h_{t-1} + z\\,\\tilde{h}_t$@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">New state $h_t = (1-z)\\,h_{t-1} + z\\,\\tilde{h}_t$</span>\n        <span class=\"stat-value\" id=\"htVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"htVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Pull $z$ to 0.@@T1@@ The new state locks onto $h_{t-1}$ no matter what\n      the input says &mdash; this is how a GRU carries a memory across many steps, the\n      same trick as the LSTM's forget gate near 1. Now push $z$ to 1: the past\n      vanishes and $h_t$ becomes the candidate. Separately, drag $r$ to 0 and watch the\n      candidate stop listening to the past entirely &mdash; useful when a new phrase\n      should be read fresh.": {
+   "zh": "@@T0@@把 $z$ 拉到 0。@@T1@@ 无论输入说什么，新状态都会锁定在 $h_{t-1}$ 上 &mdash;&mdash; 这正是 GRU 能将记忆跨越多步携带的方式，与 LSTM 遗忘门接近 1 时的技巧相同。现在把 $z$ 推到 1：过去消失，$h_t$ 变为候选。另外，把 $r$ 拖到 0，观察候选完全不再倾听过去 &mdash;&mdash; 当一个新的短语应当被从头读起时，这是有用的。",
+   "src": "<strong>Pull $z$ to 0.</strong> The new state locks onto $h_{t-1}$ no matter what\n      the input says &mdash; this is how a GRU carries a memory across many steps, the\n      same trick as the LSTM's forget gate near 1. Now push $z$ to 1: the past\n      vanishes and $h_t$ becomes the candidate. Separately, drag $r$ to 0 and watch the\n      candidate stop listening to the past entirely &mdash; useful when a new phrase\n      should be read fresh.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "收获",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "GRU vs LSTM, side by side": {
+   "zh": "GRU 与 LSTM 并排对比",
+   "src": "GRU vs LSTM, side by side",
+   "tags": []
+  },
+  "The GRU (Cho et al., 2014) is a streamlined LSTM. It merges the LSTM's separate\n      cell and hidden states into one vector, and folds three gates down to two. Fewer\n      parameters, often comparable accuracy &mdash; and the same core idea in both:\n      a multiplicative, near-linear path lets the state travel across time without the\n      $w_h\\,\\sigma'$ product vanishing or exploding.": {
+   "zh": "GRU（Cho 等，2014）是一个精简化的 LSTM。它将 LSTM 各自独立的细胞状态与隐藏状态合并为一个向量，并把三个门缩减为两个。参数更少，精度往往相当 &mdash;&mdash; 且二者的核心思想相同：一条乘性的、近乎线性的路径让状态能够穿越时间传播，而不会使 $w_h\\,\\sigma'$ 的乘积消失或爆炸。",
+   "src": "The GRU (Cho et al., 2014) is a streamlined LSTM. It merges the LSTM's separate\n      cell and hidden states into one vector, and folds three gates down to two. Fewer\n      parameters, often comparable accuracy &mdash; and the same core idea in both:\n      a multiplicative, near-linear path lets the state travel across time without the\n      $w_h\\,\\sigma'$ product vanishing or exploding.",
+   "tags": []
+  },
+  "GRU": {
+   "zh": "",
+   "src": "GRU",
+   "tags": []
+  },
+  "LSTM": {
+   "zh": "",
+   "src": "LSTM",
+   "tags": []
+  },
+  "Gates": {
+   "zh": "门",
+   "src": "Gates",
+   "tags": []
+  },
+  "2 &mdash; update $z$, reset $r$": {
+   "zh": "2 个 &mdash;&mdash; 更新门 $z$、重置门 $r$",
+   "src": "2 &mdash; update $z$, reset $r$",
+   "tags": []
+  },
+  "3 &mdash; forget, input, output": {
+   "zh": "3 个 &mdash;&mdash; 遗忘门、输入门、输出门",
+   "src": "3 &mdash; forget, input, output",
+   "tags": []
+  },
+  "State": {
+   "zh": "状态",
+   "src": "State",
+   "tags": []
+  },
+  "single $h_t$ (cell &amp; hidden merged)": {
+   "zh": "单个 $h_t$（细胞状态与隐藏状态合并）",
+   "src": "single $h_t$ (cell &amp; hidden merged)",
+   "tags": []
+  },
+  "two &mdash; cell $c_t$ + hidden $h_t$": {
+   "zh": "两个 &mdash;&mdash; 细胞状态 $c_t$ + 隐藏状态 $h_t$",
+   "src": "two &mdash; cell $c_t$ + hidden $h_t$",
+   "tags": []
+  },
+  "Update rule": {
+   "zh": "更新规则",
+   "src": "Update rule",
+   "tags": []
+  },
+  "@@T0@@h = (1−z)·h_prev + z·h̃@@T1@@": {
+   "zh": "",
+   "src": "<code>h = (1−z)·h_prev + z·h̃</code>",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@c = f·c_prev + i·g;  h = o·tanh(c)@@T1@@": {
+   "zh": "",
+   "src": "<code>c = f·c_prev + i·g;  h = o·tanh(c)</code>",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Exposure": {
+   "zh": "暴露程度",
+   "src": "Exposure",
+   "tags": []
+  },
+  "whole state exposed each step": {
+   "zh": "每一步都暴露整个状态",
+   "src": "whole state exposed each step",
+   "tags": []
+  },
+  "output gate filters what is exposed": {
+   "zh": "输出门过滤被暴露的内容",
+   "src": "output gate filters what is exposed",
+   "tags": []
+  },
+  "Parameters": {
+   "zh": "参数",
+   "src": "Parameters",
+   "tags": []
+  },
+  "fewer (~3/4 of an LSTM)": {
+   "zh": "更少（约为 LSTM 的 3/4）",
+   "src": "fewer (~3/4 of an LSTM)",
+   "tags": []
+  },
+  "more": {
+   "zh": "更多",
+   "src": "more",
+   "tags": []
+  },
+  "When": {
+   "zh": "适用时机",
+   "src": "When",
+   "tags": []
+  },
+  "smaller data, faster training, edge/streaming": {
+   "zh": "数据较少、训练更快、边缘/流式场景",
+   "src": "smaller data, faster training, edge/streaming",
+   "tags": []
+  },
+  "slightly more capacity on long, complex sequences": {
+   "zh": "在长而复杂的序列上容量略强",
+   "src": "slightly more capacity on long, complex sequences",
+   "tags": []
+  },
+  "@@T0@@One idea, two packagings.@@T1@@ Both architectures replace the plain\n      RNN's overwrite with a gated blend. The GRU writes it as a single interpolation,\n      $h_t = (1-z)h_{t-1} + z\\tilde{h}_t$; the LSTM splits keeping and writing into\n      separate forget and input gates and adds an output gate. In 2026 both are mostly\n      pedagogical stepping stones to attention and state-space models &mdash; but the\n      \"gate = learned interpolator\" intuition you just dialed in is exactly what those\n      newer models generalize.": {
+   "zh": "@@T0@@一个思想，两种封装。@@T1@@ 两种架构都用门控混合取代了普通 RNN 的覆盖操作。GRU 将其写作单次插值 $h_t = (1-z)h_{t-1} + z\\tilde{h}_t$；LSTM 则把「保留」与「写入」拆分为独立的遗忘门与输入门，并额外加入一个输出门。到 2026 年，二者在很大程度上都已成为通往注意力机制与状态空间模型的教学阶梯 &mdash;&mdash; 但你刚刚通过旋钮体会到的「门 = 可学习的插值器」这一直觉，正是那些更新的模型所推广的东西。",
+   "src": "<strong>One idea, two packagings.</strong> Both architectures replace the plain\n      RNN's overwrite with a gated blend. The GRU writes it as a single interpolation,\n      $h_t = (1-z)h_{t-1} + z\\tilde{h}_t$; the LSTM splits keeping and writing into\n      separate forget and input gates and adds an output gate. In 2026 both are mostly\n      pedagogical stepping stones to attention and state-space models &mdash; but the\n      \"gate = learned interpolator\" intuition you just dialed in is exactly what those\n      newer models generalize.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 13: RNNs, LSTMs and GRUs": {
+   "zh": "ES 667 深度学习讲解系列的一部分 &middot; 第 13 讲：RNN、LSTM 与 GRU",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 13: RNNs, LSTMs and GRUs",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "GRU 门控：保留还是更新",
+  "tagline": "更新门是一个可学习的旋钮，在记住过去与采纳新候选之间权衡",
+  "summary": "一个 GRU 单元在每一步都决定保留多少旧状态、替换多少。滑动更新门 z，观察新状态 h_t = (1−z)·h_{t-1} + z·h̃_t 沿着一条数轴在过去与候选之间滑动，并用一条「保留 vs 更新」比例条把这次插值变得直观具体。重置门 r 控制候选究竟能看到多少过去。旁边配有一张紧凑的 GRU 与 LSTM 对比表：2 个门与一个合并状态，对比 3 个门与一个独立的细胞状态。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "滑动更新门 z，观察 h_t 沿着一条数轴在过去 h_{t-1} 与候选 h̃_t 之间插值。",
+   "将更新门绘成一条「保留 vs 更新」比例条 —— 让插值变得直观具体。",
+   "转动重置门 r，阅读候选状态的算术更新：tanh(x + r·h_{t-1})，并代入具体数值。",
+   "原样传递（z=0）、覆盖（z=1）与忽略过去（r=0）的预设，一键展示各极端情形。",
+   "一张紧凑的 GRU 与 LSTM 对比：2 个门与一个合并状态，对比 3 个门与一个独立的细胞状态。"
+  ],
+  "tags": [
+   "GRU",
+   "LSTM",
+   "门控",
+   "RNN",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

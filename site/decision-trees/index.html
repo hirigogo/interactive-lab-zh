@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>决策树，实时演示</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>决策树，实时演示</h1>
+        <p class="abstract">
+          点击以放置训练点；一棵 CART 决策树实时生长出与坐标轴对齐的划分。调整深度、划分准则、叶节点最小样本数；观察决策边界如何从过于简单变为对样本点过拟合。随后在同一数据集上与逻辑回归及 25 棵树的随机森林作比较。
+        </p>
+        <div class="byline">
+          <span>约 16 分钟</span>
+          <span>经典机器学习 &middot; CART &middot; 随机森林</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>为何决策树是乏味却可靠的默认选择</h2>
+        <p>
+          对于表格数据——金融特征、传感器日志、问卷回答，凡是以 CSV 列的形式呈现的一切——决策树（或其集成）几乎总是要么正确答案，要么正确的基线。它们能处理缺失值、连续与类别混合的特征，以及任意特征的单调变换，且无需归一化。它们的归纳偏置是“在与坐标轴对齐的区域上给出常数预测”，这与人工整理的特征实际承载信息的方式出乎意料地契合。
+        </p>
+        <p>
+          问题在于：<em>单棵</em>树过于贪婪、也过于参差不齐。解决方案——bagging（随机森林）与 boosting（XGBoost）——正是这一家族得以主宰表格数据竞赛的原因。本文聚焦于单棵树的机制，以便理解集成方法。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>贪婪划分准则</h2>
+        <p>
+          CART 决策树自顶向下构建自身。在每个节点，它选取使子节点不纯度<em>下降</em>最多的（特征, 阈值）组合。分类任务中标准的不纯度度量有：
+        </p>
+        <div class="math-block" id="math-impurity"></div>
+        <p>
+          对某个候选划分，不纯度下降量为 $\Delta = I(\text{parent}) - \frac{N_L}{N}I(\text{left}) - \frac{N_R}{N}I(\text{right})$。遍历所有特征与所有候选阈值，取最大值，再对两侧递归。当某节点已纯、过小或达到深度上限时停止。
+        </p>
+        <p>
+          有两点后果值得体会：（1）划分<strong>与坐标轴对齐</strong>——由此得到的决策区域是若干矩形的并集。（2）该算法是<strong>贪婪的</strong>——可能存在全局更优的划分序列，但它不会被找到。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-1a">
+        <div class="step-badge">第 1½ 步</div>
+        <h2>实时演示：信息增益随阈值的变化</h2>
+        <p>
+          拖动滑块，在单个特征上选取一个候选阈值。两个直方图展示父节点（上方）如何划分为左/右子节点，下方的曲线展示不纯度下降量 $\Delta$ 随每一个可能阈值的变化。决策树取 argmax。
+        </p>
+        <div class="train-controls">
+          <label>阈值 &nbsp;<span id="ig-t-val">0.50</span> <input type="range" id="ig-t" min="0" max="1" step="0.005" value="0.5"></label>
+          <label>准则
+            <select id="ig-crit">
+              <option value="gini" selected>Gini 指数</option>
+              <option value="熵">熵</option>
+            </select>
+          </label>
+          <button class="action-btn action-btn--ghost" id="ig-reseed">新建一维数据集</button>
+        </div>
+        <div class="dt-grid">
+          <div class="dt-panel" style="grid-column: 1 / -1;">
+            <div class="panel-label">上方：特征轴上的数据。中部：不纯度曲线。标记 = 当前阈值。</div>
+            <canvas id="ig-canvas" width="880" height="320"></canvas>
+          </div>
+        </div>
+        <p>
+          三点值得注意：
+        </p>
+        <ul class="explanation-list">
+          <li>这条曲线是<em>分段常数</em>的：在两个相邻训练点之间移动阈值，既不获得也不损失信息。实用的 CART 实现只评估相邻排序特征值之间的中点。</li>
+          <li>熵与 Gini 指数 在 argmax 上几乎总是一致——在真实数据上差异至多约 2%。Gini 指数 是 sklearn 的默认选择，因为其计算略为廉价。</li>
+          <li>argmax 可能非常接近平局。训练数据上极微小的变化就会翻转哪个特征胜出——这正是促使人们采用随机森林的<em>不稳定性</em>。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>一次一点击地构建一棵树</h2>
+        <p>
+          左键点击添加一个 A 类点（蓝色），右键点击 / 按住 Shift 点击添加 B 类点（橙色）。每次点击后树都会重新拟合。增大<em>最大深度</em>；观察边界变得越来越零碎。增大<em>叶节点最小样本数</em>；观察它变得平滑。
+        </p>
+        <div class="train-controls">
+          <label>准则
+            <select id="dt-crit">
+              <option value="gini" selected>Gini 指数</option>
+              <option value="熵">熵</option>
+            </select>
+          </label>
+          <label>最大深度 &nbsp;<span id="dt-depth-val">5</span> <input type="range" id="dt-depth" min="1" max="12" step="1" value="5"></label>
+          <label>叶节点最小样本数 &nbsp;<span id="dt-leaf-val">1</span> <input type="range" id="dt-leaf" min="1" max="20" step="1" value="1"></label>
+          <button class="action-btn action-btn--ghost" id="dt-clear">清空数据点</button>
+          <button class="action-btn action-btn--ghost" id="dt-seed">载入 XOR / 螺旋数据</button>
+        </div>
+        <div class="dt-grid">
+          <div class="dt-panel">
+            <div class="panel-label">树的决策区域</div>
+            <canvas id="dt-tree" width="380" height="380"></canvas>
+          </div>
+          <div class="dt-panel">
+            <div class="panel-label">随机森林（25 棵树）</div>
+            <canvas id="dt-rf" width="380" height="380"></canvas>
+          </div>
+          <div class="dt-panel">
+            <div class="panel-label">逻辑回归</div>
+            <canvas id="dt-lr" width="380" height="380"></canvas>
+          </div>
+        </div>
+        <div class="dt-grid">
+          <div class="dt-panel" style="grid-column: 1 / -1;">
+            <div class="panel-label">树的结构（广度优先布局）</div>
+            <canvas id="dt-shape" width="880" height="240"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>你应当注意到的现象</h2>
+        <ul class="explanation-list">
+          <li><strong>一切都与坐标轴对齐。</strong> 即便你看到的“斜向”边界，也是由竖切与横切构成的阶梯。这正是决策树在旋转数据上吃力的原因——特征工程 / 旋转嵌入会有所帮助。</li>
+          <li><strong>深度 ⇆ 过拟合。</strong> 深度为 1 时，树只是一条带阈值的直线；深度为 8 时，每个训练点都各占一个叶节点。合适的深度取决于数据有多嘈杂。</li>
+          <li><strong>叶节点最小样本数是最干净的正则化手段。</strong>
+            设为 5 会迫使树忽略单点离群值；边界更干净，训练误差略高，而测试误差通常更好。</li>
+          <li><strong>随机森林 = 许多浅树投票。</strong>
+            每棵树看到的是一个自助采样样本，且每次划分只考虑随机的一部分特征。在相近的准确率下，25 棵树的集成比单棵深树平滑得多。这正是它成为日常表格数据主力工具的原因。</li>
+          <li><strong>逻辑回归 = 一条直线。</strong>
+            在 XOR 形数据上表现最差，而在高维但近乎线性的表格任务上常常最佳。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-3a">
+        <div class="step-badge">第 3½ 步</div>
+        <h2>回归树</h2>
+        <p>
+          同一套配方也适用于回归：把 Gini 指数/熵替换为平方误差不纯度
+        </p>
+        <div class="math-block" id="math-mse"></div>
+        <p>
+          在每个叶节点，预测落入该处的训练 $y$ 值的<em>均值</em>。结果是 $x$ 的分段常数函数——对平滑信号很糟糕（应改用 GP），但对正确的水平集本身就是分段常数的表格特征却极为合适。
+        </p>
+        <p>
+          一个微妙之处：回归的划分准则等价于在划分处最大化<em>组间方差</em>——即一种与坐标轴对齐的方差分析（ANOVA）。这解释了为何回归树能找出线性模型所遗漏的阈值效应（例如“超过 65 mph 后，燃油经济性急剧下降”）。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-3b">
+        <div class="step-badge">第 3¾ 步</div>
+        <h2>剪枝与代价复杂度路径</h2>
+        <p>
+          预剪枝（深度上限、叶节点最小样本数）廉价但粗糙。后剪枝则更有原则：先长成一棵完整的树，再合并那些不划算的子树。CART 的代价复杂度准则为：
+        </p>
+        <div class="math-block" id="math-ccp"></div>
+        <p>
+          当 $\alpha$ 从 0 增至 $\infty$ 时，最优树从完整的树收缩至根节点。<em>代价复杂度路径</em>就是你途经的那一串树；挑选 $\alpha$ 的推荐方法是在这条路径上做交叉验证。
+        </p>
+        <ul class="explanation-list">
+          <li>scikit-learn 通过 <code>DecisionTreeClassifier(ccp_alpha=α)</code> 与 <code>cost_complexity_pruning_path</code> 暴露了这一功能。</li>
+          <li>提升树很少使用后剪枝——小深度 + 大量树以更简单的簿记达到了类似效果。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-3c">
+        <div class="step-badge">第 3⅞ 步</div>
+        <h2>特征重要度及其陷阱</h2>
+        <p>
+          从已拟合的树中评估特征重要度有两种方式：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>MDI（平均不纯度下降）。</strong> 对有该特征参与划分的每个节点，累加其加权的 不纯度下降量。廉价，是 sklearn 的默认方法——但会<em>偏向</em>高基数特征（可能的阈值越多 = 越有机会找到一个虚假的划分）。</li>
+          <li><strong>置换重要度。</strong> 在验证集上打乱某个特征，测量准确率的下降。较慢但无偏；对于任何要离开实验室的“哪些特征重要”的主张，都推荐使用它。</li>
+          <li><strong>SHAP TreeExplainer。</strong> 对树集成在多项式时间内精确计算 Shapley 值（Lundberg 等人，2018）。逐预测归因的正确工具；开箱即用于 XGBoost / LightGBM。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>决策树擅长什么——以及不擅长什么</h2>
+        <ul class="explanation-list">
+          <li><strong>表格特征、混合类型。</strong> 决策树无需归一化即可处理类别与数值特征。任何表格任务的默认首选方案。</li>
+          <li><strong>逐预测的可解释性。</strong>
+            “预测为 A 类，因为特征 X &gt; 3.2 且特征 Y &lt; 0.7”——决策树免费给你这条路径。对于可解释系统与审计很有用。</li>
+          <li><strong>强大的集成。</strong> Random Forest、ExtraTrees、梯度提升树、XGBoost、LightGBM、CatBoost——它们至今仍惯常赢得 Kaggle 表格竞赛。</li>
+          <li><strong>不擅长的方面：</strong> 高维稀疏数据（文本、图像）、平滑的低维回归（应改用 GP）、训练范围之外的外推（决策树字面上无法预测超出训练集 min/max 的值）。</li>
+          <li><strong>归纳偏置。</strong> 强烈偏向与坐标轴对齐的阶梯。如果你的真实决策边界是一个球面或已被旋转，你就需要旋转后的特征，或更平滑的模型。</li>
+        </ul>
+        <div class="callout callout--key">
+          <strong>这句口号。</strong>
+          单棵决策树很少是答案；树的集成则常常是。那类（梯度提升的）集成正是<a href="../xgboost/index.html">XGBoost 一文</a>接下来所讨论的内容。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>CART、ID3、C4.5——这一家族</h2>
+        <ul class="explanation-list">
+          <li><strong>ID3（Quinlan, 1986）</strong>——熵准则；仅支持类别特征；每个类别取值一个节点。属历史算法；如今很少直接使用。</li>
+          <li><strong>C4.5（Quinlan, 1993）</strong>——加入连续特征（划分 = 阈值）；用<em>增益率</em>取代信息增益以对抗对高基数特征的偏向；内建缺失值处理。</li>
+          <li><strong>CART（Breiman 等人，1984）</strong>——仅做二叉划分；分类用 Gini 指数，回归用平方误差；代价复杂度剪枝。它是 scikit-learn 与大多数现代库的默认实现。</li>
+          <li><strong>条件推断树</strong>（Hothorn 等人，2006）——用独立性统计检验取代不纯度准则；消除了对多水平特征的偏向。即 R 的 <code>party</code> 包。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>阅读清单</h2>
+        <ul class="explanation-list">
+          <li><strong>Breiman, Friedman, Olshen, Stone (1984)</strong>
+            &mdash; <em>Classification and Regression Trees.</em> CART 的原始著作。</li>
+          <li><strong>Quinlan (1993)</strong> &mdash; <em>C4.5: Programs for Machine Learning.</em></li>
+          <li><strong>Hastie, Tibshirani, Friedman</strong>，<em>The Elements of Statistical Learning</em>，第 9 章——最好的“带数学的入门介绍”。</li>
+          <li><strong>Lundberg 与 Lee (2017)；Lundberg 等人 (2018)</strong> &mdash; 用于解释的 SHAP 与 TreeSHAP。</li>
+          <li><strong>Grinsztajn, Oyallon, Varoquaux (2022)</strong>
+            &mdash; <em>Why do tree-based models still outperform deep learning on tabular data?</em> 经验性的参考。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

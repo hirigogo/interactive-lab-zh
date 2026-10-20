@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>打补丁的时间序列 Transformer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>打补丁的时间序列 Transformer</h1>
+        <p class="abstract">
+          在一个带空气质量风格的信号上做长视界预测，共四种方式：季节性朴素基线、ARIMA 风格、LSTM、PatchTST。滑动补丁长度，观察预测与 RMSE 的变化。探讨 PatchTST 为何最终战胜了 LSTM，以及 Mamba 正把它带向何方。
+        </p>
+        <div class="byline">
+          <span>约 20 分钟</span>
+          <span>时间序列 &middot; 预测 &middot; Transformer</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>时间序列预测难在哪里？</h2>
+        <p>
+          有三件事使时间序列比常规机器学习问题更难：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>多重季节性。</strong> 日、周、年——有时全部叠加在同一个信号中。</li>
+          <li><strong>分布漂移。</strong> 传感器的均值与方差随时间变化。昨天的训练分布并不是今天的测试分布。</li>
+          <li><strong>长视界。</strong> 预测下一个点很容易。从 96 个点的上下文预测未来 96 个点，才是大多数方法崩解之处。</li>
+        </ul>
+        <div class="callout callout--key">
+          <strong>这句口号。</strong> 你在 2020-2022 年间读到的几乎每一个时间序列结果，都被季节性朴素方法击败。PatchTST（2023）是第一个在各项基准上从容胜出的深度模型——其架构只有约 50 行：把序列切成 ViT 风格的补丁，再在补丁词元上运行 transformer。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>你欠自己的四个基线</h2>
+        <ul class="explanation-list">
+          <li><strong>季节性朴素。</strong> 预测 $\hat y_{t+h} = y_{t + h - S}$，其中 $S$ 为季节周期（24 小时、7 天）。它是只有一行的基线，却有 30% 的时间能击败深度模型。</li>
+          <li><strong>ARIMA / ETS。</strong> 带有显式趋势 / 季节性 / 自回归项的经典统计模型。在平滑、行为良好的信号上表现强劲。</li>
+          <li><strong>LSTM / GRU。</strong> 循环网络。称霸十年；最终在长视界上被打补丁的 transformer 超越。</li>
+          <li><strong>PatchTST。</strong> 像视觉 Transformer 处理图像那样处理序列：切成互不重叠的补丁，为每个补丁做嵌入，在补丁词元上运行普通的 transformer，再投影回预测视界。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>补丁技巧</h2>
+        <p>
+          更早一波时间序列 transformer（Informer、Autoformer、FEDformer）把每个时间步当作一个词元。在长上下文下，这会让模型淹没在词元之中，$O(N^2)$ 的开销随之膨胀。PatchTST 把每 $P$ 个连续点归为一个词元（正如 ViT 对图像用 $P \times P$ 的补丁），使词元数减少 $P\times$，并让模型对局部结构获得略为平滑的视角。
+        </p>
+        <div class="math-block" id="math-patch"></div>
+        <p>
+          就是这样。补丁长度 $P$ 是唯一真正新增的超参数。通道独立性（用同一个共享 transformer 预测每个通道，从而不必把多变量强行塞进一个巨大的词表）是第二个技巧。第三个——对每条序列做实例归一化——则处理分布漂移。
+        </p>
+        <div class="bayes-figure">
+          <canvas id="patch-arch" width="880" height="240"></canvas>
+          <figcaption>PatchTST 的词元化。序列 → 补丁 → 嵌入 → transformer → 预测头。</figcaption>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-2a">
+        <div class="step-badge">第 2½ 步</div>
+        <h2>通道独立性——反直觉的选择</h2>
+        <p>
+          PatchTST 用同一个共享 transformer 预测每个变量 $v$，直至最终投影之前都不做跨变量注意力。理由如下：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>防止过拟合。</strong> 跨变量注意力每层有 $V^2$ 个参数；在 $V \sim 10$ 个变量、训练窗口只有数千个的基准中，它会急剧过拟合。</li>
+          <li><strong>可迁移性。</strong> 通道无关的模型可以在变量数不同的序列上训练（一个模型，多个任务）。这正是基础模型式预训练得以实现的关键。</li>
+          <li><strong>权衡。</strong> 你会失去学习“通道 A 领先通道 B 三个步长”这一关系的能力。当这种跨通道信号很重要时，应改用 <strong>iTransformer</strong>（每个变量 = 一个词元，注意力作用在变量而非时间之上）。</li>
+        </ul>
+        <p>
+          经验上二者覆盖不同情形：PatchTST 在时间步很多、接近单变量的面板上胜出；iTransformer 则在跨变量结构占主导时胜出。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-2b">
+        <div class="step-badge">第 2¾ 步</div>
+        <h2>RevIN——修复分布漂移的实例归一化</h2>
+        <p>
+          时间序列通常具有非平稳的均值与方差。经典的解决办法是差分或对数变换；PatchTST 的现代解法是<strong>可逆实例归一化</strong>（Kim 等人，2022）：
+        </p>
+        <div class="math-block" id="math-revin"></div>
+        <p>
+          用输入窗口自身的均值/方差对它做标准化。在归一化后的序列上运行模型。再用同一组统计量把预测反归一化。只需三行代码；在基准划分上稳定带来 1–2% 的视界 RMSE 改善。对于达到“十年一遇图表”级别质量的结果至关重要。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>让四个模型实时竞速</h2>
+        <p>
+          下面是一条合成的空气质量风格信号（日 + 周 + 噪声 + 缓慢漂移）。滑动视界与补丁长度；四个模型都会给出预测，RMSE 随之更新。
+        </p>
+        <div class="train-controls">
+          <button class="action-btn action-btn--ghost" id="ts-newseries">新建序列</button>
+          <label>视界 &nbsp;<span id="ts-h-val">96</span> <input type="range" id="ts-h" min="12" max="240" step="6" value="96"></label>
+          <label>补丁长度 &nbsp;<span id="ts-p-val">16</span> <input type="range" id="ts-p" min="4" max="48" step="4" value="16"></label>
+        </div>
+        <div class="ts-figure">
+          <canvas id="ts-canvas" width="880" height="380"></canvas>
+          <figcaption>上下文（左侧）| 真值（右侧，淡色）| 四条叠加的预测曲线。竖线标记预测的起点。</figcaption>
+        </div>
+        <div class="ts-stats" id="ts-stats">—</div>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>2024-2026 年教会我们的事</h2>
+        <ul class="explanation-list">
+          <li><strong>状态空间模型（Mamba、S5）。</strong> 带结构化状态空间递推的线性注意力。在极长上下文上快得多；在预测任务中与 PatchTST 互有胜负，并且在长视界上越来越常取胜。</li>
+          <li><strong>iTransformer。</strong> 把每个<em>变量</em>（而非每个时间步）当作一个词元，因此 transformer 的注意力学习的是跨序列结构（哪些其他传感器预测哪些）。在多变量面板上表现强劲。</li>
+          <li><strong>面向时间序列的基础模型。</strong>
+            TimesFM（Google）、Chronos（Amazon）、Lag-Llama、Moirai——这些大型预训练模型可对新时间序列任务做零样本或单样本处理。当你拥有许多短序列、却没有逐序列微调预算时，它们很有用。</li>
+          <li><strong>预测分布。</strong> 分位数回归头、共形校准、带归一化流的 deep AR——该领域已从“预测一个数字”转向“预测一个区间”。<a href="../bayes-opt/index.html">贝叶斯优化</a>与<a href="../bayesian-posterior/index.html">贝叶斯推演场</a>的文章在此处很有用。</li>
+        </ul>
+        <div class="callout callout--think">
+          <strong>最后总结。</strong>
+          时间序列预测不再是“深度学习败给季节性朴素”这样的笑柄。PatchTST 与 Mamba 以适度的算力让长视界预测变得实用，而基础模型则彻底改变了数据预算的等式。这是任何预测技术栈在 2026 年最实用的更新。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>如何搭建一个不说谎的预测评估</h2>
+        <ul class="explanation-list">
+          <li><strong>回溯检验，而非随机划分。</strong> 使用滚动起点评估：训练至时刻 $t$，预测 $[t+1, t+H]$，再推进 $t$。沿时间做随机划分会泄露信息。</li>
+          <li><strong>多个指标。</strong> 报告 MSE 与 MAE（对离群值的敏感性不同），再加上一个无量纲指标（sMAPE 或 MASE），以便跨数据集汇总。</li>
+          <li><strong>与季节性朴素方法比较。</strong> 永远都要比。一个胜不过 $\hat y_{t+h} = y_{t+h-S}$ 的模型根本算不上预测模型。</li>
+          <li><strong>区间覆盖率，而非仅点预测。</strong> 报告 90% 置信区间的覆盖率与宽度——一个 30% 情况下都落空的紧区间，比一个能命中 90% 的较宽区间更糟。用<a href="../conformal/index.html">共形预测</a>包裹以获得廉价的无分布区间。</li>
+          <li><strong>长视界 = 视界 ≥ 上下文。</strong> 标准基准（ETT、Weather、Traffic、ECL）都评估 H ∈ {96, 192, 336, 720}。比这更短的就是另一个问题了。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>阅读清单</h2>
+        <ul class="explanation-list">
+          <li><strong>Nie, Nguyen, Sinthong, Kalagnanam (2023)</strong> &mdash; <em>A Time Series is Worth 64 Words: Long-term Forecasting with Transformers.</em> 即 PatchTST 论文。</li>
+          <li><strong>Kim 等人 (2022)</strong> &mdash; <em>Reversible Instance Normalization.</em></li>
+          <li><strong>Liu 等人 (2024)</strong> &mdash; <em>iTransformer.</em></li>
+          <li><strong>Gu 与 Dao (2023)</strong> &mdash; <em>Mamba.</em></li>
+          <li><strong>Das 等人 (2024)</strong> &mdash; <em>TimesFM.</em></li>
+          <li><strong>Ansari 等人 (2024)</strong> &mdash; <em>Chronos.</em></li>
+          <li><strong>Hyndman 与 Athanasopoulos</strong> &mdash; <em>Forecasting: Principles and Practice.</em> 经典的基线与方法参考书。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

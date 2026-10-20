@@ -1,0 +1,759 @@
+{
+ "slug": "optimizers-beyond",
+ "units": {
+  "Beyond Gradient Descent": {
+   "zh": "超越梯度下降",
+   "src": "Beyond Gradient Descent",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "SGD and Adam aren't the only optimisers. Race five\n          non-SGD methods on the same 2D loss surface and watch\n          where each leaps and stalls.": {
+   "zh": "SGD 与 Adam 并非仅有的优化器。让五种非 SGD 方法在同一个二维损失曲面上竞速，\n          观察各自在哪里跃进而又在哪里停滞。",
+   "src": "SGD and Adam aren't the only optimisers. Race five\n          non-SGD methods on the same 2D loss surface and watch\n          where each leaps and stalls.",
+   "tags": []
+  },
+  "@@T0@@~16 min@@T1@@\n          @@T2@@Optimization &middot; DL Theory@@T3@@": {
+   "zh": "@@T0@@约 16 分钟@@T1@@\n          @@T2@@优化 &middot; 深度学习理论@@T3@@",
+   "src": "<span>~16 min</span>\n          <span>Optimization &middot; DL Theory</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Why bother going beyond SGD?": {
+   "zh": "为何要超越 SGD？",
+   "src": "Why bother going beyond SGD?",
+   "tags": []
+  },
+  "SGD with momentum is the workhorse of deep learning because\n          (a) it scales — one gradient evaluation per step is cheap,\n          (b) noise is a feature, not a bug, on a single-pass training\n          run, and (c) the implicit regularisation of small batches\n          gives free generalisation. Adam and its cousins (AdamW, Lion,\n          Sophia) inherit those advantages and add adaptive per-parameter\n          learning rates.": {
+   "zh": "带动量的 SGD 是深度学习的主力，原因在于\n          （a）它可扩展 &mdash; 每一步只做一次梯度求值，代价低廉；\n          （b）在单遍训练中，噪声是一种特性而非缺陷；\n          （c）小批量带来的隐式正则化\n          免费提供了泛化能力。Adam 及其同类算法（AdamW、Lion、\n          Sophia）继承了这些优点，并加入了逐参数的自适应\n          学习率。",
+   "src": "SGD with momentum is the workhorse of deep learning because\n          (a) it scales — one gradient evaluation per step is cheap,\n          (b) noise is a feature, not a bug, on a single-pass training\n          run, and (c) the implicit regularisation of small batches\n          gives free generalisation. Adam and its cousins (AdamW, Lion,\n          Sophia) inherit those advantages and add adaptive per-parameter\n          learning rates.",
+   "tags": []
+  },
+  "But: SGD throws away two things.": {
+   "zh": "但是：SGD 丢弃了两样东西。",
+   "src": "But: SGD throws away two things.",
+   "tags": []
+  },
+  "@@T0@@Curvature.@@T1@@ The Hessian tells you the\n            local geometry — directions where the loss is steep\n            (small step) vs flat (big step). SGD ignores it entirely.\n            On a quadratic with condition number $\\kappa$, SGD needs\n            $O(\\kappa \\log \\tfrac{1}{\\varepsilon})$ steps; Newton needs\n            $\\log\\log \\tfrac{1}{\\varepsilon}$.": {
+   "zh": "@@T0@@曲率。@@T1@@ Hessian 矩阵揭示了\n            局部几何结构 &mdash; 损失陡峭的方向\n            （小步长）与平坦的方向（大步长）。SGD 完全忽略它。\n            在条件数为 $\\kappa$ 的二次函数上，SGD 需要\n            $O(\\kappa \\log \\tfrac{1}{\\varepsilon})$ 步；而 Newton 法只需\n            $\\log\\log \\tfrac{1}{\\varepsilon}$。",
+   "src": "<strong>Curvature.</strong> The Hessian tells you the\n            local geometry — directions where the loss is steep\n            (small step) vs flat (big step). SGD ignores it entirely.\n            On a quadratic with condition number $\\kappa$, SGD needs\n            $O(\\kappa \\log \\tfrac{1}{\\varepsilon})$ steps; Newton needs\n            $\\log\\log \\tfrac{1}{\\varepsilon}$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Cross-parameter geometry.@@T1@@ Adam's diagonal\n            preconditioner ignores correlations. Natural-gradient\n            methods (K-FAC, Shampoo) recover them block-wise.": {
+   "zh": "@@T0@@参数间的几何结构。@@T1@@ Adam 的对角\n            预条件子忽略了参数间的相关性。自然梯度\n            方法（K-FAC、Shampoo）以分块方式恢复它们。",
+   "src": "<strong>Cross-parameter geometry.</strong> Adam's diagonal\n            preconditioner ignores correlations. Natural-gradient\n            methods (K-FAC, Shampoo) recover them block-wise.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "When are these worth paying for? When (i) you can afford\n          full-batch or large-batch gradients, (ii) the dimensionality\n          is small enough to store/invert curvature, or (iii) you have\n          no gradient at all and must fall back to function-value\n          methods like CMA-ES and SPSA.": {
+   "zh": "这些方法何时值得付出代价？当（i）你能承担全批量或大批量\n          梯度，（ii）维度小到足以存储或求逆曲率矩阵，\n          或（iii）你根本没有梯度，只能退回到\n          诸如 CMA-ES 与 SPSA 之类的函数值方法时。",
+   "src": "When are these worth paying for? When (i) you can afford\n          full-batch or large-batch gradients, (ii) the dimensionality\n          is small enough to store/invert curvature, or (iii) you have\n          no gradient at all and must fall back to function-value\n          methods like CMA-ES and SPSA.",
+   "tags": []
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "The five contenders": {
+   "zh": "五位竞争者",
+   "src": "The five contenders",
+   "tags": []
+  },
+  "@@T0@@Newton's method.@@T1@@ Use the Hessian\n            $H$ and step $-H^{-1}\\nabla f$. Quadratic local convergence.\n            Cost: forming $H$ in $O(d^2)$ and inverting in $O(d^3)$.\n            Impractical for $d$ &gt; ~$10^4$.": {
+   "zh": "@@T0@@牛顿法。@@T1@@ 使用 Hessian\n            矩阵 $H$，沿 $-H^{-1}\\nabla f$ 方向迭代。具有二次局部收敛性。\n            代价：构造 $H$ 需 $O(d^2)$，求逆需 $O(d^3)$。\n            当 $d$ &gt; 约 $10^4$ 时不实用。",
+   "src": "<strong>Newton's method.</strong> Use the Hessian\n            $H$ and step $-H^{-1}\\nabla f$. Quadratic local convergence.\n            Cost: forming $H$ in $O(d^2)$ and inverting in $O(d^3)$.\n            Impractical for $d$ &gt; ~$10^4$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@BFGS / L-BFGS.@@T1@@ Maintain a low-rank\n            approximation of $H^{-1}$ from past gradients. The\n            workhorse for medium-scale (&lt;1M parameter) DL.\n            scipy.minimize's default; @@T2@@jax.scipy.optimize@@T3@@\n            ships it.": {
+   "zh": "@@T0@@BFGS / L-BFGS。@@T1@@ 依据历史梯度维护\n            $H^{-1}$ 的低秩近似。是中等规模（&lt;100 万参数）\n            深度学习的主力。scipy.minimize 的默认方法；@@T2@@jax.scipy.optimize@@T3@@\n            也内置了它。",
+   "src": "<strong>BFGS / L-BFGS.</strong> Maintain a low-rank\n            approximation of $H^{-1}$ from past gradients. The\n            workhorse for medium-scale (&lt;1M parameter) DL.\n            scipy.minimize's default; <code>jax.scipy.optimize</code>\n            ships it.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@Natural gradient.@@T1@@ Step\n            $-F^{-1}\\nabla f$ where $F$ is the Fisher information\n            matrix. Invariant to reparameterisation; the heart of\n            K-FAC and Shampoo. Beats Adam on RNNs / GANs in many\n            settings.": {
+   "zh": "@@T0@@自然梯度。@@T1@@ 沿\n            $-F^{-1}\\nabla f$ 方向迭代，其中 $F$ 为 Fisher 信息\n            矩阵。具有重参数化不变性；是\n            K-FAC 与 Shampoo 的核心。在许多\n            场景下于 RNN / GAN 上胜过 Adam。",
+   "src": "<strong>Natural gradient.</strong> Step\n            $-F^{-1}\\nabla f$ where $F$ is the Fisher information\n            matrix. Invariant to reparameterisation; the heart of\n            K-FAC and Shampoo. Beats Adam on RNNs / GANs in many\n            settings.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@CMA-ES (evolutionary).@@T1@@ Sample a\n            population from a Gaussian; update the mean and\n            covariance toward the best samples. Gradient-free,\n            robust to noise; standard in RL hyperparameter search.": {
+   "zh": "@@T0@@CMA-ES（进化式）。@@T1@@ 从高斯分布中\n            采样一个种群；将均值与\n            协方差朝最优样本更新。无需梯度，\n            对噪声稳健；是强化学习超参数搜索的标准方法。",
+   "src": "<strong>CMA-ES (evolutionary).</strong> Sample a\n            population from a Gaussian; update the mean and\n            covariance toward the best samples. Gradient-free,\n            robust to noise; standard in RL hyperparameter search.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@SPSA (gradient-free finite-difference).@@T1@@\n            Perturb all parameters once with random ±1, estimate the\n            gradient with a single 2-evaluation finite difference.\n            Optimal when only function values are available.": {
+   "zh": "@@T0@@SPSA（无梯度的有限差分）。@@T1@@\n            用一个随机 ±1 向量一次性扰动全部参数，\n            仅以两次求值的有限差分估计梯度。\n            在只能获得函数值的情形下最为适用。",
+   "src": "<strong>SPSA (gradient-free finite-difference).</strong>\n            Perturb all parameters once with random ±1, estimate the\n            gradient with a single 2-evaluation finite difference.\n            Optimal when only function values are available.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 1½": {
+   "zh": "第 1½ 步",
+   "src": "Step 1½",
+   "tags": []
+  },
+  "Newton's method, in two lines": {
+   "zh": "牛顿法：两行说清",
+   "src": "Newton's method, in two lines",
+   "tags": []
+  },
+  "Taylor-expand the loss around the current iterate $w_t$:": {
+   "zh": "在当前迭代点 $w_t$ 附近对损失作 Taylor 展开：",
+   "src": "Taylor-expand the loss around the current iterate $w_t$:",
+   "tags": []
+  },
+  "Minimise this quadratic in $\\Delta w$ by setting its\n          gradient to zero. Solving gives $\\Delta w = -H^{-1}\\nabla f$,\n          which is the Newton step. On a perfect quadratic, one step\n          reaches the optimum; on a smooth function, the rate is\n          quadratic — the error squares each iteration. In practice\n          you must damp: $w_{t+1} = w_t - \\alpha_t H^{-1}\\nabla f$\n          with $\\alpha_t$ from a line search, and stabilise the Hessian\n          with $H + \\lambda I$ when it's not positive-definite\n          (Levenberg–Marquardt).": {
+   "zh": "令该二次式关于 $\\Delta w$ 的梯度为零，\n          即可求得其最小值。解之得 $\\Delta w = -H^{-1}\\nabla f$，\n          即牛顿步。在完美的二次函数上，一步即可\n          抵达最优解；在光滑函数上，收敛阶为\n          二次 &mdash; 误差每次迭代后平方。实践中\n          必须进行阻尼：$w_{t+1} = w_t - \\alpha_t H^{-1}\\nabla f$，\n          其中 $\\alpha_t$ 由线搜索确定；并在 Hessian 非正定之时\n          用 $H + \\lambda I$ 对其加以稳定\n          （Levenberg&ndash;Marquardt）。",
+   "src": "Minimise this quadratic in $\\Delta w$ by setting its\n          gradient to zero. Solving gives $\\Delta w = -H^{-1}\\nabla f$,\n          which is the Newton step. On a perfect quadratic, one step\n          reaches the optimum; on a smooth function, the rate is\n          quadratic — the error squares each iteration. In practice\n          you must damp: $w_{t+1} = w_t - \\alpha_t H^{-1}\\nabla f$\n          with $\\alpha_t$ from a line search, and stabilise the Hessian\n          with $H + \\lambda I$ when it's not positive-definite\n          (Levenberg–Marquardt).",
+   "tags": []
+  },
+  "Step 1¾": {
+   "zh": "第 1¾ 步",
+   "src": "Step 1¾",
+   "tags": []
+  },
+  "BFGS — the rank-2 secret to L-BFGS": {
+   "zh": "BFGS &mdash; L-BFGS 背后的秩 2 秘密",
+   "src": "BFGS — the rank-2 secret to L-BFGS",
+   "tags": []
+  },
+  "BFGS maintains a Hessian-inverse approximation $B$ that gets\n          better every step. After observing the step\n          $s_t = w_{t+1} - w_t$ and gradient change $y_t = \\nabla f_{t+1}\n          - \\nabla f_t$, it updates $B$ by a rank-2 perturbation:": {
+   "zh": "BFGS 维护一个 Hessian 逆矩阵的近似 $B$，\n          并使其每一步都更精确。在观测到步长\n          $s_t = w_{t+1} - w_t$ 与梯度变化 $y_t = \\nabla f_{t+1}\n          - \\nabla f_t$ 之后，它通过一个秩 2 扰动更新 $B$：",
+   "src": "BFGS maintains a Hessian-inverse approximation $B$ that gets\n          better every step. After observing the step\n          $s_t = w_{t+1} - w_t$ and gradient change $y_t = \\nabla f_{t+1}\n          - \\nabla f_t$, it updates $B$ by a rank-2 perturbation:",
+   "tags": []
+  },
+  "Two properties make this magical:": {
+   "zh": "有两个性质使这一更新如此巧妙：",
+   "src": "Two properties make this magical:",
+   "tags": []
+  },
+  "@@T0@@Secant condition.@@T1@@ The update satisfies\n            $B_{t+1} y_t = s_t$ — i.e. it correctly predicts the\n            curvature you just observed.": {
+   "zh": "@@T0@@割线条件。@@T1@@ 该更新满足\n            $B_{t+1} y_t = s_t$ &mdash; 即它正确地预测了\n            你刚刚观测到的曲率。",
+   "src": "<strong>Secant condition.</strong> The update satisfies\n            $B_{t+1} y_t = s_t$ — i.e. it correctly predicts the\n            curvature you just observed.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Positive-definiteness preserved.@@T1@@ If\n            $B_t \\succ 0$ and $s_t^\\top y_t &gt; 0$ (curvature\n            condition), then $B_{t+1} \\succ 0$.": {
+   "zh": "@@T0@@保持正定性。@@T1@@ 若\n            $B_t \\succ 0$ 且 $s_t^\\top y_t &gt; 0$（曲率\n            条件成立），则 $B_{t+1} \\succ 0$。",
+   "src": "<strong>Positive-definiteness preserved.</strong> If\n            $B_t \\succ 0$ and $s_t^\\top y_t &gt; 0$ (curvature\n            condition), then $B_{t+1} \\succ 0$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@L-BFGS@@T1@@ stores only the last $m$ pairs $(s_t,\n          y_t)$ (typically $m=10$) instead of the full matrix, applying\n          $B \\nabla f$ via a two-loop recursion in $O(md)$ time. That's\n          why it scales to millions of parameters when full Newton\n          can't.": {
+   "zh": "@@T0@@L-BFGS@@T1@@ 仅存储最近的 $m$ 组配对 $(s_t,\n          y_t)$（通常 $m=10$），而非完整矩阵，并通过一个双循环递归在\n          $O(md)$ 时间内计算 $B \\nabla f$。这\n          正是它在完整牛顿法无法胜任时仍能扩展至数百万参数\n          的原因。",
+   "src": "<strong>L-BFGS</strong> stores only the last $m$ pairs $(s_t,\n          y_t)$ (typically $m=10$) instead of the full matrix, applying\n          $B \\nabla f$ via a two-loop recursion in $O(md)$ time. That's\n          why it scales to millions of parameters when full Newton\n          can't.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 1⅞": {
+   "zh": "第 1⅞ 步",
+   "src": "Step 1⅞",
+   "tags": []
+  },
+  "Natural gradient — geometry of probability": {
+   "zh": "自然梯度 &mdash; 概率的几何",
+   "src": "Natural gradient — geometry of probability",
+   "tags": []
+  },
+  "For a probabilistic model $p_\\theta(x)$, the natural gradient\n          preconditions the ordinary gradient with the inverse Fisher\n          information matrix:": {
+   "zh": "对于概率模型 $p_\\theta(x)$，自然梯度\n          以逆 Fisher 信息矩阵对普通梯度进行预条件：",
+   "src": "For a probabilistic model $p_\\theta(x)$, the natural gradient\n          preconditions the ordinary gradient with the inverse Fisher\n          information matrix:",
+   "tags": []
+  },
+  "The Fisher $F$ is the Hessian of the KL divergence to the\n          current model. Stepping along $-F^{-1}\\nabla L$ keeps the\n          KL change between consecutive iterates bounded — the step\n          becomes @@T0@@geometry-aware in the manifold of distributions@@T1@@.\n          Concrete consequences:": {
+   "zh": "Fisher 矩阵 $F$ 是相对当前模型的 KL 散度的\n          Hessian 矩阵。沿 $-F^{-1}\\nabla L$ 方向迭代可使\n          相邻两次迭代之间的 KL 变化保持有界 &mdash; 该步长\n          于是变得 @@T0@@在分布流形上具备几何感知能力@@T1@@。\n          具体后果如下：",
+   "src": "The Fisher $F$ is the Hessian of the KL divergence to the\n          current model. Stepping along $-F^{-1}\\nabla L$ keeps the\n          KL change between consecutive iterates bounded — the step\n          becomes <em>geometry-aware in the manifold of distributions</em>.\n          Concrete consequences:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Reparameterisation invariance.@@T1@@ If you\n            change the parameter coordinates, the natural-gradient\n            update transforms the same way the parameters do, so the\n            actual update on the distribution is the same. Vanilla\n            gradient is @@T2@@not@@T3@@ invariant; this is why SGD is\n            so sensitive to choice of activation scales.": {
+   "zh": "@@T0@@重参数化不变性。@@T1@@ 若你\n            改变参数坐标，自然梯度的更新与参数本身\n            以相同方式变换，因此对分布的实际更新\n            保持不变。朴素梯度则 @@T2@@不具@@T3@@ 不变性；这\n            正是 SGD 对激活尺度选择如此敏感的原因。",
+   "src": "<strong>Reparameterisation invariance.</strong> If you\n            change the parameter coordinates, the natural-gradient\n            update transforms the same way the parameters do, so the\n            actual update on the distribution is the same. Vanilla\n            gradient is <em>not</em> invariant; this is why SGD is\n            so sensitive to choice of activation scales.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@K-FAC.@@T1@@ Approximates $F$ as block-diagonal\n            with Kronecker-factored blocks, making the inverse\n            tractable for big nets. Adopted in older DeepMind RL\n            papers; @@T2@@Shampoo@@T3@@ (Anil et&nbsp;al., 2020) is the\n            modern descendant, used in some 2024–2025 LLM pretraining\n            runs.": {
+   "zh": "@@T0@@K-FAC。@@T1@@ 将 $F$ 近似为分块对角\n            形式，其分块具有 Kronecker 因子结构，从而使大型网络的\n            求逆变得可行。较早的 DeepMind 强化学习\n            论文中有所采用；@@T2@@Shampoo@@T3@@（Anil 等人，2020）是\n            其现代后继者，已被用于部分 2024&ndash;2025 年的大语言模型预训练\n            流程。",
+   "src": "<strong>K-FAC.</strong> Approximates $F$ as block-diagonal\n            with Kronecker-factored blocks, making the inverse\n            tractable for big nets. Adopted in older DeepMind RL\n            papers; <em>Shampoo</em> (Anil et&nbsp;al., 2020) is the\n            modern descendant, used in some 2024–2025 LLM pretraining\n            runs.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@TRPO / NPG.@@T1@@ Trust-region policy\n            optimisation is natural-gradient policy improvement —\n            still the cleanest derivation of why on-policy RL needs\n            a KL constraint.": {
+   "zh": "@@T0@@TRPO / NPG。@@T1@@ 信赖域策略\n            优化本质上就是自然梯度的策略改进 &mdash;\n            它至今仍是关于同策略强化学习为何需要\n            KL 约束的最清晰推导。",
+   "src": "<strong>TRPO / NPG.</strong> Trust-region policy\n            optimisation is natural-gradient policy improvement —\n            still the cleanest derivation of why on-policy RL needs\n            a KL constraint.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Race them on a 2-D loss": {
+   "zh": "在二维损失上竞速",
+   "src": "Race them on a 2-D loss",
+   "tags": []
+  },
+  "surface": {
+   "zh": "曲面",
+   "src": "surface",
+   "tags": []
+  },
+  "elongated quadratic": {
+   "zh": "拉长的二次曲面",
+   "src": "elongated quadratic",
+   "tags": []
+  },
+  "Rosenbrock": {
+   "zh": "Rosenbrock 函数",
+   "src": "Rosenbrock",
+   "tags": []
+  },
+  "two-bowls (non-convex)": {
+   "zh": "双碗（非凸）",
+   "src": "two-bowls (non-convex)",
+   "tags": []
+  },
+  "Step all": {
+   "zh": "一次多步",
+   "src": "Step all",
+   "tags": []
+  },
+  "Step 50": {
+   "zh": "走 50 步",
+   "src": "Step 50",
+   "tags": []
+  },
+  "Reset": {
+   "zh": "重置",
+   "src": "Reset",
+   "tags": []
+  },
+  "@@T0@@step @@T1@@0@@T2@@@@T3@@": {
+   "zh": "@@T0@@步数 @@T1@@0@@T2@@@@T3@@",
+   "src": "<span class=\"train-stat\">step <strong id=\"op-step-count\">0</strong></span>",
+   "tags": [
+    "<span class=\"train-stat\">",
+    "<strong id=\"op-step-count\">",
+    "</strong>",
+    "</span>"
+   ]
+  },
+  "Loss surface contour + each optimiser's trajectory. Final loss values shown in the legend.": {
+   "zh": "损失曲面等高线及各优化器的轨迹。最终损失值显示在图例中。",
+   "src": "Loss surface contour + each optimiser's trajectory. Final loss values shown in the legend.",
+   "tags": []
+  },
+  "Step 2½": {
+   "zh": "第 2½ 步",
+   "src": "Step 2½",
+   "tags": []
+  },
+  "Gradient-free: CMA-ES and SPSA": {
+   "zh": "无梯度方法：CMA-ES 与 SPSA",
+   "src": "Gradient-free: CMA-ES and SPSA",
+   "tags": []
+  },
+  "Suppose you can compute $f(w)$ but not $\\nabla f(w)$. This\n          is the regime for RL hyperparameter search, simulator-based\n          design, hardware-in-the-loop tuning, and certain quantum\n          experiments. Two algorithms dominate.": {
+   "zh": "假设你能计算 $f(w)$，却无法计算 $\\nabla f(w)$。这\n          正是强化学习超参数搜索、基于模拟器的设计、\n          硬件在环调优以及某些量子实验所处的\n          情形。有两类算法占据主导。",
+   "src": "Suppose you can compute $f(w)$ but not $\\nabla f(w)$. This\n          is the regime for RL hyperparameter search, simulator-based\n          design, hardware-in-the-loop tuning, and certain quantum\n          experiments. Two algorithms dominate.",
+   "tags": []
+  },
+  "@@T0@@CMA-ES (Covariance Matrix Adaptation Evolution\n          Strategy).@@T1@@ Maintain a Gaussian search distribution\n          $\\mathcal{N}(m_t, \\sigma_t^2 C_t)$. At each generation:": {
+   "zh": "@@T0@@CMA-ES（协方差矩阵自适应进化\n          策略）。@@T1@@ 维护一个高斯搜索分布\n          $\\mathcal{N}(m_t, \\sigma_t^2 C_t)$。每一代执行：",
+   "src": "<strong>CMA-ES (Covariance Matrix Adaptation Evolution\n          Strategy).</strong> Maintain a Gaussian search distribution\n          $\\mathcal{N}(m_t, \\sigma_t^2 C_t)$. At each generation:",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Sample a population of $\\lambda$ candidates;": {
+   "zh": "采样一个含 $\\lambda$ 个候选的种群；",
+   "src": "Sample a population of $\\lambda$ candidates;",
+   "tags": []
+  },
+  "Evaluate $f$ at each; sort by fitness;": {
+   "zh": "对每个候选求 $f$ 值；按适应度排序；",
+   "src": "Evaluate $f$ at each; sort by fitness;",
+   "tags": []
+  },
+  "Recombine the top $\\mu$ to form the new mean $m_{t+1}$;": {
+   "zh": "对前 $\\mu$ 个进行重组，构成新的均值 $m_{t+1}$；",
+   "src": "Recombine the top $\\mu$ to form the new mean $m_{t+1}$;",
+   "tags": []
+  },
+  "Adapt $\\sigma_t$ (step size) based on the cumulative\n            evolution path's length;": {
+   "zh": "依据累计进化路径的长度调整 $\\sigma_t$（步长）；",
+   "src": "Adapt $\\sigma_t$ (step size) based on the cumulative\n            evolution path's length;",
+   "tags": []
+  },
+  "Adapt $C_t$ to align with successful directions.": {
+   "zh": "调整 $C_t$ 使之与成功的方向对齐。",
+   "src": "Adapt $C_t$ to align with successful directions.",
+   "tags": []
+  },
+  "The adaptive covariance is what makes CMA-ES competitive —\n          it learns the local conditioning from successes and failures\n          without computing a Hessian.": {
+   "zh": "自适应协方差正是 CMA-ES 具备竞争力的原因 &mdash;\n          它从成功与失败中学习局部条件结构，\n          而无需计算 Hessian 矩阵。",
+   "src": "The adaptive covariance is what makes CMA-ES competitive —\n          it learns the local conditioning from successes and failures\n          without computing a Hessian.",
+   "tags": []
+  },
+  "@@T0@@SPSA (Simultaneous Perturbation Stochastic\n          Approximation).@@T1@@ Pick a random $\\pm 1$ vector\n          $\\Delta_t$ (Rademacher); evaluate $f$ at $w_t \\pm c_t \\Delta_t$;\n          estimate the gradient with a @@T2@@single@@T3@@ 2-point\n          finite difference:": {
+   "zh": "@@T0@@SPSA（同时扰动随机\n          逼近）。@@T1@@ 选取一个随机的 $\\pm 1$ 向量\n          $\\Delta_t$（Rademacher 分布）；在 $w_t \\pm c_t \\Delta_t$ 处求 $f$ 值；\n          并以 @@T2@@单次@@T3@@ 两点\n          有限差分估计梯度：",
+   "src": "<strong>SPSA (Simultaneous Perturbation Stochastic\n          Approximation).</strong> Pick a random $\\pm 1$ vector\n          $\\Delta_t$ (Rademacher); evaluate $f$ at $w_t \\pm c_t \\Delta_t$;\n          estimate the gradient with a <em>single</em> 2-point\n          finite difference:",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Two function evaluations per step, regardless of dimension.\n          That's the magic: where ordinary finite differences cost $2d$\n          evaluations, SPSA pays a fixed 2. The trade-off is variance:\n          you need many steps and shrinking $a_t, c_t$ to converge,\n          but the per-step cost is dimension-independent.": {
+   "zh": "每步只需两次函数求值，与维度无关。\n          这正是其巧妙之处：普通有限差分需要 $2d$\n          次求值，而 SPSA 只付出固定的 2 次。代价是方差：\n          你需要大量步数以及逐渐收缩的 $a_t, c_t$ 才能收敛，\n          但每步的代价与维度无关。",
+   "src": "Two function evaluations per step, regardless of dimension.\n          That's the magic: where ordinary finite differences cost $2d$\n          evaluations, SPSA pays a fixed 2. The trade-off is variance:\n          you need many steps and shrinking $a_t, c_t$ to converge,\n          but the per-step cost is dimension-independent.",
+   "tags": []
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "When to use what": {
+   "zh": "何时使用何种方法",
+   "src": "When to use what",
+   "tags": []
+  },
+  "@@T0@@L-BFGS.@@T1@@ Smooth full-batch losses up to\n            ~1M parameters. Typical use: physics-informed nets,\n            small-data fine-tunes, numerical methods.": {
+   "zh": "@@T0@@L-BFGS。@@T1@@ 适用于参数量至多\n            约 100 万的光滑全批量损失。典型用途：物理信息神经网络、\n            小数据微调、数值方法。",
+   "src": "<strong>L-BFGS.</strong> Smooth full-batch losses up to\n            ~1M parameters. Typical use: physics-informed nets,\n            small-data fine-tunes, numerical methods.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@K-FAC / Shampoo (natural gradient).@@T1@@\n            Big nets, stable training. Adopted by labs running\n            very-large LLMs and RNNs where Adam plateaus.": {
+   "zh": "@@T0@@K-FAC / Shampoo（自然梯度）。@@T1@@\n            适用于大型网络与稳定训练。被那些在 Adam 出现平台期的\n            超大型大语言模型与 RNN 上开展研究的实验室所采用。",
+   "src": "<strong>K-FAC / Shampoo (natural gradient).</strong>\n            Big nets, stable training. Adopted by labs running\n            very-large LLMs and RNNs where Adam plateaus.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@CMA-ES.@@T1@@ Black-box hyperparameter\n            search; reward-shaped RL; tasks where the gradient is\n            noisy or unavailable.": {
+   "zh": "@@T0@@CMA-ES。@@T1@@ 黑箱超参数\n            搜索；以奖励塑形的强化学习；梯度\n            噪声较大或不可得的任务。",
+   "src": "<strong>CMA-ES.</strong> Black-box hyperparameter\n            search; reward-shaped RL; tasks where the gradient is\n            noisy or unavailable.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@SPSA.@@T1@@ Hardware-in-the-loop tuning,\n            simulator-based design where every evaluation is a\n            forward simulation. Quantum-circuit optimisation\n            popularised it.": {
+   "zh": "@@T0@@SPSA。@@T1@@ 硬件在环调优，\n            以及每次求值都是一次前向模拟的基于模拟器的设计。\n            量子线路优化使其广为人知。",
+   "src": "<strong>SPSA.</strong> Hardware-in-the-loop tuning,\n            simulator-based design where every evaluation is a\n            forward simulation. Quantum-circuit optimisation\n            popularised it.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Stick with SGD/Adam.@@T1@@ Mini-batch\n            DL with millions of parameters and a stochastic gradient.\n            Cost of computing $H$ exceeds the gain.": {
+   "zh": "@@T0@@坚持使用 SGD/Adam。@@T1@@ 适用于含数百万\n            参数、使用随机梯度的迷你批量深度学习。\n            计算 $H$ 的代价超过其带来的收益。",
+   "src": "<strong>Stick with SGD/Adam.</strong> Mini-batch\n            DL with millions of parameters and a stochastic gradient.\n            Cost of computing $H$ exceeds the gain.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          The right optimiser depends on the cost of each piece of\n          information. SGD throws away curvature (cheap forward+\n          backward, no Hessian). L-BFGS / Newton spend more per step\n          but converge faster. Gradient-free methods spend more per\n          step @@T2@@and@@T3@@ ignore gradients but win when there\n          aren't any to use.": {
+   "zh": "@@T0@@最后总结。@@T1@@\n          合适的优化器取决于每一类信息的代价。SGD 丢弃了曲率\n          （前向与反向传播代价低廉，无需 Hessian）。L-BFGS / 牛顿法\n          每步代价更高，但收敛更快。无梯度方法每步代价更高\n          @@T2@@且@@T3@@ 忽略梯度，但在无梯度可用之时\n          便显示出优势。",
+   "src": "<strong>Final takeaway.</strong>\n          The right optimiser depends on the cost of each piece of\n          information. SGD throws away curvature (cheap forward+\n          backward, no Hessian). L-BFGS / Newton spend more per step\n          but converge faster. Gradient-free methods spend more per\n          step <em>and</em> ignore gradients but win when there\n          aren't any to use.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Comparison table": {
+   "zh": "比较表",
+   "src": "Comparison table",
+   "tags": []
+  },
+  "Method": {
+   "zh": "方法",
+   "src": "Method",
+   "tags": []
+  },
+  "Info used": {
+   "zh": "所用信息",
+   "src": "Info used",
+   "tags": []
+  },
+  "Per-step cost": {
+   "zh": "每步代价",
+   "src": "Per-step cost",
+   "tags": []
+  },
+  "Convergence": {
+   "zh": "收敛性",
+   "src": "Convergence",
+   "tags": []
+  },
+  "Sweet spot": {
+   "zh": "适用场景",
+   "src": "Sweet spot",
+   "tags": []
+  },
+  "SGD + momentum": {
+   "zh": "SGD + 动量",
+   "src": "SGD + momentum",
+   "tags": []
+  },
+  "DL pretraining, mini-batch": {
+   "zh": "深度学习预训练，迷你批量",
+   "src": "DL pretraining, mini-batch",
+   "tags": []
+  },
+  "Adam / AdamW": {
+   "zh": "",
+   "src": "Adam / AdamW",
+   "tags": []
+  },
+  "$\\nabla f$, $|\\nabla f|^2$ (diag)": {
+   "zh": "$\\nabla f$，$|\\nabla f|^2$（对角）",
+   "src": "$\\nabla f$, $|\\nabla f|^2$ (diag)",
+   "tags": []
+  },
+  "$O(\\kappa \\log \\tfrac{1}{\\varepsilon})$ (diag-precond)": {
+   "zh": "$O(\\kappa \\log \\tfrac{1}{\\varepsilon})$（对角预条件）",
+   "src": "$O(\\kappa \\log \\tfrac{1}{\\varepsilon})$ (diag-precond)",
+   "tags": []
+  },
+  "Transformers, mixed scales": {
+   "zh": "Transformer，多尺度",
+   "src": "Transformers, mixed scales",
+   "tags": []
+  },
+  "L-BFGS": {
+   "zh": "",
+   "src": "L-BFGS",
+   "tags": []
+  },
+  "$\\nabla f$, history $m$ pairs": {
+   "zh": "$\\nabla f$，历史 $m$ 组配对",
+   "src": "$\\nabla f$, history $m$ pairs",
+   "tags": []
+  },
+  "Superlinear": {
+   "zh": "超线性",
+   "src": "Superlinear",
+   "tags": []
+  },
+  "Smooth full-batch losses": {
+   "zh": "光滑的全批量损失",
+   "src": "Smooth full-batch losses",
+   "tags": []
+  },
+  "Newton": {
+   "zh": "牛顿法",
+   "src": "Newton",
+   "tags": []
+  },
+  "Quadratic": {
+   "zh": "二次",
+   "src": "Quadratic",
+   "tags": []
+  },
+  "$d \\lesssim 10^4$, smooth": {
+   "zh": "$d \\lesssim 10^4$，光滑",
+   "src": "$d \\lesssim 10^4$, smooth",
+   "tags": []
+  },
+  "K-FAC / Shampoo": {
+   "zh": "",
+   "src": "K-FAC / Shampoo",
+   "tags": []
+  },
+  "$\\nabla f$, Fisher block-diag": {
+   "zh": "$\\nabla f$，Fisher 分块对角",
+   "src": "$\\nabla f$, Fisher block-diag",
+   "tags": []
+  },
+  "Faster than Adam in practice": {
+   "zh": "实践中快于 Adam",
+   "src": "Faster than Adam in practice",
+   "tags": []
+  },
+  "Large nets where stability matters": {
+   "zh": "稳定性至关重要的大型网络",
+   "src": "Large nets where stability matters",
+   "tags": []
+  },
+  "CMA-ES": {
+   "zh": "",
+   "src": "CMA-ES",
+   "tags": []
+  },
+  "$f$ only (population)": {
+   "zh": "仅 $f$（种群）",
+   "src": "$f$ only (population)",
+   "tags": []
+  },
+  "$O(\\lambda d^2)$ per gen": {
+   "zh": "每代 $O(\\lambda d^2)$",
+   "src": "$O(\\lambda d^2)$ per gen",
+   "tags": []
+  },
+  "Linear, robust": {
+   "zh": "线性，稳健",
+   "src": "Linear, robust",
+   "tags": []
+  },
+  "$d \\lesssim 10^3$, noisy black box": {
+   "zh": "$d \\lesssim 10^3$，带噪黑箱",
+   "src": "$d \\lesssim 10^3$, noisy black box",
+   "tags": []
+  },
+  "SPSA": {
+   "zh": "",
+   "src": "SPSA",
+   "tags": []
+  },
+  "$f$ only (2 evals)": {
+   "zh": "仅 $f$（2 次求值）",
+   "src": "$f$ only (2 evals)",
+   "tags": []
+  },
+  "$O(d)$ per step": {
+   "zh": "每步 $O(d)$",
+   "src": "$O(d)$ per step",
+   "tags": []
+  },
+  "Slow but dimension-independent per step": {
+   "zh": "较慢，但每步代价与维度无关",
+   "src": "Slow but dimension-independent per step",
+   "tags": []
+  },
+  "Hardware / simulator loops": {
+   "zh": "硬件 / 模拟器闭环",
+   "src": "Hardware / simulator loops",
+   "tags": []
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Practical recipes": {
+   "zh": "实用指南",
+   "src": "Practical recipes",
+   "tags": []
+  },
+  "@@T0@@Physics-informed nets, neural PDEs.@@T1@@\n            Use L-BFGS for the final tightening after a few thousand\n            Adam steps — Adam reaches the basin, L-BFGS finishes the\n            descent inside it. This is the standard PINN recipe.": {
+   "zh": "@@T0@@物理信息神经网络、神经 PDE。@@T1@@\n            在数千步 Adam 之后改用 L-BFGS 作最终收敛 &mdash;\n            Adam 抵达盆地，L-BFGS 则在其内部完成\n            下降。这是标准的 PINN 做法。",
+   "src": "<strong>Physics-informed nets, neural PDEs.</strong>\n            Use L-BFGS for the final tightening after a few thousand\n            Adam steps — Adam reaches the basin, L-BFGS finishes the\n            descent inside it. This is the standard PINN recipe.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Large-scale RL.@@T1@@ Natural-gradient TRPO\n            for stability; PPO is the cheaper first-order approximation\n            with a clipped KL surrogate. Use Shampoo if you can afford\n            it on the policy network.": {
+   "zh": "@@T0@@大规模强化学习。@@T1@@ 为求稳定，可使用\n            自然梯度的 TRPO；PPO 是更廉价的一阶近似，\n            采用截断的 KL 代理目标。若策略网络的规模允许，\n            可使用 Shampoo。",
+   "src": "<strong>Large-scale RL.</strong> Natural-gradient TRPO\n            for stability; PPO is the cheaper first-order approximation\n            with a clipped KL surrogate. Use Shampoo if you can afford\n            it on the policy network.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Hyperparameter / architecture search.@@T1@@\n            CMA-ES if you have a few dozen continuous hyperparameters\n            and can afford $\\sim 100$ evaluations. Bayesian\n            optimisation for fewer evaluations on cheaper-to-evaluate\n            spaces.": {
+   "zh": "@@T0@@超参数 / 架构搜索。@@T1@@\n            若你有数十个连续超参数且能承担 $\\sim 100$ 次求值，\n            可使用 CMA-ES。若求值次数更少、且空间求值\n            代价更低，则使用贝叶斯优化。",
+   "src": "<strong>Hyperparameter / architecture search.</strong>\n            CMA-ES if you have a few dozen continuous hyperparameters\n            and can afford $\\sim 100$ evaluations. Bayesian\n            optimisation for fewer evaluations on cheaper-to-evaluate\n            spaces.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Quantum / analog hardware.@@T1@@ SPSA is the\n            standard variational-quantum-eigensolver (VQE) optimiser\n            precisely because each \"evaluation\" requires running a\n            quantum circuit.": {
+   "zh": "@@T0@@量子 / 模拟硬件。@@T1@@ SPSA 是\n            变分量子特征求解器（VQE）的标准优化器，\n            原因恰恰在于每一次“求值”都需要运行一个\n            量子线路。",
+   "src": "<strong>Quantum / analog hardware.</strong> SPSA is the\n            standard variational-quantum-eigensolver (VQE) optimiser\n            precisely because each \"evaluation\" requires running a\n            quantum circuit.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@LLM pretraining.@@T1@@ Stay with AdamW\n            (or Lion) unless you've measured a real benefit from\n            Shampoo. The bookkeeping for second-order methods at LLM\n            scale is non-trivial.": {
+   "zh": "@@T0@@大语言模型预训练。@@T1@@ 坚持使用 AdamW\n            （或 Lion），除非你已实测到 Shampoo 带来的实际收益。\n            在大语言模型规模下，二阶方法的额外\n            开销并不简单。",
+   "src": "<strong>LLM pretraining.</strong> Stay with AdamW\n            (or Lion) unless you've measured a real benefit from\n            Shampoo. The bookkeeping for second-order methods at LLM\n            scale is non-trivial.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "参考文献",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Nocedal &amp; Wright@@T1@@, @@T2@@Numerical\n            Optimization@@T3@@, 2nd ed. The standard reference for\n            Newton, BFGS, line search, trust regions.": {
+   "zh": "@@T0@@Nocedal &amp; Wright@@T1@@，@@T2@@Numerical\n            Optimization@@T3@@，第 2 版。关于牛顿法、BFGS、线搜索、\n            信赖域的标准参考书。",
+   "src": "<strong>Nocedal &amp; Wright</strong>, <em>Numerical\n            Optimization</em>, 2nd ed. The standard reference for\n            Newton, BFGS, line search, trust regions.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Amari (1998)@@T1@@ &mdash; @@T2@@Natural Gradient\n            Works Efficiently in Learning.@@T3@@ The paper that started\n            the natural-gradient line.": {
+   "zh": "@@T0@@Amari（1998）@@T1@@ &mdash; @@T2@@Natural Gradient\n            Works Efficiently in Learning.@@T3@@ 开启自然梯度\n            这一研究路线的论文。",
+   "src": "<strong>Amari (1998)</strong> &mdash; <em>Natural Gradient\n            Works Efficiently in Learning.</em> The paper that started\n            the natural-gradient line.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Martens &amp; Grosse (2015)@@T1@@ &mdash;\n            @@T2@@Optimizing Neural Networks with Kronecker-factored\n            Approximate Curvature (K-FAC).@@T3@@": {
+   "zh": "@@T0@@Martens &amp; Grosse（2015）@@T1@@ &mdash;\n            @@T2@@Optimizing Neural Networks with Kronecker-factored\n            Approximate Curvature (K-FAC).@@T3@@",
+   "src": "<strong>Martens &amp; Grosse (2015)</strong> &mdash;\n            <em>Optimizing Neural Networks with Kronecker-factored\n            Approximate Curvature (K-FAC).</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Anil, Gupta, Koren, Singer (2020)@@T1@@ &mdash;\n            @@T2@@Shampoo: Preconditioned Stochastic Tensor\n            Optimization.@@T3@@ Modern second-order for big nets.": {
+   "zh": "@@T0@@Anil, Gupta, Koren, Singer（2020）@@T1@@ &mdash;\n            @@T2@@Shampoo: Preconditioned Stochastic Tensor\n            Optimization.@@T3@@ 面向大型网络的现代二阶方法。",
+   "src": "<strong>Anil, Gupta, Koren, Singer (2020)</strong> &mdash;\n            <em>Shampoo: Preconditioned Stochastic Tensor\n            Optimization.</em> Modern second-order for big nets.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Hansen (2016)@@T1@@ &mdash; @@T2@@The CMA\n            Evolution Strategy: A Tutorial.@@T3@@ The reference for\n            CMA-ES.": {
+   "zh": "@@T0@@Hansen（2016）@@T1@@ &mdash; @@T2@@The CMA\n            Evolution Strategy: A Tutorial.@@T3@@ 关于 CMA-ES 的\n            参考材料。",
+   "src": "<strong>Hansen (2016)</strong> &mdash; <em>The CMA\n            Evolution Strategy: A Tutorial.</em> The reference for\n            CMA-ES.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Spall (1992)@@T1@@ &mdash; @@T2@@Multivariate\n            Stochastic Approximation Using a Simultaneous Perturbation\n            Gradient Approximation.@@T3@@ The original SPSA paper.": {
+   "zh": "@@T0@@Spall（1992）@@T1@@ &mdash; @@T2@@Multivariate\n            Stochastic Approximation Using a Simultaneous Perturbation\n            Gradient Approximation.@@T3@@ SPSA 的原始论文。",
+   "src": "<strong>Spall (1992)</strong> &mdash; <em>Multivariate\n            Stochastic Approximation Using a Simultaneous Perturbation\n            Gradient Approximation.</em> The original SPSA paper.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "超越梯度下降",
+  "tagline": "牛顿法、BFGS、自然梯度、进化式、无梯度 &mdash; 五种非 SGD 思想，在二维损失上实时演示",
+  "summary": "SGD/Adam 并非仅有的选择。让牛顿法、BFGS、自然梯度、CMA-ES（进化式）以及无梯度的 SPSA 优化器在同一个二维非凸损失上竞速。观察各自在哪里跃至最优、在哪里陷入停滞，以及在你的实验中应当选用哪一种。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "五种优化器在同一个二维非凸曲面上实时运行；其轨迹相互叠加。",
+   "为每种方法显示步数计数器与最终损失，便于比较收敛代价。",
+   "损失曲面选择器（二次曲面 / Rosenbrock / 双碗）可切换，显示哪种优化器更占优势。",
+   "何时选用何种方法 &mdash; 实验室决策矩阵。"
+  ],
+  "tags": [
+   "优化",
+   "牛顿法",
+   "BFGS",
+   "CMA-ES",
+   "自然梯度",
+   "交互式"
+  ]
+ },
+ "js": {
+  "Natural grad": {
+   "zh": "自然梯度",
+   "exprs": [],
+   "tags": [],
+   "src": "Natural grad"
+  },
+  "current loss values": {
+   "zh": "当前损失值",
+   "exprs": [],
+   "tags": [],
+   "src": "current loss values"
+  }
+ }
+}

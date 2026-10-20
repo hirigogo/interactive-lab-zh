@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>月亮为什么会改变形状</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="stars" aria-hidden="true"></div>
+
+    <article class="page">
+      <header class="hero">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <div class="hero__grid">
+          <div class="hero__copy">
+            <p class="kicker">写给好奇的小朋友的天文课</p>
+            <h1>月亮为什么会改变形状？</h1>
+            <p class="lead">
+              月亮始终是一个圆球。发生变化的是：从地球上能看到的、月亮被太阳照亮的那一部分。拖动月亮，观察光线如何变化，并认识各个相位的名称。
+            </p>
+            <div class="fact-row">
+              <article class="fact-pill">
+                <strong>太阳照亮它</strong>
+                <span>月亮自己不会发光。</span>
+              </article>
+              <article class="fact-pill">
+                <strong>总有一半被照亮</strong>
+                <span>明亮的那一半始终朝向太阳。</span>
+              </article>
+              <article class="fact-pill">
+                <strong>我们看到的是一个角度</strong>
+                <span>位置不同，我们看到的受光部分多少也不同。</span>
+              </article>
+            </div>
+            <div class="hero__actions">
+              <a class="primary-link" href="#explore">开始探索</a>
+              <a class="ghost-link" href="#game">试试月亮小游戏</a>
+            </div>
+          </div>
+
+          <div class="hero__visual card">
+            <canvas id="heroMoonCanvas" width="340" height="340" aria-label="顶部月亮插图"></canvas>
+            <p class="hero__phase-label">满月</p>
+            <p class="hero__phase-copy">当地球位于月亮与太阳之间、月亮处在地球的远侧时，我们就几乎能看到它被照亮的全部，这就是满月。</p>
+          </div>
+        </div>
+      </header>
+
+      <section class="section" id="explore">
+        <div class="section__head">
+          <div>
+            <p class="kicker">第 1 节</p>
+            <h2>让月亮绕着地球转</h2>
+          </div>
+          <p class="section__lede">
+            这就是最核心的想法：月亮绕着地球转，太阳只照亮它的一面，而我们的视角在不断改变。
+          </p>
+        </div>
+
+        <div class="explorer-grid">
+          <div class="story-card card">
+            <h3>如何使用这幅图</h3>
+            <ol class="kid-steps">
+              <li>沿着轨道拖动那个小月亮。</li>
+              <li>观察右侧的大月亮。</li>
+              <li>留意哪一侧是亮的，以及你能看到其中多少。</li>
+            </ol>
+            <p>
+              太阳在左边，地球在中间。月亮大约用一个月的时间绕地球一圈。
+            </p>
+            <div class="control-row">
+              <button class="control-button" id="playButton" type="button">播放</button>
+              <label class="slider-wrap" for="phaseSlider">
+                <span>月亮位置</span>
+                <input id="phaseSlider" type="range" min="0" max="359" step="1" value="180" />
+              </label>
+            </div>
+            <p class="orbit-note" id="dayReadout">约为 29.5 天中的第 15 天</p>
+          </div>
+
+          <div class="visual-stack">
+            <div class="canvas-card card">
+              <h3>俯视下的太阳、地球与月亮</h3>
+              <canvas id="orbitCanvas" width="760" height="460" aria-label="太阳、地球与月亮的轨道视图"></canvas>
+              <p class="caption">拖动月亮沿圆圈运动。阳光始终从左边照来。</p>
+            </div>
+
+            <div class="canvas-card card canvas-card--moon-view">
+              <div class="moon-view__head">
+                <div>
+                  <h3>从地球上看到的景象</h3>
+                  <p class="moon-view__subtitle" id="phaseName">满月</p>
+                </div>
+                <div class="phase-pill" id="phaseTrend">此后开始转入亏相</div>
+              </div>
+              <div class="moon-view__body">
+                <canvas id="moonCanvas" width="320" height="320" aria-label="从地球看到的月亮"></canvas>
+                <div class="moon-explainer">
+                  <p class="moon-explainer__main" id="phaseStory">整个盘面看起来都是亮的，因为被照亮的那一半正对着我们。</p>
+                  <p class="moon-explainer__detail" id="phaseDetail">我们能看到的明亮部分：100%</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="names">
+        <div class="section__head">
+          <div>
+            <p class="kicker">第 2 节</p>
+            <h2>认识 8 个主要月相</h2>
+          </div>
+          <p class="section__lede">
+            点击任意一张相位卡片，即可在探索器中跳转到该位置。
+          </p>
+        </div>
+
+        <div class="phase-grid" id="phaseGrid">
+          <button class="phase-card card" type="button" data-phase-index="0">
+            <canvas width="120" height="120" data-phase-canvas="0" aria-hidden="true"></canvas>
+            <strong>新月</strong>
+            <span>我们几乎只看到黑暗的一面。</span>
+          </button>
+          <button class="phase-card card" type="button" data-phase-index="1">
+            <canvas width="120" height="120" data-phase-canvas="1" aria-hidden="true"></canvas>
+            <strong>娥眉月</strong>
+            <span>一道细细的明亮「微笑」开始变大。</span>
+          </button>
+          <button class="phase-card card" type="button" data-phase-index="2">
+            <canvas width="120" height="120" data-phase-canvas="2" aria-hidden="true"></canvas>
+            <strong>上弦月</strong>
+            <span>看起来有一半是亮的。此时月亮走完了轨道的四分之一。</span>
+          </button>
+          <button class="phase-card card" type="button" data-phase-index="3">
+            <canvas width="120" height="120" data-phase-canvas="3" aria-hidden="true"></canvas>
+            <strong>盈凸月</strong>
+            <span>超过一半是亮的，并且仍在变大。</span>
+          </button>
+          <button class="phase-card card" type="button" data-phase-index="4">
+            <canvas width="120" height="120" data-phase-canvas="4" aria-hidden="true"></canvas>
+            <strong>满月</strong>
+            <span>明亮的一面几乎完全朝向我们。</span>
+          </button>
+          <button class="phase-card card" type="button" data-phase-index="5">
+            <canvas width="120" height="120" data-phase-canvas="5" aria-hidden="true"></canvas>
+            <strong>亏凸月</strong>
+            <span>超过一半是亮的，但此刻正在缩小。</span>
+          </button>
+          <button class="phase-card card" type="button" data-phase-index="6">
+            <canvas width="120" height="120" data-phase-canvas="6" aria-hidden="true"></canvas>
+            <strong>下弦月</strong>
+            <span>又有一半看起来是亮的，这一次出现在另一侧。</span>
+          </button>
+          <button class="phase-card card" type="button" data-phase-index="7">
+            <canvas width="120" height="120" data-phase-canvas="7" aria-hidden="true"></canvas>
+            <strong>残月</strong>
+            <span>回到新月之前，只剩下一小块明亮的部分。</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="section" id="words">
+        <div class="section__head">
+          <div>
+            <p class="kicker">第 3 节</p>
+            <h2>盈表示变大，亏表示变小。</h2>
+          </div>
+          <p class="section__lede">
+            正是这两个词，让整个循环变得更容易记住。
+          </p>
+        </div>
+
+        <div class="lesson-grid">
+          <article class="lesson-card card">
+            <h3>盈</h3>
+            <p>明亮的区域一夜比一夜更大。</p>
+            <p class="lesson-card__example">新月 → 娥眉月 → 上弦月 → 盈凸月 → 满月</p>
+          </article>
+          <article class="lesson-card card">
+            <h3>亏</h3>
+            <p>明亮的区域一夜比一夜更小。</p>
+            <p class="lesson-card__example">满月 → 亏凸月 → 下弦月 → 残月 → 新月</p>
+          </article>
+          <article class="lesson-card card lesson-card--accent">
+            <h3>「弦」并不意味着很小</h3>
+            <p>
+              弦月看起来像半个圆。<strong>quarter</strong>（四分之一）一词指的是月亮走完了绕地球轨道的四分之一。
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="shadow">
+        <div class="section__head">
+          <div>
+            <p class="kicker">第 4 节</p>
+            <h2>月相并不是地球的影子造成的</h2>
+          </div>
+          <p class="section__lede">
+            一个常见的误会是：以为月相的出现是因为地球挡住了太阳的光。通常并非如此。
+          </p>
+        </div>
+
+        <div class="shadow-grid">
+          <div class="story-card card">
+            <div class="toggle-row" role="group" aria-label="选择影子演示">
+              <button class="toggle-button is-active" type="button" data-shadow-mode="phase">普通月相</button>
+              <button class="toggle-button" type="button" data-shadow-mode="eclipse">月食</button>
+            </div>
+            <p id="shadowCopy">
+              在大多数夜晚，月亮都位于地球影子的略上方或略下方，因此月相只由阳光和我们的视角决定。
+            </p>
+          </div>
+
+          <div class="canvas-card card">
+            <canvas id="shadowCanvas" width="760" height="320" aria-label="月相与月食对比"></canvas>
+            <p class="caption">地球的影子只在月食时才起作用，在寻常的每月月相循环中并不起作用。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="game">
+        <div class="section__head">
+          <div>
+            <p class="kicker">第 5 节</p>
+            <h2>月相小游戏</h2>
+          </div>
+          <p class="section__lede">
+            看看这个月亮，你能说出它的名字吗？
+          </p>
+        </div>
+
+        <div class="game-card card">
+          <div class="game-card__visual">
+            <canvas id="quizCanvas" width="240" height="240" aria-label="测验用月亮相位"></canvas>
+          </div>
+          <div class="game-card__body">
+            <p class="quiz-score" id="quizScore">得分：0</p>
+            <p class="quiz-question">这是什么月相？</p>
+            <div class="quiz-options" id="quizOptions"></div>
+            <p class="quiz-feedback" id="quizFeedback">选择一个答案来核对。</p>
+            <div class="hero__actions">
+              <button class="primary-link primary-link--button" id="nextQuestion" type="button">下一题</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--takeaways" id="takeaways">
+        <div class="section__head">
+          <div>
+            <p class="kicker">记住这些</p>
+            <h2>三个要点</h2>
+          </div>
+        </div>
+
+        <div class="takeaway-list card">
+          <div class="takeaway-item">
+            <strong>月亮始终是圆的。</strong>
+            <span>发生变化的是阳光和我们的视角。</span>
+          </div>
+          <div class="takeaway-item">
+            <strong>总有一半被太阳照亮。</strong>
+            <span>只是我们并不总能看全那被照亮的一半。</span>
+          </div>
+          <div class="takeaway-item">
+            <strong>盈则长大，亏则缩小。</strong>
+            <span>这一对词能帮助你跟上整个循环。</span>
+          </div>
+        </div>
+      </section>
+    </article>
+
+    <script src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

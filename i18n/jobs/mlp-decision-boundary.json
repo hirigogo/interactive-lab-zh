@@ -1,0 +1,670 @@
+{
+ "slug": "mlp-decision-boundary",
+ "units": {
+  "ReLU Classification Playground": {
+   "zh": "ReLU 分类实验场",
+   "src": "ReLU Classification Playground",
+   "tags": []
+  },
+  "@@T0@@Skip to experiment@@T1@@": {
+   "zh": "@@T0@@跳到实验@@T1@@",
+   "src": "<a class=\"skip-link\" href=\"#experiment\">Skip to experiment</a>",
+   "tags": [
+    "<a class=\"skip-link\" href=\"#experiment\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@All interactives@@T1@@": {
+   "zh": "@@T0@@全部交互内容@@T1@@",
+   "src": "<a class=\"back\" href=\"../\" aria-label=\"Back to all interactives\">All interactives</a>",
+   "tags": [
+    "<a class=\"back\" href=\"../\" aria-label=\"Back to all interactives\">",
+    "</a>"
+   ]
+  },
+  "Deep Learning · Lecture 2": {
+   "zh": "深度学习 · 第 2 讲",
+   "src": "Deep Learning · Lecture 2",
+   "tags": []
+  },
+  "@@T0@@@@T1@@Companion lab@@T2@@@@T3@@Function approximation&nbsp;→@@T4@@@@T5@@": {
+   "zh": "@@T0@@@@T1@@配套实验@@T2@@@@T3@@函数逼近&nbsp;→@@T4@@@@T5@@",
+   "src": "<a class=\"companion-link\" href=\"../relu-function-approximation/\"><span>Companion lab</span><strong>Function approximation&nbsp;→</strong></a>",
+   "tags": [
+    "<a class=\"companion-link\" href=\"../relu-function-approximation/\">",
+    "<span>",
+    "</span>",
+    "<strong>",
+    "</strong>",
+    "</a>"
+   ]
+  },
+  "Data → ReLU features → score": {
+   "zh": "数据 → ReLU 特征 → 得分",
+   "src": "Data → ReLU features → score",
+   "tags": []
+  },
+  "See the function your classifier is using.": {
+   "zh": "看清你的分类器正在使用的是什么函数。",
+   "src": "See the function your classifier is using.",
+   "tags": []
+  },
+  "Change the evidence, architecture, or initialization. Then inspect how signed ReLU contributions assemble the logit surface and its @@T0@@z = 0@@T1@@ decision boundary.": {
+   "zh": "改变证据、架构或初始化，然后考察带符号的 ReLU 贡献如何组装出 logit 曲面及其 @@T0@@z = 0@@T1@@ 决策边界。",
+   "src": "Change the evidence, architecture, or initialization. Then inspect how signed ReLU contributions assemble the logit surface and its <em>z = 0</em> decision boundary.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Dataset": {
+   "zh": "数据集",
+   "src": "Dataset",
+   "tags": []
+  },
+  "@@T0@@Evidence shown to the model@@T1@@": {
+   "zh": "@@T0@@展示给模型的证据@@T1@@",
+   "src": "<span>Evidence shown to the model</span>",
+   "tags": [
+    "<span>",
+    "</span>"
+   ]
+  },
+  "XOR · four Boolean corners": {
+   "zh": "XOR · 四个布尔角点",
+   "src": "XOR · four Boolean corners",
+   "tags": []
+  },
+  "XOR · filled regions": {
+   "zh": "XOR · 填充区域",
+   "src": "XOR · filled regions",
+   "tags": []
+  },
+  "Two blobs": {
+   "zh": "两个团块",
+   "src": "Two blobs",
+   "tags": []
+  },
+  "Concentric circles": {
+   "zh": "同心圆",
+   "src": "Concentric circles",
+   "tags": []
+  },
+  "Two moons": {
+   "zh": "双月牙",
+   "src": "Two moons",
+   "tags": []
+  },
+  "Two spirals": {
+   "zh": "双螺旋",
+   "src": "Two spirals",
+   "tags": []
+  },
+  "Custom points": {
+   "zh": "自定义点",
+   "src": "Custom points",
+   "tags": []
+  },
+  "Four labels constrain the corners, not the space between them.": {
+   "zh": "四个标签只约束了四个角点，并未约束它们之间的空间。",
+   "src": "Four labels constrain the corners, not the space between them.",
+   "tags": []
+  },
+  "@@T0@@Data seed@@T1@@@@T2@@": {
+   "zh": "@@T0@@数据种子@@T1@@@@T2@@",
+   "src": "<span>Data seed</span><span class=\"seed-row\">",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span class=\"seed-row\">"
+   ]
+  },
+  "@@T0@@Click the input plot to add@@T1@@@@T2@@0 points@@T3@@": {
+   "zh": "@@T0@@点击输入图以添加@@T1@@@@T2@@0 个点@@T3@@",
+   "src": "<span class=\"field-label\">Click the input plot to add</span><output id=\"customCount\">0 points</output>",
+   "tags": [
+    "<span class=\"field-label\">",
+    "</span>",
+    "<output id=\"customCount\">",
+    "</output>"
+   ]
+  },
+  "@@T0@@@@T1@@Class 0": {
+   "zh": "@@T0@@@@T1@@类别 0",
+   "src": "<i class=\"dot dot-zero\"></i>Class 0",
+   "tags": [
+    "<i class=\"dot dot-zero\">",
+    "</i>"
+   ]
+  },
+  "@@T0@@@@T1@@Class 1": {
+   "zh": "@@T0@@@@T1@@类别 1",
+   "src": "<i class=\"diamond dot-one\"></i>Class 1",
+   "tags": [
+    "<i class=\"diamond dot-one\">",
+    "</i>"
+   ]
+  },
+  "Undo point": {
+   "zh": "撤销上一个点",
+   "src": "Undo point",
+   "tags": []
+  },
+  "Clear all": {
+   "zh": "全部清除",
+   "src": "Clear all",
+   "tags": []
+  },
+  "Empty stays empty. Seed changes never replace your points.": {
+   "zh": "空白就保持空白。更换种子绝不会替换你的点。",
+   "src": "Empty stays empty. Seed changes never replace your points.",
+   "tags": []
+  },
+  "Model": {
+   "zh": "模型",
+   "src": "Model",
+   "tags": []
+  },
+  "@@T0@@Architecture@@T1@@": {
+   "zh": "@@T0@@架构@@T1@@",
+   "src": "<span>Architecture</span>",
+   "tags": [
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Linear · no hidden layer": {
+   "zh": "线性 · 无隐藏层",
+   "src": "Linear · no hidden layer",
+   "tags": []
+  },
+  "1 hidden layer": {
+   "zh": "1 个隐藏层",
+   "src": "1 hidden layer",
+   "tags": []
+  },
+  "2 hidden layers": {
+   "zh": "2 个隐藏层",
+   "src": "2 hidden layers",
+   "tags": []
+  },
+  "@@T0@@@@T1@@Hidden width@@T2@@@@T3@@2@@T4@@@@T5@@": {
+   "zh": "@@T0@@@@T1@@隐藏层宽度@@T2@@@@T3@@2@@T4@@@@T5@@",
+   "src": "<span><span>Hidden width</span><output id=\"widthOutput\" for=\"widthRange\">2</output></span>",
+   "tags": [
+    "<span>",
+    "<span>",
+    "</span>",
+    "<output id=\"widthOutput\" for=\"widthRange\">",
+    "</output>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Widen without resetting.@@T1@@ Move right: added ReLUs begin with zero output contribution, so the current function stays exactly the same. Move left: a narrower model cannot preserve the same function, so the lab loads a fresh seeded model and training starts fresh. More capacity expands what the network can represent; an optimization run still determines which solution training finds.": {
+   "zh": "@@T0@@加宽而不重置。@@T1@@ 向右移动：新增的 ReLU 初始输出贡献为零，因此当前函数保持完全不变。向左移动：更窄的模型无法保持同一函数，故本实验会载入一个全新的带种子模型，训练重新开始。更大的容量扩展了网络所能表示的范围；而最终训练找到哪一个解，仍取决于一次优化过程。",
+   "src": "<strong>Widen without resetting.</strong> Move right: added ReLUs begin with zero output contribution, so the current function stays exactly the same. Move left: a narrower model cannot preserve the same function, so the lab loads a fresh seeded model and training starts fresh. More capacity expands what the network can represent; an optimization run still determines which solution training finds.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Learning rate@@T1@@": {
+   "zh": "@@T0@@学习率@@T1@@",
+   "src": "<span>Learning rate</span>",
+   "tags": [
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Initialization": {
+   "zh": "初始化",
+   "src": "Initialization",
+   "tags": []
+  },
+  "Hold data and architecture fixed; change only where optimization starts.": {
+   "zh": "固定数据与架构，只改变优化开始的位置。",
+   "src": "Hold data and architecture fixed; change only where optimization starts.",
+   "tags": []
+  },
+  "@@T0@@Weight seed@@T1@@@@T2@@": {
+   "zh": "@@T0@@权重种子@@T1@@@@T2@@",
+   "src": "<span>Weight seed</span><span class=\"seed-row\">",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span class=\"seed-row\">"
+   ]
+  },
+  "@@T0@@Recommended · reliable training start@@T1@@@@T2@@1 layer · width 8 · learning rate 0.1 · weight seed 23@@T3@@": {
+   "zh": "@@T0@@推荐 · 可靠的训练起点@@T1@@@@T2@@1 层 · 宽度 8 · 学习率 0.1 · 权重种子 23@@T3@@",
+   "src": "<span>Recommended · reliable training start</span><small id=\"recommendedSetupText\">1 layer · width 8 · learning rate 0.1 · weight seed 23</small>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<small id=\"recommendedSetupText\">",
+    "</small>"
+   ]
+  },
+  "@@T0@@Seeded · balanced hinges@@T1@@@@T2@@Keep architecture; reset well-spread ReLUs@@T3@@": {
+   "zh": "@@T0@@带种子 · 均衡的折线@@T1@@@@T2@@保持架构；重置为分布良好的 ReLU@@T3@@",
+   "src": "<span>Seeded · balanced hinges</span><small>Keep architecture; reset well-spread ReLUs</small>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<small>",
+    "</small>"
+   ]
+  },
+  "@@T0@@Constructed · 2 ReLUs@@T1@@@@T2@@Exact on four XOR corners@@T3@@": {
+   "zh": "@@T0@@人工构造 · 2 个 ReLU@@T1@@@@T2@@在四个 XOR 角点上精确成立@@T3@@",
+   "src": "<span>Constructed · 2 ReLUs</span><small>Exact on four XOR corners</small>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<small>",
+    "</small>"
+   ]
+  },
+  "@@T0@@Constructed · 4 ReLUs@@T1@@@@T2@@Exact across filled XOR@@T3@@": {
+   "zh": "@@T0@@人工构造 · 4 个 ReLU@@T1@@@@T2@@在整个填充 XOR 上精确成立@@T3@@",
+   "src": "<span>Constructed · 4 ReLUs</span><small>Exact across filled XOR</small>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<small>",
+    "</small>"
+   ]
+  },
+  "@@T0@@Filled XOR:@@T1@@ Constructed · 4 ReLUs proves the capacity. Recommended is the reliable training route from a balanced seeded start.": {
+   "zh": "@@T0@@填充 XOR：@@T1@@「人工构造 · 4 个 ReLU」证明了容量所在。「推荐」则是从一个均衡的带种子起点出发的可靠训练路径。",
+   "src": "<strong>Filled XOR:</strong> Constructed · 4 ReLUs proves the capacity. Recommended is the reliable training route from a balanced seeded start.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Optimize": {
+   "zh": "优化",
+   "src": "Optimize",
+   "tags": []
+  },
+  "Run": {
+   "zh": "运行",
+   "src": "Run",
+   "tags": []
+  },
+  "One step": {
+   "zh": "单步",
+   "src": "One step",
+   "tags": []
+  },
+  "Reset weights": {
+   "zh": "重置权重",
+   "src": "Reset weights",
+   "tags": []
+  },
+  "Constructed rule loaded for inspection. Choose Recommended or Seeded before training.": {
+   "zh": "已载入人工构造规则以供查看。训练前请选择「推荐」或「带种子」。",
+   "src": "Constructed rule loaded for inspection. Choose Recommended or Seeded before training.",
+   "tags": []
+  },
+  "@@T0@@Training minimizes BCE.@@T1@@ Accuracy uses a 0.5 threshold, so it can briefly fall even while BCE improves.": {
+   "zh": "@@T0@@训练最小化的是 BCE。@@T1@@ 准确率采用 0.5 的阈值，因此即便 BCE 在改善，准确率也可能短暂下降。",
+   "src": "<strong>Training minimizes BCE.</strong> Accuracy uses a 0.5 threshold, so it can briefly fall even while BCE improves.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "CURRENT DECISION FUNCTION": {
+   "zh": "当前决策函数",
+   "src": "CURRENT DECISION FUNCTION",
+   "tags": []
+  },
+  "@@T0@@constructed@@T1@@": {
+   "zh": "@@T0@@人工构造@@T1@@",
+   "src": "<span class=\"provenance-badge is-constructed\" id=\"provenanceBadge\">constructed</span>",
+   "tags": [
+    "<span class=\"provenance-badge is-constructed\" id=\"provenanceBadge\">",
+    "</span>"
+   ]
+  },
+  "Four points do not specify four regions": {
+   "zh": "四个点无法确定四个区域",
+   "src": "Four points do not specify four regions",
+   "tags": []
+  },
+  "Probability": {
+   "zh": "概率",
+   "src": "Probability",
+   "tags": []
+  },
+  "Logit": {
+   "zh": "logit",
+   "src": "Logit",
+   "tags": []
+  },
+  "Class": {
+   "zh": "类别",
+   "src": "Class",
+   "tags": []
+  },
+  "@@T0@@Training accuracy@@T1@@@@T2@@100%@@T3@@": {
+   "zh": "@@T0@@训练准确率@@T1@@@@T2@@100%@@T3@@",
+   "src": "<span id=\"metric1Label\">Training accuracy</span><strong id=\"metric1Value\">100%</strong>",
+   "tags": [
+    "<span id=\"metric1Label\">",
+    "</span>",
+    "<strong id=\"metric1Value\">",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Balanced field accuracy@@T1@@@@T2@@75%@@T3@@": {
+   "zh": "@@T0@@均衡场准确率@@T1@@@@T2@@75%@@T3@@",
+   "src": "<span id=\"metric2Label\">Balanced field accuracy</span><strong id=\"metric2Value\">75%</strong>",
+   "tags": [
+    "<span id=\"metric2Label\">",
+    "</span>",
+    "<strong id=\"metric2Value\">",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Training BCE@@T1@@@@T2@@0.31@@T3@@": {
+   "zh": "@@T0@@训练 BCE@@T1@@@@T2@@0.31@@T3@@",
+   "src": "<span id=\"metric3Label\">Training BCE</span><strong id=\"metric3Value\">0.31</strong>",
+   "tags": [
+    "<span id=\"metric3Label\">",
+    "</span>",
+    "<strong id=\"metric3Value\">",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Gradient steps@@T1@@@@T2@@0@@T3@@": {
+   "zh": "@@T0@@梯度步数@@T1@@@@T2@@0@@T3@@",
+   "src": "<span>Gradient steps</span><strong id=\"stepsValue\">0</strong>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong id=\"stepsValue\">",
+    "</strong>"
+   ]
+  },
+  "@@T0@@@@T1@@@@T2@@Class 0@@T3@@@@T4@@@@T5@@@@T6@@Class 1@@T7@@@@T8@@@@T9@@@@T10@@z = 0@@T11@@@@T12@@@@T13@@@@T14@@linked probe@@T15@@": {
+   "zh": "@@T0@@@@T1@@@@T2@@类别 0@@T3@@@@T4@@@@T5@@@@T6@@类别 1@@T7@@@@T8@@@@T9@@@@T10@@z = 0@@T11@@@@T12@@@@T13@@@@T14@@联动探针@@T15@@",
+   "src": "<span><i class=\"marker marker-zero\"></i>Class 0</span><span><i class=\"marker marker-one\"></i>Class 1</span><span><i class=\"boundary-swatch\"></i>z = 0</span><span><i class=\"probe-swatch\"></i>linked probe</span>",
+   "tags": [
+    "<span>",
+    "<i class=\"marker marker-zero\">",
+    "</i>",
+    "</span>",
+    "<span>",
+    "<i class=\"marker marker-one\">",
+    "</i>",
+    "</span>",
+    "<span>",
+    "<i class=\"boundary-swatch\">",
+    "</i>",
+    "</span>",
+    "<span>",
+    "<i class=\"probe-swatch\">",
+    "</i>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Shape and outline keep the data visible over every field.@@T1@@": {
+   "zh": "@@T0@@形状与描边使数据在每一层场上都清晰可见。@@T1@@",
+   "src": "<span>Shape and outline keep the data visible over every field.</span>",
+   "tags": [
+    "<span>",
+    "</span>"
+   ]
+  },
+  "ARCHITECTURE": {
+   "zh": "架构",
+   "src": "ARCHITECTURE",
+   "tags": []
+  },
+  "Two inputs → two ReLUs → one score": {
+   "zh": "两个输入 → 两个 ReLU → 一个得分",
+   "src": "Two inputs → two ReLUs → one score",
+   "tags": []
+  },
+  "@@T0@@9 parameters@@T1@@": {
+   "zh": "@@T0@@9 个参数@@T1@@",
+   "src": "<span class=\"parameter-count\" id=\"parameterCount\">9 parameters</span>",
+   "tags": [
+    "<span class=\"parameter-count\" id=\"parameterCount\">",
+    "</span>"
+   ]
+  },
+  "OPTIMIZATION TRACE": {
+   "zh": "优化轨迹",
+   "src": "OPTIMIZATION TRACE",
+   "tags": []
+  },
+  "Cross-entropy over steps": {
+   "zh": "交叉熵随步数的变化",
+   "src": "Cross-entropy over steps",
+   "tags": []
+  },
+  "@@T0@@log scale@@T1@@": {
+   "zh": "@@T0@@对数刻度@@T1@@",
+   "src": "<span class=\"history-note\">log scale</span>",
+   "tags": [
+    "<span class=\"history-note\">",
+    "</span>"
+   ]
+  },
+  "SIGNED OUTPUT TERMS": {
+   "zh": "带符号的输出项",
+   "src": "SIGNED OUTPUT TERMS",
+   "tags": []
+  },
+  "The pieces that add up to z(x₁, x₂)": {
+   "zh": "相加构成 z(x₁, x₂) 的各项",
+   "src": "The pieces that add up to z(x₁, x₂)",
+   "tags": []
+  },
+  "@@T0@@@@T1@@@@T2@@shared scale · zero centered@@T3@@": {
+   "zh": "@@T0@@@@T1@@@@T2@@共享刻度 · 以零为中心@@T3@@",
+   "src": "<span class=\"shared-scale\"><i></i>shared scale · zero centered</span>",
+   "tags": [
+    "<span class=\"shared-scale\">",
+    "<i>",
+    "</i>",
+    "</span>"
+   ]
+  },
+  "Each map shows @@T0@@vⱼhⱼ@@T1@@, not merely activation. Blue raises the class-1 score, rust lowers it, and the hinge line marks where its ReLU turns on.": {
+   "zh": "每张图展示的是 @@T0@@vⱼhⱼ@@T1@@，而不仅仅是激活值。蓝色抬高类别 1 的得分，铁锈色则使其降低，折线标记出该 ReLU 开启的位置。",
+   "src": "Each map shows <strong>vⱼhⱼ</strong>, not merely activation. Blue raises the class-1 score, rust lowers it, and the hinge line marks where its ReLU turns on.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "RAW LOGIT SURFACE": {
+   "zh": "原始 logit 曲面",
+   "src": "RAW LOGIT SURFACE",
+   "tags": []
+  },
+  "Orbit the learned function": {
+   "zh": "环绕观察学到的函数",
+   "src": "Orbit the learned function",
+   "tags": []
+  },
+  "Iso": {
+   "zh": "等轴",
+   "src": "Iso",
+   "tags": []
+  },
+  "Top": {
+   "zh": "俯视",
+   "src": "Top",
+   "tags": []
+  },
+  "Front": {
+   "zh": "正视",
+   "src": "Front",
+   "tags": []
+  },
+  "Reset": {
+   "zh": "重置",
+   "src": "Reset",
+   "tags": []
+  },
+  "Drag to orbit · wheel to zoom · orange sheet is z = 0": {
+   "zh": "拖动以环绕 · 滚轮以缩放 · 橙色平面即 z = 0",
+   "src": "Drag to orbit · wheel to zoom · orange sheet is z = 0",
+   "tags": []
+  },
+  "z = 0.50 · p = 0.62 · class 1": {
+   "zh": "z = 0.50 · p = 0.62 · 类别 1",
+   "src": "z = 0.50 · p = 0.62 · class 1",
+   "tags": []
+  },
+  "@@T0@@Run the experiment@@T1@@": {
+   "zh": "@@T0@@运行实验@@T1@@",
+   "src": "<span>Run the experiment</span>",
+   "tags": [
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Change one thing. Predict first.": {
+   "zh": "只改变一项。先做出预测。",
+   "src": "Change one thing. Predict first.",
+   "tags": []
+  },
+  "@@T0@@Evidence@@T1@@ Compare four XOR corners with the filled field. Which unseen regions change?": {
+   "zh": "@@T0@@证据@@T1@@ 把四个 XOR 角点与填充场作比较。哪些未见过的区域会发生变化？",
+   "src": "<strong>Evidence</strong> Compare four XOR corners with the filled field. Which unseen regions change?",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Capacity@@T1@@ Train a small model, then widen it. The boundary should not jump until optimization uses the new ReLUs.": {
+   "zh": "@@T0@@容量@@T1@@ 训练一个小模型，然后将其加宽。在优化真正利用新增 ReLU 之前，边界不应发生跳变。",
+   "src": "<strong>Capacity</strong> Train a small model, then widen it. The boundary should not jump until optimization uses the new ReLUs.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Optimization@@T1@@ Hold data and width fixed. Do different seeds learn the same surface?": {
+   "zh": "@@T0@@优化@@T1@@ 固定数据与宽度。不同的种子会学到相同的曲面吗？",
+   "src": "<strong>Optimization</strong> Hold data and width fixed. Do different seeds learn the same surface?",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Deterministic data · full-batch gradient descent · computation stays in this page@@T1@@": {
+   "zh": "@@T0@@确定性数据 · 全批次梯度下降 · 计算全部在本页内完成@@T1@@",
+   "src": "<span>Deterministic data · full-batch gradient descent · computation stays in this page</span>",
+   "tags": [
+    "<span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Continue to ReLU function approximation@@T1@@@@T2@@Lecture slides@@T3@@": {
+   "zh": "@@T0@@继续学习 ReLU 函数逼近@@T1@@@@T2@@讲义幻灯片@@T3@@",
+   "src": "<a href=\"../relu-function-approximation/\">Continue to ReLU function approximation</a><a href=\"https://nipunbatra.github.io/dl-teaching/slides-pdf/L2.pdf\">Lecture slides</a>",
+   "tags": [
+    "<a href=\"../relu-function-approximation/\">",
+    "</a>",
+    "<a href=\"https://nipunbatra.github.io/dl-teaching/slides-pdf/L2.pdf\">",
+    "</a>"
+   ]
+  },
+  "Back to all interactives": {
+   "zh": "返回全部交互内容",
+   "src": "Back to all interactives",
+   "tags": []
+  },
+  "Experiment controls": {
+   "zh": "实验控件",
+   "src": "Experiment controls",
+   "tags": []
+  },
+  "Use the next data seed": {
+   "zh": "使用下一个数据种子",
+   "src": "Use the next data seed",
+   "tags": []
+  },
+  "Class for the next custom point": {
+   "zh": "下一个自定义点的类别",
+   "src": "Class for the next custom point",
+   "tags": []
+  },
+  "Use the next weight seed": {
+   "zh": "使用下一个权重种子",
+   "src": "Use the next weight seed",
+   "tags": []
+  },
+  "Experiment output": {
+   "zh": "实验输出",
+   "src": "Experiment output",
+   "tags": []
+  },
+  "Input-space field": {
+   "zh": "输入空间场",
+   "src": "Input-space field",
+   "tags": []
+  },
+  "Training data over the current model field. Click to move the linked probe; in a custom dataset, click to add points.": {
+   "zh": "叠加在当前模型场之上的训练数据。点击可移动联动探针；在自定义数据集下，点击可添加数据点。",
+   "src": "Training data over the current model field. Click to move the linked probe; in a custom dataset, click to add points.",
+   "tags": []
+  },
+  "Current network architecture": {
+   "zh": "当前网络架构",
+   "src": "Current network architecture",
+   "tags": []
+  },
+  "Training loss history": {
+   "zh": "训练损失历史",
+   "src": "Training loss history",
+   "tags": []
+  },
+  "Surface camera presets": {
+   "zh": "曲面相机预设",
+   "src": "Surface camera presets",
+   "tags": []
+  },
+  "Interactive three-dimensional logit surface": {
+   "zh": "交互式三维 logit 曲面",
+   "src": "Interactive three-dimensional logit surface",
+   "tags": []
+  },
+  "Related material": {
+   "zh": "相关材料",
+   "src": "Related material",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "ReLU 分类实验场",
+  "tagline": "训练一个小型 ReLU 分类器，再考察组装出其决策曲面的各个带符号函数。",
+  "summary": "将四角点 XOR 与填充 XOR、标准数据集或自定义数据集作比较；独立地改变架构与初始化；考察带符号隐单元贡献；跟踪优化历史；并环绕观察模型的三维 logit 曲面。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "把四个 XOR 标签与稠密采样的 XOR 场、四个标准数据集或自定义点作比较。",
+   "在追踪模型来源的同时，将证据、架构与初始化彼此分离。",
+   "借助折线与共享的以零为中心刻度，考察带符号的输出项。",
+   "在探测联动输入空间位置的同时，环绕并缩放原始 logit 曲面。",
+   "绘制自定义数据集，而不让更换种子悄然替换你的数据点。"
+  ],
+  "tags": [
+   "MLP",
+   "ReLU",
+   "XOR",
+   "分类",
+   "决策边界",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

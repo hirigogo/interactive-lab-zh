@@ -1,0 +1,26 @@
+{
+  "slug": "image-segmentation",
+  "title": "图像分割：使用真实的语义分割模型",
+  "date": "2026-05-03",
+  "tagline": "上传一张照片，运行真实的 DeepLab 模型，并用它为自己的掩码评分",
+  "summary": "一个预训练的 DeepLab v3+（Pascal VOC，21 类）在你提供的任意照片上于浏览器中实时运行。亲手绘制掩码，观察平均 IoU 与逐类 IoU 相对真实模型输出的变化——或运行经典的区域生长方法，看它在何处失效。",
+  "readingTime": "15 min",
+  "difficulty": "中级",
+  "collection": "计算机视觉",
+  "order": 16,
+  "status": "published",
+  "tags": [
+    "分割",
+    "DeepLab",
+    "语义分割",
+    "TensorFlow.js",
+    "计算机视觉",
+    "交互式"
+  ],
+  "highlights": [
+    "通过 TensorFlow.js 在浏览器内加载真实的 DeepLab v3+（Pascal VOC）——在真实照片上生成真实的语义掩码。",
+    "亲手绘制掩码，观察平均 IoU、像素准确率与逐类 IoU 逐步逼近真实模型的输出。",
+    "BFS 区域生长作为神经网络之前的基线供你对比：调节颜色阈值，看它成功或渗漏。",
+    "可上传任意 JPEG/PNG、抓取摄像头画面，或从六张素材照片中任选一张。"
+  ]
+}

@@ -1,0 +1,249 @@
+{
+ "slug": "bayes-classifier",
+ "units": {
+  "A Bayes Classifier, by Hand": {
+   "zh": "亲手构建一个贝叶斯分类器",
+   "src": "A Bayes Classifier, by Hand",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "If you knew the true distribution of each class, what is the best possible\n      classifier? Bayes' rule answers exactly: form the posterior\n      $p(Y=1\\mid x) \\propto p(x\\mid Y=1)\\,p(Y=1)$ and predict the more probable class.\n      Here we build it from two Gaussians and a prior &mdash; and watch the optimal\n      decision boundary appear right where the posterior crosses one half.": {
+   "zh": "若你已知每个类别的真实分布，那么最优的分类器是什么？\n      贝叶斯法则给出了确切答案：构造后验\n      $p(Y=1\\mid x) \\propto p(x\\mid Y=1)\\,p(Y=1)$，并预测概率更大的那个类别。\n      这里我们用两个高斯分布与一个先验把它构建出来——并观察最优\n      决策边界如何恰好出现在后验穿过二分之一之处。",
+   "src": "If you knew the true distribution of each class, what is the best possible\n      classifier? Bayes' rule answers exactly: form the posterior\n      $p(Y=1\\mid x) \\propto p(x\\mid Y=1)\\,p(Y=1)$ and predict the more probable class.\n      Here we build it from two Gaussians and a prior &mdash; and watch the optimal\n      decision boundary appear right where the posterior crosses one half.",
+   "tags": []
+  },
+  "@@T0@@~10 min@@T1@@\n      @@T2@@Deep Learning &middot; Probability &middot; Classification@@T3@@": {
+   "zh": "@@T0@@约 10 分钟@@T1@@\n      @@T2@@深度学习 &middot; 概率 &middot; 分类@@T3@@",
+   "src": "<span>~10 min</span>\n      <span>Deep Learning &middot; Probability &middot; Classification</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Likelihood times prior, normalized": {
+   "zh": "似然乘以先验，再归一化",
+   "src": "Likelihood times prior, normalized",
+   "tags": []
+  },
+  "Model each class as a generator of data. Class 0 emits points from\n      $p(x\\mid Y=0)=\\mathcal{N}(\\mu_0,\\sigma_0^2)$; class 1 from\n      $p(x\\mid Y=1)=\\mathcal{N}(\\mu_1,\\sigma_1^2)$. Add a prior belief $\\pi = p(Y=1)$\n      about how common class 1 is. Bayes' rule inverts the generator to tell you,\n      given a point $x$, how probable each class is:": {
+   "zh": "把每个类别建模为数据的生成器。类别 0 从\n      $p(x\\mid Y=0)=\\mathcal{N}(\\mu_0,\\sigma_0^2)$ 生成数据点；类别 1 从\n      $p(x\\mid Y=1)=\\mathcal{N}(\\mu_1,\\sigma_1^2)$ 生成数据点。再添加一个关于类别 1 有多常见的\n      先验信念 $\\pi = p(Y=1)$。贝叶斯法则把生成器反过来，\n      在给定一个数据点 $x$ 时告诉你每个类别的概率：",
+   "src": "Model each class as a generator of data. Class 0 emits points from\n      $p(x\\mid Y=0)=\\mathcal{N}(\\mu_0,\\sigma_0^2)$; class 1 from\n      $p(x\\mid Y=1)=\\mathcal{N}(\\mu_1,\\sigma_1^2)$. Add a prior belief $\\pi = p(Y=1)$\n      about how common class 1 is. Bayes' rule inverts the generator to tell you,\n      given a point $x$, how probable each class is:",
+   "tags": []
+  },
+  "Predict class 1 wherever this posterior exceeds $\\tfrac12$. The set of points\n      where it equals exactly $\\tfrac12$ is the @@T0@@decision boundary@@T1@@.\n      No classifier can do better on average than this one &mdash; it is the\n      @@T2@@Bayes-optimal@@T3@@ rule, the yardstick everything else is measured against.": {
+   "zh": "凡后验超过 $\\tfrac12$ 之处即预测为类别 1。\n      而后验恰好等于 $\\tfrac12$ 的那些点构成的集合就是@@T0@@决策边界@@T1@@。\n      平均而言，没有任何分类器能胜过它——它就是\n      @@T2@@贝叶斯最优@@T3@@规则，是衡量其他一切方法的标尺。",
+   "src": "Predict class 1 wherever this posterior exceeds $\\tfrac12$. The set of points\n      where it equals exactly $\\tfrac12$ is the <strong>decision boundary</strong>.\n      No classifier can do better on average than this one &mdash; it is the\n      <em>Bayes-optimal</em> rule, the yardstick everything else is measured against.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Lab": {
+   "zh": "实验台",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Build the classifier": {
+   "zh": "构建分类器",
+   "src": "Build the classifier",
+   "tags": []
+  },
+  "Top panel: the two class-conditional densities (already weighted by their\n      priors, so their areas reflect $\\pi$ and $1-\\pi$). Bottom panel: the posterior\n      $p(Y=1\\mid x)$, with the $0.5$ line and the resulting decision boundary. Drag\n      anywhere on the figure &mdash; or use the $x^{*}$ slider &mdash; to move the test point.": {
+   "zh": "上方面板：两个类条件密度（已按各自先验加权，因此其面积反映了 $\\pi$ 与 $1-\\pi$）。\n      下方面板：后验 $p(Y=1\\mid x)$，连同 $0.5$ 水平线与由此得到的决策边界。\n      在图上任意位置拖动——或使用 $x^{*}$ 滑块——即可移动测试点。",
+   "src": "Top panel: the two class-conditional densities (already weighted by their\n      priors, so their areas reflect $\\pi$ and $1-\\pi$). Bottom panel: the posterior\n      $p(Y=1\\mid x)$, with the $0.5$ line and the resulting decision boundary. Drag\n      anywhere on the figure &mdash; or use the $x^{*}$ slider &mdash; to move the test point.",
+   "tags": []
+  },
+  "Mean $\\mu_0$ @@T0@@-1.5@@T1@@": {
+   "zh": "均值 $\\mu_0$ @@T0@@-1.5@@T1@@",
+   "src": "Mean $\\mu_0$ <span id=\"mu0Val\">-1.5</span>",
+   "tags": [
+    "<span id=\"mu0Val\">",
+    "</span>"
+   ]
+  },
+  "Mean $\\mu_1$ @@T0@@1.5@@T1@@": {
+   "zh": "均值 $\\mu_1$ @@T0@@1.5@@T1@@",
+   "src": "Mean $\\mu_1$ <span id=\"mu1Val\">1.5</span>",
+   "tags": [
+    "<span id=\"mu1Val\">",
+    "</span>"
+   ]
+  },
+  "Std $\\sigma_0$ @@T0@@1.00@@T1@@": {
+   "zh": "标准差 $\\sigma_0$ @@T0@@1.00@@T1@@",
+   "src": "Std $\\sigma_0$ <span id=\"s0Val\">1.00</span>",
+   "tags": [
+    "<span id=\"s0Val\">",
+    "</span>"
+   ]
+  },
+  "Std $\\sigma_1$ @@T0@@1.00@@T1@@": {
+   "zh": "标准差 $\\sigma_1$ @@T0@@1.00@@T1@@",
+   "src": "Std $\\sigma_1$ <span id=\"s1Val\">1.00</span>",
+   "tags": [
+    "<span id=\"s1Val\">",
+    "</span>"
+   ]
+  },
+  "Prior $\\pi = p(Y{=}1)$ @@T0@@0.50@@T1@@": {
+   "zh": "先验 $\\pi = p(Y{=}1)$ @@T0@@0.50@@T1@@",
+   "src": "Prior $\\pi = p(Y{=}1)$ <span id=\"priorVal\">0.50</span>",
+   "tags": [
+    "<span id=\"priorVal\">",
+    "</span>"
+   ]
+  },
+  "Test point $x^{*}$ @@T0@@0.00@@T1@@": {
+   "zh": "测试点 $x^{*}$ @@T0@@0.00@@T1@@",
+   "src": "Test point $x^{*}$ <span id=\"xstarVal\">0.00</span>",
+   "tags": [
+    "<span id=\"xstarVal\">",
+    "</span>"
+   ]
+  },
+  "Top: prior-weighted densities $\\pi\\,p(x|Y{=}1)$ and $(1-\\pi)\\,p(x|Y{=}0)$. Bottom: posterior $p(Y{=}1|x)$. Vertical orange line is $x^{*}$; dashed lines are decision boundaries.": {
+   "zh": "上：先验加权密度 $\\pi\\,p(x|Y{=}1)$ 与 $(1-\\pi)\\,p(x|Y{=}0)$。下：后验 $p(Y{=}1|x)$。竖直橙色线为 $x^{*}$；虚线为决策边界。",
+   "src": "Top: prior-weighted densities $\\pi\\,p(x|Y{=}1)$ and $(1-\\pi)\\,p(x|Y{=}0)$. Bottom: posterior $p(Y{=}1|x)$. Vertical orange line is $x^{*}$; dashed lines are decision boundaries.",
+   "tags": []
+  },
+  "@@T0@@Prediction at $x^{*}$@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@$x^{*}$ 处的预测@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Prediction at $x^{*}$</span>\n        <span class=\"stat-value\" id=\"predVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"predVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Posterior $p(Y{=}1\\mid x^{*})$@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@后验 $p(Y{=}1\\mid x^{*})$@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Posterior $p(Y{=}1\\mid x^{*})$</span>\n        <span class=\"stat-value\" id=\"postVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"postVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Decision boundary@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@决策边界@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Decision boundary</span>\n        <span class=\"stat-value\" id=\"boundVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"boundVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Try this.@@T1@@ With equal variances, drag the prior $\\pi$ from\n      $0.5$ down toward $0.1$. The boundary slides toward class 1's mean &mdash; if\n      class 1 is rare, you demand stronger evidence (a point deeper into its\n      territory) before predicting it. Then make $\\sigma_1$ much larger than\n      $\\sigma_0$: the boundary splits into @@T2@@two@@T3@@ crossings, and the broad\n      class can win out on both far tails. That curvature is exactly what separates\n      quadratic discriminant analysis from the straight-line logistic boundary.": {
+   "zh": "@@T0@@试试这个。@@T1@@ 在方差相等的情况下，把先验 $\\pi$ 从\n      $0.5$ 向下拖到 $0.1$ 附近。边界会朝类别 1 的均值滑动——若\n      类别 1 很罕见，你会要求更强的证据（一个更深入其领地的点）\n      才预测它。接着令 $\\sigma_1$ 远大于\n      $\\sigma_0$：边界分裂为@@T2@@两个@@T3@@交点，而较宽的那个类别\n      可以在两端的远端尾部都胜出。这种弯曲正是二次判别分析\n      区别于直线型 logistic 边界之处。",
+   "src": "<strong>Try this.</strong> With equal variances, drag the prior $\\pi$ from\n      $0.5$ down toward $0.1$. The boundary slides toward class 1's mean &mdash; if\n      class 1 is rare, you demand stronger evidence (a point deeper into its\n      territory) before predicting it. Then make $\\sigma_1$ much larger than\n      $\\sigma_0$: the boundary splits into <em>two</em> crossings, and the broad\n      class can win out on both far tails. That curvature is exactly what separates\n      quadratic discriminant analysis from the straight-line logistic boundary.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "回报",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Where the boundary comes from": {
+   "zh": "决策边界从何而来",
+   "src": "Where the boundary comes from",
+   "tags": []
+  },
+  "Setting the posterior to $\\tfrac12$ is the same as setting the two\n      prior-weighted likelihoods equal: $\\pi\\,p(x|Y{=}1) = (1-\\pi)\\,p(x|Y{=}0)$.\n      Take logs of the two Gaussians and the boundary condition becomes a quadratic in $x$:": {
+   "zh": "把后验设为 $\\tfrac12$，等同于令两个先验加权似然相等：\n      $\\pi\\,p(x|Y{=}1) = (1-\\pi)\\,p(x|Y{=}0)$。\n      对两个高斯分布取对数，边界条件就变成关于 $x$ 的二次式：",
+   "src": "Setting the posterior to $\\tfrac12$ is the same as setting the two\n      prior-weighted likelihoods equal: $\\pi\\,p(x|Y{=}1) = (1-\\pi)\\,p(x|Y{=}0)$.\n      Take logs of the two Gaussians and the boundary condition becomes a quadratic in $x$:",
+   "tags": []
+  },
+  "@@T0@@Equal variances@@T1@@ ($\\sigma_0=\\sigma_1$): the $x^2$ terms cancel, leaving a @@T2@@single linear@@T3@@ boundary. This is exactly the decision rule of logistic regression / linear discriminant analysis.": {
+   "zh": "@@T0@@方差相等@@T1@@（$\\sigma_0=\\sigma_1$）：$x^2$ 项相互抵消，只剩一条@@T2@@单一的线性@@T3@@边界。这正是逻辑回归 / 线性判别分析的决策规则。",
+   "src": "<strong>Equal variances</strong> ($\\sigma_0=\\sigma_1$): the $x^2$ terms cancel, leaving a <em>single linear</em> boundary. This is exactly the decision rule of logistic regression / linear discriminant analysis.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Unequal variances@@T1@@: the $x^2$ terms survive &mdash; a genuine quadratic with up to @@T2@@two@@T3@@ roots. This is quadratic discriminant analysis.": {
+   "zh": "@@T0@@方差不等@@T1@@：$x^2$ 项保留下来——一个真正的二次式，最多有@@T2@@两个@@T3@@根。这就是二次判别分析。",
+   "src": "<strong>Unequal variances</strong>: the $x^2$ terms survive &mdash; a genuine quadratic with up to <em>two</em> roots. This is quadratic discriminant analysis.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@The prior@@T1@@ enters only through $\\log\\frac{\\pi}{1-\\pi}$, an additive shift &mdash; so changing the prior slides the boundary without changing its shape.": {
+   "zh": "@@T0@@先验@@T1@@仅通过 $\\log\\frac{\\pi}{1-\\pi}$ 进入边界，表现为一个加性平移——\n      因此改变先验只会平移边界，而不改变其形状。",
+   "src": "<strong>The prior</strong> enters only through $\\log\\frac{\\pi}{1-\\pi}$, an additive shift &mdash; so changing the prior slides the boundary without changing its shape.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Takeaway.@@T1@@ A classifier is just a rule for comparing posteriors. Generative models\n      (like this one) get there by modeling $p(x|y)$ and applying Bayes' rule; discriminative models\n      (logistic regression, neural nets) skip straight to modeling $p(y|x)$. Both are chasing the same\n      Bayes-optimal boundary you are dragging around above.": {
+   "zh": "@@T0@@要点。@@T1@@ 分类器不过是一条比较后验的规则。生成式模型\n      （如此处所示）通过建模 $p(x|y)$ 并应用贝叶斯法则到达那里；判别式模型\n      （逻辑回归、神经网络）则直接建模 $p(y|x)$。二者追逐的\n      都是你在上方拖动的那条同一条贝叶斯最优边界。",
+   "src": "<strong>Takeaway.</strong> A classifier is just a rule for comparing posteriors. Generative models\n      (like this one) get there by modeling $p(x|y)$ and applying Bayes' rule; discriminative models\n      (logistic regression, neural nets) skip straight to modeling $p(y|x)$. Both are chasing the same\n      Bayes-optimal boundary you are dragging around above.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 1: Why These Losses?": {
+   "zh": "ES 667 深度学习讲解系列之一 &middot; 第 1 讲：为何使用这些损失函数？",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 1: Why These Losses?",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "亲手构建一个贝叶斯分类器",
+  "tagline": "两个高斯分布加一个先验——构建最优分类器，观察决策边界如何移动",
+  "summary": "两个类条件高斯分布、一个先验滑块，以及一个可拖动的测试点。似然乘以先验、归一化，就得到了后验 p(Y=1|x)——可证明最优的分类器。拖动测试点以读取其预测类别与后验概率；滑动先验，观察决策边界随之平移。这就是逻辑回归、高斯判别分析与朴素贝叶斯底层的机制。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "观察两个类条件高斯分布，以及贝叶斯法则由此构建的后验 p(Y=1|x)。",
+   "决策边界恰好出现在后验越过 0.5 之处——拖动滑块，它会实时移动。",
+   "调低类别 1 的先验，观察边界朝类别 1 的领地移动、其区域随之收缩。",
+   "方差不等时边界弯折为两个交点——一窥二次判别分析。",
+   "拖动测试点以读取其预测类别与后验概率，即每个位置上的最优决策。"
+  ],
+  "tags": [
+   "贝叶斯分类器",
+   "后验",
+   "生成式模型",
+   "概率",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

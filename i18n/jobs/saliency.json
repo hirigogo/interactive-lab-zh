@@ -1,0 +1,551 @@
+{
+ "slug": "saliency",
+ "units": {
+  "Saliency, Side by Side": {
+   "zh": "显著图：并排比较",
+   "src": "Saliency, Side by Side",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Which pixels does your classifier actually use? Four\n          attribution methods (vanilla gradient, SmoothGrad,\n          Integrated Gradients, Grad-CAM) computed live on the same\n          image. Where they agree, where they disagree, and the\n          known reasons each one can lie.": {
+   "zh": "你的分类器究竟使用了哪些像素？四种归因方法（原始梯度、SmoothGrad、\n          积分梯度、Grad-CAM）在同一张图像上实时计算。\n          它们在何处一致、在何处分歧，以及各自可能“说谎”的已知原因。",
+   "src": "Which pixels does your classifier actually use? Four\n          attribution methods (vanilla gradient, SmoothGrad,\n          Integrated Gradients, Grad-CAM) computed live on the same\n          image. Where they agree, where they disagree, and the\n          known reasons each one can lie.",
+   "tags": []
+  },
+  "@@T0@@~16 min@@T1@@\n          @@T2@@Interpretability &middot; Saliency &middot; Vision@@T3@@": {
+   "zh": "@@T0@@约 16 分钟@@T1@@\n          @@T2@@可解释性 &middot; 显著图 &middot; 视觉@@T3@@",
+   "src": "<span>~16 min</span>\n          <span>Interpretability &middot; Saliency &middot; Vision</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "The 'why' question": {
+   "zh": "“为什么”这一问题",
+   "src": "The 'why' question",
+   "tags": []
+  },
+  "A classifier outputs \"tumor present, p = 0.92\" on a scan. The\n          right next question is @@T0@@why@@T1@@. Saliency methods produce\n          a per-pixel \"importance\" map answering \"which pixels of the\n          input most influenced this prediction?\". They are useful,\n          sometimes deeply misleading, and almost always worth running\n          before publishing a model or deploying it.": {
+   "zh": "分类器在一张扫描图上输出“存在肿瘤，p = 0.92”。\n          随之而来的正确问题便是@@T0@@为什么@@T1@@。显著图方法会生成一张\n          逐像素的“重要性”图，回答“输入的哪些像素对本次预测影响最大？”。\n          它们很有用，有时却极具误导性，而且在发布或部署模型之前，\n          几乎总是值得运行一遍。",
+   "src": "A classifier outputs \"tumor present, p = 0.92\" on a scan. The\n          right next question is <em>why</em>. Saliency methods produce\n          a per-pixel \"importance\" map answering \"which pixels of the\n          input most influenced this prediction?\". They are useful,\n          sometimes deeply misleading, and almost always worth running\n          before publishing a model or deploying it.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@The catch.@@T1@@\n          Saliency does not equal evidence. The same prediction can be\n          supported by very different maps. Saliency-shapley\n          experiments (Adebayo et al., 2018) show some methods pass\n          their sanity tests on randomised models &mdash; meaning the\n          map looked like the original even when the classifier was\n          random. Use saliency to @@T2@@generate hypotheses@@T3@@, not\n          to confirm them.": {
+   "zh": "@@T0@@其中的陷阱。@@T1@@\n          显著图并不等于证据。同一个预测可以由截然不同的图来支持。\n          关于显著图与 Shapley 值的实验（Adebayo 等，2018）表明，\n          某些方法在随机化模型上也能通过其健全性检验——这意味着\n          即便分类器是随机的，生成的图看起来仍与原来相似。\n          把显著图用于@@T2@@生成假设@@T3@@，而不是用它来证实假设。",
+   "src": "<strong>The catch.</strong>\n          Saliency does not equal evidence. The same prediction can be\n          supported by very different maps. Saliency-shapley\n          experiments (Adebayo et al., 2018) show some methods pass\n          their sanity tests on randomised models &mdash; meaning the\n          map looked like the original even when the classifier was\n          random. Use saliency to <em>generate hypotheses</em>, not\n          to confirm them.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "The four methods": {
+   "zh": "四种方法",
+   "src": "The four methods",
+   "tags": []
+  },
+  "@@T0@@Vanilla gradient.@@T1@@\n            $\\partial f_c / \\partial x$. Cheapest, noisiest. Saturates\n            on ReLUs (zero gradient where the unit was off).": {
+   "zh": "@@T0@@原始梯度。@@T1@@\n            $\\partial f_c / \\partial x$。代价最低，噪声最大。\n            在 ReLU 上会饱和（当单元处于关闭状态时梯度为零）。",
+   "src": "<strong>Vanilla gradient.</strong>\n            $\\partial f_c / \\partial x$. Cheapest, noisiest. Saturates\n            on ReLUs (zero gradient where the unit was off).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@SmoothGrad.@@T1@@ Average vanilla gradients\n            over $n$ noisy copies of the image. Smoother, more stable;\n            still sensitive to the model.": {
+   "zh": "@@T0@@SmoothGrad。@@T1@@ 对图像的 $n$ 个加噪副本\n            上的原始梯度求平均。更平滑、更稳定；\n            但仍对模型敏感。",
+   "src": "<strong>SmoothGrad.</strong> Average vanilla gradients\n            over $n$ noisy copies of the image. Smoother, more stable;\n            still sensitive to the model.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Integrated Gradients.@@T1@@ Integrate\n            gradients along a path from a baseline (often zeros) to\n            the input. Satisfies @@T2@@completeness@@T3@@: pixel\n            attributions sum to (output − baseline-output).": {
+   "zh": "@@T0@@积分梯度。@@T1@@ 沿一条从基线（常取零）\n            到输入的路径对梯度做积分。它满足@@T2@@完备性@@T3@@：\n            各像素的归因之和等于（输出 − 基线输出）。",
+   "src": "<strong>Integrated Gradients.</strong> Integrate\n            gradients along a path from a baseline (often zeros) to\n            the input. Satisfies <em>completeness</em>: pixel\n            attributions sum to (output − baseline-output).",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Grad-CAM.@@T1@@ Gradient-weighted activation\n            map at a chosen conv layer. Coarser (one-pixel-per-CNN-cell)\n            but faithful to the network's internal feature space.": {
+   "zh": "@@T0@@Grad-CAM。@@T1@@ 在选定的卷积层上计算\n            梯度加权的激活图。粒度更粗（每个 CNN 单元对应一个像素），\n            但忠实于网络内部的特征空间。",
+   "src": "<strong>Grad-CAM.</strong> Gradient-weighted activation\n            map at a chosen conv layer. Coarser (one-pixel-per-CNN-cell)\n            but faithful to the network's internal feature space.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "For Integrated Gradients, $x^\\prime$ is the baseline (often a\n          black image). The integral guarantees @@T0@@completeness@@T1@@:\n          $\\sum_i \\mathrm{IG}_i = f_c(x) - f_c(x^\\prime)$ — every unit\n          of the prediction is attributed to @@T2@@some@@T3@@ pixel. No\n          gradient method without an integration path has this property.": {
+   "zh": "对积分梯度而言，$x^\\prime$ 是基线（常为黑色图像）。\n          该积分保证了@@T0@@完备性@@T1@@：\n          $\\sum_i \\mathrm{IG}_i = f_c(x) - f_c(x^\\prime)$——预测的每一个单位\n          都被归因到@@T2@@某个@@T3@@像素上。任何没有积分路径的梯度方法\n          都不具备这一性质。",
+   "src": "For Integrated Gradients, $x^\\prime$ is the baseline (often a\n          black image). The integral guarantees <em>completeness</em>:\n          $\\sum_i \\mathrm{IG}_i = f_c(x) - f_c(x^\\prime)$ — every unit\n          of the prediction is attributed to <em>some</em> pixel. No\n          gradient method without an integration path has this property.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 1½": {
+   "zh": "第 1½ 步",
+   "src": "Step 1½",
+   "tags": []
+  },
+  "Axioms — why we should care about them": {
+   "zh": "公理——我们为何应当关注它们",
+   "src": "Axioms — why we should care about them",
+   "tags": []
+  },
+  "Sundararajan, Taly, Yan (2017) introduced an axiomatic frame for evaluating attribution methods. The four key axioms:": {
+   "zh": "Sundararajan、Taly、Yan（2017）提出了一个用于评估归因方法的公理化框架。四条关键公理为：",
+   "src": "Sundararajan, Taly, Yan (2017) introduced an axiomatic frame for evaluating attribution methods. The four key axioms:",
+   "tags": []
+  },
+  "@@T0@@Sensitivity.@@T1@@ If $x$ and $x^\\prime$ differ on a single feature and give different predictions, that feature must get non-zero attribution. Vanilla gradient @@T2@@fails@@T3@@ this because of ReLU saturation; IG satisfies it.": {
+   "zh": "@@T0@@敏感性。@@T1@@ 若 $x$ 与 $x^\\prime$ 在单个特征上不同并给出不同的预测，\n            则该特征必须获得非零归因。原始梯度因 ReLU 饱和而@@T2@@不满足@@T3@@\n            这一公理；IG 则满足。",
+   "src": "<strong>Sensitivity.</strong> If $x$ and $x^\\prime$ differ on a single feature and give different predictions, that feature must get non-zero attribution. Vanilla gradient <em>fails</em> this because of ReLU saturation; IG satisfies it.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Implementation invariance.@@T1@@ Two functionally-identical networks should yield identical attributions. Vanilla gradient passes; some methods that hold gradient flow at activations (DeepLIFT, LRP) can fail in pathological cases.": {
+   "zh": "@@T0@@实现不变性。@@T1@@ 两个功能上完全相同的网络应当给出相同的归因。\n            原始梯度满足；而某些在激活处保持梯度流的方法（DeepLIFT、LRP）\n            在病态情形下可能不满足。",
+   "src": "<strong>Implementation invariance.</strong> Two functionally-identical networks should yield identical attributions. Vanilla gradient passes; some methods that hold gradient flow at activations (DeepLIFT, LRP) can fail in pathological cases.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Completeness.@@T1@@ Attributions sum to the prediction minus the baseline. Only path-integrated methods (IG, Shapley values) satisfy this.": {
+   "zh": "@@T0@@完备性。@@T1@@ 各归因之和等于预测值减去基线值。\n            只有路径积分方法（IG、Shapley 值）满足这一性质。",
+   "src": "<strong>Completeness.</strong> Attributions sum to the prediction minus the baseline. Only path-integrated methods (IG, Shapley values) satisfy this.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Linearity.@@T1@@ Attribution of $\\alpha f + \\beta g$ equals $\\alpha$ × attribution of $f$ + $\\beta$ × attribution of $g$. Satisfied by all linear-in-gradient methods.": {
+   "zh": "@@T0@@线性性。@@T1@@ $\\alpha f + \\beta g$ 的归因等于 $\\alpha$ × $f$ 的归因\n            + $\\beta$ × $g$ 的归因。所有关于梯度线性的方法都满足。",
+   "src": "<strong>Linearity.</strong> Attribution of $\\alpha f + \\beta g$ equals $\\alpha$ × attribution of $f$ + $\\beta$ × attribution of $g$. Satisfied by all linear-in-gradient methods.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The axioms uniquely pick out the path-integrated gradient when you also require Shapley-style symmetry. That's why Integrated Gradients (and its Shapley relatives, like Expected Gradients) are the academically-correct choice when you can afford them.": {
+   "zh": "当你同时要求 Shapley 式的对称性时，这些公理会唯一地选出路径积分梯度。\n          这正是为什么在代价可承受时，积分梯度（及其 Shapley 类亲属，如 Expected Gradients）\n          是学术上正确的选择。",
+   "src": "The axioms uniquely pick out the path-integrated gradient when you also require Shapley-style symmetry. That's why Integrated Gradients (and its Shapley relatives, like Expected Gradients) are the academically-correct choice when you can afford them.",
+   "tags": []
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Live, on a synthetic image": {
+   "zh": "在合成图像上实时演示",
+   "src": "Live, on a synthetic image",
+   "tags": []
+  },
+  "Below: a hand-crafted small CNN (just 1 conv + global mean\n          + linear head, with manually-chosen weights) classifies a\n          synthetic \"thermal\" image. Toggle the image and watch the\n          four saliency maps respond. The hot regions in the image\n          are the ground-truth signal; a faithful method should focus\n          its attribution there.": {
+   "zh": "下面：一个手工构造的小型 CNN（仅含 1 个卷积层 + 全局平均\n          + 线性头，权重为人工选定）对一张合成“热成像”图像进行分类。\n          切换图像，观察四种显著图随之变化。图像中的高温区域\n          即为真实信号；一个忠实的方法应把其归因聚焦在那里。",
+   "src": "Below: a hand-crafted small CNN (just 1 conv + global mean\n          + linear head, with manually-chosen weights) classifies a\n          synthetic \"thermal\" image. Toggle the image and watch the\n          four saliency maps respond. The hot regions in the image\n          are the ground-truth signal; a faithful method should focus\n          its attribution there.",
+   "tags": []
+  },
+  "image": {
+   "zh": "图像",
+   "src": "image",
+   "tags": []
+  },
+  "single hot blob": {
+   "zh": "单个高温斑块",
+   "src": "single hot blob",
+   "tags": []
+  },
+  "two blobs (different temps)": {
+   "zh": "两个斑块（温度不同）",
+   "src": "two blobs (different temps)",
+   "tags": []
+  },
+  "striped pattern": {
+   "zh": "条纹图案",
+   "src": "striped pattern",
+   "tags": []
+  },
+  "input + class score": {
+   "zh": "输入 + 类别得分",
+   "src": "input + class score",
+   "tags": []
+  },
+  "vanilla gradient": {
+   "zh": "原始梯度",
+   "src": "vanilla gradient",
+   "tags": []
+  },
+  "SmoothGrad (n=20, σ=0.15)": {
+   "zh": "SmoothGrad（n=20，σ=0.15）",
+   "src": "SmoothGrad (n=20, σ=0.15)",
+   "tags": []
+  },
+  "Integrated Gradients (steps=30)": {
+   "zh": "积分梯度（steps=30）",
+   "src": "Integrated Gradients (steps=30)",
+   "tags": []
+  },
+  "Grad-CAM": {
+   "zh": "Grad-CAM（梯度加权类激活映射）",
+   "src": "Grad-CAM",
+   "tags": []
+  },
+  "ground truth": {
+   "zh": "真实信号",
+   "src": "ground truth",
+   "tags": []
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "The traps": {
+   "zh": "陷阱",
+   "src": "The traps",
+   "tags": []
+  },
+  "@@T0@@Vanilla gradient is noisy.@@T1@@ Single-pixel\n            differences scatter; tiny network non-linearities\n            dominate. SmoothGrad and IG are usually more readable.": {
+   "zh": "@@T0@@原始梯度的噪声很大。@@T1@@ 单像素的差异\n            会使结果散乱；网络中的微小非线性占据主导。\n            SmoothGrad 与 IG 通常更易解读。",
+   "src": "<strong>Vanilla gradient is noisy.</strong> Single-pixel\n            differences scatter; tiny network non-linearities\n            dominate. SmoothGrad and IG are usually more readable.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@IG depends on the baseline.@@T1@@ Black image\n            isn't always the right \"absence of feature\". For thermal,\n            a constant-temperature reference is more honest.": {
+   "zh": "@@T0@@IG 依赖于基线。@@T1@@ 黑色图像并不总是\n            恰当的“特征缺失”。对热成像而言，\n            使用恒定温度作为参照更为诚实。",
+   "src": "<strong>IG depends on the baseline.</strong> Black image\n            isn't always the right \"absence of feature\". For thermal,\n            a constant-temperature reference is more honest.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Grad-CAM is class-discriminative @@T1@@per layer@@T2@@.@@T3@@\n            Pick the wrong layer and you get a uniform blob.\n            Conventionally use the last conv layer.": {
+   "zh": "@@T0@@Grad-CAM 的类别判别性@@T1@@按层@@T2@@而异。@@T3@@\n            选错层就会得到一团均匀的斑块。\n            按惯例应使用最后一个卷积层。",
+   "src": "<strong>Grad-CAM is class-discriminative <em>per layer</em>.</strong>\n            Pick the wrong layer and you get a uniform blob.\n            Conventionally use the last conv layer.",
+   "tags": [
+    "<strong>",
+    "<em>",
+    "</em>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@None of these is causal.@@T1@@ Saliency is\n            \"the gradient of $f$ at $x$\", not \"what would happen if\n            we removed this pixel\". For causal attributions look at\n            @@T2@@occlusion@@T3@@, @@T4@@RISE@@T5@@, or\n            @@T6@@perturbation-based@@T7@@ methods.": {
+   "zh": "@@T0@@这些方法都不是因果性的。@@T1@@ 显著图是\n            “$f$ 在 $x$ 处的梯度”，而不是“若移除该像素会发生什么”。\n            若需要因果归因，请考察\n            @@T2@@遮挡法@@T3@@、@@T4@@RISE@@T5@@，或\n            @@T6@@基于扰动@@T7@@的方法。",
+   "src": "<strong>None of these is causal.</strong> Saliency is\n            \"the gradient of $f$ at $x$\", not \"what would happen if\n            we removed this pixel\". For causal attributions look at\n            <em>occlusion</em>, <em>RISE</em>, or\n            <em>perturbation-based</em> methods.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Adebayo's sanity check.@@T1@@ Permute the\n            model's last layer; rerun saliency. If the maps look the\n            same, your saliency is reading the input, not the model.": {
+   "zh": "@@T0@@Adebayo 的健全性检验。@@T1@@ 置换模型\n            的最后一层；重新运行显著图。若所得图看起来没有变化，\n            说明你的显著图读的是输入，而非模型。",
+   "src": "<strong>Adebayo's sanity check.</strong> Permute the\n            model's last layer; rerun saliency. If the maps look the\n            same, your saliency is reading the input, not the model.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          Always show a saliency map next to the prediction in paper\n          figures. Use IG with a domain-meaningful baseline +\n          Grad-CAM together &mdash; they fail in different ways and\n          their disagreement is informative.": {
+   "zh": "@@T0@@最终要点。@@T1@@\n          在论文插图中，始终把显著图与预测结果并排展示。\n          把使用具有领域意义基线的 IG 与 Grad-CAM 结合使用——\n          它们以不同的方式失效，而它们之间的分歧本身就富有信息。",
+   "src": "<strong>Final takeaway.</strong>\n          Always show a saliency map next to the prediction in paper\n          figures. Use IG with a domain-meaningful baseline +\n          Grad-CAM together &mdash; they fail in different ways and\n          their disagreement is informative.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Beyond gradient-based: perturbation methods": {
+   "zh": "超越梯度方法：扰动方法",
+   "src": "Beyond gradient-based: perturbation methods",
+   "tags": []
+  },
+  "Gradient methods answer \"if I changed this pixel infinitesimally, how would the prediction change?\". A perturbation method asks the stronger, causal question: \"if I removed this pixel @@T0@@entirely@@T1@@, how would the prediction change?\". Three families:": {
+   "zh": "梯度方法回答的是“若我无穷小地改变这个像素，预测会如何变化？”。\n          扰动方法则提出更强、更具因果性的问题：“若我@@T0@@彻底@@T1@@移除这个像素，\n          预测会如何变化？”。共有三族方法：",
+   "src": "Gradient methods answer \"if I changed this pixel infinitesimally, how would the prediction change?\". A perturbation method asks the stronger, causal question: \"if I removed this pixel <em>entirely</em>, how would the prediction change?\". Three families:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Occlusion (sliding window).@@T1@@ Replace each region with a baseline (gray patch, blur) and measure the drop in $f_c$. Slow ($O(\\text{pixels} \\times \\text{forward passes})$) but model-agnostic; works on black-box APIs.": {
+   "zh": "@@T0@@遮挡法（滑动窗口）。@@T1@@ 用基线（灰色块、模糊）替换每个区域，并测量 $f_c$ 的下降量。速度慢（$O(\\text{像素数} \\times \\text{前向次数})$），但与模型无关；可用于黑盒 API。",
+   "src": "<strong>Occlusion (sliding window).</strong> Replace each region with a baseline (gray patch, blur) and measure the drop in $f_c$. Slow ($O(\\text{pixels} \\times \\text{forward passes})$) but model-agnostic; works on black-box APIs.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@RISE@@T1@@ (Petsiuk et&nbsp;al., 2018). Randomly mask the input many times, weight each mask by the resulting $f_c$, average. A Monte-Carlo perturbation method that's both faster than occlusion and noisier than IG.": {
+   "zh": "@@T0@@RISE@@T1@@（Petsiuk et&nbsp;al.，2018）。对输入进行多次随机掩码，\n            以所得的 $f_c$ 为每个掩码加权，再求平均。这是一种蒙特卡洛扰动方法，\n            既比遮挡法更快，又比 IG 噪声更大。",
+   "src": "<strong>RISE</strong> (Petsiuk et&nbsp;al., 2018). Randomly mask the input many times, weight each mask by the resulting $f_c$, average. A Monte-Carlo perturbation method that's both faster than occlusion and noisier than IG.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@LIME / KernelSHAP.@@T1@@ Fit a sparse linear surrogate to the model's behaviour on perturbations near $x$. KernelSHAP additionally enforces Shapley-value properties.": {
+   "zh": "@@T0@@LIME / KernelSHAP。@@T1@@ 对模型在 $x$ 附近扰动上的行为\n            拟合一个稀疏线性替代模型。KernelSHAP 还额外强制满足 Shapley 值的性质。",
+   "src": "<strong>LIME / KernelSHAP.</strong> Fit a sparse linear surrogate to the model's behaviour on perturbations near $x$. KernelSHAP additionally enforces Shapley-value properties.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Causal interpretations.@@T1@@ If you want true counterfactual reasoning (\"would the prediction be different had this feature been absent?\"), look at the @@T2@@concept bottleneck article@@T3@@ — intervention on an explicit concept is closer to what people usually mean by \"why\".": {
+   "zh": "@@T0@@因果解释。@@T1@@ 若你想要真正的反事实推理\n            （“若该特征缺失，预测是否会不同？”），请参见 @@T2@@概念瓶颈一文@@T3@@——\n            对显式概念进行干预，更接近人们通常所说的“为什么”。",
+   "src": "<strong>Causal interpretations.</strong> If you want true counterfactual reasoning (\"would the prediction be different had this feature been absent?\"), look at the <a href=\"../concept-bottleneck/index.html\">concept bottleneck article</a> — intervention on an explicit concept is closer to what people usually mean by \"why\".",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<a href=\"../concept-bottleneck/index.html\">",
+    "</a>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Sanity checks you should always run": {
+   "zh": "你应当始终运行的健全性检验",
+   "src": "Sanity checks you should always run",
+   "tags": []
+  },
+  "@@T0@@Adebayo's randomisation test.@@T1@@ Randomise the model's parameters layer-by-layer. If the saliency map doesn't change, your map is reading the input, not the model — you have a fancy edge detector, not an explanation.": {
+   "zh": "@@T0@@Adebayo 的随机化检验。@@T1@@ 逐层随机化模型的参数。\n            若显著图没有变化，说明你的图读的是输入而非模型——\n            你得到的只是一个花哨的边缘检测器，而非解释。",
+   "src": "<strong>Adebayo's randomisation test.</strong> Randomise the model's parameters layer-by-layer. If the saliency map doesn't change, your map is reading the input, not the model — you have a fancy edge detector, not an explanation.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Data randomisation.@@T1@@ Train two models, one with shuffled labels. Saliency on the shuffled-label model should be qualitatively different.": {
+   "zh": "@@T0@@数据随机化。@@T1@@ 训练两个模型，其中一个使用打乱的标签。\n            在标签被打乱的模型上，显著图应当在定性上有所不同。",
+   "src": "<strong>Data randomisation.</strong> Train two models, one with shuffled labels. Saliency on the shuffled-label model should be qualitatively different.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Sensitivity-N / pointing game.@@T1@@ Mask the top-K pixels by attribution; measure prediction drop. Average over a dataset. Compare methods on the same model.": {
+   "zh": "@@T0@@Sensitivity-N / 指向博弈。@@T1@@ 按归因大小遮蔽前 K 个像素；\n            测量预测的下降幅度。在整个数据集上求平均。\n            在同一模型上比较各方法。",
+   "src": "<strong>Sensitivity-N / pointing game.</strong> Mask the top-K pixels by attribution; measure prediction drop. Average over a dataset. Compare methods on the same model.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Pixel-flipping / insertion-deletion AUC.@@T1@@ Insert pixels by descending attribution; plot $f_c$ vs fraction inserted; the area-under-curve is a quantitative quality measure (Petsiuk et&nbsp;al., 2018).": {
+   "zh": "@@T0@@像素翻转 / 插入-删除 AUC。@@T1@@ 按归因从大到小插入像素；\n            绘制 $f_c$ 随插入比例变化的曲线；其曲线下面积是一项定量的质量指标\n            （Petsiuk et&nbsp;al.，2018）。",
+   "src": "<strong>Pixel-flipping / insertion-deletion AUC.</strong> Insert pixels by descending attribution; plot $f_c$ vs fraction inserted; the area-under-curve is a quantitative quality measure (Petsiuk et&nbsp;al., 2018).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Saliency for vision transformers": {
+   "zh": "视觉 Transformer 的显著图",
+   "src": "Saliency for vision transformers",
+   "tags": []
+  },
+  "ViTs don't have convolutional feature maps, so Grad-CAM doesn't apply directly. Three replacements:": {
+   "zh": "ViT 没有卷积特征图，因此 Grad-CAM 无法直接适用。有三种替代方案：",
+   "src": "ViTs don't have convolutional feature maps, so Grad-CAM doesn't apply directly. Three replacements:",
+   "tags": []
+  },
+  "@@T0@@Attention rollout.@@T1@@ Multiply attention matrices across layers (with residual). Coarse but parameter-free; see the @@T2@@ViT article@@T3@@.": {
+   "zh": "@@T0@@注意力回滚。@@T1@@ 跨层相乘注意力矩阵（含残差）。\n            粒度粗但无需参数；参见 @@T2@@ViT 一文@@T3@@。",
+   "src": "<strong>Attention rollout.</strong> Multiply attention matrices across layers (with residual). Coarse but parameter-free; see the <a href=\"../vision-transformer/index.html\">ViT article</a>.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<a href=\"../vision-transformer/index.html\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@Attribution rollout@@T1@@ (Chefer et&nbsp;al., 2021). Combine attention with gradients; outperforms vanilla rollout on most benchmarks.": {
+   "zh": "@@T0@@归因回滚@@T1@@（Chefer et&nbsp;al.，2021）。把注意力与梯度结合；\n            在多数基准上优于原始回滚。",
+   "src": "<strong>Attribution rollout</strong> (Chefer et&nbsp;al., 2021). Combine attention with gradients; outperforms vanilla rollout on most benchmarks.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Token-level IG.@@T1@@ Integrate gradients with respect to token embeddings instead of pixels. Native attribution scale = one number per patch.": {
+   "zh": "@@T0@@词元级 IG。@@T1@@ 对词元嵌入而非像素求梯度积分。\n            天然的归因粒度 = 每个图像块一个数值。",
+   "src": "<strong>Token-level IG.</strong> Integrate gradients with respect to token embeddings instead of pixels. Native attribution scale = one number per patch.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 7": {
+   "zh": "第 7 步",
+   "src": "Step 7",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "阅读清单",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Simonyan, Vedaldi, Zisserman (2014)@@T1@@ &mdash; @@T2@@Deep Inside Convolutional Networks: Visualising Image Classification Models and Saliency Maps.@@T3@@ The original.": {
+   "zh": "@@T0@@Simonyan, Vedaldi, Zisserman (2014)@@T1@@ &mdash; @@T2@@《Deep Inside Convolutional Networks: Visualising Image Classification Models and Saliency Maps》@@T3@@。开山之作。",
+   "src": "<strong>Simonyan, Vedaldi, Zisserman (2014)</strong> &mdash; <em>Deep Inside Convolutional Networks: Visualising Image Classification Models and Saliency Maps.</em> The original.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Sundararajan, Taly, Yan (2017)@@T1@@ &mdash; @@T2@@Axiomatic Attribution for Deep Networks.@@T3@@ The IG paper.": {
+   "zh": "@@T0@@Sundararajan, Taly, Yan (2017)@@T1@@ &mdash; @@T2@@《Axiomatic Attribution for Deep Networks》@@T3@@。IG 的论文。",
+   "src": "<strong>Sundararajan, Taly, Yan (2017)</strong> &mdash; <em>Axiomatic Attribution for Deep Networks.</em> The IG paper.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Selvaraju et&nbsp;al. (2017)@@T1@@ &mdash; @@T2@@Grad-CAM.@@T3@@": {
+   "zh": "@@T0@@Selvaraju et&nbsp;al. (2017)@@T1@@ &mdash; @@T2@@《Grad-CAM》@@T3@@。",
+   "src": "<strong>Selvaraju et&nbsp;al. (2017)</strong> &mdash; <em>Grad-CAM.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Smilkov et&nbsp;al. (2017)@@T1@@ &mdash; @@T2@@SmoothGrad.@@T3@@": {
+   "zh": "@@T0@@Smilkov et&nbsp;al. (2017)@@T1@@ &mdash; @@T2@@《SmoothGrad》@@T3@@。",
+   "src": "<strong>Smilkov et&nbsp;al. (2017)</strong> &mdash; <em>SmoothGrad.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Adebayo et&nbsp;al. (2018)@@T1@@ &mdash; @@T2@@Sanity Checks for Saliency Maps.@@T3@@": {
+   "zh": "@@T0@@Adebayo et&nbsp;al. (2018)@@T1@@ &mdash; @@T2@@《Sanity Checks for Saliency Maps》@@T3@@。",
+   "src": "<strong>Adebayo et&nbsp;al. (2018)</strong> &mdash; <em>Sanity Checks for Saliency Maps.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Petsiuk et&nbsp;al. (2018)@@T1@@ &mdash; @@T2@@RISE.@@T3@@": {
+   "zh": "@@T0@@Petsiuk et&nbsp;al. (2018)@@T1@@ &mdash; @@T2@@《RISE》@@T3@@。",
+   "src": "<strong>Petsiuk et&nbsp;al. (2018)</strong> &mdash; <em>RISE.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Chefer, Gur, Wolf (2021)@@T1@@ &mdash; @@T2@@Transformer Interpretability Beyond Attention Visualization.@@T3@@": {
+   "zh": "@@T0@@Chefer, Gur, Wolf (2021)@@T1@@ &mdash; @@T2@@《Transformer Interpretability Beyond Attention Visualization》@@T3@@。",
+   "src": "<strong>Chefer, Gur, Wolf (2021)</strong> &mdash; <em>Transformer Interpretability Beyond Attention Visualization.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "显著图：并排比较",
+  "tagline": "你的分类器究竟使用了哪些像素？四种归因方法，同一张图像",
+  "summary": "在一张带有隐藏真实信号的合成“热成像场景”上，一个手工构造的分类器给出预测。原始梯度、SmoothGrad、积分梯度与 Grad-CAM 实时并排计算显著图。观察它们在何处一致、何处分歧，以及各自可能“说谎”的众所周知的原因。",
+  "difficulty": "中级",
+  "collection": "计算机视觉",
+  "highlights": [
+   "同一张图像上的四张显著图：原始梯度、SmoothGrad、IG、Grad-CAM。",
+   "切换合成图像（单个高温斑块 / 两个斑块 / 条纹图案），观察各图随之更新。",
+   "每种方法为何可能“说谎”——具体的失效模式（饱和、梯度噪声、定位粗糙）。",
+   "与实验对齐：面向 ApneaEye / JoulesEye 解释的热成像归因。"
+  ],
+  "tags": [
+   "显著图",
+   "可解释性",
+   "Grad-CAM",
+   "积分梯度",
+   "交互式"
+  ]
+ },
+ "js": {
+  "class logit = [[[0]]] (sigmoid p = [[[1]]])": {
+   "zh": "类别 logit = [[[0]]]（sigmoid p = [[[1]]]）",
+   "exprs": [
+    "${fwd.logit.toFixed(3)}",
+    "${(1 / (1 + Math.exp(-fwd.logit))).toFixed(2)}"
+   ],
+   "tags": [],
+   "src": "class logit = ${fwd.logit.toFixed(3)} (sigmoid p = ${(1 / (1 + Math.exp(-fwd.logit))).toFixed(2)})"
+  }
+ }
+}

@@ -1,0 +1,498 @@
+{
+ "slug": "concept-bottleneck",
+ "units": {
+  "Concept Bottleneck Models": {
+   "zh": "概念瓶颈模型",
+   "src": "Concept Bottleneck Models",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Predict human-named concepts first; read off the label\n          from those concepts. Toggle a concept on or off at\n          inference and watch the label change &mdash; the closest\n          DL gets to @@T0@@causal@@T1@@ interpretability.": {
+   "zh": "先预测由人命名的概念；再由这些概念读出标签。在推理时开启或关闭某个概念，观察标签随之变化——这是深度学习最接近@@T0@@因果@@T1@@可解释性的做法。",
+   "src": "Predict human-named concepts first; read off the label\n          from those concepts. Toggle a concept on or off at\n          inference and watch the label change &mdash; the closest\n          DL gets to <em>causal</em> interpretability.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~14 min@@T1@@\n          @@T2@@Interpretability &middot; Intervention &middot; Vision@@T3@@": {
+   "zh": "@@T0@@约 14 分钟@@T1@@\n          @@T2@@可解释性 &middot; 干预 &middot; 视觉@@T3@@",
+   "src": "<span>~14 min</span>\n          <span>Interpretability &middot; Intervention &middot; Vision</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "The interpretability promise": {
+   "zh": "可解释性的承诺",
+   "src": "The interpretability promise",
+   "tags": []
+  },
+  "Saliency tells you \"the model used these pixels\"; concept\n          bottleneck (Koh et&nbsp;al., 2020) tells you \"the model\n          used these @@T0@@named@@T1@@ features &mdash; here are their\n          values, and if you change them by hand, here's how the\n          prediction changes\". The bottleneck is a known set of\n          interpretable concepts; the head is a small classifier on\n          top of them.": {
+   "zh": "显著性图告诉你「模型用到了这些像素」；概念瓶颈（Koh 等，2020）则告诉你「模型用到了这些@@T0@@被命名的@@T1@@特征——它们的取值如下，而若你手动改变它们，预测将如此变化」。瓶颈是一组已知的可解释概念；头部则是置于其上的一个小型分类器。",
+   "src": "Saliency tells you \"the model used these pixels\"; concept\n          bottleneck (Koh et&nbsp;al., 2020) tells you \"the model\n          used these <em>named</em> features &mdash; here are their\n          values, and if you change them by hand, here's how the\n          prediction changes\". The bottleneck is a known set of\n          interpretable concepts; the head is a small classifier on\n          top of them.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "During training, you supervise both stages: the bottleneck\n          must predict the right concept values from the image, and\n          the head must predict the right label from the concept\n          vector. At inference, you can replace any predicted concept\n          with a human-set value (an @@T0@@intervention@@T1@@) and see\n          the label respond.": {
+   "zh": "训练期间，你监督两个阶段：瓶颈必须从图像预测出正确的概念值，而头部必须从概念向量预测出正确的标签。推理时，你可以将任意预测概念替换为人工设定的值（即一次@@T0@@干预@@T1@@），并观察标签如何响应。",
+   "src": "During training, you supervise both stages: the bottleneck\n          must predict the right concept values from the image, and\n          the head must predict the right label from the concept\n          vector. At inference, you can replace any predicted concept\n          with a human-set value (an <em>intervention</em>) and see\n          the label respond.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "Watch a CBM predict and accept interventions": {
+   "zh": "观察 CBM 进行预测并接受干预",
+   "src": "Watch a CBM predict and accept interventions",
+   "tags": []
+  },
+  "Synthetic 4-class problem. Each shape has 4 concepts:\n          @@T0@@is-dark@@T1@@, @@T2@@is-large@@T3@@, @@T4@@has-stripes@@T5@@,\n          @@T6@@is-warm@@T7@@. Class is determined by a fixed boolean\n          recipe over those concepts. Toggle a concept off (or on)\n          and watch the predicted class flip.": {
+   "zh": "合成的四分类问题。每个形状有 4 个概念：@@T0@@is-dark@@T1@@、@@T2@@is-large@@T3@@、@@T4@@has-stripes@@T5@@、@@T6@@is-warm@@T7@@。类别由这些概念上固定的布尔配方决定。关闭（或开启）某个概念，观察预测类别如何翻转。",
+   "src": "Synthetic 4-class problem. Each shape has 4 concepts:\n          <em>is-dark</em>, <em>is-large</em>, <em>has-stripes</em>,\n          <em>is-warm</em>. Class is determined by a fixed boolean\n          recipe over those concepts. Toggle a concept off (or on)\n          and watch the predicted class flip.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "New image": {
+   "zh": "新图像",
+   "src": "New image",
+   "tags": []
+  },
+  "@@T0@@true class @@T1@@—@@T2@@@@T3@@\n          @@T4@@predicted class @@T5@@—@@T6@@@@T7@@": {
+   "zh": "@@T0@@真实类别 @@T1@@—@@T2@@@@T3@@\n          @@T4@@预测类别 @@T5@@—@@T6@@@@T7@@",
+   "src": "<span class=\"train-stat\">true class <strong id=\"cb-true\">—</strong></span>\n          <span class=\"train-stat\">predicted class <strong id=\"cb-pred\">—</strong></span>",
+   "tags": [
+    "<span class=\"train-stat\">",
+    "<strong id=\"cb-true\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"cb-pred\">",
+    "</strong>",
+    "</span>"
+   ]
+  },
+  "image": {
+   "zh": "图像",
+   "src": "image",
+   "tags": []
+  },
+  "predicted concepts (drag to override)": {
+   "zh": "预测概念（拖动以覆盖）",
+   "src": "predicted concepts (drag to override)",
+   "tags": []
+  },
+  "Each bar is the model's predicted concept value (0..1). Click a bar to override (forces the concept to 0 or 1). Refresh \"New image\" to clear.": {
+   "zh": "每条柱是模型预测的概念值（0..1）。点击某条柱即可覆盖（强制该概念为 0 或 1）。刷新「新图像」以清除。",
+   "src": "Each bar is the model's predicted concept value (0..1). Click a bar to override (forces the concept to 0 or 1). Refresh \"New image\" to clear.",
+   "tags": []
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Three training recipes": {
+   "zh": "三种训练配方",
+   "src": "Three training recipes",
+   "tags": []
+  },
+  "Let $g_\\theta$ map image → concept vector and $f_\\phi$ map\n          concept vector → label. With per-concept loss\n          $\\mathcal{L}_c$ and label loss $\\mathcal{L}_y$, the three\n          standard recipes are:": {
+   "zh": "设 $g_\\theta$ 将图像映射为概念向量，$f_\\phi$ 将概念向量映射为标签。以逐概念损失 $\\mathcal{L}_c$ 与标签损失 $\\mathcal{L}_y$ 为记，三种标准配方如下：",
+   "src": "Let $g_\\theta$ map image → concept vector and $f_\\phi$ map\n          concept vector → label. With per-concept loss\n          $\\mathcal{L}_c$ and label loss $\\mathcal{L}_y$, the three\n          standard recipes are:",
+   "tags": []
+  },
+  "@@T0@@Sequential.@@T1@@ Fit\n            $\\theta^\\star = \\arg\\min \\mathcal{L}_c(g_\\theta(x), c)$\n            first; freeze; then fit\n            $\\phi^\\star = \\arg\\min \\mathcal{L}_y(f_\\phi(g_{\\theta^\\star}(x)),\n            y)$. Most interpretable: concepts cannot leak label\n            information because the label signal never touches $g$.": {
+   "zh": "@@T0@@顺序式。@@T1@@先拟合 $\\theta^\\star = \\arg\\min \\mathcal{L}_c(g_\\theta(x), c)$；冻结；再拟合 $\\phi^\\star = \\arg\\min \\mathcal{L}_y(f_\\phi(g_{\\theta^\\star}(x)), y)$。可解释性最强：概念无法泄漏标签信息，因为标签信号从不触及 $g$。",
+   "src": "<strong>Sequential.</strong> Fit\n            $\\theta^\\star = \\arg\\min \\mathcal{L}_c(g_\\theta(x), c)$\n            first; freeze; then fit\n            $\\phi^\\star = \\arg\\min \\mathcal{L}_y(f_\\phi(g_{\\theta^\\star}(x)),\n            y)$. Most interpretable: concepts cannot leak label\n            information because the label signal never touches $g$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Joint.@@T1@@ Train $g$ and $f$ together with\n            $\\mathcal{L} = \\mathcal{L}_y + \\lambda \\mathcal{L}_c$.\n            Slightly higher accuracy but the bottleneck can encode\n            spurious info to help $f$ &mdash; called @@T2@@leakage@@T3@@.\n            $\\lambda$ controls the trade-off: $\\lambda \\to \\infty$\n            recovers sequential.": {
+   "zh": "@@T0@@联合式。@@T1@@以 $\\mathcal{L} = \\mathcal{L}_y + \\lambda \\mathcal{L}_c$ 同时训练 $g$ 与 $f$。准确率略高，但瓶颈可编码虚假信息以帮助 $f$——这称为@@T2@@泄漏@@T3@@。$\\lambda$ 控制这一权衡：$\\lambda \\to \\infty$ 时退化为顺序式。",
+   "src": "<strong>Joint.</strong> Train $g$ and $f$ together with\n            $\\mathcal{L} = \\mathcal{L}_y + \\lambda \\mathcal{L}_c$.\n            Slightly higher accuracy but the bottleneck can encode\n            spurious info to help $f$ &mdash; called <em>leakage</em>.\n            $\\lambda$ controls the trade-off: $\\lambda \\to \\infty$\n            recovers sequential.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Independent.@@T1@@ Train $f$ on\n            @@T2@@ground-truth@@T3@@ concepts during training; at test\n            use predicted concepts. Best test accuracy when concepts\n            are hard to predict.": {
+   "zh": "@@T0@@独立式。@@T1@@训练期间在@@T2@@真值@@T3@@概念上训练 $f$；测试时则使用预测概念。当概念难以预测时，测试准确率最佳。",
+   "src": "<strong>Independent.</strong> Train $f$ on\n            <em>ground-truth</em> concepts during training; at test\n            use predicted concepts. Best test accuracy when concepts\n            are hard to predict.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 2½": {
+   "zh": "第 2½ 步",
+   "src": "Step 2½",
+   "tags": []
+  },
+  "Why interventions matter": {
+   "zh": "干预为何重要",
+   "src": "Why interventions matter",
+   "tags": []
+  },
+  "A CBM lets you do something no neural net usually allows: run\n          a counterfactual. \"If @@T0@@striped@@T1@@ were 0 instead of 1,\n          would the prediction change?\" — and the answer is computed\n          by a single forward pass through $f$ on the edited concept\n          vector.": {
+   "zh": "CBM 让你能够做一件神经网络通常不允许的事：运行反事实。「若 @@T0@@striped@@T1@@ 为 0 而非 1，预测会改变吗？」——答案由在编辑后的概念向量上对 $f$ 做一次前向传播即可算出。",
+   "src": "A CBM lets you do something no neural net usually allows: run\n          a counterfactual. \"If <em>striped</em> were 0 instead of 1,\n          would the prediction change?\" — and the answer is computed\n          by a single forward pass through $f$ on the edited concept\n          vector.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Test-time auditing.@@T1@@ Domain expert disagrees\n            with the predicted \"is-tumor\" concept. They override; the\n            CBM still produces a class prediction, but now from the\n            expert's concept value, not the model's.": {
+   "zh": "@@T0@@测试时审计。@@T1@@领域专家不认同预测出的「is-tumor」概念。他们进行覆盖；CBM 仍会给出类别预测，但此时依据的是专家的概念值，而非模型自己的。",
+   "src": "<strong>Test-time auditing.</strong> Domain expert disagrees\n            with the predicted \"is-tumor\" concept. They override; the\n            CBM still produces a class prediction, but now from the\n            expert's concept value, not the model's.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Mistake debugging.@@T1@@ Run intervention\n            sweeps on the failing examples; the concept whose flip\n            @@T2@@fixes@@T3@@ the prediction tells you exactly where\n            $g$ is mispredicting.": {
+   "zh": "@@T0@@错误调试。@@T1@@在出错的样本上运行干预扫描；那个一旦翻转便能@@T2@@修正@@T3@@预测的概念，恰恰告诉你 $g$ 在何处预测有误。",
+   "src": "<strong>Mistake debugging.</strong> Run intervention\n            sweeps on the failing examples; the concept whose flip\n            <em>fixes</em> the prediction tells you exactly where\n            $g$ is mispredicting.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Causality, sort of.@@T1@@ Under the\n            assumption that the named concepts mediate the\n            image→label relationship, interventions on $\\hat c$\n            yield the do-operator on $c$. The mediation assumption is\n            often wrong, hence the leakage trap below.": {
+   "zh": "@@T0@@某种意义上的因果性。@@T1@@在假定被命名的概念中介了图像→标签这一关系的前提下，对 $\\hat c$ 的干预就相当于在 $c$ 上施加 do 算子。该中介假设往往是错误的，因此才有了下方的泄漏陷阱。",
+   "src": "<strong>Causality, sort of.</strong> Under the\n            assumption that the named concepts mediate the\n            image→label relationship, interventions on $\\hat c$\n            yield the do-operator on $c$. The mediation assumption is\n            often wrong, hence the leakage trap below.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "The leakage trap, with a live demonstration": {
+   "zh": "泄漏陷阱，附实时演示",
+   "src": "The leakage trap, with a live demonstration",
+   "tags": []
+  },
+  "If the concept layer has more channels than the\n          ground-truth concept count, the model can use the spare\n          channels to encode arbitrary features. Then \"intervening\"\n          on a named concept doesn't actually change the prediction\n          &mdash; the spare channel still encodes the answer.\n          Several recent papers (Margeloiu et&nbsp;al., 2021;\n          Mahinpei et&nbsp;al., 2021) document this.": {
+   "zh": "若概念层的通道数多于真值概念的数目，模型便可利用多余通道编码任意特征。那么对某个被命名概念进行「干预」实际上并不会改变预测——多余通道仍然编码着答案。若干近期论文（Margeloiu 等，2021；Mahinpei 等，2021）记录了这一点。",
+   "src": "If the concept layer has more channels than the\n          ground-truth concept count, the model can use the spare\n          channels to encode arbitrary features. Then \"intervening\"\n          on a named concept doesn't actually change the prediction\n          &mdash; the spare channel still encodes the answer.\n          Several recent papers (Margeloiu et&nbsp;al., 2021;\n          Mahinpei et&nbsp;al., 2021) document this.",
+   "tags": []
+  },
+  "Below: same 4 named concepts, but the model has $K$ extra\n          \"spare\" channels that get trained jointly on the label loss\n          (joint recipe with high $\\lambda_y$). As $K$ rises, the\n          accuracy under intervention drops — the spare channels\n          have stolen the predictive signal.": {
+   "zh": "下方：同样是 4 个被命名的概念，但模型拥有 $K$ 个额外的「多余」通道，它们以标签损失联合训练（高 $\\lambda_y$ 的联合式配方）。随 $K$ 增大，干预下的准确率下降——多余通道窃取了预测信号。",
+   "src": "Below: same 4 named concepts, but the model has $K$ extra\n          \"spare\" channels that get trained jointly on the label loss\n          (joint recipe with high $\\lambda_y$). As $K$ rises, the\n          accuracy under intervention drops — the spare channels\n          have stolen the predictive signal.",
+   "tags": []
+  },
+  "spare hidden channels K &nbsp;@@T0@@0@@T1@@": {
+   "zh": "多余隐藏通道 K &nbsp;@@T0@@0@@T1@@",
+   "src": "spare hidden channels K &nbsp;<span id=\"lk-k-val\">0</span>",
+   "tags": [
+    "<span id=\"lk-k-val\">",
+    "</span>"
+   ]
+  },
+  "label-loss weight λ@@T0@@y@@T1@@ &nbsp;@@T2@@0.5@@T3@@": {
+   "zh": "标签损失权重 λ@@T0@@y@@T1@@ &nbsp;@@T2@@0.5@@T3@@",
+   "src": "label-loss weight λ<sub>y</sub> &nbsp;<span id=\"lk-ly-val\">0.5</span>",
+   "tags": [
+    "<sub>",
+    "</sub>",
+    "<span id=\"lk-ly-val\">",
+    "</span>"
+   ]
+  },
+  "Resample dataset": {
+   "zh": "重新采样数据集",
+   "src": "Resample dataset",
+   "tags": []
+  },
+  "Intervention faithfulness vs spare channels": {
+   "zh": "干预忠实度与多余通道的关系",
+   "src": "Intervention faithfulness vs spare channels",
+   "tags": []
+  },
+  "\"Clean accuracy\" = label correctly predicted on held-out\n              data. \"Intervention accuracy\" = on inputs where flipping\n              one concept @@T0@@should@@T1@@ change the class, does the\n              CBM's prediction flip too? If yes, the bottleneck is\n              faithful. When spare channels exist, the gap widens.": {
+   "zh": "「干净准确率」= 在留出数据上正确预测标签的比例。「干预准确率」= 在翻转某个概念@@T0@@理应@@T1@@改变类别的输入上，CBM 的预测是否也发生翻转？若是，则瓶颈是忠实的。当存在多余通道时，这一差距便会扩大。",
+   "src": "\"Clean accuracy\" = label correctly predicted on held-out\n              data. \"Intervention accuracy\" = on inputs where flipping\n              one concept <em>should</em> change the class, does the\n              CBM's prediction flip too? If yes, the bottleneck is\n              faithful. When spare channels exist, the gap widens.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@The fix.@@T1@@\n          Use the concept layer dimension equal to the number of\n          named concepts. Use sequential training. Verify with\n          intervention experiments &mdash; if forcing a concept to\n          its opposite doesn't change predictions on the right\n          subset of inputs, your bottleneck has leaked.": {
+   "zh": "@@T0@@解决之道。@@T1@@令概念层的维度恰等于被命名概念的数目。采用顺序式训练。用干预实验加以验证——若将某个概念强制为相反取值，却无法在正确的输入子集上改变预测，则说明你的瓶颈已经泄漏。",
+   "src": "<strong>The fix.</strong>\n          Use the concept layer dimension equal to the number of\n          named concepts. Use sequential training. Verify with\n          intervention experiments &mdash; if forcing a concept to\n          its opposite doesn't change predictions on the right\n          subset of inputs, your bottleneck has leaked.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 3½": {
+   "zh": "第 3½ 步",
+   "src": "Step 3½",
+   "tags": []
+  },
+  "2023–2026 follow-ups": {
+   "zh": "2023–2026 年的后续工作",
+   "src": "2023–2026 follow-ups",
+   "tags": []
+  },
+  "@@T0@@Probabilistic Concept Bottleneck Models@@T1@@\n            (Kim et&nbsp;al., 2023) — concept values are distributions,\n            so the head can express uncertainty over interventions.": {
+   "zh": "@@T0@@概率概念瓶颈模型@@T1@@（Kim 等，2023）——概念值以分布表示，因此头部能够对干预表达不确定性。",
+   "src": "<strong>Probabilistic Concept Bottleneck Models</strong>\n            (Kim et&nbsp;al., 2023) — concept values are distributions,\n            so the head can express uncertainty over interventions.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Label-free CBMs@@T1@@ (Oikarinen et&nbsp;al.,\n            2023) — derive concept vocabulary from CLIP text embeddings\n            instead of human labelling. Lower accuracy than supervised\n            CBMs but no annotation burden.": {
+   "zh": "@@T0@@无标签 CBM@@T1@@（Oikarinen 等，2023）——从 CLIP 文本嵌入中导出概念词表，而非依赖人工标注。准确率低于有监督 CBM，但无需标注负担。",
+   "src": "<strong>Label-free CBMs</strong> (Oikarinen et&nbsp;al.,\n            2023) — derive concept vocabulary from CLIP text embeddings\n            instead of human labelling. Lower accuracy than supervised\n            CBMs but no annotation burden.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Concept Embedding Models (CEMs)@@T1@@\n            (Espinosa-Zarlenga et&nbsp;al., 2022) — replace scalar\n            concept values with low-dim concept embeddings, restoring\n            most of the accuracy gap to a black-box net.": {
+   "zh": "@@T0@@概念嵌入模型（CEM）@@T1@@（Espinosa-Zarlenga 等，2022）——以低维概念嵌入取代标量概念值，从而找回了与黑箱网络之间的大部分准确率差距。",
+   "src": "<strong>Concept Embedding Models (CEMs)</strong>\n            (Espinosa-Zarlenga et&nbsp;al., 2022) — replace scalar\n            concept values with low-dim concept embeddings, restoring\n            most of the accuracy gap to a black-box net.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Intervention training@@T1@@ — at train time,\n            randomly intervene on concept values; teaches $f$ to\n            actually @@T2@@use@@T3@@ the bottleneck instead of routing\n            around it.": {
+   "zh": "@@T0@@干预训练@@T1@@——在训练时随机对概念值进行干预；教导 $f$ 真正@@T2@@使用@@T3@@瓶颈，而非绕开它。",
+   "src": "<strong>Intervention training</strong> — at train time,\n            randomly intervene on concept values; teaches $f$ to\n            actually <em>use</em> the bottleneck instead of routing\n            around it.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Where CBMs are the right tool": {
+   "zh": "CBM 适用之处",
+   "src": "Where CBMs are the right tool",
+   "tags": []
+  },
+  "@@T0@@Medical imaging.@@T1@@ Radiology concepts\n            (lesion size, edge type, surrounding tissue density) are\n            already in the doctor's vocabulary. Predicting them\n            explicitly lets the clinician interrogate the model in\n            their own language; original CBM paper used CUB-200 birds\n            and OAI knee X-rays.": {
+   "zh": "@@T0@@医学影像。@@T1@@放射学概念（病灶大小、边缘类型、周围组织密度）本就属于医生的词汇。显式地预测它们，使临床医生能够以自己熟悉的语言询问模型；最初的 CBM 论文使用了 CUB-200 鸟类与 OAI 膝关节 X 光片。",
+   "src": "<strong>Medical imaging.</strong> Radiology concepts\n            (lesion size, edge type, surrounding tissue density) are\n            already in the doctor's vocabulary. Predicting them\n            explicitly lets the clinician interrogate the model in\n            their own language; original CBM paper used CUB-200 birds\n            and OAI knee X-rays.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Bioacoustics &amp; ecology.@@T1@@ Bird-call\n            classifier with concepts like \"pitch range\", \"trill\n            present\", \"burst rate\". Domain experts can audit\n            mispredictions by intervening on the wrong concept.": {
+   "zh": "@@T0@@生物声学与生态学。@@T1@@鸣叫分类器可使用诸如「音高范围」「是否含颤音」「爆发率」等概念。领域专家可通过干预出错的概念来审计错误预测。",
+   "src": "<strong>Bioacoustics &amp; ecology.</strong> Bird-call\n            classifier with concepts like \"pitch range\", \"trill\n            present\", \"burst rate\". Domain experts can audit\n            mispredictions by intervening on the wrong concept.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Auditable policy decisions.@@T1@@ Any model\n            whose output feeds a high-stakes decision (credit scoring,\n            disease screening, fairness audits) benefits more from\n            \"the prediction was X because concepts $c_1, c_3$ fired\"\n            than from a raw probability with no interpretable\n            structure.": {
+   "zh": "@@T0@@可审计的政策决策。@@T1@@任何其输出会进入高风险决策（信用评分、疾病筛查、公平性审计）的模型，都更受益于「预测为 X 是因为概念 $c_1, c_3$ 被激活」这样的说明，而非一个无可解释结构的原始概率。",
+   "src": "<strong>Auditable policy decisions.</strong> Any model\n            whose output feeds a high-stakes decision (credit scoring,\n            disease screening, fairness audits) benefits more from\n            \"the prediction was X because concepts $c_1, c_3$ fired\"\n            than from a raw probability with no interpretable\n            structure.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Concept-conditioned generation.@@T1@@ The\n            \"concept\" interface generalises beyond classifiers — CBMs\n            for image generators let you steer outputs by toggling\n            human-named attributes.": {
+   "zh": "@@T0@@概念条件生成。@@T1@@「概念」这一接口可推广至分类器之外——面向图像生成器的 CBM 让你通过切换人工命名的属性来引导输出。",
+   "src": "<strong>Concept-conditioned generation.</strong> The\n            \"concept\" interface generalises beyond classifiers — CBMs\n            for image generators let you steer outputs by toggling\n            human-named attributes.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          Concept bottlenecks trade a small amount of accuracy for a\n          large amount of accountability. For any model whose\n          predictions feed a policy decision, this trade is usually\n          a bargain &mdash; @@T2@@provided you guard against leakage@@T3@@\n          and verify interventions actually steer the prediction.": {
+   "zh": "@@T0@@最终结论。@@T1@@概念瓶颈以少量准确率换取大量的可问责性。对于任何其预测会进入政策决策的模型而言，这笔交易通常都很划算——@@T2@@前提是你防范泄漏@@T3@@，并验证干预确实能够引导预测。",
+   "src": "<strong>Final takeaway.</strong>\n          Concept bottlenecks trade a small amount of accuracy for a\n          large amount of accountability. For any model whose\n          predictions feed a policy decision, this trade is usually\n          a bargain &mdash; <em>provided you guard against leakage</em>\n          and verify interventions actually steer the prediction.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "推荐阅读",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Koh, Nguyen, Tang, Mussmann, Pierson, Kim, Liang\n            (2020)@@T1@@ &mdash; @@T2@@Concept Bottleneck Models.@@T3@@\n            The original paper.": {
+   "zh": "@@T0@@Koh、Nguyen、Tang、Mussmann、Pierson、Kim、Liang (2020)@@T1@@ &mdash; @@T2@@Concept Bottleneck Models.@@T3@@原始论文。",
+   "src": "<strong>Koh, Nguyen, Tang, Mussmann, Pierson, Kim, Liang\n            (2020)</strong> &mdash; <em>Concept Bottleneck Models.</em>\n            The original paper.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Margeloiu et&nbsp;al. (2021)@@T1@@ &mdash;\n            @@T2@@Do Concept Bottleneck Models Learn as Intended?@@T3@@\n            The leakage paper.": {
+   "zh": "@@T0@@Margeloiu 等 (2021)@@T1@@ &mdash; @@T2@@Do Concept Bottleneck Models Learn as Intended?@@T3@@泄漏论文。",
+   "src": "<strong>Margeloiu et&nbsp;al. (2021)</strong> &mdash;\n            <em>Do Concept Bottleneck Models Learn as Intended?</em>\n            The leakage paper.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Mahinpei et&nbsp;al. (2021)@@T1@@ &mdash;\n            @@T2@@Promises and Pitfalls of Black-Box Concept Learning.@@T3@@": {
+   "zh": "@@T0@@Mahinpei 等 (2021)@@T1@@ &mdash; @@T2@@Promises and Pitfalls of Black-Box Concept Learning.@@T3@@",
+   "src": "<strong>Mahinpei et&nbsp;al. (2021)</strong> &mdash;\n            <em>Promises and Pitfalls of Black-Box Concept Learning.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Espinosa-Zarlenga et&nbsp;al. (2022)@@T1@@\n            &mdash; @@T2@@Concept Embedding Models.@@T3@@": {
+   "zh": "@@T0@@Espinosa-Zarlenga 等 (2022)@@T1@@ &mdash; @@T2@@Concept Embedding Models.@@T3@@",
+   "src": "<strong>Espinosa-Zarlenga et&nbsp;al. (2022)</strong>\n            &mdash; <em>Concept Embedding Models.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Oikarinen et&nbsp;al. (2023)@@T1@@ &mdash;\n            @@T2@@Label-Free Concept Bottleneck Models.@@T3@@": {
+   "zh": "@@T0@@Oikarinen 等 (2023)@@T1@@ &mdash; @@T2@@Label-Free Concept Bottleneck Models.@@T3@@",
+   "src": "<strong>Oikarinen et&nbsp;al. (2023)</strong> &mdash;\n            <em>Label-Free Concept Bottleneck Models.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "概念瓶颈模型",
+  "tagline": "让模型先预测由人命名的概念，再读出标签——若预测有误，还可加以干预",
+  "summary": "一个可供你调试的两阶段分类器。图像被映射为一组被命名概念的向量（「is dark」「has-stripes」「is-warm」），再由一个小型头部读出这些概念。在推理时开启或关闭某个概念，预测随之改变——这是深度学习最接近因果可解释性的做法。",
+  "difficulty": "中级",
+  "collection": "计算机视觉",
+  "highlights": [
+   "在一个四分类合成形状问题上实时运行两阶段模型；切换概念并观察标签预测翻转。",
+   "顺序式与联合式训练的对比。",
+   "概念泄漏演示：当瓶颈存在多余容量时，头部会学会绕开概念。",
+   "贴合实验场景：热成像呼吸概念（胸部 / 鼻孔 / 呼吸频率）→ 呼吸暂停标签；卫星概念 → 窑炉分类。"
+  ],
+  "tags": [
+   "概念瓶颈",
+   "可解释性",
+   "干预",
+   "交互式"
+  ]
+ },
+ "js": {
+  "\n      @@T0@@\n        @@T1@@[[[1]]][[[2]]]@@T2@@\n        @@T3@@\n          @@T4@@@@T5@@\n        @@T6@@\n        @@T7@@\n          @@T8@@force 0@@T9@@\n          @@T10@@force 1@@T11@@\n          @@T12@@clear@@T13@@\n        @@T14@@\n      @@T15@@\n    ": {
+   "zh": "\n      @@T0@@\n        @@T1@@[[[1]]][[[2]]]@@T2@@\n        @@T3@@\n          @@T4@@@@T5@@\n        @@T6@@\n        @@T7@@\n          @@T8@@强制为 0@@T9@@\n          @@T10@@强制为 1@@T11@@\n          @@T12@@清除@@T13@@\n        @@T14@@\n      @@T15@@\n    ",
+   "exprs": [
+    "${c.key}",
+    "${c.label}",
+    "${isOverride ? ' <span class=\"cb-override-tag\">overridden</span>' : ''}",
+    "${w}",
+    "${c.key}",
+    "${STATE.override[c.key] === false ? 'is-active' : ''}",
+    "${c.key}",
+    "${STATE.override[c.key] === true ? 'is-active' : ''}",
+    "${c.key}"
+   ],
+   "tags": [
+    "<div class=\"cb-concept\" data-key=\"[[[0]]]\">",
+    "<div class=\"cb-concept-label\">",
+    "</div>",
+    "<div class=\"cb-concept-bar\">",
+    "<div class=\"cb-concept-fill\" style=\"width:[[[3]]]%\">",
+    "</div>",
+    "</div>",
+    "<div class=\"cb-concept-buttons\">",
+    "<button data-action=\"off\" data-key=\"[[[4]]]\" class=\"[[[5]]]\">",
+    "</button>",
+    "<button data-action=\"on\" data-key=\"[[[6]]]\" class=\"[[[7]]]\">",
+    "</button>",
+    "<button data-action=\"clear\" data-key=\"[[[8]]]\">",
+    "</button>",
+    "</div>",
+    "</div>"
+   ],
+   "src": "\n      <div class=\"cb-concept\" data-key=\"${c.key}\">\n        <div class=\"cb-concept-label\">${c.label}${isOverride ? ' <span class=\"cb-override-tag\">overridden</span>' : ''}</div>\n        <div class=\"cb-concept-bar\">\n          <div class=\"cb-concept-fill\" style=\"width:${w}%\"></div>\n        </div>\n        <div class=\"cb-concept-buttons\">\n          <button data-action=\"off\" data-key=\"${c.key}\" class=\"${STATE.override[c.key] === false ? 'is-active' : ''}\">force 0</button>\n          <button data-action=\"on\" data-key=\"${c.key}\" class=\"${STATE.override[c.key] === true ? 'is-active' : ''}\">force 1</button>\n          <button data-action=\"clear\" data-key=\"${c.key}\">clear</button>\n        </div>\n      </div>\n    "
+  },
+  "spare hidden channels K": {
+   "zh": "多余隐藏通道 K",
+   "exprs": [],
+   "tags": [],
+   "src": "spare hidden channels K"
+  },
+  "clean accuracy": {
+   "zh": "干净准确率",
+   "exprs": [],
+   "tags": [],
+   "src": "clean accuracy"
+  }
+ }
+}

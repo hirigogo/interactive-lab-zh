@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>树：逐枝展开</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&dis播放=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>树：逐枝展开</h1>
+        <p class="abstract">
+          这种数据结构在幕后支撑着有序映射、优先队列、自动补全，以及算法教科书中的半壁江山。通过输入数值构建一棵二叉搜索树，对它运行全部四种遍历，再切换到堆，观察上滤与下滤如何在每次操作中维持堆不变式。
+        </p>
+        <div class="byline">
+          <span>约 16 分钟</span>
+          <span>数据结构 &middot; BST &middot; 堆</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>树为何无处不在</h2>
+        <p>
+          有序数组支持 $O(\log n)$ 的二分查找，但插入为 $O(n)$，因为插入点之后的每个元素都必须后移。链表则将这一取舍反转：在已知位置插入为 $O(1)$，但查找为 $O(n)$。
+        </p>
+        <p>
+          平衡二叉树能在 $O(\log n)$ 内同时提供<em>两者</em>。正是这一事实——有序插入与有序查找可在同一对数时间内完成——使得树无处不在地出现：从数据库索引（B 树）到 Dijkstra 与 A* 内部的优先队列（二叉堆），再到支撑现代文本编辑器的 rope 结构。
+        </p>
+        <div class="callout">
+          <strong>两种值得深入掌握的树。</strong><em>二叉搜索树</em>（BST）维持左小右大的不变式——为有序查询而构建。<em>堆</em>维持父小于子的不变式——为「立刻给我最小/最大元素」而构建。二者形状相同，不变式却截然不同。树家族中的其余成员（AVL 树、红黑树、B 树、前缀树（trie）、线段树）都是这两个思想的细化。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>结构剖析</h2>
+        <p>
+          二叉树是<strong>节点</strong>的集合，每个节点携带一个值以及至多两个子节点——左孩子与右孩子。有一个节点被指定为<strong>根</strong>；没有子节点的节点称为<strong>叶</strong>；<strong>高度</strong>是从根到叶的最长路径。
+        </p>
+        <ul class="explanation-list">
+          <li><strong>$n$ 个节点</strong>意味着 $n - 1$ 条边。永远如此。</li>
+          <li>含 $n$ 个节点的<strong>完全平衡树</strong>，其高度为 $\lceil \log_2(n + 1) \rceil$。</li>
+          <li><strong>退化树</strong>（每个节点至多有一个子节点，形成一条「链」）的高度为 $n - 1$。每次操作都退化为 $O(n)$。若插入有序数据，这正是 BST 会遭遇的<em>最坏情况</em>。</li>
+          <li><strong><em>完全</em>二叉树</strong>逐层自左向右填满。堆始终是完全的——这正是它可存于数组而不浪费空间的原因。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>构建 BST 并在其中查找</h2>
+        <p>
+          逐个输入数值。每个数值都按 BST 规则进入树中：小于当前节点则向左；大于则向右；遇到空位即插入。随后输入一个待<em>查找</em>的值，查找路径在下行过程中会被高亮。
+        </p>
+        <div class="tree-controls">
+          <label>插入
+            <input type="text" id="bst-插入" placeholder="e.g. 12" />
+          </label>
+          <button class="btn" id="bst-添加">添加</button>
+          <label>查找
+            <input type="text" id="bst-查找" placeholder="e.g. 12" />
+          </label>
+          <button class="btn btn--ghost" id="bst-寻找">寻找</button>
+          <button class="btn btn--ghost" id="bst-random">随机 8 个</button>
+          <button class="btn btn--ghost" id="bst-sorted">有序 1..8</button>
+          <button class="btn btn--warn" id="bst-清空">清空</button>
+        </div>
+        <div class="tree-status" id="bst-status">空树。</div>
+        <div class="tree-stage">
+          <svg class="tree-svg" id="bst-svg" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+        <p>
+          值得尝试的操作：
+        </p>
+        <ul class="explanation-list">
+          <li>多次点击 <em>随机 8 个</em>。大多数生成的树大致平衡；当 $n = 8$ 时高度 $\approx 3$。</li>
+          <li>点击 <em>有序 1..8</em>。你会得到一条右斜链——伪装成树的链表，高度为 7。这正是真实的 BST 库通过平衡手段（AVL 或红黑旋转）所防范的最坏情况。</li>
+          <li>查找一个并不存在的值。你会一路下行直到遇到空指针而停止——该查找路径恰好告诉你此值<em>本应</em>插入的位置。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>四种遍历，同一棵树</h2>
+        <p>
+          一次遍历恰好访问每个节点一次。四种经典顺序，均由根节点相对于其子树上递归调用的位置所定义：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>前序</strong>——根、左、右。用于<em>序列化</em>树（已知前序加中序即可唯一重建该树）。</li>
+          <li><strong>中序</strong>——左、根、右。对 BST 而言，它按<em>有序顺序</em>给出各值——这是验证 BST 正确性最简洁的方式。</li>
+          <li><strong>后序</strong>——左、右、根。用于自底向上地释放或求值（每个父节点都等待其子节点）。</li>
+          <li><strong>层序</strong>（BFS）——按深度访问。用队列而非递归实现。</li>
+        </ul>
+        <p>
+          在下方选择一种遍历；节点会按该顺序逐个亮起。随后观察它产生的数值序列。
+        </p>
+        <div class="tree-controls">
+          <label>遍历
+            <select id="trav-mode">
+              <option value="pre">前序（根 → 左 → 右）</option>
+              <option value="in" selected>中序（左 → 根 → 右）</option>
+              <option value="post">后序（左 → 右 → 根）</option>
+              <option value="level">层序（BFS）</option>
+            </select>
+          </label>
+          <button class="btn" id="trav-播放">播放</button>
+          <button class="btn btn--ghost" id="trav-重置">重置</button>
+          <label>速度
+            <select id="trav-速度">
+              <option value="600">慢</option>
+              <option value="320" selected>正常</option>
+              <option value="120">快</option>
+            </select>
+          </label>
+        </div>
+        <div class="trail" id="trav-trail"></div>
+        <p>
+          BST 的中序遍历是一个有序列表——试着在上方插入无序数值，然后在此处运行中序遍历。这是最简单的 BST 正确性校验。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>平衡为何重要</h2>
+        <p>
+          每次 BST 操作——插入、查找、前驱、中序后继、删除——的代价都与所触及节点的深度成正比。平衡树将深度上限控制在 $\log_2 n$；不平衡的树则可能让深度增长到 $n$。
+        </p>
+        <div class="math-block" id="math-cost"></div>
+        <p>
+          自平衡 BST 通过在两个兄弟节点高度相差过大时旋转节点来解决此问题：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>AVL 树</strong>（Adelson-Velsky 与 Landis，1962）在每个节点处维持 $|h_{\text{left}} - h_{\text{right}}| \le 1$。严格平衡 → 查找最快，但插入时旋转更多。</li>
+          <li><strong>红黑树</strong>使用颜色不变式，平衡性较弱但更新代价更低。多数标准库正是以其作为有序映射：C++ <code>std::map</code>、Java 的 <code>TreeMap</code>、Linux 内核的进程调度器。</li>
+          <li><strong>B 树</strong>将这一思想推广到拥有众多子节点的节点，并针对磁盘块大小进行调优。你所用过的每一个关系数据库索引都是 B 树的变体。</li>
+          <li><strong>Treap 与跳表</strong>通过随机化在期望意义下获得平衡而无需旋转——实现更简单，性能相当。</li>
+        </ul>
+        <div class="callout callout--warn">
+          <strong>陷阱。</strong>未作平衡的朴素 BST 是一种<em>糟糕透顶</em>的通用数据结构——它的最坏情况由有序输入触发，而在实践中这比均匀随机输入更常见。在生产环境中应始终选用平衡变体。只有在为教学而实现它（如本文）或输入顺序可保证无对抗性时，才应选用朴素 BST。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>堆——父节点支配子节点</h2>
+        <p>
+          二叉堆是一棵<em>完全</em>二叉树，只含一个不变式：每个父节点都 $\le$ 其两个子节点（最小堆）或 $\ge$ 其两个子节点（最大堆）。它最自然地以数组存储——对于索引为 $i$ 的节点：
+        </p>
+        <div class="math-block" id="math-heap-index"></div>
+        <p>
+          由于树始终是完全的，数组槽位不会浪费。有两种操作维持该不变式：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>插入（上滤）。</strong>追加至末尾；在不变式被违反时不断与父节点交换并上移。$O(\log n)$。</li>
+          <li><strong>提取根（下滤）。</strong>取出根（最小或最大元素）。将末元素移入根槽位。在不变式被违反时不断与较小（或较大）的子节点交换并下移。$O(\log n)$。</li>
+        </ul>
+        <p>
+          下方：向堆中插入数值并观察其上滤；提取根并观察末元素下滤。树视图与数组视图始终保持同步。
+        </p>
+        <div class="tree-controls">
+          <label>类型
+            <select id="heap-类型">
+              <option value="min" selected>最小堆</option>
+              <option value="max">最大堆</option>
+            </select>
+          </label>
+          <label>插入
+            <input type="text" id="heap-插入" placeholder="e.g. 7" />
+          </label>
+          <button class="btn" id="heap-添加">添加</button>
+          <button class="btn btn--ghost" id="heap-extract">提取根</button>
+          <button class="btn btn--ghost" id="heap-random">随机 8 个</button>
+          <button class="btn btn--ghost" id="heap-heapify">堆化随机 12 个</button>
+          <button class="btn btn--warn" id="heap-清空">清空</button>
+        </div>
+        <div class="tree-status" id="heap-status">空堆。</div>
+        <div class="heap-stage">
+          <div class="tree-stage">
+            <svg class="tree-svg" id="heap-svg" preserveAspectRatio="xMidYMid meet"></svg>
+          </div>
+          <div>
+            <div class="panel-label" style="font-family:var(--sans); font-weight:600; font-size:0.86rem; margin-bottom:0.3rem;">数组视图</div>
+            <div class="heap-array" id="heap-array"></div>
+            <p style="font-size:0.9rem; color: var(--muted); margin-top: 0.4rem; font-family: var(--sans);">
+              索引 0 是根。索引 $2i+1$ 与 $2i+2$ 是其子节点。两种视图描述的是同一棵树。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>堆化——在 O(n) 内构建堆</h2>
+        <p>
+          构建含 $n$ 个元素的堆，最直接的做法是调用 <code>插入</code> $n$ 次。这需要 $n \log n$ 的工作量。Floyd 堆化则通过自底向上操作在 $O(n)$ 内完成。
+        </p>
+        <div class="math-block" id="math-heapify-sum"></div>
+        <p>
+          为何是 $O(n)$ 而非 $O(n \log n)$？对深度为 $d$ 的节点做下滤，代价至多为 $h - d$，其中 $h = \lfloor \log_2 n \rfloor$ 为树的高度。半数节点是叶（代价 0）；四分之一在上移一层处（代价 1）；八分之一在上移两层处（代价 2）；该级数求和收敛为一个常数乘以 $n$。点击上方的 <em>堆化随机 12 个</em>，观察自底向上的各趟处理。
+        </p>
+        <p>
+          堆化也是<strong>堆排序</strong>的构建模块：原地构建最大堆（$O(n)$），再反复提取最大值并放入数组末尾槽位（$n \log n$）。总计 $O(n \log n)$，原地进行，无需辅助内存。它在多数语言中并非默认排序的原因在于缓存行为——尽管渐进复杂度相同，实践中快排与 Timsort 仍占主导。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-7">
+        <div class="step-badge">第 7 步</div>
+        <h2>实际应用场景</h2>
+        <table class="tree-table">
+          <thead>
+            <tr><th>应用场景</th><th>结构</th><th>原因</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>有序映射 / 集合（C++ <code>std::map</code>、Java <code>TreeMap</code>）</td>
+              <td>红黑 BST</td>
+              <td>$O(\log n)$ 插入 + 有序迭代；中序遍历免费给出有序键。</td>
+            </tr>
+            <tr>
+              <td>数据库 / 文件系统索引</td>
+              <td>B 树、B+ 树</td>
+              <td>宽节点使磁盘读取次数最小化；与二叉树具有相同的对数保证，但深度为 $\log_B n$。</td>
+            </tr>
+            <tr>
+              <td>优先队列（Dijkstra、A*、事件模拟）</td>
+              <td>二叉堆、斐波那契堆</td>
+              <td>$O(\log n)$ 提取最小值；斐波那契堆将 <code>decrease-key</code> 摊还至 $O(1)$，这正是 Dijkstra 内部的瓶颈所在。</td>
+            </tr>
+            <tr>
+              <td>Top-k 流式处理（热门推文、Top-k 日志）</td>
+              <td>大小为 $k$ 的最小堆</td>
+              <td>将每个新元素与堆根比较；若更大则替换并下滤。总计 $O(n \log k)$。</td>
+            </tr>
+            <tr>
+              <td>堆排序、部分排序</td>
+              <td>二叉堆</td>
+              <td>原地排序；部分排序在 $O(n + k \log n)$ 内给出 top-k。</td>
+            </tr>
+            <tr>
+              <td>自动补全、前缀匹配</td>
+              <td>前缀树（trie）</td>
+              <td>以字符串字符为键的树；前缀查找为 $O(|\text{prefix}|)$，与词典规模无关。</td>
+            </tr>
+            <tr>
+              <td>区间查询（数组上的求和 / 求最小值）</td>
+              <td>线段树、Fenwick 树</td>
+              <td>$O(\log n)$ 的区间查询与单点更新。竞赛编程中的主力结构。</td>
+            </tr>
+            <tr>
+              <td>决策树、随机森林、XGBoost</td>
+              <td>分裂谓词构成的树</td>
+              <td>树被视为从特征向量到标签的函数。问题不同，脚手架相同。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="step-section" id="step-8">
+        <div class="step-badge">第 8 步</div>
+        <h2>易错之处</h2>
+        <ul class="explanation-list">
+          <li><strong>BST 的删除是棘手的操作。</strong>插入与查找各只需五行代码；删除却有三种情形（叶、单子、双子），而双子情形还需找到中序后继。这正是教科书为删除留出整整一页、而为插入只留一段的原因。</li>
+          <li><strong>堆<em>不</em>支持快速查找。</strong>「在堆中查找某元素」为 $O(n)$。堆不变式只对父与子排序——不涉及兄弟。若你既需要有序迭代又需要优先提取，就需要两种结构或一种更精巧的结构（索引堆、treap 或平衡 BST）。</li>
+          <li><strong>堆的 <code>decrease-key</code> 需要句柄。</strong>要降低任意元素的优先级，你需要知道它的数组索引——这意味着要维护一个以元素身份为键的辅助哈希表。忘记这个辅助映射，Dijkstra 就会悄然失效。</li>
+          <li><strong>基于指针与基于数组。</strong>使用显式节点对象的 BST 需为指针追踪和较差的缓存局部性付出代价。对于小型固定规模树，将子节点存于平坦数组中（左孩子在 $2i+1$、右孩子在 $2i+2$——与堆相同的技巧）会快得多，尽管不平衡形状会带来空隙。</li>
+          <li><strong>递归深度限制。</strong>若采用朴素递归遍历，含 $n$ 个节点的退化树在多数语言中当 $n \approx 10^4$ 时就会使调用栈溢出。要么平衡树，要么改用显式栈的迭代形式。</li>
+          <li><strong>用两个堆求滑动中位数。</strong>下半部分用最大堆、上半部分用最小堆，并保持两者大小平衡。插入与求中位数均花费 $O(\log n)$。这是一道经典的面试题，其解法是一种堆的配置，而非某种巧妙的新结构。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-9">
+        <div class="step-badge">第 9 步</div>
+        <h2>推荐阅读</h2>
+        <ul class="explanation-list">
+          <li><strong>Knuth，<em>The Art of Computer Programming, Vol 3</em>。</strong>至今仍是权威参考。树位于第 6.2 章。</li>
+          <li><strong>Cormen、Leiserson、Rivest、Stein——<em>CLRS</em>。</strong>第 6 章（堆）、第 12 章（BST）、第 13 章（红黑树）、第 18 章（B 树）。教学标准之作。</li>
+          <li><strong>Sedgewick 与 Wayne，<em>Algorithms (4th ed.)</em>。</strong>将红黑树表述为左倾 2-3 树的最佳讲解。</li>
+          <li><strong>Adelson-Velsky 与 Landis，1962</strong>——<em>An algorithm for the organisation of information.</em>AVL 树，第一个平衡 BST。</li>
+          <li><strong>Floyd，1964</strong>——<em>Algorithm 245: Treesort.</em>用两页篇幅给出自底向上 $O(n)$ 的堆化与堆排序。</li>
+          <li><strong>Bayer 与 McCreight，1972</strong>——<em>Organisation and Maintenance of Large Ordered Indexes.</em>B 树。</li>
+          <li><strong>Pugh，1990</strong>——<em>Skip Lists: A Probabilistic Alternative to Balanced Trees.</em>一整类与树相抗衡的结构。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

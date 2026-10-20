@@ -1,0 +1,26 @@
+{
+  "slug": "lora-adapter",
+  "title": "LoRA · 低秩适配器实验场",
+  "date": "2026-04-18",
+  "tagline": "拖动秩，观察可训练参数如何缩减 500 倍",
+  "summary": "LoRA 在一个冻结的基座权重旁注入两个小矩阵 A 与 B。按构造 B·A 即为低秩 &mdash;&mdash; 于是微调 70B 模型就变成微调每层两个 32k 参数的矩阵。拖动秩，用真实数字观察容量与成本之间的权衡。",
+  "readingTime": "7 min",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "order": 17,
+  "status": "published",
+  "tags": [
+    "LoRA",
+    "PEFT",
+    "微调",
+    "LLM",
+    "交互式"
+  ],
+  "highlights": [
+    "将秩 r 从 1 拖到 64 &mdash;&mdash; 观察可训练参数从数千降到数百万再到数十亿。",
+    "切换模型规模（1B、7B、70B），观察存储空间的节省。",
+    "与全量微调、Adam 优化器状态以及 LoRA 的节省量进行对比。",
+    "使用 peft 库的一行 PyTorch 代码。",
+    "QLoRA 预览 &mdash;&mdash; 4 位量化基座有何不同。"
+  ]
+}

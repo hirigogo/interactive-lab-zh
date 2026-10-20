@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>逐词元生成</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+
+<style>
+:root {
+  --serif: 'Source Serif 4', Georgia, serif;
+  --sans: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+  --bg: #fdfcf9;
+  --paper: #ffffff;
+  --text: #2f2a22;
+  --muted: #6e665b;
+  --border: #e2d8c6;
+  --accent: #2c6fb7;
+  --warm: #d9622b;
+  --success: #1e7770;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; font-family: var(--serif); color: var(--text); background: var(--bg); line-height: 1.65; }
+
+.article { max-width: 980px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+.back-link { display: inline-block; margin-bottom: 1.5rem; color: var(--muted); text-decoration: none; font-family: var(--sans); font-size: 0.9rem; }
+.back-link:hover { color: var(--text); }
+.article-header { margin-bottom: 3rem; text-align: center; }
+.kicker { margin: 0 0 0.75rem; font-family: var(--sans); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); }
+h1 { margin: 0 auto 1rem; font-size: clamp(2.4rem, 5vw, 3.5rem); line-height: 1.1; letter-spacing: -0.02em; color: #1a1815; max-width: 20ch; }
+.abstract { margin: 0 auto 1rem; max-width: 62ch; font-size: 1.15rem; color: #4d463d; }
+.byline { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1.4rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-family: var(--sans); font-size: 0.92rem; }
+
+.step-section {
+  position: relative;
+  margin-top: 4rem;
+  padding: 3rem 2.5rem;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.03);
+}
+.step-badge {
+  position: absolute;
+  top: -16px;
+  left: 32px;
+  background: var(--accent);
+  color: white;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.4rem 1.2rem;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(44, 111, 183, 0.25);
+}
+h2 { margin: 0 0 1rem; font-size: clamp(1.6rem, 3.5vw, 2.2rem); line-height: 1.15; color: #1a1815; }
+h3 { margin-top: 2rem; margin-bottom: 0.8rem; font-size: 1.25rem; color: #1a1815; }
+p { max-width: 68ch; font-size: 1.1rem; }
+ul { max-width: 68ch; font-size: 1.1rem; padding-left: 1.4rem; }
+li { margin-bottom: 0.5rem; }
+.math-block { margin: 1.5rem 0; text-align: center; font-size: 1.05rem; }
+
+.control-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.4rem;
+  margin: 1.6rem 0;
+}
+.control-block { display: flex; flex-direction: column; gap: 0.5rem; }
+.control-block label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.control-block label span { font-family: var(--mono); color: var(--warm); font-weight: 500; font-size: 0.95rem; }
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid var(--paper);
+  box-shadow: 0 2px 6px rgba(44,111,183,0.4);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid var(--paper);
+}
+
+.button-row { display: flex; gap: 0.6rem; flex-wrap: wrap; margin: 1rem 0; align-items: center; }
+.mode-button {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--paper);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.mode-button:hover { border-color: var(--accent); }
+.mode-button.is-active { background: var(--accent); color: white; border-color: var(--accent); }
+.mode-button--primary { background: var(--warm); color: white; border-color: var(--warm); }
+.mode-button--primary:hover { border-color: var(--warm); filter: brightness(1.05); }
+.mode-button:disabled { opacity: 0.4; cursor: default; }
+
+.interactive-figure { margin: 1.5rem 0; }
+.interactive-figure canvas {
+  display: block;
+  width: 100%;
+  background: #fbfaf6;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.interactive-figure figcaption { margin-top: 0.7rem; font-size: 0.92rem; color: var(--muted); text-align: center; font-style: italic; }
+
+.stat-strip { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0; }
+.stat-pill {
+  flex: 1 1 140px;
+  min-width: 140px;
+  background: var(--paper);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 0.9rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  text-align: left;
+}
+.stat-pill .stat-label { font-family: var(--sans); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+.stat-pill .stat-value { font-family: var(--mono); font-size: 1.35rem; font-weight: 600; color: var(--text); }
+.stat-pill--accent { border-color: var(--accent); }
+.stat-pill--accent .stat-value { color: var(--accent); }
+.stat-pill--warm { border-color: var(--warm); }
+.stat-pill--warm .stat-value { color: var(--warm); }
+.stat-pill--success { border-color: var(--success); }
+.stat-pill--success .stat-value { color: var(--success); }
+
+.callout {
+  margin: 2rem 0 0.5rem;
+  padding: 1.2rem 1.5rem;
+  border-radius: 12px;
+  border-left: 4px solid var(--accent);
+  background: rgba(44,111,183,0.05);
+  font-size: 1.02rem;
+}
+.callout strong { color: var(--accent); }
+.callout--think { border-left-color: var(--success); background: rgba(30,119,112,0.06); }
+.callout--think strong { color: var(--success); }
+.callout--warn { border-left-color: var(--warm); background: rgba(217,98,43,0.06); }
+.callout--warn strong { color: var(--warm); }
+
+/* ---- widget specific ---- */
+.pipe-row { display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap; margin:1rem 0 0.4rem; font-family:var(--sans); }
+.pipe-box { font-size:0.8rem; font-weight:700; padding:0.4rem 0.7rem; border-radius:8px; border:1.5px solid var(--border); background:#fbfaf6; color:var(--muted); white-space:nowrap; }
+.pipe-box.pipe-hot { border-color:var(--warm); color:var(--warm); background:rgba(217,98,43,0.08); }
+.pipe-arrow { color:#b9ad97; font-weight:700; }
+
+.seq-line { font-family: var(--mono); font-size:0.95rem; margin:1rem 0 0.3rem; display:flex; flex-wrap:wrap; gap:0.4rem; align-items:center; min-height:2.2rem; }
+.seq-tok { padding:0.28rem 0.55rem; border-radius:7px; border:1.5px solid var(--border); background:var(--paper); color:var(--text); }
+.seq-tok.is-prefix { color:var(--muted); background:#fbfaf6; }
+.seq-tok.is-new { border-color:var(--warm); color:var(--warm); background:rgba(217,98,43,0.10); font-weight:600; }
+.seq-caret { color:#b9ad97; }
+
+.chip-row { display:flex; gap:0.4rem; flex-wrap:wrap; align-items:center; margin:0.6rem 0; }
+.chip-lbl { font-family:var(--sans); font-size:0.82rem; font-weight:600; color:var(--muted); margin-right:0.2rem; }
+
+.legend-row { display:flex; gap:1.2rem; flex-wrap:wrap; font-family:var(--sans); font-size:0.8rem; color:var(--muted); margin:0.3rem 0 0; align-items:center; }
+.legend-row .sw { display:inline-block; width:14px; height:14px; border-radius:3px; vertical-align:middle; margin-right:0.3rem; border:1px solid rgba(0,0,0,0.12);}
+.legend-row .swline { display:inline-block; width:14px; height:0; border-top:2px dashed #9a8f7c; vertical-align:middle; margin-right:0.3rem;}
+
+footer { margin-top: 4rem; text-align: center; font-family: var(--sans); font-size: 0.85rem; color: var(--muted); }
+
+@media (max-width: 640px) { .step-section { padding: 2rem 1.4rem; } }
+</style>
+</head>
+<body>
+
+<article class="article">
+  <header class="article-header">
+    <a class="back-link" href="../">&larr; 讲解库</a>
+    <p class="kicker">交互式讲解</p>
+    <h1>逐词元生成</h1>
+    <p class="abstract">
+      语言模型并不写出一整个句子 &mdash;&mdash; 它预测 <em>一个</em> 下一个词元，采样它，把它接到末尾，然后重复整个过程。按 <strong>步进</strong> 在一个很小的词表上运行该循环的一轮，并转动 <strong>温度</strong>、<strong>top-k</strong> 与 <strong>top-p</strong> 旋钮，观察下一词元分布如何变尖锐、变窄，以及如何改变被采样的内容。
+    </p>
+    <div class="byline">
+      <span>约 9 分钟</span>
+      <span>深度学习 &middot; Transformer &middot; 解码</span>
+    </div>
+  </header>
+
+  <section class="step-section" id="prelude">
+    <div class="step-badge">前言</div>
+    <h2>自回归是一个循环</h2>
+    <p>
+      给模型一个词元前缀 $x_{1:t}$。它运行一次前向传播 &mdash;&mdash; 嵌入、因果自注意力、前馈 &mdash;&mdash; 并输出一个 <em>logit</em> 向量，词表中每个词对应一个分数。softmax 将其转化为下一个词元的概率：
+    </p>
+    <div class="math-block">
+      $$p(x_{t+1}\mid x_{1:t}) = \operatorname{softmax}\!\big(z / T\big), \qquad
+        x_{t+1} \sim p .$$
+    </div>
+    <p>
+      随后被采样的词元被追加，循环以 $x_{1:t+1}$ 重复。步骤之间模型的任何部分都不改变 &mdash;&mdash; 只有上下文在增长。有趣的选择全都存在于最后那个箭头 $x_{t+1}\sim p$ 之中：我们如何把一个分布变成一个单词。温度 $T$、top-k 与 top-p（核采样）是三个旋钮，它们在我们从 $p$ 中抽样之前重塑 $p$。
+    </p>
+  </section>
+
+  <section class="step-section" id="lab">
+    <div class="step-badge">实验台</div>
+    <h2>运行解码循环</h2>
+    <p>
+      选择一个前缀，设定旋钮，然后按 <strong>步进</strong>。每次按下都会展示在固定的 12 个词词表上的下一词元分布，采样一个词元（高亮显示）并将其追加。logit 是固定且设定好随机种子的 &mdash;&mdash; 一个小型替代模型 &mdash;&mdash; 因此该分布完全由上下文与你的旋钮设置决定。
+    </p>
+
+    <div class="chip-row">
+      <span class="chip-lbl">前缀：</span>
+      <button class="mode-button is-active" data-prefix="cat">the cat</button>
+      <button class="mode-button" data-prefix="dog">a dog</button>
+      <button class="mode-button" data-prefix="sat">the cat sat on</button>
+      <button class="mode-button" data-prefix="then">then the</button>
+    </div>
+
+    <div class="pipe-row" id="pipeRow">
+      <span class="pipe-box" id="pipePrefix">前缀 x₁:ₜ</span>
+      <span class="pipe-arrow">→</span>
+      <span class="pipe-box">嵌入</span>
+      <span class="pipe-arrow">→</span>
+      <span class="pipe-box">因果自注意力</span>
+      <span class="pipe-arrow">→</span>
+      <span class="pipe-box">FFN</span>
+      <span class="pipe-arrow">→</span>
+      <span class="pipe-box" id="pipeLogits">logit z</span>
+      <span class="pipe-arrow">→</span>
+      <span class="pipe-box" id="pipeSample">采样 xₜ₊₁</span>
+    </div>
+
+    <div class="seq-line" id="seqLine"></div>
+
+    <div class="control-row">
+      <div class="control-block">
+        <label>温度 <span>$T$ = <span id="tempVal">1.00</span></span></label>
+        <input type="range" id="temp" min="0.1" max="2.0" step="0.05" value="1.0">
+      </div>
+      <div class="control-block">
+        <label>Top-k <span><span id="kVal">关闭</span></span></label>
+        <input type="range" id="topk" min="1" max="12" step="1" value="12">
+      </div>
+      <div class="control-block">
+        <label>Top-p（核采样）<span>$p$ = <span id="pVal">1.00</span></span></label>
+        <input type="range" id="topp" min="0.1" max="1.0" step="0.05" value="1.0">
+      </div>
+    </div>
+
+    <div class="button-row">
+      <button class="mode-button mode-button--primary" id="stepBtn">步进 &rarr;</button>
+      <button class="mode-button" id="genBtn">生成 x6</button>
+      <button class="mode-button" id="resetBtn">重置为前缀</button>
+      <button class="mode-button" id="seedBtn">新样本</button>
+    </div>
+
+    <figure class="interactive-figure">
+      <canvas id="barCanvas" width="900" height="380"></canvas>
+      <figcaption>词表上的下一词元分布。虚线轮廓 = 仅施加温度之后；实心柱 = 施加 top-k / top-p 之后（重新归一化）。灰色 = 被过滤掉（$p=0$）。箭头标出被采样的那个词元。</figcaption>
+    </figure>
+
+    <div class="legend-row">
+      <span><span class="swline"></span>施加温度之后</span>
+      <span><span class="sw" style="background:#2c6fb7"></span>保留（已重新归一化）</span>
+      <span><span class="sw" style="background:#cfc6b6"></span>被过滤掉</span>
+      <span><span class="sw" style="background:#d9622b"></span>被采样的词元</span>
+    </div>
+
+    <div class="stat-strip">
+      <div class="stat-pill stat-pill--warm">
+        <span class="stat-label">最近采样</span>
+        <span class="stat-value" id="lastVal">&mdash;</span>
+      </div>
+      <div class="stat-pill stat-pill--accent">
+        <span class="stat-label">保留的候选数</span>
+        <span class="stat-value" id="keptVal">&mdash;</span>
+      </div>
+      <div class="stat-pill stat-pill--success">
+        <span class="stat-label">熵（比特）</span>
+        <span class="stat-value" id="entVal">&mdash;</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-label">最高概率</span>
+        <span class="stat-value" id="topVal">&mdash;</span>
+      </div>
+    </div>
+
+    <div class="callout callout--warn">
+      <strong>把温度调到 0.1。</strong> 分布坍缩到其唯一最可能的词元上 &mdash;&mdash; 近乎贪心、重复、稳妥。把它推到 2.0，则向均匀分布变平 &mdash;&mdash; 出人意料，有时不连贯。现在设 $T=1$，改为把 <strong>top-p</strong> 拉低到 0.6：不可能词的长尾被完全变灰，于是你既保持了较暖温度的流畅性，又绝不会采到荒谬的内容。这正是核采样成为现代默认做法的原因。
+    </div>
+  </section>
+
+  <section class="step-section" id="why">
+    <div class="step-badge">收获</div>
+    <h2>三个旋钮，一个权衡</h2>
+    <p>
+      每一个解码旋钮都在调和同一种张力：<em>多样性</em>（更多探索整个分布）与 <em>聚焦</em>（停留在模型有把握的高概率词上）之间的张力。它们只是以不同方式切割分布。
+    </p>
+    <ul>
+      <li><strong>温度</strong> 在 softmax 之前对 logit 重新缩放。$T<1$ 向最高词元方向变尖锐；$T>1$ 向均匀分布变平。它重塑 <em>每一个</em> 概率，但不移除任何内容。</li>
+      <li><strong>Top-k</strong> 只保留概率最高的 $k$ 个词元，其余置零 &mdash;&mdash; 这是对存活候选数量的硬性上限，与概率质量如何分布无关。</li>
+      <li><strong>Top-p（核采样）</strong> 保留概率之和至少达到 $p$ 的最小词元集合。切割位置会自适应分布的形状：自信的一步只保留一两个词，不确定的一步则保留很多。</li>
+    </ul>
+    <div class="callout callout--think">
+      <strong>为何要采样？</strong> 总是取 arg-max（贪心）是确定性的，且常常退化为循环。采样注入了受控的随机性，使生成内容多样、听起来像人话 &mdash;&mdash; 而 top-k / top-p 则是护栏，阻止这种随机性游荡到模型低概率的胡言乱语之中。解码正是让一个固定的模型变成一个可以由你调校个性的写作者的地方。
+    </div>
+  </section>
+
+  <footer>ES 667 深度学习讲解系列的一部分 &middot; 第 16 讲：Transformer I &mdash;&mdash; 自注意力</footer>
+</article>
+
+<script>
+/* ===================== deterministic model ===================== */
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+
+const VOCAB = ['the','a','cat','dog','sat','ran','on','mat','fast','then','slept','.'];
+const V = VOCAB.length;
+const IDX = {}; VOCAB.forEach((w,i)=>IDX[w]=i);
+
+/* seeded bigram-ish logit table B[prev][next] */
+const brng = mulberry32(778201);
+function randn(r){ let u=0,v=0; while(u===0)u=r(); while(v===0)v=r(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+const B = [];
+for(let i=0;i<V;i++){ const row=[]; for(let j=0;j<V;j++) row.push(randn(brng)*0.8); B.push(row); }
+const GBIAS = []; for(let i=0;i<V;i++) GBIAS.push(randn(brng)*0.5);
+
+/* hand boosts to give the toy language a little structure */
+const BOOST = {
+  the:['cat','dog','mat'], a:['cat','dog'],
+  cat:['sat','ran'], dog:['sat','ran'],
+  sat:['on','then','.'], ran:['on','fast','.'],
+  on:['the','mat','a'], mat:['.','then'],
+  fast:['.','then'], then:['the','a'],
+  slept:['.','then'], '.':['the','a','then']
+};
+for(const [pv, nexts] of Object.entries(BOOST)){ const pi=IDX[pv]; nexts.forEach(nw=>{ B[pi][IDX[nw]] += 2.4; }); }
+
+/* logits for the next token given the current sequence (context) */
+function logitsFor(seq){
+  const last = seq[seq.length-1];
+  const prev = seq.length>=2 ? seq[seq.length-2] : null;
+  const z = [];
+  for(let v=0; v<V; v++){
+    let s = GBIAS[v]*0.4 + B[last][v];
+    if (prev!==null) s += 0.35*B[prev][v];
+    z.push(s);
+  }
+  return z;
+}
+
+/* ===================== decoding math ===================== */
+function softmaxT(z, T){ const s=z.map(v=>v/T); const m=Math.max(...s); const e=s.map(v=>Math.exp(v-m)); const Z=e.reduce((a,b)=>a+b,0); return e.map(v=>v/Z); }
+
+function filterDist(pBase, k, p){
+  // pBase: softmax after temperature. Apply top-k, then top-p (nucleus). Return {probs, kept[]}.
+  const order = pBase.map((v,i)=>[v,i]).sort((a,b)=>b[0]-a[0]);
+  const keep = new Array(V).fill(false);
+  // top-k
+  const kk = Math.min(k, V);
+  for(let i=0;i<kk;i++) keep[order[i][1]] = true;
+  // top-p within the kept set (nucleus): walk sorted, accumulate until >= p
+  if (p < 0.999){
+    let cum=0, nucleusDone=false;
+    const inNucleus = new Array(V).fill(false);
+    for(let i=0;i<V;i++){
+      const [pv, idx] = order[i];
+      if (!keep[idx]) continue;              // respect top-k first
+      if (!nucleusDone){ inNucleus[idx]=true; cum+=pv; if (cum>=p) nucleusDone=true; }
+    }
+    for(let v=0; v<V; v++) if (keep[v] && !inNucleus[v]) keep[v]=false;
+  }
+  // renormalize over kept
+  let Z=0; for(let v=0;v<V;v++) if(keep[v]) Z+=pBase[v];
+  const probs = pBase.map((v,i)=> keep[i] ? v/Z : 0);
+  const kept = []; for(let v=0;v<V;v++) if(keep[v]) kept.push(v);
+  return { probs, kept };
+}
+
+function entropyBits(p){ let h=0; for(const v of p) if(v>1e-12) h-=v*Math.log2(v); return h; }
+
+/* ===================== state ===================== */
+const PREFIXES = {
+  cat:['the','cat'], dog:['a','dog'], sat:['the','cat','sat','on'], then:['then','the']
+};
+let prefixKey='cat';
+let seq = PREFIXES[prefixKey].map(w=>IDX[w]);
+let prefixLen = seq.length;
+let baseSeed = 91;
+let srng = mulberry32(baseSeed);
+let lastSampled = null;       // idx sampled this step (for arrow)
+let genTimer = null;
+
+function curTemp(){ return parseFloat(document.getElementById('temp').value); }
+function curK(){ return parseInt(document.getElementById('topk').value); }
+function curP(){ return parseFloat(document.getElementById('topp').value); }
+
+/* compute current-step distributions */
+function currentDists(){
+  const z = logitsFor(seq);
+  const T = curTemp();
+  const pTemp = softmaxT(z, T);            // after temperature only
+  const { probs, kept } = filterDist(pTemp, curK(), curP());
+  return { z, pTemp, probs, kept };
+}
+
+/* ===================== canvas ===================== */
+function fitCanvas(canvas){
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = Math.max(1, Math.round(rect.width*dpr));
+  canvas.height = Math.max(1, Math.round(rect.height*dpr));
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return { ctx, w: rect.width, h: rect.height };
+}
+function drawBars(){
+  const { ctx, w, h } = fitCanvas(document.getElementById('barCanvas'));
+  ctx.clearRect(0,0,w,h);
+  const { pTemp, probs, kept } = currentDists();
+  const keptSet = new Set(kept);
+  const padL=44, padR=16, padT=30, padB=64;
+  const cw=w-padL-padR, ch=h-padT-padB;
+  let maxP = 0.001; for(const v of pTemp) maxP=Math.max(maxP,v); for(const v of probs) maxP=Math.max(maxP,v);
+  maxP*=1.12;
+  const yOf = (p)=> padT+ch*(1-p/maxP);
+
+  // gridlines
+  ctx.font='500 10px Manrope, sans-serif'; ctx.textAlign='right'; ctx.textBaseline='middle';
+  const gstep = maxP>0.5?0.25:(maxP>0.25?0.1:0.05);
+  for(let g=0; g<=maxP+1e-9; g+=gstep){
+    const y=yOf(g);
+    ctx.strokeStyle = g===0?'rgba(47,42,34,0.22)':'rgba(47,42,34,0.07)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(padL+cw,y); ctx.stroke();
+    ctx.fillStyle='#8a8072'; ctx.fillText(g.toFixed(2), padL-8, y);
+  }
+
+  const gap=Math.max(8, cw/V*0.28), bw=(cw-gap*(V+1))/V;
+  for(let i=0;i<V;i++){
+    const x=padL+gap+i*(bw+gap);
+    const isKept=keptSet.has(i), isSamp=(i===lastSampled);
+    // dashed outline = after temperature
+    const yT=yOf(pTemp[i]);
+    ctx.strokeStyle= isKept ? 'rgba(44,111,183,0.55)' : 'rgba(120,110,95,0.5)';
+    ctx.lineWidth=1.4; ctx.setLineDash([4,3]);
+    ctx.strokeRect(x, yT, bw, padT+ch-yT);
+    ctx.setLineDash([]);
+    // solid filled = after filter
+    if (probs[i]>0){
+      const yP=yOf(probs[i]);
+      ctx.fillStyle = isSamp ? '#d9622b' : '#2c6fb7';
+      ctx.fillRect(x, yP, bw, padT+ch-yP);
+      // value label
+      ctx.fillStyle='#2f2a22'; ctx.font='600 10px "IBM Plex Mono", monospace';
+      ctx.textAlign='center'; ctx.textBaseline='bottom';
+      ctx.fillText(probs[i].toFixed(2), x+bw/2, yP-3);
+    } else {
+      // filtered: faint grey fill at baseline to signal removed
+      ctx.fillStyle='rgba(207,198,182,0.5)';
+      ctx.fillRect(x, padT+ch-3, bw, 3);
+    }
+    // sampled arrow
+    if (isSamp){
+      const ay=padT+ch+30;
+      ctx.fillStyle='#d9622b';
+      ctx.beginPath(); ctx.moveTo(x+bw/2, ay-8); ctx.lineTo(x+bw/2-6, ay); ctx.lineTo(x+bw/2+6, ay); ctx.closePath(); ctx.fill();
+      ctx.font='700 10px Manrope, sans-serif'; ctx.textAlign='center'; ctx.textBaseline='top';
+      ctx.fillText('sampled', x+bw/2, ay+2);
+    }
+    // token label
+    ctx.fillStyle = isKept ? '#2f2a22' : '#a89b86';
+    ctx.font=(isSamp?'700 ':'600 ')+'11px Manrope, sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='top';
+    ctx.save(); ctx.translate(x+bw/2, padT+ch+8); ctx.fillText(VOCAB[i], 0, 0); ctx.restore();
+  }
+  // titles
+  ctx.fillStyle='#5a5247'; ctx.font='700 11px Manrope, sans-serif'; ctx.textAlign='left'; ctx.textBaseline='top';
+  ctx.fillText('P(next token | context)', padL, 8);
+}
+
+/* ===================== sequence line + pipeline ===================== */
+function renderSeq(){
+  const box=document.getElementById('seqLine'); box.innerHTML='';
+  const lbl=document.createElement('span'); lbl.className='chip-lbl'; lbl.textContent='Sequence:'; box.appendChild(lbl);
+  seq.forEach((idx,i)=>{
+    const s=document.createElement('span');
+    const isNew = (i===seq.length-1 && i>=prefixLen && lastSampled!==null);
+    s.className='seq-tok'+(i<prefixLen?' is-prefix':'')+(isNew?' is-new':'');
+    s.textContent=VOCAB[idx];
+    box.appendChild(s);
+  });
+  const caret=document.createElement('span'); caret.className='seq-caret'; caret.textContent='▮'; box.appendChild(caret);
+}
+function flashPipe(){
+  ['pipeLogits','pipeSample'].forEach(id=>{ const e=document.getElementById(id); e.classList.add('pipe-hot'); setTimeout(()=>e.classList.remove('pipe-hot'),450); });
+}
+
+/* ===================== orchestration ===================== */
+function updateStats(){
+  const { probs, kept } = currentDists();
+  document.getElementById('lastVal').textContent = lastSampled===null ? '—' : VOCAB[lastSampled];
+  document.getElementById('keptVal').textContent = kept.length + ' / ' + V;
+  document.getElementById('entVal').textContent = entropyBits(probs).toFixed(2);
+  const top=Math.max(...probs);
+  document.getElementById('topVal').textContent = top.toFixed(2);
+}
+function redraw(){
+  document.getElementById('tempVal').textContent = curTemp().toFixed(2);
+  const k=curK(); document.getElementById('kVal').textContent = (k>=V?'off (all '+V+')':String(k));
+  const p=curP(); document.getElementById('pVal').textContent = p>=0.999?'1.00 (off)':p.toFixed(2);
+  drawBars();
+  renderSeq();
+  updateStats();
+  document.getElementById('stepBtn').disabled = seq.length>=16;
+  document.getElementById('genBtn').disabled = seq.length>=16;
+}
+
+function sampleOnce(){
+  const { probs } = currentDists();
+  const r = srng();
+  let cum=0, choice=probs.length-1;
+  for(let i=0;i<probs.length;i++){ cum+=probs[i]; if(r<=cum){ choice=i; break; } }
+  seq.push(choice);
+  lastSampled=choice;
+  flashPipe();
+  redraw();
+}
+function doStep(){ if(seq.length<16) sampleOnce(); }
+function doGen(){
+  if(genTimer) return;
+  let n=0;
+  genTimer=setInterval(()=>{ if(n>=6 || seq.length>=16){ clearInterval(genTimer); genTimer=null; return; } sampleOnce(); n++; }, 620);
+}
+function doReset(){ if(genTimer){clearInterval(genTimer);genTimer=null;} seq=PREFIXES[prefixKey].map(w=>IDX[w]); prefixLen=seq.length; lastSampled=null; srng=mulberry32(baseSeed); redraw(); }
+function doNewSeed(){ baseSeed=(baseSeed*1664525+1013904223)>>>0 % 100000; doReset(); }
+
+/* ===================== wiring ===================== */
+['temp','topk','topp'].forEach(id=>document.getElementById(id).addEventListener('input', redraw));
+document.querySelectorAll('.chip-row .mode-button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.chip-row .mode-button').forEach(x=>x.classList.remove('is-active'));
+  b.classList.add('is-active'); prefixKey=b.dataset.prefix; doReset();
+}));
+document.getElementById('stepBtn').addEventListener('click', doStep);
+document.getElementById('genBtn').addEventListener('click', doGen);
+document.getElementById('resetBtn').addEventListener('click', doReset);
+document.getElementById('seedBtn').addEventListener('click', doNewSeed);
+window.addEventListener('load', redraw);
+window.addEventListener('resize', redraw);
+redraw();
+</script>
+
+
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

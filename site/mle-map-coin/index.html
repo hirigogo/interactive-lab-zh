@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>抛硬币上的 MLE 与 MAP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="../shared.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>抛硬币上的 MLE 与 MAP</h1>
+        <p class="abstract">
+          频率派与贝叶斯派争论了一个世纪。在单枚硬币上，两种估计都只是<em>一个可以算出来的数字</em>。滑动先验，抛几次硬币，观察估计如何从 MLE（只用数据）滑向 MAP（数据 + 先验）。
+        </p>
+        <div class="byline">
+          <span>约 10 分钟</span>
+          <span>概率 &middot; 贝叶斯推断</span>
+        </div>
+      </header>
+
+      <section class="step-section">
+        <div class="step-badge">第 1 步</div>
+        <h2>设定</h2>
+        <p>
+          一枚硬币有未知偏置 $p$。你抛掷 $N$ 次，观察到 $h$ 次正面、$t = N - h$ 次反面。似然为 $\mathcal{L}(p) = p^h (1-p)^t$。MLE 在 $\hat p_{\text{MLE}} = h/N$ 处取峰。
+        </p>
+        <p>
+          对 $p$ 施加 $\text{Beta}(\alpha, \beta)$ 先验。后验为 $\text{Beta}(\alpha + h,\ \beta + t)$ —— 仍在同一分布族中，只需把计数加上去。MAP 在该 Beta 分布的众数处取峰。
+        </p>
+      </section>
+
+      <section class="step-section">
+        <div class="step-badge">试一试</div>
+        <h2>交互组件</h2>
+        <div id="widget-root">
+          <p><em>此处放置 $\alpha$、$\beta$、真实 $p$ 与 $N$ 的交互滑块。</em></p>
+          <p><em>绘图：在同一坐标轴上展示似然、先验与后验。</em></p>
+          <p><em>读数：MLE、后验均值、MAP、KL(后验 &Vert; 先验)。</em></p>
+          <p style="color:#888"><em>状态：框架已搭好，实现待补。</em></p>
+        </div>
+      </section>
+
+      <section class="step-section">
+        <div class="step-badge">第 2 步</div>
+        <h2>该观察什么</h2>
+        <ul class="explanation-list">
+          <li><strong>$N$ 小 &middot; 先验胜出。</strong> 后验靠近先验。MAP $\neq$ MLE。</li>
+          <li><strong>$N$ 大 &middot; 数据胜出。</strong> 后验在 $h/N$ 附近收缩。MAP $\to$ MLE。</li>
+          <li><strong>先验错误 &middot; 修正缓慢。</strong> 即便真实偏置为 0.8，一个很强的 Beta(50, 50) 先验仍会把 MAP 拉向 0.5。</li>
+        </ul>
+      </section>
+    </article>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

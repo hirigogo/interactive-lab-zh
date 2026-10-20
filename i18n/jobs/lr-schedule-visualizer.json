@@ -1,0 +1,344 @@
+{
+ "slug": "lr-schedule-visualizer",
+ "units": {
+  "LR Schedule Visualizer": {
+   "zh": "学习率调度可视化",
+   "src": "LR Schedule Visualizer",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Four schedules, one canvas. Drag peak LR, warmup fraction, total steps — see exactly how the learning rate moves through training, and why Transformers cold-started at full LR diverge in their first 100 steps.": {
+   "zh": "四种调度，同一画布。拖动峰值学习率、预热比例与总步数 — 精确观察学习率在训练过程中的变化，并理解为何 Transformer 以满学习率冷启动时会在最初 100 步内发散。",
+   "src": "Four schedules, one canvas. Drag peak LR, warmup fraction, total steps — see exactly how the learning rate moves through training, and why Transformers cold-started at full LR diverge in their first 100 steps.",
+   "tags": []
+  },
+  "@@T0@@~6 min@@T1@@@@T2@@Deep Learning · Optimization · Schedules@@T3@@": {
+   "zh": "@@T0@@约 6 分钟@@T1@@@@T2@@深度学习 · 优化 · 调度@@T3@@",
+   "src": "<span>~6 min</span><span>Deep Learning · Optimization · Schedules</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "The @@T0@@same@@T1@@ optimizer can succeed or fail depending on the learning rate schedule you wrap around it. Cold-starting Adam on a Transformer with @@T2@@lr = 3e-4@@T3@@ diverges within a few hundred steps. Warm it up linearly from 0 and the same architecture trains cleanly.": {
+   "zh": "@@T0@@同一个@@T1@@优化器能否成功，取决于你为它套上怎样的学习率调度。以 @@T2@@lr = 3e-4@@T3@@ 对 Transformer 冷启动 Adam，会在数百步内发散。而若从 0 开始线性预热，同一架构便能平稳训练。",
+   "src": "The <em>same</em> optimizer can succeed or fail depending on the learning rate schedule you wrap around it. Cold-starting Adam on a Transformer with <code>lr = 3e-4</code> diverges within a few hundred steps. Warm it up linearly from 0 and the same architecture trains cleanly.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "The playground": {
+   "zh": "实验场",
+   "src": "The playground",
+   "tags": []
+  },
+  "Scenario:": {
+   "zh": "场景：",
+   "src": "Scenario:",
+   "tags": []
+  },
+  "ResNet · CIFAR-10": {
+   "zh": "ResNet · CIFAR-10 场景",
+   "src": "ResNet · CIFAR-10",
+   "tags": []
+  },
+  "Transformer · BERT": {
+   "zh": "Transformer · BERT 场景",
+   "src": "Transformer · BERT",
+   "tags": []
+  },
+  "LoRA fine-tune": {
+   "zh": "LoRA 微调",
+   "src": "LoRA fine-tune",
+   "tags": []
+  },
+  "Schedule:": {
+   "zh": "调度：",
+   "src": "Schedule:",
+   "tags": []
+  },
+  "constant": {
+   "zh": "恒定",
+   "src": "constant",
+   "tags": []
+  },
+  "step": {
+   "zh": "阶梯",
+   "src": "step",
+   "tags": []
+  },
+  "exp": {
+   "zh": "指数",
+   "src": "exp",
+   "tags": []
+  },
+  "cosine": {
+   "zh": "余弦",
+   "src": "cosine",
+   "tags": []
+  },
+  "warmup+cos": {
+   "zh": "预热+余弦",
+   "src": "warmup+cos",
+   "tags": []
+  },
+  "Peak LR:": {
+   "zh": "峰值学习率：",
+   "src": "Peak LR:",
+   "tags": []
+  },
+  "Warmup %:": {
+   "zh": "预热比例：",
+   "src": "Warmup %:",
+   "tags": []
+  },
+  "PyTorch for the current schedule": {
+   "zh": "当前调度对应的 PyTorch 代码",
+   "src": "PyTorch for the current schedule",
+   "tags": []
+  },
+  "Why Transformers need warmup": {
+   "zh": "为何 Transformer 需要预热",
+   "src": "Why Transformers need warmup",
+   "tags": []
+  },
+  "Adam's second-moment estimate @@T0@@v̂_t@@T1@@ is tiny and noisy at step 1. Dividing by @@T2@@√v̂_t@@T3@@ wildly amplifies the first few steps. Meanwhile, random-init attention produces peaky distributions — large early gradients in a few heads. Combined, cold-starting at full LR produces huge unstable first steps, and the loss diverges.": {
+   "zh": "Adam 的二阶矩估计 @@T0@@v̂_t@@T1@@ 在第 1 步时既小又含噪。用 @@T2@@√v̂_t@@T3@@ 作除数会极大地放最初若干步。与此同时，随机初始化的注意力会产生尖峰状的分布 — 少数注意力头中出现较大的早期梯度。二者叠加，以满学习率冷启动便会产生巨大而不稳定的初始步，损失随之发散。",
+   "src": "Adam's second-moment estimate <code>v̂_t</code> is tiny and noisy at step 1. Dividing by <code>√v̂_t</code> wildly amplifies the first few steps. Meanwhile, random-init attention produces peaky distributions — large early gradients in a few heads. Combined, cold-starting at full LR produces huge unstable first steps, and the loss diverges.",
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Warmup linearly ramps LR from 0 to peak over 1–10% of training. Once @@T0@@v̂_t@@T1@@ has a few steps to stabilize and attention has diffused, you can safely ride the peak LR.": {
+   "zh": "预热在训练的前 1–10% 内将学习率从 0 线性升至峰值。一旦 @@T0@@v̂_t@@T1@@ 经过若干步趋于稳定、注意力也已变得分散，便可安全地维持峰值学习率。",
+   "src": "Warmup linearly ramps LR from 0 to peak over 1–10% of training. Once <code>v̂_t</code> has a few steps to stabilize and attention has diffused, you can safely ride the peak LR.",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "The four-stage anatomy of a modern LR schedule": {
+   "zh": "现代学习率调度的四阶段解剖",
+   "src": "The four-stage anatomy of a modern LR schedule",
+   "tags": []
+  },
+  "@@T0@@Warmup (0 → peak).@@T1@@ Linear ramp for 1–10% of total steps. Stabilises Adam's moment estimates and gives initialisation time to settle.": {
+   "zh": "@@T0@@预热（0 → 峰值）。@@T1@@ 在总步数的 1–10% 内线性上升。稳定 Adam 的矩估计，并让初始化有时间趋于平稳。",
+   "src": "<strong>Warmup (0 → peak).</strong> Linear ramp for 1–10% of total steps. Stabilises Adam's moment estimates and gives initialisation time to settle.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Peak (constant or near-constant).@@T1@@ The bulk of training. Some recipes (Llama, Chinchilla) hold constant; others (cosine, Noam) start decaying immediately after warmup.": {
+   "zh": "@@T0@@峰值（恒定或近乎恒定）。@@T1@@ 训练的主体部分。一些方案（Llama、Chinchilla）保持恒定；另一些（余弦、Noam）则在预热结束后立即开始衰减。",
+   "src": "<strong>Peak (constant or near-constant).</strong> The bulk of training. Some recipes (Llama, Chinchilla) hold constant; others (cosine, Noam) start decaying immediately after warmup.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Decay (peak → near-zero).@@T1@@ Cosine, linear, or step. The exact shape matters less than the magnitude — what matters is reaching a sufficiently low final LR.": {
+   "zh": "@@T0@@衰减（峰值 → 近零）。@@T1@@ 余弦、线性或阶梯。具体形状不如幅度重要 — 关键在于最终学习率要足够低。",
+   "src": "<strong>Decay (peak → near-zero).</strong> Cosine, linear, or step. The exact shape matters less than the magnitude — what matters is reaching a sufficiently low final LR.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Tail (~0).@@T1@@ Optional. Final low-LR steps for last-mile fine-tuning. Standard in LLM pretraining.": {
+   "zh": "@@T0@@尾部（约 0）。@@T1@@ 可选。最后阶段以低学习率进行收尾微调。在 LLM 预训练中属标准做法。",
+   "src": "<strong>Tail (~0).</strong> Optional. Final low-LR steps for last-mile fine-tuning. Standard in LLM pretraining.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Schedule cheatsheet by use case": {
+   "zh": "按使用场景分类的调度速查表",
+   "src": "Schedule cheatsheet by use case",
+   "tags": []
+  },
+  "@@T0@@Computer vision (ResNet, ViT) on ImageNet.@@T1@@ Cosine decay over 100 epochs, no warmup needed for ResNet, ~5 epochs warmup for ViT. Peak LR ≈ 0.1 (SGD) or 1e-3 (AdamW).": {
+   "zh": "@@T0@@ImageNet 上的计算机视觉（ResNet、ViT）。@@T1@@ 在 100 个轮次内做余弦衰减；ResNet 无需预热，ViT 约需 5 个轮次的预热。峰值学习率约 0.1（SGD）或 1e-3（AdamW）。",
+   "src": "<strong>Computer vision (ResNet, ViT) on ImageNet.</strong> Cosine decay over 100 epochs, no warmup needed for ResNet, ~5 epochs warmup for ViT. Peak LR ≈ 0.1 (SGD) or 1e-3 (AdamW).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@LLM pretraining.@@T1@@ Linear warmup ~1% of total tokens, then cosine decay to 10% of peak. Peak LR ~3e-4 (small) down to ~1e-4 (70B+).": {
+   "zh": "@@T0@@LLM 预训练。@@T1@@ 线性预热约占总词元数的 1%，随后余弦衰减至峰值的 10%。峰值学习率从约 3e-4（小模型）到约 1e-4（70B 以上）。",
+   "src": "<strong>LLM pretraining.</strong> Linear warmup ~1% of total tokens, then cosine decay to 10% of peak. Peak LR ~3e-4 (small) down to ~1e-4 (70B+).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@LLM SFT / instruction tuning.@@T1@@ Short linear warmup (~50 steps), cosine to zero. Peak LR ~2e-5 to ~5e-5. @@T2@@Much@@T3@@ lower than pretraining to avoid catastrophic forgetting.": {
+   "zh": "@@T0@@LLM 的 SFT / 指令微调。@@T1@@ 短线性预热（约 50 步），余弦衰减至零。峰值学习率约为 2e-5 至 5e-5。相比预训练@@T2@@低得多@@T3@@，以避免灾难性遗忘。",
+   "src": "<strong>LLM SFT / instruction tuning.</strong> Short linear warmup (~50 steps), cosine to zero. Peak LR ~2e-5 to ~5e-5. <em>Much</em> lower than pretraining to avoid catastrophic forgetting.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@LoRA fine-tuning.@@T1@@ Constant or single cosine cycle. Peak LR ~1e-4. Adapter parameters tolerate higher rates than the base.": {
+   "zh": "@@T0@@LoRA 微调。@@T1@@ 恒定或单次余弦周期。峰值学习率约 1e-4。适配器参数能比基础参数承受更高的学习率。",
+   "src": "<strong>LoRA fine-tuning.</strong> Constant or single cosine cycle. Peak LR ~1e-4. Adapter parameters tolerate higher rates than the base.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Object detection / segmentation.@@T1@@ Step schedule (multiply by 0.1 at 60%, 80% of training). The classical DETR / Mask R-CNN recipe.": {
+   "zh": "@@T0@@目标检测 / 分割。@@T1@@ 阶梯调度（在训练进度 60%、80% 处乘以 0.1）。这是经典的 DETR / Mask R-CNN 方案。",
+   "src": "<strong>Object detection / segmentation.</strong> Step schedule (multiply by 0.1 at 60%, 80% of training). The classical DETR / Mask R-CNN recipe.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Diffusion training.@@T1@@ Constant LR + EMA on weights. The EMA does most of the implicit \"decay\".": {
+   "zh": "@@T0@@扩散模型训练。@@T1@@ 恒定学习率 + 权重 EMA。隐式的「衰减」主要由 EMA 承担。",
+   "src": "<strong>Diffusion training.</strong> Constant LR + EMA on weights. The EMA does most of the implicit \"decay\".",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "One-cycle vs cosine vs constant": {
+   "zh": "单周期、余弦与恒定三者对比",
+   "src": "One-cycle vs cosine vs constant",
+   "tags": []
+  },
+  "Three regimes you'll see in production:": {
+   "zh": "你在生产实践中会遇到的三种范式：",
+   "src": "Three regimes you'll see in production:",
+   "tags": []
+  },
+  "@@T0@@Constant LR + decay-at-the-end.@@T1@@ Used by Chinchilla, recent Llama runs. Empirically as good as cosine when training duration is well-tuned; simpler to reason about for very long runs.": {
+   "zh": "@@T0@@恒定学习率 + 结尾衰减。@@T1@@ 为 Chinchilla 及近期的 Llama 训练所采用。在训练时长经过良好调校时，其经验表现与余弦相当；对于超长训练，其行为更易于分析。",
+   "src": "<strong>Constant LR + decay-at-the-end.</strong> Used by Chinchilla, recent Llama runs. Empirically as good as cosine when training duration is well-tuned; simpler to reason about for very long runs.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Cosine annealing@@T1@@ (Loshchilov &amp; Hutter, 2017). Smooth decay; the default in HuggingFace Trainer, PyTorch Lightning. Cosine with restarts (\"SGDR\") periodically resets to peak — was popular pre-2022 for vision, mostly abandoned for LLMs.": {
+   "zh": "@@T0@@余弦退火@@T1@@（Loshchilov &amp; Hutter，2017）。平滑衰减；是 HuggingFace Trainer 与 PyTorch Lightning 中的默认选项。带重启的余弦（“SGDR”）会周期性地回到峰值 — 在 2022 年之前流行于视觉领域，如今在 LLM 中基本已被弃用。",
+   "src": "<strong>Cosine annealing</strong> (Loshchilov &amp; Hutter, 2017). Smooth decay; the default in HuggingFace Trainer, PyTorch Lightning. Cosine with restarts (\"SGDR\") periodically resets to peak — was popular pre-2022 for vision, mostly abandoned for LLMs.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@1-cycle (Leslie Smith, 2018).@@T1@@ LR + momentum sweep — short warmup, long cosine decay, very low tail. Strong for short training runs (fewer than 1000 epochs). Mostly historical for LLMs but still useful for small-scale CNN training.": {
+   "zh": "@@T0@@单周期（Leslie Smith，2018）。@@T1@@ 学习率与动量的联合扫掠 — 短预热、长余弦衰减、极低的尾部。对于短训练过程（少于 1000 个轮次）效果强劲。对 LLM 而言多已成为历史，但对小规模 CNN 训练仍有价值。",
+   "src": "<strong>1-cycle (Leslie Smith, 2018).</strong> LR + momentum sweep — short warmup, long cosine decay, very low tail. Strong for short training runs (fewer than 1000 epochs). Mostly historical for LLMs but still useful for small-scale CNN training.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Reading list": {
+   "zh": "阅读清单",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Loshchilov &amp; Hutter (2017)@@T1@@ — @@T2@@SGDR: Stochastic Gradient Descent with Warm Restarts.@@T3@@": {
+   "zh": "@@T0@@Loshchilov &amp; Hutter (2017)@@T1@@ — @@T2@@SGDR: Stochastic Gradient Descent with Warm Restarts。@@T3@@",
+   "src": "<strong>Loshchilov &amp; Hutter (2017)</strong> — <em>SGDR: Stochastic Gradient Descent with Warm Restarts.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Smith (2018)@@T1@@ — @@T2@@A Disciplined Approach to Neural Network Hyper-Parameters.@@T3@@ The 1-cycle paper.": {
+   "zh": "@@T0@@Smith (2018)@@T1@@ — @@T2@@A Disciplined Approach to Neural Network Hyper-Parameters。@@T3@@ 单周期方法的论文。",
+   "src": "<strong>Smith (2018)</strong> — <em>A Disciplined Approach to Neural Network Hyper-Parameters.</em> The 1-cycle paper.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Hoffer et&nbsp;al. (2017)@@T1@@ — @@T2@@Train Longer, Generalize Better.@@T3@@": {
+   "zh": "@@T0@@Hoffer 等 (2017)@@T1@@ — @@T2@@Train Longer, Generalize Better。@@T3@@",
+   "src": "<strong>Hoffer et&nbsp;al. (2017)</strong> — <em>Train Longer, Generalize Better.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Liu et&nbsp;al. (2020)@@T1@@ — @@T2@@On the Variance of the Adaptive Learning Rate and Beyond (RAdam).@@T3@@ Why warmup helps Adam.": {
+   "zh": "@@T0@@Liu 等 (2020)@@T1@@ — @@T2@@On the Variance of the Adaptive Learning Rate and Beyond (RAdam)。@@T3@@ 解释预热为何对 Adam 有帮助。",
+   "src": "<strong>Liu et&nbsp;al. (2020)</strong> — <em>On the Variance of the Adaptive Learning Rate and Beyond (RAdam).</em> Why warmup helps Adam.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Hoffmann et&nbsp;al. (2022)@@T1@@ — @@T2@@Training Compute-Optimal Large Language Models (Chinchilla).@@T3@@ The constant-LR-with-decay recipe.": {
+   "zh": "@@T0@@Hoffmann 等 (2022)@@T1@@ — @@T2@@Training Compute-Optimal Large Language Models (Chinchilla)。@@T3@@ 恒定学习率配结尾衰减的方案。",
+   "src": "<strong>Hoffmann et&nbsp;al. (2022)</strong> — <em>Training Compute-Optimal Large Language Models (Chinchilla).</em> The constant-LR-with-decay recipe.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "学习率调度可视化",
+  "tagline": "亲手体会 Transformer 为何需要预热 — 每种调度都配有滑块",
+  "summary": "四种调度，同一画布。在阶梯衰减、指数衰减、余弦退火与预热+余弦之间切换。拖动峰值学习率、预热比例与周期长度。观察训练过程中的学习率曲线以及各调度叠加的损失曲线 — 并弄清为何以峰值学习率冷启动会使现代架构发散。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "在四种调度形态间切换；实时观察学习率随训练步数的变化。",
+   "拖动峰值学习率、预热比例与总步数 — 每个滑块都会实时改变曲线。",
+   "在同一张图上叠加两条调度曲线进行对比。",
+   "在玩具损失曲面上观察效果 — 预热+余弦能够收敛；对 Transformer 冷启动 Adam 则会发散。",
+   "查看当前所配置调度对应的 PyTorch 一行代码。"
+  ],
+  "tags": [
+   "学习率调度",
+   "预热",
+   "余弦",
+   "Transformer",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

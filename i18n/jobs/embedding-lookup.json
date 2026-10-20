@@ -1,0 +1,215 @@
+{
+ "slug": "embedding-lookup",
+ "units": {
+  "Embeddings are a Lookup Table": {
+   "zh": "嵌入就是一张查找表",
+   "src": "Embeddings are a Lookup Table",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "@@T0@@~7 min@@T1@@\n      @@T2@@Deep Learning &middot; Language Models &middot; Representations@@T3@@": {
+   "zh": "@@T0@@约 7 分钟@@T1@@\n      @@T2@@深度学习 &middot; 语言模型 &middot; 表示@@T3@@",
+   "src": "<span>~7 min</span>\n      <span>Deep Learning &middot; Language Models &middot; Representations</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "A row per token": {
+   "zh": "一个词元对应一行",
+   "src": "A row per token",
+   "tags": []
+  },
+  "A token id is just an integer &mdash; token @@T0@@3@@T1@@ is no bigger than token\n      @@T2@@1@@T3@@, they are only names. To turn that name into something a network can\n      compute with, we store a matrix $E \\in \\mathbb{R}^{V \\times d}$: one row for each of the\n      $V$ tokens, each row a vector of length $d$. Embedding token $i$ is a single indexing op:": {
+   "zh": "词元 id 只是一个整数——词元 @@T0@@3@@T1@@ 并不比词元 @@T2@@1@@T3@@ 更大，它们只是名称而已。为将这个名称转化为网络可用于计算的某种东西，我们存储一个矩阵 $E \\in \\mathbb{R}^{V \\times d}$：$V$ 个词元各对应一行，每一行是一个长度为 $d$ 的向量。对词元 $i$ 做嵌入就是一次索引操作：",
+   "src": "A token id is just an integer &mdash; token <code>3</code> is no bigger than token\n      <code>1</code>, they are only names. To turn that name into something a network can\n      compute with, we store a matrix $E \\in \\mathbb{R}^{V \\times d}$: one row for each of the\n      $V$ tokens, each row a vector of length $d$. Embedding token $i$ is a single indexing op:",
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "The Lab": {
+   "zh": "实验区",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Look it up, then move it": {
+   "zh": "查出来，再移动它",
+   "src": "Look it up, then move it",
+   "tags": []
+  },
+  "Token id": {
+   "zh": "词元 id",
+   "src": "Token id",
+   "tags": []
+  },
+  "The embedding table $E$ (10 rows &times; 2 dims). The selected token&rsquo;s row is its vector $e = E[i]$.": {
+   "zh": "嵌入表 $E$（10 行 &times; 2 维）。所选词元所在的行即其向量 $e = E[i]$。",
+   "src": "The embedding table $E$ (10 rows &times; 2 dims). The selected token&rsquo;s row is its vector $e = E[i]$.",
+   "tags": []
+  },
+  "Every token as a point $(e_0, e_1)$. Drag the ringed point; the dashed line shows its nearest neighbour.": {
+   "zh": "每个词元都是平面上的一个点 $(e_0, e_1)$。拖动带环的点；虚线表示其最近邻。",
+   "src": "Every token as a point $(e_0, e_1)$. Drag the ringed point; the dashed line shows its nearest neighbour.",
+   "tags": []
+  },
+  "Dim 0 @@T0@@$e_0$ = @@T1@@0.00@@T2@@@@T3@@": {
+   "zh": "维度 0 @@T0@@$e_0$ = @@T1@@0.00@@T2@@@@T3@@",
+   "src": "Dim 0 <span>$e_0$ = <span id=\"d0Val\">0.00</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"d0Val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Dim 1 @@T0@@$e_1$ = @@T1@@0.00@@T2@@@@T3@@": {
+   "zh": "维度 1 @@T0@@$e_1$ = @@T1@@0.00@@T2@@@@T3@@",
+   "src": "Dim 1 <span>$e_1$ = <span id=\"d1Val\">0.00</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"d1Val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Lookup&nbsp;&nbsp;@@T1@@e = E[i]@@T2@@@@T3@@\n        @@T4@@&mdash;@@T5@@": {
+   "zh": "@@T0@@查表&nbsp;&nbsp;@@T1@@e = E[i]@@T2@@@@T3@@\n        @@T4@@&mdash;@@T5@@",
+   "src": "<span class=\"stat-label\">Lookup&nbsp;&nbsp;<code>e = E[i]</code></span>\n        <span class=\"stat-value\" id=\"lookupVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "<code>",
+    "</code>",
+    "</span>",
+    "<span class=\"stat-value\" id=\"lookupVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Selected token@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@所选词元@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Selected token</span>\n        <span class=\"stat-value\" id=\"tokVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"tokVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Nearest neighbour@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@最近邻@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Nearest neighbour</span>\n        <span class=\"stat-value\" id=\"nnVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"nnVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Distance to it@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@到它的距离@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Distance to it</span>\n        <span class=\"stat-value\" id=\"distVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"distVal\">",
+    "</span>"
+   ]
+  },
+  "Reset table": {
+   "zh": "重置表",
+   "src": "Reset table",
+   "tags": []
+  },
+  "@@T0@@Try this.@@T1@@ The five vowels start clustered in one corner and the five\n      consonants in another &mdash; the kind of structure a trained model discovers on its own.\n      Now drag a vowel down into the consonants: its @@T2@@nearest neighbour@@T3@@ flips to a consonant.\n      Nothing about the token &ldquo;changed&rdquo; &mdash; only its row did. Similarity in an\n      embedding space is @@T4@@entirely@@T5@@ a matter of which rows sit near which.": {
+   "zh": "@@T0@@请试一试。@@T1@@五个元音起初聚集在一个角落，五个辅音聚集在另一个角落——这正是训练好的模型会自行发现的那类结构。现在将一个元音拖入辅音之中：它的@@T2@@最近邻@@T3@@便会翻转为某个辅音。词元本身「毫无变化」——发生变化的只是它所在的行。嵌入空间中的相似性@@T4@@完全@@T5@@取决于哪些行彼此靠近。",
+   "src": "<strong>Try this.</strong> The five vowels start clustered in one corner and the five\n      consonants in another &mdash; the kind of structure a trained model discovers on its own.\n      Now drag a vowel down into the consonants: its <em>nearest neighbour</em> flips to a consonant.\n      Nothing about the token &ldquo;changed&rdquo; &mdash; only its row did. Similarity in an\n      embedding space is <em>entirely</em> a matter of which rows sit near which.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "收获",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Training is just moving rows": {
+   "zh": "训练不过是在移动行",
+   "src": "Training is just moving rows",
+   "tags": []
+  },
+  "Because embedding a token is pure indexing, the only thing gradient descent can do to the\n      embedding layer is @@T0@@edit the rows that were used@@T1@@. When two tokens keep appearing in\n      similar contexts, the loss keeps nudging their rows in similar directions, and they drift\n      together &mdash; exactly the clustering you just dragged apart by hand.": {
+   "zh": "由于对词元做嵌入纯粹是索引操作，梯度下降对嵌入层所能做的唯一一件事就是@@T0@@编辑那些被用到的行@@T1@@。当两个词元不断出现在相似的上下文中时，损失函数便持续将它们的行推向相似的方向，二者随之聚拢——正是你刚才用手拖散的那种聚集。",
+   "src": "Because embedding a token is pure indexing, the only thing gradient descent can do to the\n      embedding layer is <em>edit the rows that were used</em>. When two tokens keep appearing in\n      similar contexts, the loss keeps nudging their rows in similar directions, and they drift\n      together &mdash; exactly the clustering you just dragged apart by hand.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "A token id carries no meaning; the meaning lives in the @@T0@@row@@T1@@ the model learned for it.": {
+   "zh": "词元 id 本身不承载任何意义；意义存在于模型为它学到的@@T0@@那一行@@T1@@之中。",
+   "src": "A token id carries no meaning; the meaning lives in the <strong>row</strong> the model learned for it.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "&ldquo;Distance between tokens&rdquo; is just distance between rows &mdash; there is nothing else.": {
+   "zh": "所谓「词元之间的距离」，不过是行与行之间的距离——仅此而已。",
+   "src": "&ldquo;Distance between tokens&rdquo; is just distance between rows &mdash; there is nothing else.",
+   "tags": []
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 12: Next-Token Prediction": {
+   "zh": "ES 667 深度学习讲解系列之一 &middot; 第 12 讲：下一词元预测",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 12: Next-Token Prediction",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "嵌入就是一张查找表",
+  "tagline": "嵌入层不过是对一张已学得的向量表做索引——每个词元对应一行",
+  "summary": "一个 10 词元、2 维的嵌入矩阵，以两种方式同时呈现：一张可供索引的热力图表格，以及一张可拖动的散点图。点击某个词元以点亮其所在的行并读出 e = E[i]；用滑块微调两个坐标，或在平面上拖动该点，观察对应的行与其位置如何同步移动。元音与辅音起初已预先聚成簇，因而你能直接体会其中的要点——词元之间的相似性无非是行与行之间的距离，而训练不过是在移动这些行。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "看嵌入矩阵 E 同时以热力图表格与二维散点两种形式呈现——同一个数组，两种视图。",
+   "点击任一词元 id 以点亮其所在的行，并将查找 e = E[i] 作为一个稠密向量读出。",
+   "在平面上拖动某个点（或微调其两个滑块），观察对应的行如何同步重新着色。",
+   "元音与辅音起初已预先聚成簇，因此将一个词元拖过边界便会翻转其最近邻，使「相似即行相近」变得触手可及。",
+   "为配套的字符 MLP 讲解作铺垫：一次训练步骤只编辑它实际用到过的那些词元的行。"
+  ],
+  "tags": [
+   "嵌入",
+   "语言模型",
+   "表示",
+   "查找表",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

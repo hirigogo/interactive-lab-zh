@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>概念瓶颈模型</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>概念瓶颈模型</h1>
+        <p class="abstract">
+          先预测由人命名的概念；再由这些概念读出标签。在推理时开启或关闭某个概念，观察标签随之变化——这是深度学习最接近<em>因果</em>可解释性的做法。
+        </p>
+        <div class="byline">
+          <span>约 14 分钟</span>
+          <span>可解释性 &middot; 干预 &middot; 视觉</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>可解释性的承诺</h2>
+        <p>
+          显著性图告诉你「模型用到了这些像素」；概念瓶颈（Koh 等，2020）则告诉你「模型用到了这些<em>被命名的</em>特征——它们的取值如下，而若你手动改变它们，预测将如此变化」。瓶颈是一组已知的可解释概念；头部则是置于其上的一个小型分类器。
+        </p>
+        <div class="math-block" id="math-cb"></div>
+        <p>
+          训练期间，你监督两个阶段：瓶颈必须从图像预测出正确的概念值，而头部必须从概念向量预测出正确的标签。推理时，你可以将任意预测概念替换为人工设定的值（即一次<em>干预</em>），并观察标签如何响应。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>观察 CBM 进行预测并接受干预</h2>
+        <p>
+          合成的四分类问题。每个形状有 4 个概念：<em>is-dark</em>、<em>is-large</em>、<em>has-stripes</em>、<em>is-warm</em>。类别由这些概念上固定的布尔配方决定。关闭（或开启）某个概念，观察预测类别如何翻转。
+        </p>
+        <div class="train-controls">
+          <button class="action-btn action-btn--ghost" id="cb-reroll">新图像</button>
+          <span class="train-stat">真实类别 <strong id="cb-true">—</strong></span>
+          <span class="train-stat">预测类别 <strong id="cb-pred">—</strong></span>
+        </div>
+        <div class="cb-grid">
+          <div class="cb-panel">
+            <div class="panel-label">图像</div>
+            <canvas id="cb-img" width="220" height="220"></canvas>
+          </div>
+          <div class="cb-panel cb-panel-wide">
+            <div class="panel-label">预测概念（拖动以覆盖）</div>
+            <div class="cb-concepts" id="cb-concepts"></div>
+            <div class="panel-meta">每条柱是模型预测的概念值（0..1）。点击某条柱即可覆盖（强制该概念为 0 或 1）。刷新「新图像」以清除。</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>三种训练配方</h2>
+        <p>
+          设 $g_\theta$ 将图像映射为概念向量，$f_\phi$ 将概念向量映射为标签。以逐概念损失 $\mathcal{L}_c$ 与标签损失 $\mathcal{L}_y$ 为记，三种标准配方如下：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>顺序式。</strong>先拟合 $\theta^\star = \arg\min \mathcal{L}_c(g_\theta(x), c)$；冻结；再拟合 $\phi^\star = \arg\min \mathcal{L}_y(f_\phi(g_{\theta^\star}(x)), y)$。可解释性最强：概念无法泄漏标签信息，因为标签信号从不触及 $g$。</li>
+          <li><strong>联合式。</strong>以 $\mathcal{L} = \mathcal{L}_y + \lambda \mathcal{L}_c$ 同时训练 $g$ 与 $f$。准确率略高，但瓶颈可编码虚假信息以帮助 $f$——这称为<em>泄漏</em>。$\lambda$ 控制这一权衡：$\lambda \to \infty$ 时退化为顺序式。</li>
+          <li><strong>独立式。</strong>训练期间在<em>真值</em>概念上训练 $f$；测试时则使用预测概念。当概念难以预测时，测试准确率最佳。</li>
+        </ul>
+        <div class="math-block" id="math-cbm-train"></div>
+      </section>
+
+      <section class="step-section" id="step-2a">
+        <div class="step-badge">第 2½ 步</div>
+        <h2>干预为何重要</h2>
+        <p>
+          CBM 让你能够做一件神经网络通常不允许的事：运行反事实。「若 <em>striped</em> 为 0 而非 1，预测会改变吗？」——答案由在编辑后的概念向量上对 $f$ 做一次前向传播即可算出。
+        </p>
+        <ul class="explanation-list">
+          <li><strong>测试时审计。</strong>领域专家不认同预测出的「is-tumor」概念。他们进行覆盖；CBM 仍会给出类别预测，但此时依据的是专家的概念值，而非模型自己的。</li>
+          <li><strong>错误调试。</strong>在出错的样本上运行干预扫描；那个一旦翻转便能<em>修正</em>预测的概念，恰恰告诉你 $g$ 在何处预测有误。</li>
+          <li><strong>某种意义上的因果性。</strong>在假定被命名的概念中介了图像→标签这一关系的前提下，对 $\hat c$ 的干预就相当于在 $c$ 上施加 do 算子。该中介假设往往是错误的，因此才有了下方的泄漏陷阱。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>泄漏陷阱，附实时演示</h2>
+        <p>
+          若概念层的通道数多于真值概念的数目，模型便可利用多余通道编码任意特征。那么对某个被命名概念进行「干预」实际上并不会改变预测——多余通道仍然编码着答案。若干近期论文（Margeloiu 等，2021；Mahinpei 等，2021）记录了这一点。
+        </p>
+        <p>
+          下方：同样是 4 个被命名的概念，但模型拥有 $K$ 个额外的「多余」通道，它们以标签损失联合训练（高 $\lambda_y$ 的联合式配方）。随 $K$ 增大，干预下的准确率下降——多余通道窃取了预测信号。
+        </p>
+        <div class="train-controls">
+          <label>多余隐藏通道 K &nbsp;<span id="lk-k-val">0</span> <input type="range" id="lk-k" min="0" max="8" step="1" value="0"></label>
+          <label>标签损失权重 λ<sub>y</sub> &nbsp;<span id="lk-ly-val">0.5</span> <input type="range" id="lk-ly" min="0" max="3" step="0.1" value="0.5"></label>
+          <button class="action-btn action-btn--ghost" id="lk-resample">重新采样数据集</button>
+        </div>
+        <div class="cb-grid">
+          <div class="cb-panel cb-panel-wide" style="grid-column: 1 / -1;">
+            <div class="panel-label">干预忠实度与多余通道的关系</div>
+            <canvas id="lk-curve" width="880" height="260"></canvas>
+            <div class="panel-meta">
+              「干净准确率」= 在留出数据上正确预测标签的比例。「干预准确率」= 在翻转某个概念<em>理应</em>改变类别的输入上，CBM 的预测是否也发生翻转？若是，则瓶颈是忠实的。当存在多余通道时，这一差距便会扩大。
+            </div>
+          </div>
+        </div>
+        <div class="callout callout--warn">
+          <strong>解决之道。</strong>令概念层的维度恰等于被命名概念的数目。采用顺序式训练。用干预实验加以验证——若将某个概念强制为相反取值，却无法在正确的输入子集上改变预测，则说明你的瓶颈已经泄漏。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-3a">
+        <div class="step-badge">第 3½ 步</div>
+        <h2>2023–2026 年的后续工作</h2>
+        <ul class="explanation-list">
+          <li><strong>概率概念瓶颈模型</strong>（Kim 等，2023）——概念值以分布表示，因此头部能够对干预表达不确定性。</li>
+          <li><strong>无标签 CBM</strong>（Oikarinen 等，2023）——从 CLIP 文本嵌入中导出概念词表，而非依赖人工标注。准确率低于有监督 CBM，但无需标注负担。</li>
+          <li><strong>概念嵌入模型（CEM）</strong>（Espinosa-Zarlenga 等，2022）——以低维概念嵌入取代标量概念值，从而找回了与黑箱网络之间的大部分准确率差距。</li>
+          <li><strong>干预训练</strong>——在训练时随机对概念值进行干预；教导 $f$ 真正<em>使用</em>瓶颈，而非绕开它。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>CBM 适用之处</h2>
+        <ul class="explanation-list">
+          <li><strong>医学影像。</strong>放射学概念（病灶大小、边缘类型、周围组织密度）本就属于医生的词汇。显式地预测它们，使临床医生能够以自己熟悉的语言询问模型；最初的 CBM 论文使用了 CUB-200 鸟类与 OAI 膝关节 X 光片。</li>
+          <li><strong>生物声学与生态学。</strong>鸣叫分类器可使用诸如「音高范围」「是否含颤音」「爆发率」等概念。领域专家可通过干预出错的概念来审计错误预测。</li>
+          <li><strong>可审计的政策决策。</strong>任何其输出会进入高风险决策（信用评分、疾病筛查、公平性审计）的模型，都更受益于「预测为 X 是因为概念 $c_1, c_3$ 被激活」这样的说明，而非一个无可解释结构的原始概率。</li>
+          <li><strong>概念条件生成。</strong>「概念」这一接口可推广至分类器之外——面向图像生成器的 CBM 让你通过切换人工命名的属性来引导输出。</li>
+        </ul>
+        <div class="callout callout--think">
+          <strong>最终结论。</strong>概念瓶颈以少量准确率换取大量的可问责性。对于任何其预测会进入政策决策的模型而言，这笔交易通常都很划算——<em>前提是你防范泄漏</em>，并验证干预确实能够引导预测。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>推荐阅读</h2>
+        <ul class="explanation-list">
+          <li><strong>Koh、Nguyen、Tang、Mussmann、Pierson、Kim、Liang (2020)</strong> &mdash; <em>概念瓶颈模型.</em>原始论文。</li>
+          <li><strong>Margeloiu 等 (2021)</strong> &mdash; <em>Do 概念瓶颈模型 Learn as Intended?</em>泄漏论文。</li>
+          <li><strong>Mahinpei 等 (2021)</strong> &mdash; <em>Promises and Pitfalls of Black-Box Concept Learning.</em></li>
+          <li><strong>Espinosa-Zarlenga 等 (2022)</strong> &mdash; <em>Concept Embedding Models.</em></li>
+          <li><strong>Oikarinen 等 (2023)</strong> &mdash; <em>Label-Free 概念瓶颈模型.</em></li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

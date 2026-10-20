@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:," />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>再看自动微分</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="progress-bar" aria-hidden="true"><div class="progress-bar__fill" id="progressFill"></div></div>
+
+    <article class="article">
+      <header class="hero">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <div class="hero__grid">
+          <div class="hero__copy">
+            <p class="kicker">交互式讲解</p>
+            <h1>再看自动微分</h1>
+            <p class="abstract">
+              自动微分常常被介绍成一种反向传播的魔法。
+              其实它比这更简单。它是一种通过对中间值进行存储、并在局部应用链式法则，
+              从而对实际运行的程序计算精确导数的方法。
+            </p>
+            <p class="abstract abstract--secondary">
+              在接触交互式计算图之前，我们会先把自动微分与有限差分、符号代数区分开来，
+              然后直观地勾勒出计算图的运作机制。
+            </p>
+            <div class="hero__meta">
+              <span>约 20 分钟</span>
+              <span>深度学习 &middot; 优化 &middot; 链式法则</span>
+            </div>
+            <div class="hero__actions">
+              <a class="primary-link" href="#what-is-autodiff">从定义开始</a>
+              <a class="ghost-link" href="#single-example">跳转到交互式计算图</a>
+            </div>
+          </div>
+
+          <aside class="hero-card">
+            <p class="hero-card__eyebrow">一句话概括</p>
+            <div class="hero-card__formula" data-katex-display>
+              \[
+                \frac{\partial L}{\partial a}
+                =
+                \frac{\partial L}{\partial b}
+                \cdot
+                \frac{\partial b}{\partial a}
+              \]
+            </div>
+            <p class="hero-card__copy">
+              反向传播将<strong>上游梯度</strong>从右向左传递。
+              每个节点贡献一个<strong>局部导数</strong>。将两者相乘，
+              把结果发送给父节点，并在路径汇合处进行累加。
+            </p>
+            <div class="hero-notes">
+              <div>
+                <span class="note-label">不是这样</span>
+                <strong>用微小的 <code>h</code> 反复扰动输入</strong>
+              </div>
+              <div>
+                <span class="note-label">而是这样</span>
+                <strong>对执行过的中间值进行精确的链式法则记账</strong>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </header>
+
+      
+
+      <section id="what-is-autodiff" data-nav="Definition">
+        <h2><span class="num">I.</span> 自动微分是什么，以及它不是什么</h2>
+        <p>
+          有三种不同的思想常常被混为一谈。它们都在回答
+          “当输入变化时，输出变化得有多快？”这一问题，但实现方式截然不同。
+        </p>
+
+        <div class="compare-grid">
+          <article class="compare-card">
+            <p class="eyebrow">有限差分</p>
+            <h3>扰动输入并近似斜率</h3>
+            <div class="math-block" data-katex-display>
+              \[
+                f'(x) \approx \frac{f(x+h)-f(x)}{h}
+              \]
+            </div>
+            <p>
+              这是一种数值估计。你对输入施加微小改动后重新运行函数。
+              它可用于梯度检查，但速度慢、结果为近似值，且对 <code>h</code> 的取值敏感。
+            </p>
+          </article>
+
+          <article class="compare-card">
+            <p class="eyebrow">符号微分</p>
+            <h3>对表达式进行代数改写</h3>
+            <div class="math-block" data-katex-display>
+              \[
+                \frac{d}{dx}\bigl((x^2+1)^5\bigr) = 10x(x^2+1)^4
+              \]
+            </div>
+            <p>
+              它直接操作公式。结果可以是精确的，但大型真实程序并非
+              整洁的符号表达式。它们包含分支、重复使用的值以及大型复合运算。
+            </p>
+          </article>
+
+          <article class="compare-card compare-card--highlight">
+            <p class="eyebrow">自动微分</p>
+            <h3>按局部规则对已执行的程序求导</h3>
+            <div class="math-block" data-katex-display>
+              \[
+                \text{上游梯度} \times \text{局部导数}
+              \]
+            </div>
+            <p>
+              这正是深度学习框架所采用的方法。它沿着实际的计算图，
+              存储前向传播产生的中间值，并产生在常规浮点运算意义下精确的导数。
+            </p>
+          </article>
+        </div>
+
+        <div class="aside">
+          <strong>实践要点。</strong>
+          如果你在训练模型，自动微分才是主力。有限差分主要是一种
+          调试工具。符号微分则属于另一类系统。
+        </div>
+      </section>
+
+      <section id="graph-anatomy" data-nav="Sketch">
+        <h2><span class="num">II.</span> 进入交互视图前的计算图速写</h2>
+        <p>
+          这里用静态形式呈现整个思想。前向传播从左到右
+          生成中间值。反向传播把梯度从损失传回叶节点。
+          计算图之所以重要，是因为它精确地告诉我们谁依赖于谁。
+        </p>
+
+        <figure class="diagram-board">
+          <div class="visual-viewport visual-viewport--flow" tabindex="0" aria-label="可滚动的前向与反向传播图示">
+          <p class="visual-pan-hint" aria-hidden="true">横向滚动以查看完整图示</p>
+          <svg class="flow-diagram" viewBox="0 0 1040 360" role="img" aria-label="Static diagram of a forward pass and backward pass through a small computation graph">
+            <defs>
+              <marker id="arrowBlue" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#3c68cf"></path>
+              </marker>
+              <marker id="arrowCoral" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#d35b43"></path>
+              </marker>
+            </defs>
+
+            <rect x="20" y="20" width="1000" height="320" rx="24" fill="#fcfbf8" stroke="#d9d2c7"></rect>
+
+            <text x="58" y="66" class="diagram-kicker">前向 pass</text>
+            <text x="56" y="92" class="diagram-copy">Build values from left to right and cache what later rules will need.</text>
+            <text x="760" y="66" class="diagram-kicker diagram-kicker--coral">反向 pass</text>
+            <text x="758" y="92" class="diagram-copy">
+              <tspan x="758" dy="0">Start at the scalar 损失.</tspan>
+              <tspan x="758" dy="18">Send gradients right to left.</tspan>
+            </text>
+
+            <g transform="translate(90 170)">
+              <rect class="diagram-node" width="112" height="60" rx="18"></rect>
+              <text x="20" y="28" class="diagram-label">x, w, b</text>
+              <text x="20" y="46" class="diagram-sub">leaf values</text>
+            </g>
+            <g transform="translate(300 170)">
+              <rect class="diagram-node" width="120" height="60" rx="18"></rect>
+              <text x="20" y="28" class="diagram-label">wx + b</text>
+              <text x="20" y="46" class="diagram-sub">logit z</text>
+            </g>
+            <g transform="translate(540 170)">
+              <rect class="diagram-node" width="120" height="60" rx="18"></rect>
+              <text x="20" y="28" class="diagram-label">sigmoid</text>
+              <text x="20" y="46" class="diagram-sub">probability p</text>
+            </g>
+            <g transform="translate(780 170)">
+              <rect class="diagram-node diagram-node--损失" width="150" height="60" rx="18"></rect>
+              <text x="20" y="28" class="diagram-label">-log(p)</text>
+              <text x="20" y="46" class="diagram-sub">scalar 损失 L</text>
+            </g>
+
+            <path d="M 202 200 C 240 200, 254 200, 300 200" class="flow-arrow flow-arrow--forward" marker-end="url(#arrowBlue)"></path>
+            <path d="M 420 200 C 470 200, 488 200, 540 200" class="flow-arrow flow-arrow--forward" marker-end="url(#arrowBlue)"></path>
+            <path d="M 660 200 C 710 200, 728 200, 780 200" class="flow-arrow flow-arrow--forward" marker-end="url(#arrowBlue)"></path>
+
+            <path d="M 780 144 C 720 116, 612 118, 540 144" class="flow-arrow flow-arrow--backward" marker-end="url(#arrowCoral)"></path>
+            <path d="M 540 144 C 470 116, 372 118, 300 144" class="flow-arrow flow-arrow--backward" marker-end="url(#arrowCoral)"></path>
+            <path d="M 300 144 C 236 116, 156 118, 120 144" class="flow-arrow flow-arrow--backward" marker-end="url(#arrowCoral)"></path>
+
+            <g transform="translate(308 248)">
+              <rect width="110" height="34" rx="17" class="legend-pill legend-pill--blue"></rect>
+              <text x="16" y="22" class="legend-text">cache value z</text>
+            </g>
+            <g transform="translate(548 248)">
+              <rect width="122" height="34" rx="17" class="legend-pill legend-pill--blue"></rect>
+              <text x="15" y="22" class="legend-text">cache value p</text>
+            </g>
+            <g transform="translate(702 114)">
+              <rect width="154" height="34" rx="17" class="legend-pill legend-pill--coral"></rect>
+              <text x="14" y="22" class="legend-text">send ∂L/∂p backward</text>
+            </g>
+          </svg>
+          </div>
+          <figcaption>
+            反向模式自动微分在学习任务中尤为有用，因为许多参数共同作用于
+            一个标量损失。一次反向扫描即可同时得到所有参数的梯度。
+          </figcaption>
+        </figure>
+
+        <div class="code-panel">
+          <p class="code-panel__eyebrow">一个节点只需少量内存</p>
+          <pre><code>node = {
+  value,
+  parents,
+  backward(upstream) {
+    return parents.map((parent) =&gt; upstream * localDerivative(parent));
+  }
+}</code>（节点对象：保存值、父节点与反向规则）</pre>
+        </div>
+      </section>
+
+      <section id="local-rules" data-nav="Rules">
+        <h2><span class="num">III.</span> 每个引擎都需要的微型规则手册</h2>
+        <p>
+          标量版本的自动微分凭借一张很小的查找表就能走得很远。下面这份确切清单
+          与动画讲解中的教学核心一致：乘法、加法、指数、倒数与对数。
+          更复杂的运算都由这些基本运算搭建而成，或被封装进一个内部懂得如何反向传播的更大模块中。
+        </p>
+
+        <figure class="interactive-figure">
+          <div class="figure-controls figure-controls--wrap" id="ruleChips"></div>
+          <div class="rule-stage">
+            <div class="rule-spotlight">
+              <p class="eyebrow">所选局部规则</p>
+              <h3 id="ruleTitle">乘法</h3>
+              <div class="math-block" id="ruleFormula"></div>
+              <p id="ruleExplanation"></p>
+            </div>
+            <div class="rule-grid" id="ruleGrid"></div>
+          </div>
+          <figcaption>
+            优秀的引擎在此保持谦逊：它们存储输出值、记住父节点，
+            并附加一条反向规则，将上游梯度转换为对每个父节点的贡献。
+          </figcaption>
+        </figure>
+      </section>
+
+      <section id="single-example" data-nav="Graph">
+        <h2><span class="num">IV.</span> 一个例子：前向与反向全程追踪</h2>
+        <p>
+          现在我们可以对一个具体的标量计算图进行动画演示。从一个正类样本开始。
+          我们将由标量 logit <code>z = wx + b</code> 计算对数损失。该表达式被
+          刻意展开为一个个微小运算，以便你能看清引擎在底层究竟做了什么。
+        </p>
+
+        <div class="math-block" data-katex-display>
+          \[
+            L
+            =
+            -\log\!\bigl(\sigma(wx + b)\bigr)
+            =
+            -\log\!\left(\frac{1}{1 + e^{-(wx+b)}}\right)
+          \]
+        </div>
+
+        <figure class="interactive-figure interactive-figure--graph">
+          <div class="figure-toolbar">
+            <button type="button" class="toolbar-button" id="resetGraph">重置</button>
+            <button type="button" class="toolbar-button" id="step前向">前向</button>
+            <button type="button" class="toolbar-button" id="step反向">反向</button>
+            <button type="button" class="toolbar-button toolbar-button--accent" id="autoPlay">自动播放</button>
+            <button type="button" class="toolbar-button" id="exportStage">导出阶段 JSON</button>
+            <button type="button" class="toolbar-button" id="exportTimeline">导出全部阶段</button>
+          </div>
+
+          <div class="scrubber-row">
+            <div class="stage-pill"><span>阶段</span><strong id="stageIndex">0 / 17</strong></div>
+            <div class="stage-pill"><span>方向</span><strong id="stageDirection">初始化</strong></div>
+            <div class="stage-pill"><span>聚焦</span><strong id="stageFocus">输入</strong></div>
+          </div>
+
+          <label class="scrubber-label" for="stageScrubber">
+            拖动浏览计算图
+            <input id="stageScrubber" type="range" min="0" max="17" step="1" value="0" />
+          </label>
+
+          <div class="graph-shell">
+            <div class="graph-surface" tabindex="0" aria-label="可滚动的计算图；随着阶段变化，活动节点始终保持在视野内">
+              <p class="visual-pan-hint" aria-hidden="true">横向滚动以跟随活动节点</p>
+              <svg id="graphSvg" viewBox="0 0 1480 660" role="img" aria-label="Computation graph for a scalar logistic 损失"></svg>
+            </div>
+            <aside class="ledger">
+              <p class="eyebrow">当前推理</p>
+              <h3 id="stageHeadline">在任何运算发生之前，输入是已知的。</h3>
+              <p id="stageExplanation">
+                参数 <code>w</code> 与 <code>b</code>，连同输入 <code>x</code> 都已
+                就绪。前向传播将从左到右构建计算图的其余部分。
+              </p>
+              <div class="equation-card">
+                <div class="math-block" id="chainRuleMath"></div>
+              </div>
+              <div class="ledger-table" id="nodeTable"></div>
+            </aside>
+          </div>
+
+          <figcaption>
+            计算图在视觉上保持简洁。精确导数与局部规则保存在账本中，
+            而不是以冗长标签的形式挤在图内。
+          </figcaption>
+        </figure>
+      </section>
+
+      <section id="modules" data-nav="Modules">
+        <h2><span class="num">V.</span> 框架为何把计算图折叠为模块</h2>
+        <p>
+          用于教学的计算图应展示一切。用于生产的计算图则只展示恰到好处的部分。
+          这就是框架把一串微小运算打包成更大模块的原因。线性层隐藏了乘法与加法。
+          sigmoid 隐藏了取负、指数、加法与倒数。损失模块则能隐藏更多。
+        </p>
+
+        <figure class="interactive-figure">
+          <div class="figure-controls">
+            <button type="button" class="mode-chip is-active" data-mode="micro">原子计算图</button>
+            <button type="button" class="mode-chip" data-mode="modules">框架模块</button>
+          </div>
+          <div class="module-shell">
+            <div class="visual-viewport visual-viewport--module" tabindex="0" aria-label="可滚动的原子或分组自动微分计算图">
+              <p class="visual-pan-hint" aria-hidden="true">横向滚动以比较每个模块</p>
+              <svg id="moduleSvg" viewBox="0 0 1120 360" role="img" aria-label="Atomic and grouped views of the same autograd graph"></svg>
+            </div>
+            <div class="module-copy">
+              <p class="eyebrow">有什么变化？</p>
+              <h3 id="moduleHeadline">原子计算图：每个局部导数都是显式的。</h3>
+              <p id="moduleBody">
+                当你学习或调试引擎本身时，这是理想形式。每个节点都有一条
+                微小的反向规则，每条边都清晰可读。
+              </p>
+              <div class="module-list" id="moduleList"></div>
+            </div>
+          </div>
+        </figure>
+      </section>
+
+      <section id="batching" data-nav="Batch">
+        <h2><span class="num">VI.</span> 三个样本、共享参数、一次更新</h2>
+        <p>
+          自动微分的意义不在于单个样本，而在于反复复用。相同的参数
+          会出现在每个样本中，因此反向传播必须在优化器更新参数之前
+          累加梯度贡献。仅用三个数据点，你就能亲身感受到批量处理逻辑，
+          而不只是把它当作抽象概念。
+        </p>
+
+        <div class="math-block" data-katex-display>
+          \[
+            J(w,b) = \frac{1}{N} \sum_{i=1}^{N}
+            \left[-y_i\log p_i - (1-y_i)\log(1-p_i)\right],
+            \qquad
+            p_i = \sigma(wx_i + b)
+          \]
+        </div>
+
+        <figure class="interactive-figure interactive-figure--batch">
+          <div class="figure-toolbar figure-toolbar--batch">
+            <div class="dataset-switcher" id="datasetSwitcher"></div>
+            <button type="button" class="toolbar-button" id="resetBatch">重置参数</button>
+            <button type="button" class="toolbar-button toolbar-button--accent" id="applyBatchStep">应用一次更新</button>
+            <button type="button" class="toolbar-button" id="exportBatch">导出批量 JSON</button>
+          </div>
+
+          <div class="batch-shell">
+            <div class="batch-visuals">
+              <div class="visual-viewport visual-viewport--batch" tabindex="0" aria-label="可滚动的 logistic 曲线与批量样本">
+                <svg id="batchSvg" viewBox="0 0 760 430" role="img" aria-label="Three examples flowing through a one-dimensional logistic model"></svg>
+              </div>
+              <div class="summary-strip">
+                <div class="summary-card"><span>平均损失</span><strong id="meanLoss">0.000</strong></div>
+                <div class="summary-card"><span>dJ / dw</span><strong id="gradW">0.000</strong></div>
+                <div class="summary-card"><span>dJ / db</span><strong id="gradB">0.000</strong></div>
+                <div class="summary-card"><span>学习率</span><strong id="learningRateValue">0.20</strong></div>
+              </div>
+            </div>
+
+            <aside class="batch-panel">
+              <p class="eyebrow">共享参数</p>
+              <label class="control-stack">
+                权重 <code>w</code>
+                <input id="paramW" type="range" min="-4" max="4" step="0.05" value="1.2" />
+                <span id="paramWValue">1.20</span>
+              </label>
+              <label class="control-stack">
+                偏置 <code>b</code>
+                <input id="paramB" type="range" min="-3" max="3" step="0.05" value="-0.1" />
+                <span id="paramBValue">-0.10</span>
+              </label>
+              <label class="control-stack">
+                学习率
+                <input id="learningRate" type="range" min="0.02" max="0.8" step="0.02" value="0.2" />
+                <span id="learningRateInline">0.20</span>
+              </label>
+            </aside>
+
+            <p class="batch-narrative" id="batchNarrative">
+              每一行都产生各自的概率、损失与梯度贡献。
+              参数更新使用所有行的平均梯度。
+            </p>
+
+            <div class="table-viewport" tabindex="0" aria-label="逐样本的批量数值">
+              <table class="example-table">
+                <thead>
+                  <tr>
+                    <th>样本</th>
+                    <th>x</th>
+                    <th>y</th>
+                    <th>p</th>
+                    <th>损失</th>
+                    <th>dL/dw</th>
+                  </tr>
+                </thead>
+                <tbody id="exampleTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </figure>
+      </section>
+
+      <section id="takeaways" data-nav="Summary">
+        <h2><span class="num">VII.</span> 自动微分引擎真正存储了什么</h2>
+        <p>
+          完整的故事比那些记号看起来要小。一个节点存储一个值、
+          一组父节点以及一条局部反向规则。前向传播构建计算图，并缓存
+          反向规则之后所需的一切。反向传播从标量损失出发，
+          按逆拓扑序遍历计算图，并在多条路径汇合处累加贡献。
+        </p>
+
+        <div class="takeaway-grid">
+          <article class="takeaway-card">
+            <p class="eyebrow">1. 局部优于全局</p>
+            <h3>每个节点只需知道它自己那条微小的求导法则。</h3>
+            <p>引擎从不符号化地对整个模型求导。它组合许多局部事实。</p>
+          </article>
+          <article class="takeaway-card">
+            <p class="eyebrow">2. 缓存很重要</p>
+            <h3>前向值之所以被保存，是因为反向规则需要它们。</h3>
+            <p>对于 <code>\log(a)</code> 你需要 <code>a</code>；对于 <code>1/a</code> 你需要 <code>a</code>；对于 sigmoid，通常需要其输出。</p>
+          </article>
+          <article class="takeaway-card">
+            <p class="eyebrow">3. 模块化并非作弊</p>
+            <h3>它们只不过是内部反向规则更丰富的更大节点。</h3>
+            <p>这正是 <code>nn.Linear</code>、<code>sigmoid</code> 与交叉熵得以既易用又保持可微的方式。</p>
+          </article>
+          <article class="takeaway-card">
+            <p class="eyebrow">4. 批量只是增加了累加</p>
+            <h3>在更新之前，相同的参数会收到多条梯度信息。</h3>
+            <p>优化器步骤之所以简单，只是因为自动微分已经把所有依赖于这些参数的量都求和了。</p>
+          </article>
+        </div>
+      </section>
+
+      <footer class="article-footer">
+        <p>
+          如果这一节让你理解了，那么下一个不错的练习就是自己动手实现标量引擎。
+          让计算图保持小巧，让规则手册保持简短，让反向传播保持诚实。
+        </p>
+      </footer>
+    </article>
+
+    <script defer src="../vendor/katex/katex.min.js"></script>
+    <script defer src="app.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

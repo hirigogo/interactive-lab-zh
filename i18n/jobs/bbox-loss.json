@@ -1,0 +1,275 @@
+{
+ "slug": "bbox-loss",
+ "units": {
+  "Box Regression Losses": {
+   "zh": "边界框回归损失",
+   "src": "Box Regression Losses",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "A detector predicts four numbers per box &mdash; position and size &mdash; and trains\n      them by penalizing the difference from the ground truth. But @@T0@@how@@T1@@ you penalize\n      that difference matters. L2 obsesses over the worst box; L1 treats every error the\n      same but has a kink at zero; smooth-L1 blends the two. Drag the predicted box and watch\n      the three losses argue.": {
+   "zh": "检测器为每个框预测四个数 &mdash; 位置与尺寸 &mdash; 并通过惩罚其与真值之差来训练它们。但@@T0@@如何@@T1@@ 惩罚这一差值至关重要。L2 对最差的框耿耿于怀；L1 对每个误差一视同仁，却在零点处有折角；smooth-L1 则兼取二者之长。拖动预测框，观察这三种损失如何争执。",
+   "src": "A detector predicts four numbers per box &mdash; position and size &mdash; and trains\n      them by penalizing the difference from the ground truth. But <em>how</em> you penalize\n      that difference matters. L2 obsesses over the worst box; L1 treats every error the\n      same but has a kink at zero; smooth-L1 blends the two. Drag the predicted box and watch\n      the three losses argue.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~8 min@@T1@@\n      @@T2@@Deep Learning &middot; Object Detection &middot; Loss Functions@@T3@@": {
+   "zh": "@@T0@@约 8 分钟@@T1@@\n      @@T2@@深度学习 &middot; 目标检测 &middot; 损失函数@@T3@@",
+   "src": "<span>~8 min</span>\n      <span>Deep Learning &middot; Object Detection &middot; Loss Functions</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Four numbers, one residual vector": {
+   "zh": "四个数，一个残差向量",
+   "src": "Four numbers, one residual vector",
+   "tags": []
+  },
+  "A predicted box is a vector $\\hat{\\mathbf{b}}=(x,y,w,h)$ and the target is\n      $\\mathbf{b}^{*}=(x^{*},y^{*},w^{*},h^{*})$. The regression loss is a sum over the four\n      per-coordinate residuals $r_i = \\hat{b}_i - b^{*}_i$:": {
+   "zh": "预测框是一个向量 $\\hat{\\mathbf{b}}=(x,y,w,h)$，目标则为 $\\mathbf{b}^{*}=(x^{*},y^{*},w^{*},h^{*})$。回归损失是四个逐坐标残差 $r_i = \\hat{b}_i - b^{*}_i$ 之和：",
+   "src": "A predicted box is a vector $\\hat{\\mathbf{b}}=(x,y,w,h)$ and the target is\n      $\\mathbf{b}^{*}=(x^{*},y^{*},w^{*},h^{*})$. The regression loss is a sum over the four\n      per-coordinate residuals $r_i = \\hat{b}_i - b^{*}_i$:",
+   "tags": []
+  },
+  "Everything hinges on the shape of the per-coordinate penalty $\\ell(r)$. The three\n      classic choices:": {
+   "zh": "一切都取决于逐坐标惩罚项 $\\ell(r)$ 的形状。三种经典选择如下：",
+   "src": "Everything hinges on the shape of the per-coordinate penalty $\\ell(r)$. The three\n      classic choices:",
+   "tags": []
+  },
+  "The Lab": {
+   "zh": "实验",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Move the box, read the loss": {
+   "zh": "移动框，读取损失",
+   "src": "Move the box, read the loss",
+   "tags": []
+  },
+  "The @@T0@@green dashed@@T1@@ box is the fixed\n      ground truth. The @@T2@@blue@@T3@@ box is your\n      prediction &mdash; move it with the sliders. The right panel plots the three per-coordinate\n      penalties; the sliding marker sits at the current $x$-residual $r_x$, so you can watch each\n      loss respond as you push the box off target.": {
+   "zh": "@@T0@@绿色虚线@@T1@@ 框为固定的真值。@@T2@@蓝色@@T3@@ 框为你的预测 &mdash; 用滑块移动它。右图绘制了三种逐坐标惩罚项；滑动标记位于当前的 $x$ 方向残差 $r_x$ 处，因此当你把框推离目标时，可以观察每种损失如何响应。",
+   "src": "The <span style=\"color:var(--success);font-weight:600\">green dashed</span> box is the fixed\n      ground truth. The <span style=\"color:var(--accent);font-weight:600\">blue</span> box is your\n      prediction &mdash; move it with the sliders. The right panel plots the three per-coordinate\n      penalties; the sliding marker sits at the current $x$-residual $r_x$, so you can watch each\n      loss respond as you push the box off target.",
+   "tags": [
+    "<span style=\"color:var(--success);font-weight:600\">",
+    "</span>",
+    "<span style=\"color:var(--accent);font-weight:600\">",
+    "</span>"
+   ]
+  },
+  "Pred $x$ @@T0@@3.10@@T1@@": {
+   "zh": "预测 $x$ @@T0@@3.10@@T1@@",
+   "src": "Pred $x$ <span id=\"pxVal\">3.10</span>",
+   "tags": [
+    "<span id=\"pxVal\">",
+    "</span>"
+   ]
+  },
+  "Pred $y$ @@T0@@2.10@@T1@@": {
+   "zh": "预测 $y$ @@T0@@2.10@@T1@@",
+   "src": "Pred $y$ <span id=\"pyVal\">2.10</span>",
+   "tags": [
+    "<span id=\"pyVal\">",
+    "</span>"
+   ]
+  },
+  "Pred $w$ @@T0@@2.60@@T1@@": {
+   "zh": "预测 $w$ @@T0@@2.60@@T1@@",
+   "src": "Pred $w$ <span id=\"pwVal\">2.60</span>",
+   "tags": [
+    "<span id=\"pwVal\">",
+    "</span>"
+   ]
+  },
+  "Pred $h$ @@T0@@2.10@@T1@@": {
+   "zh": "预测 $h$ @@T0@@2.10@@T1@@",
+   "src": "Pred $h$ <span id=\"phVal\">2.10</span>",
+   "tags": [
+    "<span id=\"phVal\">",
+    "</span>"
+   ]
+  },
+  "Show losses $\\ell(r)$": {
+   "zh": "显示损失 $\\ell(r)$",
+   "src": "Show losses $\\ell(r)$",
+   "tags": []
+  },
+  "Show gradients $\\ell'(r)$": {
+   "zh": "显示梯度 $\\ell'(r)$",
+   "src": "Show gradients $\\ell'(r)$",
+   "tags": []
+  },
+  "Smooth-L1 transition $\\beta$ @@T0@@1.00@@T1@@": {
+   "zh": "smooth-L1 过渡点 $\\beta$ @@T0@@1.00@@T1@@",
+   "src": "Smooth-L1 transition $\\beta$ <span id=\"betaVal\">1.00</span>",
+   "tags": [
+    "<span id=\"betaVal\">",
+    "</span>"
+   ]
+  },
+  "(a) Predicted vs. ground-truth box. Arrows show the four residuals $r_x,r_y,r_w,r_h$.": {
+   "zh": "(a) 预测框与真值框。箭头表示四个残差 $r_x,r_y,r_w,r_h$。",
+   "src": "(a) Predicted vs. ground-truth box. Arrows show the four residuals $r_x,r_y,r_w,r_h$.",
+   "tags": []
+  },
+  "(b) Per-coordinate penalty vs. residual $r$. The dot marks $r_x$ on each curve.": {
+   "zh": "(b) 逐坐标惩罚项对残差 $r$。圆点标出各曲线上的 $r_x$。",
+   "src": "(b) Per-coordinate penalty vs. residual $r$. The dot marks $r_x$ on each curve.",
+   "tags": []
+  },
+  "@@T0@@@@T1@@@@T2@@L1 &nbsp;$|r|$@@T3@@\n      @@T4@@@@T5@@@@T6@@L2 &nbsp;$\\tfrac12 r^2$@@T7@@\n      @@T8@@@@T9@@@@T10@@smooth-L1@@T11@@": {
+   "zh": "@@T0@@@@T1@@@@T2@@L1 &nbsp;$|r|$（绝对值）@@T3@@\n      @@T4@@@@T5@@@@T6@@L2 &nbsp;$\\tfrac12 r^2$（平方）@@T7@@\n      @@T8@@@@T9@@@@T10@@smooth-L1（平滑 L1）@@T11@@",
+   "src": "<span><span class=\"swatch\" style=\"background:var(--warm)\"></span>L1 &nbsp;$|r|$</span>\n      <span><span class=\"swatch\" style=\"background:var(--accent)\"></span>L2 &nbsp;$\\tfrac12 r^2$</span>\n      <span><span class=\"swatch\" style=\"background:var(--success)\"></span>smooth-L1</span>",
+   "tags": [
+    "<span>",
+    "<span class=\"swatch\" style=\"background:var(--warm)\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"swatch\" style=\"background:var(--accent)\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"swatch\" style=\"background:var(--success)\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@L1 loss $\\;\\sum|r_i|$@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@L1 损失 $\\;\\sum|r_i|$@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">L1 loss $\\;\\sum|r_i|$</span>\n        <span class=\"stat-value\" id=\"l1Val\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"l1Val\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@L2 loss $\\;\\sum \\tfrac12 r_i^2$@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@L2 损失 $\\;\\sum \\tfrac12 r_i^2$@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">L2 loss $\\;\\sum \\tfrac12 r_i^2$</span>\n        <span class=\"stat-value\" id=\"l2Val\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"l2Val\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Smooth-L1 $\\;\\sum \\ell_\\beta(r_i)$@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@Smooth-L1 $\\;\\sum \\ell_\\beta(r_i)$@@T1@@\n        @@T2@@&mdash;（平滑 L1 损失）@@T3@@",
+   "src": "<span class=\"stat-label\">Smooth-L1 $\\;\\sum \\ell_\\beta(r_i)$</span>\n        <span class=\"stat-value\" id=\"slVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"slVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Push the box far off target.@@T1@@ The L2 number rockets up quadratically while\n      L1 and smooth-L1 grow only linearly. Now flip to @@T2@@Show gradients@@T3@@: L2's gradient is\n      the straight line $r$, so a single wildly-wrong box produces a huge gradient that swamps the\n      update for all the well-placed boxes. That outlier sensitivity is exactly what smooth-L1 was\n      designed to fix.": {
+   "zh": "@@T0@@把框推得远离目标。@@T1@@ L2 的数值呈二次方急剧攀升，而 L1 与 smooth-L1 仅线性增长。现在切换到@@T2@@显示梯度@@T3@@：L2 的梯度是直线 $r$，因此单个错得离谱的框会产生巨大的梯度，淹没所有位置良好的框的更新。这种对离群点的敏感性，正是 smooth-L1 被设计来修正的问题。",
+   "src": "<strong>Push the box far off target.</strong> The L2 number rockets up quadratically while\n      L1 and smooth-L1 grow only linearly. Now flip to <em>Show gradients</em>: L2's gradient is\n      the straight line $r$, so a single wildly-wrong box produces a huge gradient that swamps the\n      update for all the well-placed boxes. That outlier sensitivity is exactly what smooth-L1 was\n      designed to fix.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "收益",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Why smooth-L1 wins for boxes": {
+   "zh": "为何 smooth-L1 在边界框上胜出",
+   "src": "Why smooth-L1 wins for boxes",
+   "tags": []
+  },
+  "Read the three gradients side by side &mdash; the gradient is what actually trains the network:": {
+   "zh": "将三种梯度并排细读 &mdash; 真正训练网络的是梯度：",
+   "src": "Read the three gradients side by side &mdash; the gradient is what actually trains the network:",
+   "tags": []
+  },
+  "@@T0@@L2@@T1@@ has gradient $r$: smooth and well-behaved near the target, but it @@T2@@grows without bound@@T3@@. One badly-initialized box early in training can dominate the batch.": {
+   "zh": "@@T0@@L2@@T1@@ 的梯度为 $r$：在目标附近光滑且性质良好，但它@@T2@@无界增长@@T3@@。训练早期一个初始化糟糕的框就可能支配整个批次。",
+   "src": "<strong>L2</strong> has gradient $r$: smooth and well-behaved near the target, but it <em>grows without bound</em>. One badly-initialized box early in training can dominate the batch.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@L1@@T1@@ has gradient $\\pm 1$: bounded and robust to outliers, but it never eases off. Even a near-perfect box keeps getting a full-strength $\\pm 1$ nudge, and the kink at $r=0$ makes the gradient discontinuous.": {
+   "zh": "@@T0@@L1@@T1@@ 的梯度为 $\\pm 1$：有界且对离群点稳健，但它从不松劲。即便一个近乎完美的框也持续受到满力度的 $\\pm 1$ 推动，而 $r=0$ 处的折角使梯度不连续。",
+   "src": "<strong>L1</strong> has gradient $\\pm 1$: bounded and robust to outliers, but it never eases off. Even a near-perfect box keeps getting a full-strength $\\pm 1$ nudge, and the kink at $r=0$ makes the gradient discontinuous.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Smooth-L1@@T1@@ is $r/\\beta$ near zero (like L2, so it settles gently and smoothly through the origin) and $\\pm 1$ in the tails (like L1, so outliers cannot blow up). The transition happens at $|r|=\\beta$.": {
+   "zh": "@@T0@@Smooth-L1@@T1@@ 在零附近为 $r/\\beta$（如 L2，故能平缓而光滑地穿过原点），在尾部则为 $\\pm 1$（如 L1，故离群点无法使其爆炸）。过渡发生在 $|r|=\\beta$ 处。",
+   "src": "<strong>Smooth-L1</strong> is $r/\\beta$ near zero (like L2, so it settles gently and smoothly through the origin) and $\\pm 1$ in the tails (like L1, so outliers cannot blow up). The transition happens at $|r|=\\beta$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@This is why detectors use it.@@T1@@ Fast R-CNN introduced smooth-L1 for exactly this\n      reason, and the pattern carried into Faster R-CNN, SSD, and RetinaNet. Box targets are noisy and\n      some anchors start far away; the quadratic core keeps optimization stable once boxes are close,\n      while the linear tails stop a handful of terrible boxes from hijacking the gradient. Move $\\beta$\n      to shift where robustness takes over from precision.": {
+   "zh": "@@T0@@这正是检测器采用它的原因。@@T1@@ Fast R-CNN 正是出于这一理由引入了 smooth-L1，此后这一模式又被沿用到 Faster R-CNN、SSD 与 RetinaNet。框的目标本身带有噪声，且某些锚框起始位置相距甚远；二次的核心使框接近后优化保持稳定，而线性的尾部则阻止少数极差的框劫持梯度。移动 $\\beta$ 即可改变稳健性接替精确性的位置。",
+   "src": "<strong>This is why detectors use it.</strong> Fast R-CNN introduced smooth-L1 for exactly this\n      reason, and the pattern carried into Faster R-CNN, SSD, and RetinaNet. Box targets are noisy and\n      some anchors start far away; the quadratic core keeps optimization stable once boxes are close,\n      while the linear tails stop a handful of terrible boxes from hijacking the gradient. Move $\\beta$\n      to shift where robustness takes over from precision.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 10: Object Detection": {
+   "zh": "ES 667 深度学习讲解系列之一 &middot; 第 10 讲：目标检测",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 10: Object Detection",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "边界框回归损失",
+  "tagline": "在真值框周围拖动预测框，观察 L1、L2 与 smooth-L1 关于“该多在意”的分歧",
+  "summary": "目标检测器要回归四个框的数值，而你所选的损失决定了单个位置糟糕的框会受到何种惩罚。用滑块拖动预测框，实时读取 L1、L2（平方）与 smooth-L1；随后切换到函数视图看清缘由：L2 的梯度无界增长，故单个离群框便支配了更新；L1 的梯度是恒定的正负一，但在零点处有折角；而 smooth-L1 在零附近为二次、在尾部为线性 —— 这一稳健的折中由 Fast R-CNN 确立为标准。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "在固定的真值框上拖动预测框，实时观察四个残差与三种损失的更新。",
+   "将 L1、L2 与 smooth-L1 作为残差的函数加以比较，并用一个随框移动而沿各曲线滑动的标记指示当前位置。",
+   "切换到梯度视图，观察 L2 的斜率如何无界增长，而 L1 始终固定于正负一。",
+   "看清 smooth-L1 恰在过渡点 beta 处由二次交接为线性，并移动 beta 以改变该交接位置。",
+   "理解检测器为何使用 smooth-L1：零附近的二次性带来稳定的微调，尾部的线性则带来对离群框的稳健性。"
+  ],
+  "tags": [
+   "目标检测",
+   "损失函数",
+   "Smooth L1",
+   "回归",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

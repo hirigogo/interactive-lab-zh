@@ -1,0 +1,495 @@
+{
+ "slug": "info-theory",
+ "units": {
+  "Information Theory for ML, by Hand": {
+   "zh": "手算机器学习中的信息论",
+   "src": "Information Theory for ML, by Hand",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Drag a categorical distribution and watch entropy fall as it\n          sharpens. Drop a model next to data and see cross-entropy\n          split into entropy + KL. Toggle between forward and reverse\n          KL fitting a Gaussian to a bimodal target. Build mutual\n          information from a 2-D scatter. Every quantity recomputed\n          live as you drag.": {
+   "zh": "拖动一个类别分布，观察其随尖锐化而下降的熵。将模型置于数据之旁，看交叉熵如何分解为熵 + KL。在用一个高斯分布拟合双峰目标时切换前向与反向 KL。从二维散点构造互信息。每一个量都在你拖动时实时重算。",
+   "src": "Drag a categorical distribution and watch entropy fall as it\n          sharpens. Drop a model next to data and see cross-entropy\n          split into entropy + KL. Toggle between forward and reverse\n          KL fitting a Gaussian to a bimodal target. Build mutual\n          information from a 2-D scatter. Every quantity recomputed\n          live as you drag.",
+   "tags": []
+  },
+  "@@T0@@~20 min@@T1@@\n          @@T2@@Probability &middot; Information Theory &middot; ML@@T3@@": {
+   "zh": "@@T0@@约 20 分钟@@T1@@\n          @@T2@@概率论 &middot; 信息论 &middot; 机器学习@@T3@@",
+   "src": "<span>~20 min</span>\n          <span>Probability &middot; Information Theory &middot; ML</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Why every loss in ML traces back to a log": {
+   "zh": "为何机器学习中的每一种损失都可追溯到对数",
+   "src": "Why every loss in ML traces back to a log",
+   "tags": []
+  },
+  "Cross-entropy loss. KL divergence in VAEs. InfoNCE in\n          contrastive learning. The \"information bottleneck\". Every\n          one of these is the same handful of quantities recombined.\n          Once you have intuition for surprise, entropy, and KL, the\n          whole modern ML toolkit reads like one language.": {
+   "zh": "分类中的交叉熵损失、VAE 中的 KL 散度、对比学习中的 InfoNCE，以及“信息瓶颈”。这些中的每一个都不过是同一小批量量重新组合的产物。一旦你对惊奇度、熵与 KL 建立起直觉，整套现代机器学习工具箱读起来便如同同一种语言。",
+   "src": "Cross-entropy loss. KL divergence in VAEs. InfoNCE in\n          contrastive learning. The \"information bottleneck\". Every\n          one of these is the same handful of quantities recombined.\n          Once you have intuition for surprise, entropy, and KL, the\n          whole modern ML toolkit reads like one language.",
+   "tags": []
+  },
+  "Five quantities, six interactives. Each recomputes live.": {
+   "zh": "五个量，六个交互模块。每一个都实时重算。",
+   "src": "Five quantities, six interactives. Each recomputes live.",
+   "tags": []
+  },
+  "@@T0@@The whole article in one slogan.@@T1@@\n          @@T2@@Surprise is a log; entropy is its average; cross-entropy\n          adds a model; KL measures the gap; mutual information\n          measures dependence.@@T3@@ Everything else is plumbing.": {
+   "zh": "@@T0@@用一句口号概括全文。@@T1@@\n          @@T2@@惊奇度是对数；熵是其平均；交叉熵引入模型；KL 度量其差距；互信息度量依赖程度。@@T3@@ 其余皆为管道。",
+   "src": "<strong>The whole article in one slogan.</strong>\n          <em>Surprise is a log; entropy is its average; cross-entropy\n          adds a model; KL measures the gap; mutual information\n          measures dependence.</em> Everything else is plumbing.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "Surprise, by the bit": {
+   "zh": "以比特度量惊奇度",
+   "src": "Surprise, by the bit",
+   "tags": []
+  },
+  "The information content of an outcome with probability $p$ is\n          $-\\log p$. Rare = surprising = many bits.": {
+   "zh": "概率为 $p$ 的结果所携带的信息量为 $-\\log p$。稀有 = 令人惊奇 = 比特数多。",
+   "src": "The information content of an outcome with probability $p$ is\n          $-\\log p$. Rare = surprising = many bits.",
+   "tags": []
+  },
+  "A coin flip with $p=0.5$ carries 1 bit. Spotting a $p=0.001$\n          event carries about 10 bits &mdash; ten times as informative\n          as a coin flip. The base of the log just sets the unit (base\n          2 = bits, base $e$ = nats); we'll use bits.": {
+   "zh": "$p=0.5$ 的抛硬币结果携带 1 比特。遇到一个 $p=0.001$ 的事件则携带约 10 比特 &mdash; 信息量是抛硬币的十倍。对数的底只是确定了单位（以 2 为底 = 比特，以 $e$ 为底 = 纳特）；本文使用比特。",
+   "src": "A coin flip with $p=0.5$ carries 1 bit. Spotting a $p=0.001$\n          event carries about 10 bits &mdash; ten times as informative\n          as a coin flip. The base of the log just sets the unit (base\n          2 = bits, base $e$ = nats); we'll use bits.",
+   "tags": []
+  },
+  "−log₂ p as p ranges from 0 to 1. The curve goes to ∞ at impossibility and to 0 at certainty.": {
+   "zh": "−log₂ p，p 取值于 0 到 1。曲线在不可能处趋于 ∞，在必然处趋于 0。",
+   "src": "−log₂ p as p ranges from 0 to 1. The curve goes to ∞ at impossibility and to 0 at certainty.",
+   "tags": []
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Entropy = expected surprise": {
+   "zh": "熵 = 期望惊奇度",
+   "src": "Entropy = expected surprise",
+   "tags": []
+  },
+  "Entropy is the average information you'd need per outcome\n          drawn from $P$:": {
+   "zh": "熵是从 $P$ 中抽取每个结果平均所需的信息量：",
+   "src": "Entropy is the average information you'd need per outcome\n          drawn from $P$:",
+   "tags": []
+  },
+  "Drag the bars below to change $P$. Entropy is largest when\n          $P$ is uniform (maximally uncertain) and falls to 0 when\n          $P$ puts all its mass on one outcome.": {
+   "zh": "拖动下方的柱条以改变 $P$。当 $P$ 为均匀分布（不确定性最大）时熵最大，而当 $P$ 将全部质量集中于一个结果时熵降为 0。",
+   "src": "Drag the bars below to change $P$. Entropy is largest when\n          $P$ is uniform (maximally uncertain) and falls to 0 when\n          $P$ puts all its mass on one outcome.",
+   "tags": []
+  },
+  "Drag bar tops up or down. Numbers on the right show H(P) in bits and log₂(K) (uniform max).": {
+   "zh": "上下拖动柱条顶端。右侧数字给出以比特为单位的 H(P) 以及 log₂(K)（均匀分布时的最大值）。",
+   "src": "Drag bar tops up or down. Numbers on the right show H(P) in bits and log₂(K) (uniform max).",
+   "tags": []
+  },
+  "Uniform": {
+   "zh": "均匀分布",
+   "src": "Uniform",
+   "tags": []
+  },
+  "One-hot": {
+   "zh": "独热分布",
+   "src": "One-hot",
+   "tags": []
+  },
+  "Randomise": {
+   "zh": "随机化",
+   "src": "Randomise",
+   "tags": []
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Cross-entropy = entropy + KL": {
+   "zh": "交叉熵 = 熵 + KL",
+   "src": "Cross-entropy = entropy + KL",
+   "tags": []
+  },
+  "Now there are two distributions: $P$ (the truth) and $Q$\n          (your model). Cross-entropy is the average surprise you incur\n          using $Q$ to encode draws from $P$:": {
+   "zh": "现在有两个分布：$P$（真实分布）与 $Q$（你的模型）。交叉熵即使用 $Q$ 对来自 $P$ 的样本进行编码时所付出的平均惊奇度：",
+   "src": "Now there are two distributions: $P$ (the truth) and $Q$\n          (your model). Cross-entropy is the average surprise you incur\n          using $Q$ to encode draws from $P$:",
+   "tags": []
+  },
+  "The decomposition makes the geometry obvious: cross-entropy\n          equals entropy (an irreducible cost set by $P$ alone) plus\n          KL divergence (the wasted cost from using a wrong model).\n          Minimising cross-entropy in classification is exactly\n          minimising KL, since $H(P)$ doesn't depend on your weights.": {
+   "zh": "该分解使几何图景一目了然：交叉熵等于熵（仅由 $P$ 决定、不可约减的代价）加上 KL 散度（因使用错误模型而浪费的代价）。在分类中最小化交叉熵，恰恰就是在最小化 KL，因为 $H(P)$ 与你的权重无关。",
+   "src": "The decomposition makes the geometry obvious: cross-entropy\n          equals entropy (an irreducible cost set by $P$ alone) plus\n          KL divergence (the wasted cost from using a wrong model).\n          Minimising cross-entropy in classification is exactly\n          minimising KL, since $H(P)$ doesn't depend on your weights.",
+   "tags": []
+  },
+  "Drag the orange Q bars. Blue is fixed P. The split bar on the right decomposes H(P, Q) into H(P) (blue) plus KL(P‖Q) (orange).": {
+   "zh": "拖动橙色的 Q 柱条。蓝色为固定的 P。右侧的分段柱条将 H(P, Q) 分解为 H(P)（蓝色）加上 KL(P‖Q)（橙色）。",
+   "src": "Drag the orange Q bars. Blue is fixed P. The split bar on the right decomposes H(P, Q) into H(P) (blue) plus KL(P‖Q) (orange).",
+   "tags": []
+  },
+  "Set Q = P": {
+   "zh": "令 Q = P",
+   "src": "Set Q = P",
+   "tags": []
+  },
+  "Set Q = uniform": {
+   "zh": "令 Q = 均匀分布",
+   "src": "Set Q = uniform",
+   "tags": []
+  },
+  "Randomise Q": {
+   "zh": "随机化 Q",
+   "src": "Randomise Q",
+   "tags": []
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Forward vs reverse KL — the personality of the loss": {
+   "zh": "前向与反向 KL —— 损失函数的性格",
+   "src": "Forward vs reverse KL — the personality of the loss",
+   "tags": []
+  },
+  "KL is asymmetric. $\\mathrm{KL}(P\\|Q)$ and $\\mathrm{KL}(Q\\|P)$\n          are different numbers and they reward different things:": {
+   "zh": "KL 是非对称的。$\\mathrm{KL}(P\\|Q)$ 与 $\\mathrm{KL}(Q\\|P)$ 是不同的数，且奖励不同的行为：",
+   "src": "KL is asymmetric. $\\mathrm{KL}(P\\|Q)$ and $\\mathrm{KL}(Q\\|P)$\n          are different numbers and they reward different things:",
+   "tags": []
+  },
+  "@@T0@@Forward $\\mathrm{KL}(P\\|Q)$ &mdash; mode-covering.@@T1@@\n            Penalises $Q$ for putting near-zero mass anywhere $P$ has\n            mass. The fitted $Q$ stretches to cover all modes of $P$.\n            This is the loss you minimise in maximum likelihood.": {
+   "zh": "@@T0@@前向 $\\mathrm{KL}(P\\|Q)$ &mdash; 覆盖众数。@@T1@@\n            若 $Q$ 在 $P$ 有质量之处给出近零的质量，则加以惩罚。拟合出的 $Q$ 会铺展开以覆盖 $P$ 的所有众数。这正是你在最大似然中所最小化的损失。",
+   "src": "<strong>Forward $\\mathrm{KL}(P\\|Q)$ &mdash; mode-covering.</strong>\n            Penalises $Q$ for putting near-zero mass anywhere $P$ has\n            mass. The fitted $Q$ stretches to cover all modes of $P$.\n            This is the loss you minimise in maximum likelihood.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Reverse $\\mathrm{KL}(Q\\|P)$ &mdash; mode-seeking.@@T1@@\n            Penalises $Q$ for putting mass where $P$ has none. The\n            fitted $Q$ collapses onto a single mode. This is what\n            variational inference (Step 5 in the Bayesian playground)\n            optimises.": {
+   "zh": "@@T0@@反向 $\\mathrm{KL}(Q\\|P)$ &mdash; 追逐众数。@@T1@@\n            若 $Q$ 在 $P$ 没有质量之处给出质量，则加以惩罚。拟合出的 $Q$ 会坍缩到单个众数上。这正是变分推断（贝叶斯演示中的第 5 步）所优化的目标。",
+   "src": "<strong>Reverse $\\mathrm{KL}(Q\\|P)$ &mdash; mode-seeking.</strong>\n            Penalises $Q$ for putting mass where $P$ has none. The\n            fitted $Q$ collapses onto a single mode. This is what\n            variational inference (Step 5 in the Bayesian playground)\n            optimises.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Below: a fixed bimodal $P$. We numerically minimise either\n          forward or reverse KL over a Gaussian $Q = \\mathcal{N}(\\mu,\n          \\sigma)$ with respect to its parameters. Toggle.": {
+   "zh": "下方：一个固定的双峰分布 $P$。我们以 $Q = \\mathcal{N}(\\mu,\n          \\sigma)$ 的参数为变量，对前向或反向 KL 作数值最小化。请切换。",
+   "src": "Below: a fixed bimodal $P$. We numerically minimise either\n          forward or reverse KL over a Gaussian $Q = \\mathcal{N}(\\mu,\n          \\sigma)$ with respect to its parameters. Toggle.",
+   "tags": []
+  },
+  "Forward KL(P‖Q)": {
+   "zh": "前向 KL(P‖Q)",
+   "src": "Forward KL(P‖Q)",
+   "tags": []
+  },
+  "Reverse KL(Q‖P)": {
+   "zh": "反向 KL(Q‖P)",
+   "src": "Reverse KL(Q‖P)",
+   "tags": []
+  },
+  "@@T0@@μ = @@T1@@—@@T2@@@@T3@@\n          @@T4@@σ = @@T5@@—@@T6@@@@T7@@\n          @@T8@@KL = @@T9@@—@@T10@@ nats@@T11@@": {
+   "zh": "@@T0@@μ = @@T1@@—@@T2@@@@T3@@\n          @@T4@@σ = @@T5@@—@@T6@@@@T7@@\n          @@T8@@KL = @@T9@@—@@T10@@ 纳特@@T11@@",
+   "src": "<span class=\"train-stat\">μ = <strong id=\"kl-mu\">—</strong></span>\n          <span class=\"train-stat\">σ = <strong id=\"kl-sigma\">—</strong></span>\n          <span class=\"train-stat\">KL = <strong id=\"kl-val\">—</strong> nats</span>",
+   "tags": [
+    "<span class=\"train-stat\">",
+    "<strong id=\"kl-mu\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"kl-sigma\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"kl-val\">",
+    "</strong>",
+    "</span>"
+   ]
+  },
+  "Solid teal: target P. Dashed orange: best Gaussian Q minimising the chosen KL. Forward stretches across modes; reverse picks one and stays.": {
+   "zh": "青色实线：目标分布 P。橙色虚线：最小化所选 KL 的最优高斯分布 Q。前向会横跨各众数铺展开，反向则挑选其一并驻留。",
+   "src": "Solid teal: target P. Dashed orange: best Gaussian Q minimising the chosen KL. Forward stretches across modes; reverse picks one and stays.",
+   "tags": []
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Mutual information — how much knowing X tells you about Y": {
+   "zh": "互信息 —— 知道 X 能在多大程度上告诉你 Y",
+   "src": "Mutual information — how much knowing X tells you about Y",
+   "tags": []
+  },
+  "For two variables jointly distributed under $p(x, y)$,\n          mutual information is the KL between joint and product:": {
+   "zh": "对以 $p(x, y)$ 联合分布的两个变量，互信息是联合分布与乘积分布之间的 KL：",
+   "src": "For two variables jointly distributed under $p(x, y)$,\n          mutual information is the KL between joint and product:",
+   "tags": []
+  },
+  "Equivalently, $I(X; Y) = H(Y) - H(Y \\mid X)$ &mdash; the\n          drop in your uncertainty about $Y$ when you learn $X$.\n          $I = 0$ iff $X \\perp Y$.": {
+   "zh": "等价地，$I(X; Y) = H(Y) - H(Y \\mid X)$ &mdash; 即得知 $X$ 后关于 $Y$ 的不确定性的下降量。$I = 0$ 当且仅当 $X \\perp Y$。",
+   "src": "Equivalently, $I(X; Y) = H(Y) - H(Y \\mid X)$ &mdash; the\n          drop in your uncertainty about $Y$ when you learn $X$.\n          $I = 0$ iff $X \\perp Y$.",
+   "tags": []
+  },
+  "correlation ρ &nbsp;@@T0@@0.7@@T1@@": {
+   "zh": "相关系数 ρ &nbsp;@@T0@@0.7@@T1@@",
+   "src": "correlation ρ &nbsp;<span id=\"mi-rho-val\">0.7</span>",
+   "tags": [
+    "<span id=\"mi-rho-val\">",
+    "</span>"
+   ]
+  },
+  "noise scale &nbsp;@@T0@@0.3@@T1@@": {
+   "zh": "噪声尺度 &nbsp;@@T0@@0.3@@T1@@",
+   "src": "noise scale &nbsp;<span id=\"mi-n-val\">0.3</span>",
+   "tags": [
+    "<span id=\"mi-n-val\">",
+    "</span>"
+   ]
+  },
+  "Left: the 2-D scatter. Right: empirical I(X; Y) computed via histogram binning, plus the analytic Gaussian I = −½ log(1 − ρ²).": {
+   "zh": "左：二维散点。右：通过直方图分箱计算的经验 I(X; Y)，以及高斯分布的解析解 I = −½ log(1 − ρ²)。",
+   "src": "Left: the 2-D scatter. Right: empirical I(X; Y) computed via histogram binning, plus the analytic Gaussian I = −½ log(1 − ρ²).",
+   "tags": []
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "InfoNCE — a lower bound on MI you actually optimise": {
+   "zh": "InfoNCE —— 一个你真正在优化的互信息下界",
+   "src": "InfoNCE — a lower bound on MI you actually optimise",
+   "tags": []
+  },
+  "MI is hard to estimate directly in high dimensions. The\n          contrastive InfoNCE loss is a tractable lower bound:": {
+   "zh": "在高维情形下互信息难以直接估计。对比式的 InfoNCE 损失是一个可处理的下界：",
+   "src": "MI is hard to estimate directly in high dimensions. The\n          contrastive InfoNCE loss is a tractable lower bound:",
+   "tags": []
+  },
+  "Where $f$ is a learned similarity. The bound has the form\n          $\\mathrm{MI} \\ge \\log K - \\mathrm{InfoNCE}$ for $K$ contrasts\n          per positive. This is why every modern self-supervised\n          recipe (SimCLR, CLIP, contrastive sentence encoders) is\n          quietly an MI-maximisation.": {
+   "zh": "其中 $f$ 为学习得到的相似度函数。对每个正样本配 $K$ 个对比样本，该下界形如 $\\mathrm{MI} \\ge \\log K - \\mathrm{InfoNCE}$。这正是每一种现代自监督方案（SimCLR、CLIP、对比式句子编码器）本质上都在悄悄做互信息最大化的原因。",
+   "src": "Where $f$ is a learned similarity. The bound has the form\n          $\\mathrm{MI} \\ge \\log K - \\mathrm{InfoNCE}$ for $K$ contrasts\n          per positive. This is why every modern self-supervised\n          recipe (SimCLR, CLIP, contrastive sentence encoders) is\n          quietly an MI-maximisation.",
+   "tags": []
+  },
+  "K negatives per positive &nbsp;@@T0@@16@@T1@@": {
+   "zh": "每个正样本的负样本数 K &nbsp;@@T0@@16@@T1@@",
+   "src": "K negatives per positive &nbsp;<span id=\"nce-K-val\">16</span>",
+   "tags": [
+    "<span id=\"nce-K-val\">",
+    "</span>"
+   ]
+  },
+  "signal strength &nbsp;@@T0@@2.0@@T1@@": {
+   "zh": "信号强度 &nbsp;@@T0@@2.0@@T1@@",
+   "src": "signal strength &nbsp;<span id=\"nce-s-val\">2.0</span>",
+   "tags": [
+    "<span id=\"nce-s-val\">",
+    "</span>"
+   ]
+  },
+  "InfoNCE lower bound vs the analytic MI as K and signal strength change. The bound saturates at log K.": {
+   "zh": "随 K 与信号强度变化，InfoNCE 下界与解析互信息的对比。该下界在 log K 处饱和。",
+   "src": "InfoNCE lower bound vs the analytic MI as K and signal strength change. The bound saturates at log K.",
+   "tags": []
+  },
+  "Step 7": {
+   "zh": "第 7 步",
+   "src": "Step 7",
+   "tags": []
+  },
+  "Five misconceptions worth fixing": {
+   "zh": "五个值得纠正的误区",
+   "src": "Five misconceptions worth fixing",
+   "tags": []
+  },
+  "@@T0@@Myth@@T1@@": {
+   "zh": "@@T0@@误区@@T1@@",
+   "src": "<span class=\"misconception-icon\">Myth</span>",
+   "tags": [
+    "<span class=\"misconception-icon\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@\"KL is a distance.\"@@T1@@@@T2@@\n              It's not symmetric and doesn't satisfy the triangle\n              inequality. It's a divergence. If you want a true metric,\n              use Jensen-Shannon distance: $\\sqrt{\\mathrm{JSD}}$.": {
+   "zh": "@@T0@@“KL 是一种距离。”@@T1@@@@T2@@\n              它并不对称，也不满足三角不等式。它是一种散度。若你想要真正的度量，请使用 Jensen-Shannon 距离：$\\sqrt{\\mathrm{JSD}}$。",
+   "src": "<strong>\"KL is a distance.\"</strong><br />\n              It's not symmetric and doesn't satisfy the triangle\n              inequality. It's a divergence. If you want a true metric,\n              use Jensen-Shannon distance: $\\sqrt{\\mathrm{JSD}}$.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@\"Cross-entropy and KL are the same loss.\"@@T1@@@@T2@@\n              Identical only when $H(P)$ is constant in your\n              parameters &mdash; true for hard labels (one-hot $P$\n              has $H = 0$), false for soft labels or label smoothing\n              where the entropy moves.": {
+   "zh": "@@T0@@“交叉熵与 KL 是同一个损失。”@@T1@@@@T2@@\n              仅当 $H(P)$ 关于你的参数为常数时二者才相同 &mdash; 这对硬标签成立（独热 $P$ 的 $H = 0$），但对软标签或标签平滑则不成立，因为此时熵会变化。",
+   "src": "<strong>\"Cross-entropy and KL are the same loss.\"</strong><br />\n              Identical only when $H(P)$ is constant in your\n              parameters &mdash; true for hard labels (one-hot $P$\n              has $H = 0$), false for soft labels or label smoothing\n              where the entropy moves.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@\"Forward KL is always the right loss.\"@@T1@@@@T2@@\n              MLE-style maximum likelihood minimises forward KL, which\n              is mode-covering. If your true $P$ is multimodal and\n              your model family $Q$ is unimodal, you'll average across\n              modes &mdash; pick the loss that matches your goal.": {
+   "zh": "@@T0@@“前向 KL 总是正确的损失。”@@T1@@@@T2@@\n              最大似然式的方法最小化前向 KL，而前向 KL 是覆盖众数的。若真实的 $P$ 是多峰的、而你的模型族 $Q$ 是单峰的，你便会在各众数之间取平均 &mdash; 请选择与你目标相匹配的损失。",
+   "src": "<strong>\"Forward KL is always the right loss.\"</strong><br />\n              MLE-style maximum likelihood minimises forward KL, which\n              is mode-covering. If your true $P$ is multimodal and\n              your model family $Q$ is unimodal, you'll average across\n              modes &mdash; pick the loss that matches your goal.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@\"Mutual information is hard to estimate.\"@@T1@@@@T2@@\n              Above ~6 dimensions, almost every neural MI estimator is\n              biased and high-variance. InfoNCE / MINE / CLUB give\n              loose bounds, not faithful values. Treat MI numbers in\n              papers as suggestive.": {
+   "zh": "@@T0@@“互信息难以估计。”@@T1@@@@T2@@\n              在约 6 维以上，几乎所有神经互信息估计器都是有偏且高方差的。InfoNCE / MINE / CLUB 给出的是宽松的下界，而非忠实的取值。请把论文中的互信息数字当作示意性的参考。",
+   "src": "<strong>\"Mutual information is hard to estimate.\"</strong><br />\n              Above ~6 dimensions, almost every neural MI estimator is\n              biased and high-variance. InfoNCE / MINE / CLUB give\n              loose bounds, not faithful values. Treat MI numbers in\n              papers as suggestive.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@\"Information bottleneck explains generalisation.\"@@T1@@@@T2@@\n              The original IB story was beautiful but its empirical\n              support is contested (Saxe et al. 2018). Useful as a\n              @@T3@@design principle@@T4@@; not a proven mechanism.": {
+   "zh": "@@T0@@“信息瓶颈能解释泛化。”@@T1@@@@T2@@\n              最初的信息瓶颈叙事固然优美，但其经验支持存在争议（Saxe 等 2018）。它作为@@T3@@设计原则@@T4@@ 颇有价值；但并非已被证实的机制。",
+   "src": "<strong>\"Information bottleneck explains generalisation.\"</strong><br />\n              The original IB story was beautiful but its empirical\n              support is contested (Saxe et al. 2018). Useful as a\n              <em>design principle</em>; not a proven mechanism.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          Five quantities &mdash; surprise, entropy, cross-entropy, KL,\n          mutual information &mdash; underlie every loss you'll\n          encounter in modern ML. Once you can compute any of them\n          from any other in your head, classification, VAEs,\n          contrastive learning and Bayesian inference all start\n          looking like the same recipe.": {
+   "zh": "@@T0@@最终要点。@@T1@@\n          五个量 &mdash; 惊奇度、熵、交叉熵、KL、互信息 &mdash; 构成了你在现代机器学习中会遇到的一切损失的底层基础。一旦你能在头脑中由其中任一量算出其余各量，分类、VAE、对比学习与贝叶斯推断便都开始显得像是同一份配方。",
+   "src": "<strong>Final takeaway.</strong>\n          Five quantities &mdash; surprise, entropy, cross-entropy, KL,\n          mutual information &mdash; underlie every loss you'll\n          encounter in modern ML. Once you can compute any of them\n          from any other in your head, classification, VAEs,\n          contrastive learning and Bayesian inference all start\n          looking like the same recipe.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "手算机器学习中的信息论",
+  "tagline": "将熵、交叉熵、KL 散度与互信息可视化 —— 每一个量都在你拖动分布时实时重算",
+  "summary": "拖动一个类别分布，观察其随尖锐化而下降的熵。将模型置于数据之旁，看交叉熵如何化为 KL 加一个常数。在用一个高斯分布拟合双峰目标时切换前向与反向 KL —— 体会覆盖众数与追逐众数之间的差别。随后从二维散点构造互信息，并看清为何 InfoNCE 是它的一个下界。",
+  "difficulty": "中级",
+  "collection": "概率与统计推断",
+  "highlights": [
+   "拖动一个类别分布，观察熵 = 期望惊奇度如何实时更新。",
+   "交叉熵与 KL 在视觉上拆分：H(P,Q) = H(P) + KL(P‖Q)。",
+   "在固定的双峰目标上比较前向与反向 KL —— 一次切换即可看到覆盖众数与众数追逐的差别。",
+   "由二维散点得到互信息；滑动相关系数；观察当变量独立时 I(X;Y) 如何缩至 0。",
+   "对比温度收缩时互信息上的 InfoNCE 下界。"
+  ],
+  "tags": [
+   "信息论",
+   "KL 散度",
+   "互信息",
+   "交叉熵",
+   "InfoNCE",
+   "交互式"
+  ]
+ },
+ "js": {
+  "max H = log₂([[[0]]]) = [[[1]]] bits": {
+   "zh": "最大 H = log₂([[[0]]]) = [[[1]]] 比特",
+   "exprs": [
+    "${ENT.K}",
+    "${Math.log2(ENT.K).toFixed(2)}"
+   ],
+   "tags": [],
+   "src": "max H = log₂(${ENT.K}) = ${Math.log2(ENT.K).toFixed(2)} bits"
+  },
+  "min H = 0 (one-hot)": {
+   "zh": "最小 H = 0（独热）",
+   "exprs": [],
+   "tags": [],
+   "src": "min H = 0 (one-hot)"
+  },
+  "empirical (18-bin histogram)": {
+   "zh": "经验值（18 箱直方图）",
+   "exprs": [],
+   "tags": [],
+   "src": "empirical (18-bin histogram)"
+  },
+  "analytic Gaussian: −½ log₂(1−ρ²)": {
+   "zh": "解析高斯解：−½ log₂(1−ρ²)",
+   "exprs": [],
+   "tags": [],
+   "src": "analytic Gaussian: −½ log₂(1−ρ²)"
+  },
+  "I = 0 ⇔ ρ = 0 (independence). Slide ρ to 0.": {
+   "zh": "I = 0 ⇔ ρ = 0（独立）。将 ρ 滑至 0。",
+   "exprs": [],
+   "tags": [],
+   "src": "I = 0 ⇔ ρ = 0 (independence). Slide ρ to 0."
+  },
+  "current: K=[[[0]]], signal=[[[1]]] → bound = [[[2]]], MI = [[[3]]]": {
+   "zh": "当前：K=[[[0]]]，信号=[[[1]]] → 下界 = [[[2]]]，MI = [[[3]]]",
+   "exprs": [
+    "${NCE.K}",
+    "${NCE.signal.toFixed(2)}",
+    "${cur.lower.toFixed(2)}",
+    "${cur.I.toFixed(2)}"
+   ],
+   "tags": [],
+   "src": "current: K=${NCE.K}, signal=${NCE.signal.toFixed(2)} → bound = ${cur.lower.toFixed(2)}, MI = ${cur.I.toFixed(2)}"
+  },
+  "Drag any bar top to reshape P.": {
+   "zh": "拖动任一柱条顶端以重塑 P。",
+   "exprs": [],
+   "tags": [],
+   "src": "Drag any bar top to reshape P."
+  },
+  "Bars renormalise to sum to 1.": {
+   "zh": "各柱条会重新归一化使总和为 1。",
+   "exprs": [],
+   "tags": [],
+   "src": "Bars renormalise to sum to 1."
+  },
+  "the gap shrinks as you take more samples.": {
+   "zh": "取样越多，差距越小。",
+   "exprs": [],
+   "tags": [],
+   "src": "the gap shrinks as you take more samples."
+  },
+  "analytic MI": {
+   "zh": "解析互信息",
+   "exprs": [],
+   "tags": [],
+   "src": "analytic MI"
+  },
+  "nce-K-val": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": "nce-K-val"
+  }
+ }
+}

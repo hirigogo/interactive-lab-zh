@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>超越梯度下降</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>超越梯度下降</h1>
+        <p class="abstract">
+          SGD 与 Adam 并非仅有的优化器。让五种非 SGD 方法在同一个二维损失曲面上竞速，
+          观察各自在哪里跃进而又在哪里停滞。
+        </p>
+        <div class="byline">
+          <span>约 16 分钟</span>
+          <span>优化 &middot; 深度学习理论</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>为何要超越 SGD？</h2>
+        <p>
+          带动量的 SGD 是深度学习的主力，原因在于
+          （a）它可扩展 &mdash; 每一步只做一次梯度求值，代价低廉；
+          （b）在单遍训练中，噪声是一种特性而非缺陷；
+          （c）小批量带来的隐式正则化
+          免费提供了泛化能力。Adam 及其同类算法（AdamW、Lion、
+          Sophia）继承了这些优点，并加入了逐参数的自适应
+          学习率。
+        </p>
+        <p>
+          但是：SGD 丢弃了两样东西。
+        </p>
+        <ul class="explanation-list">
+          <li><strong>曲率。</strong> Hessian 矩阵揭示了
+            局部几何结构 &mdash; 损失陡峭的方向
+            （小步长）与平坦的方向（大步长）。SGD 完全忽略它。
+            在条件数为 $\kappa$ 的二次函数上，SGD 需要
+            $O(\kappa \log \tfrac{1}{\varepsilon})$ 步；而 牛顿法 法只需
+            $\log\log \tfrac{1}{\varepsilon}$。</li>
+          <li><strong>参数间的几何结构。</strong> Adam 的对角
+            预条件子忽略了参数间的相关性。自然梯度
+            方法（K-FAC、Shampoo）以分块方式恢复它们。</li>
+        </ul>
+        <p>
+          这些方法何时值得付出代价？当（i）你能承担全批量或大批量
+          梯度，（ii）维度小到足以存储或求逆曲率矩阵，
+          或（iii）你根本没有梯度，只能退回到
+          诸如 CMA-ES 与 SPSA 之类的函数值方法时。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>五位竞争者</h2>
+        <ul class="explanation-list">
+          <li><strong>牛顿法。</strong> 使用 Hessian
+            矩阵 $H$，沿 $-H^{-1}\nabla f$ 方向迭代。具有二次局部收敛性。
+            代价：构造 $H$ 需 $O(d^2)$，求逆需 $O(d^3)$。
+            当 $d$ &gt; 约 $10^4$ 时不实用。</li>
+          <li><strong>BFGS / L-BFGS。</strong> 依据历史梯度维护
+            $H^{-1}$ 的低秩近似。是中等规模（&lt;100 万参数）
+            深度学习的主力。scipy.minimize 的默认方法；<code>jax.scipy.optimize</code>
+            也内置了它。</li>
+          <li><strong>自然梯度。</strong> 沿
+            $-F^{-1}\nabla f$ 方向迭代，其中 $F$ 为 Fisher 信息
+            矩阵。具有重参数化不变性；是
+            K-FAC 与 Shampoo 的核心。在许多
+            场景下于 RNN / GAN 上胜过 Adam。</li>
+          <li><strong>CMA-ES（进化式）。</strong> 从高斯分布中
+            采样一个种群；将均值与
+            协方差朝最优样本更新。无需梯度，
+            对噪声稳健；是强化学习超参数搜索的标准方法。</li>
+          <li><strong>SPSA（无梯度的有限差分）。</strong>
+            用一个随机 ±1 向量一次性扰动全部参数，
+            仅以两次求值的有限差分估计梯度。
+            在只能获得函数值的情形下最为适用。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-1a">
+        <div class="step-badge">第 1½ 步</div>
+        <h2>牛顿法：两行说清</h2>
+        <p>
+          在当前迭代点 $w_t$ 附近对损失作 Taylor 展开：
+        </p>
+        <div class="math-block" id="math-newton-taylor"></div>
+        <p>
+          令该二次式关于 $\Delta w$ 的梯度为零，
+          即可求得其最小值。解之得 $\Delta w = -H^{-1}\nabla f$，
+          即牛顿步。在完美的二次函数上，一步即可
+          抵达最优解；在光滑函数上，收敛阶为
+          二次 &mdash; 误差每次迭代后平方。实践中
+          必须进行阻尼：$w_{t+1} = w_t - \alpha_t H^{-1}\nabla f$，
+          其中 $\alpha_t$ 由线搜索确定；并在 Hessian 非正定之时
+          用 $H + \lambda I$ 对其加以稳定
+          （Levenberg&ndash;Marquardt）。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-1b">
+        <div class="step-badge">第 1¾ 步</div>
+        <h2>BFGS &mdash; L-BFGS 背后的秩 2 秘密</h2>
+        <p>
+          BFGS 维护一个 Hessian 逆矩阵的近似 $B$，
+          并使其每一步都更精确。在观测到步长
+          $s_t = w_{t+1} - w_t$ 与梯度变化 $y_t = \nabla f_{t+1}
+          - \nabla f_t$ 之后，它通过一个秩 2 扰动更新 $B$：
+        </p>
+        <div class="math-block" id="math-bfgs"></div>
+        <p>
+          有两个性质使这一更新如此巧妙：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>割线条件。</strong> 该更新满足
+            $B_{t+1} y_t = s_t$ &mdash; 即它正确地预测了
+            你刚刚观测到的曲率。</li>
+          <li><strong>保持正定性。</strong> 若
+            $B_t \succ 0$ 且 $s_t^\top y_t &gt; 0$（曲率
+            条件成立），则 $B_{t+1} \succ 0$。</li>
+        </ul>
+        <p>
+          <strong>L-BFGS</strong> 仅存储最近的 $m$ 组配对 $(s_t,
+          y_t)$（通常 $m=10$），而非完整矩阵，并通过一个双循环递归在
+          $O(md)$ 时间内计算 $B \nabla f$。这
+          正是它在完整牛顿法无法胜任时仍能扩展至数百万参数
+          的原因。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-1c">
+        <div class="step-badge">第 1⅞ 步</div>
+        <h2>自然梯度 &mdash; 概率的几何</h2>
+        <p>
+          对于概率模型 $p_\theta(x)$，自然梯度
+          以逆 Fisher 信息矩阵对普通梯度进行预条件：
+        </p>
+        <div class="math-block" id="math-natural"></div>
+        <p>
+          Fisher 矩阵 $F$ 是相对当前模型的 KL 散度的
+          Hessian 矩阵。沿 $-F^{-1}\nabla L$ 方向迭代可使
+          相邻两次迭代之间的 KL 变化保持有界 &mdash; 该步长
+          于是变得 <em>在分布流形上具备几何感知能力</em>。
+          具体后果如下：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>重参数化不变性。</strong> 若你
+            改变参数坐标，自然梯度的更新与参数本身
+            以相同方式变换，因此对分布的实际更新
+            保持不变。朴素梯度则 <em>不具</em> 不变性；这
+            正是 SGD 对激活尺度选择如此敏感的原因。</li>
+          <li><strong>K-FAC。</strong> 将 $F$ 近似为分块对角
+            形式，其分块具有 Kronecker 因子结构，从而使大型网络的
+            求逆变得可行。较早的 DeepMind 强化学习
+            论文中有所采用；<em>Shampoo</em>（Anil 等人，2020）是
+            其现代后继者，已被用于部分 2024&ndash;2025 年的大语言模型预训练
+            流程。</li>
+          <li><strong>TRPO / NPG。</strong> 信赖域策略
+            优化本质上就是自然梯度的策略改进 &mdash;
+            它至今仍是关于同策略强化学习为何需要
+            KL 约束的最清晰推导。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>在二维损失上竞速</h2>
+        <div class="train-controls">
+          <label>曲面
+            <select id="op-曲面">
+              <option value="quadratic">拉长的二次曲面</option>
+              <option value="rosenbrock" selected>Rosenbrock 函数</option>
+              <option value="bowls">双碗（非凸）</option>
+            </select>
+          </label>
+          <button class="action-btn" id="op-step">一次多步</button>
+          <button class="action-btn" id="op-step50">走 50 步</button>
+          <button class="action-btn action-btn--ghost" id="op-reset">重置</button>
+          <span class="train-stat">步数 <strong id="op-step-count">0</strong></span>
+        </div>
+        <div class="op-figure">
+          <canvas id="op-canvas" width="880" height="440"></canvas>
+          <figcaption>损失曲面等高线及各优化器的轨迹。最终损失值显示在图例中。</figcaption>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-2a">
+        <div class="step-badge">第 2½ 步</div>
+        <h2>无梯度方法：CMA-ES 与 SPSA</h2>
+        <p>
+          假设你能计算 $f(w)$，却无法计算 $\nabla f(w)$。这
+          正是强化学习超参数搜索、基于模拟器的设计、
+          硬件在环调优以及某些量子实验所处的
+          情形。有两类算法占据主导。
+        </p>
+        <p>
+          <strong>CMA-ES（协方差矩阵自适应进化
+          策略）。</strong> 维护一个高斯搜索分布
+          $\mathcal{N}(m_t, \sigma_t^2 C_t)$。每一代执行：
+        </p>
+        <ul class="explanation-list">
+          <li>采样一个含 $\lambda$ 个候选的种群；</li>
+          <li>对每个候选求 $f$ 值；按适应度排序；</li>
+          <li>对前 $\mu$ 个进行重组，构成新的均值 $m_{t+1}$；</li>
+          <li>依据累计进化路径的长度调整 $\sigma_t$（步长）；</li>
+          <li>调整 $C_t$ 使之与成功的方向对齐。</li>
+        </ul>
+        <p>
+          自适应协方差正是 CMA-ES 具备竞争力的原因 &mdash;
+          它从成功与失败中学习局部条件结构，
+          而无需计算 Hessian 矩阵。
+        </p>
+        <p>
+          <strong>SPSA（同时扰动随机
+          逼近）。</strong> 选取一个随机的 $\pm 1$ 向量
+          $\Delta_t$（Rademacher 分布）；在 $w_t \pm c_t \Delta_t$ 处求 $f$ 值；
+          并以 <em>单次</em> 两点
+          有限差分估计梯度：
+        </p>
+        <div class="math-block" id="math-spsa"></div>
+        <p>
+          每步只需两次函数求值，与维度无关。
+          这正是其巧妙之处：普通有限差分需要 $2d$
+          次求值，而 SPSA 只付出固定的 2 次。代价是方差：
+          你需要大量步数以及逐渐收缩的 $a_t, c_t$ 才能收敛，
+          但每步的代价与维度无关。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>何时使用何种方法</h2>
+        <ul class="explanation-list">
+          <li><strong>L-BFGS。</strong> 适用于参数量至多
+            约 100 万的光滑全批量损失。典型用途：物理信息神经网络、
+            小数据微调、数值方法。</li>
+          <li><strong>K-FAC / Shampoo（自然梯度）。</strong>
+            适用于大型网络与稳定训练。被那些在 Adam 出现平台期的
+            超大型大语言模型与 RNN 上开展研究的实验室所采用。</li>
+          <li><strong>CMA-ES。</strong> 黑箱超参数
+            搜索；以奖励塑形的强化学习；梯度
+            噪声较大或不可得的任务。</li>
+          <li><strong>SPSA。</strong> 硬件在环调优，
+            以及每次求值都是一次前向模拟的基于模拟器的设计。
+            量子线路优化使其广为人知。</li>
+          <li><strong>坚持使用 SGD/Adam。</strong> 适用于含数百万
+            参数、使用随机梯度的迷你批量深度学习。
+            计算 $H$ 的代价超过其带来的收益。</li>
+        </ul>
+        <div class="callout callout--think">
+          <strong>最后总结。</strong>
+          合适的优化器取决于每一类信息的代价。SGD 丢弃了曲率
+          （前向与反向传播代价低廉，无需 Hessian）。L-BFGS / 牛顿法
+          每步代价更高，但收敛更快。无梯度方法每步代价更高
+          <em>且</em> 忽略梯度，但在无梯度可用之时
+          便显示出优势。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>比较表</h2>
+        <div class="op-table-wrap">
+          <table class="op-table">
+            <thead>
+              <tr><th>方法</th><th>所用信息</th><th>每步代价</th><th>收敛性</th><th>适用场景</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>SGD + 动量</td><td>$\nabla f$</td><td>$O(d)$</td><td>$O(\kappa \log \tfrac{1}{\varepsilon})$</td><td>深度学习预训练，迷你批量</td></tr>
+              <tr><td>Adam / AdamW</td><td>$\nabla f$，$|\nabla f|^2$（对角）</td><td>$O(d)$</td><td>$O(\kappa \log \tfrac{1}{\varepsilon})$（对角预条件）</td><td>Transformer，多尺度</td></tr>
+              <tr><td>L-BFGS</td><td>$\nabla f$，历史 $m$ 组配对</td><td>$O(md)$</td><td>超线性</td><td>光滑的全批量损失</td></tr>
+              <tr><td>牛顿法</td><td>$\nabla f$, $H$</td><td>$O(d^3)$</td><td>二次</td><td>$d \lesssim 10^4$，光滑</td></tr>
+              <tr><td>K-FAC / Shampoo</td><td>$\nabla f$，Fisher 分块对角</td><td>$O(\text{block}^3)$</td><td>实践中快于 Adam</td><td>稳定性至关重要的大型网络</td></tr>
+              <tr><td>CMA-ES</td><td>仅 $f$（种群）</td><td>每代 $O(\lambda d^2)$</td><td>线性，稳健</td><td>$d \lesssim 10^3$，带噪黑箱</td></tr>
+              <tr><td>SPSA</td><td>仅 $f$（2 次求值）</td><td>每步 $O(d)$</td><td>较慢，但每步代价与维度无关</td><td>硬件 / 模拟器闭环</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>实用指南</h2>
+        <ul class="explanation-list">
+          <li><strong>物理信息神经网络、神经 PDE。</strong>
+            在数千步 Adam 之后改用 L-BFGS 作最终收敛 &mdash;
+            Adam 抵达盆地，L-BFGS 则在其内部完成
+            下降。这是标准的 PINN 做法。</li>
+          <li><strong>大规模强化学习。</strong> 为求稳定，可使用
+            自然梯度的 TRPO；PPO 是更廉价的一阶近似，
+            采用截断的 KL 代理目标。若策略网络的规模允许，
+            可使用 Shampoo。</li>
+          <li><strong>超参数 / 架构搜索。</strong>
+            若你有数十个连续超参数且能承担 $\sim 100$ 次求值，
+            可使用 CMA-ES。若求值次数更少、且空间求值
+            代价更低，则使用贝叶斯优化。</li>
+          <li><strong>量子 / 模拟硬件。</strong> SPSA 是
+            变分量子特征求解器（VQE）的标准优化器，
+            原因恰恰在于每一次“求值”都需要运行一个
+            量子线路。</li>
+          <li><strong>大语言模型预训练。</strong> 坚持使用 AdamW
+            （或 Lion），除非你已实测到 Shampoo 带来的实际收益。
+            在大语言模型规模下，二阶方法的额外
+            开销并不简单。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>参考文献</h2>
+        <ul class="explanation-list">
+          <li><strong>Nocedal &amp; Wright</strong>，<em>Numerical
+            Optimization</em>，第 2 版。关于牛顿法、BFGS、线搜索、
+            信赖域的标准参考书。</li>
+          <li><strong>Amari（1998）</strong> &mdash; <em>Natural Gradient
+            Works Efficiently in Learning.</em> 开启自然梯度
+            这一研究路线的论文。</li>
+          <li><strong>Martens &amp; Grosse（2015）</strong> &mdash;
+            <em>Optimizing Neural Networks with Kronecker-factored
+            Approximate Curvature (K-FAC).</em></li>
+          <li><strong>Anil, Gupta, Koren, Singer（2020）</strong> &mdash;
+            <em>Shampoo: Preconditioned Stochastic Tensor
+            Optimization.</em> 面向大型网络的现代二阶方法。</li>
+          <li><strong>Hansen（2016）</strong> &mdash; <em>The CMA
+            Evolution Strategy: A Tutorial.</em> 关于 CMA-ES 的
+            参考材料。</li>
+          <li><strong>Spall（1992）</strong> &mdash; <em>Multivariate
+            Stochastic Approximation Using a Simultaneous Perturbation
+            Gradient Approximation.</em> SPSA 的原始论文。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

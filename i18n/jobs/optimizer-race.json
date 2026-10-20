@@ -1,0 +1,570 @@
+{
+ "slug": "optimizer-race",
+ "units": {
+  "The Optimizer Race": {
+   "zh": "优化器竞速",
+   "src": "The Optimizer Race",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Drop a starting point on four different loss landscapes and watch\n          SGD, Momentum, and Adam actually solve the optimization problem\n          side-by-side&mdash;with their step counts, current loss, and\n          trajectories all computed live.": {
+   "zh": "在四张不同的损失曲面上放置一个起点，观察 SGD、Momentum 与 Adam 如何并排地真正求解该优化问题&mdash;&mdash;它们的步数、当前损失与轨迹全都实时计算。",
+   "src": "Drop a starting point on four different loss landscapes and watch\n          SGD, Momentum, and Adam actually solve the optimization problem\n          side-by-side&mdash;with their step counts, current loss, and\n          trajectories all computed live.",
+   "tags": []
+  },
+  "@@T0@@~15 min@@T1@@\n          @@T2@@Deep Learning &middot; Optimization &middot; SGD@@T3@@": {
+   "zh": "@@T0@@约 15 分钟@@T1@@\n          @@T2@@深度学习 &middot; 优化 &middot; SGD@@T3@@",
+   "src": "<span>~15 min</span>\n          <span>Deep Learning &middot; Optimization &middot; SGD</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Why not just use plain gradient descent?": {
+   "zh": "为何不直接使用朴素梯度下降？",
+   "src": "Why not just use plain gradient descent?",
+   "tags": []
+  },
+  "Training a neural network is, at heart, minimizing a @@T0@@loss\n          function@@T1@@. You have a dial for each weight, you measure how\n          wrong the model is, and you turn the dials in whatever direction\n          reduces the error. Simple.": {
+   "zh": "训练神经网络，本质上就是最小化一个@@T0@@损失函数@@T1@@。每个权重都对应一个旋钮，你度量模型的错误程度，然后朝任何能减小误差的方向转动这些旋钮。听起来很简单。",
+   "src": "Training a neural network is, at heart, minimizing a <em>loss\n          function</em>. You have a dial for each weight, you measure how\n          wrong the model is, and you turn the dials in whatever direction\n          reduces the error. Simple.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The problem is that real loss surfaces are nothing like a smooth\n          bowl. They have long, narrow ravines; saddle points that look flat\n          in one direction but tilt in another; plateaus where gradients die;\n          and cliffs where they explode. Plain gradient descent handles none\n          of this gracefully&mdash;which is why, in 2014, Adam was introduced\n          and essentially never left.": {
+   "zh": "问题在于，真实的损失曲面完全不像一个光滑的碗。它们有细长的沟壑；有在某些方向上看似平坦、在另一些方向上却倾斜的鞍点；有梯度消亡的高原；还有梯度爆炸的悬崖。朴素梯度下降对这一切都难以从容应对&mdash;&mdash;这正是 Adam 于 2014 年被提出后便几乎没有退场的原因。",
+   "src": "The problem is that real loss surfaces are nothing like a smooth\n          bowl. They have long, narrow ravines; saddle points that look flat\n          in one direction but tilt in another; plateaus where gradients die;\n          and cliffs where they explode. Plain gradient descent handles none\n          of this gracefully&mdash;which is why, in 2014, Adam was introduced\n          and essentially never left.",
+   "tags": []
+  },
+  "This page lets you race three optimizers across four diagnostic\n          landscapes. Every dot, every path, and every loss number is computed\n          in real time from the same closed-form landscapes you'll see in the\n          math blocks.": {
+   "zh": "本页让你在四张诊断性曲面上让三种优化器竞速。每一个点、每一条路径、每一个损失数值，都由数学区块中所给出的同一批闭式曲面实时计算得出。",
+   "src": "This page lets you race three optimizers across four diagnostic\n          landscapes. Every dot, every path, and every loss number is computed\n          in real time from the same closed-form landscapes you'll see in the\n          math blocks.",
+   "tags": []
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "Plain SGD: follow the slope": {
+   "zh": "朴素 SGD：顺着斜率走",
+   "src": "Plain SGD: follow the slope",
+   "tags": []
+  },
+  "@@T0@@Stochastic Gradient Descent (SGD)@@T1@@ does the obvious\n          thing. At every step, it computes the gradient of the loss and\n          moves the weights a small amount against that direction:": {
+   "zh": "@@T0@@随机梯度下降（SGD）@@T1@@ 做的是最直白的事。每一步都计算损失的梯度，并沿该方向的反方向小幅移动权重：",
+   "src": "<strong>Stochastic Gradient Descent (SGD)</strong> does the obvious\n          thing. At every step, it computes the gradient of the loss and\n          moves the weights a small amount against that direction:",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@$W_t$:@@T1@@ your current weights.": {
+   "zh": "@@T0@@$W_t$：@@T1@@ 当前的权重。",
+   "src": "<strong>$W_t$:</strong> your current weights.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@$\\alpha$:@@T1@@ the learning rate (step size).": {
+   "zh": "@@T0@@$\\alpha$：@@T1@@ 学习率（步长）。",
+   "src": "<strong>$\\alpha$:</strong> the learning rate (step size).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@$\\nabla L(W_t)$:@@T1@@ the gradient at the current point.": {
+   "zh": "@@T0@@$\\nabla L(W_t)$：@@T1@@ 当前点处的梯度。",
+   "src": "<strong>$\\nabla L(W_t)$:</strong> the gradient at the current point.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "SGD is the right starting point, but it gets confused whenever the\n          gradient stops pointing toward the minimum. In a ravine the gradient\n          points @@T0@@across@@T1@@ the ravine walls, not @@T2@@along@@T3@@ them, so\n          SGD bounces from wall to wall and makes painfully slow progress\n          toward the bottom.": {
+   "zh": "SGD 是恰当的起点，但一旦梯度不再指向极小值，它便会迷失方向。在沟壑中，梯度指向的是沟壁的@@T0@@横向@@T1@@，而非@@T2@@沿着@@T3@@沟壁的方向，因此 SGD 在两侧壁之间来回反弹，朝谷底前进得极为缓慢。",
+   "src": "SGD is the right starting point, but it gets confused whenever the\n          gradient stops pointing toward the minimum. In a ravine the gradient\n          points <em>across</em> the ravine walls, not <em>along</em> them, so\n          SGD bounces from wall to wall and makes painfully slow progress\n          toward the bottom.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Momentum: add a little inertia": {
+   "zh": "Momentum：加入一点惯性",
+   "src": "Momentum: add a little inertia",
+   "tags": []
+  },
+  "@@T0@@Momentum@@T1@@ treats the optimizer like a heavy ball.\n          Instead of the current gradient being the step, it accumulates a\n          @@T2@@velocity@@T3@@ that blends past gradients with the current one:": {
+   "zh": "@@T0@@Momentum@@T1@@ 把优化器视为一个沉重的球。它不直接以当前梯度作为步长，而是累积一个@@T2@@速度@@T3@@，将过去的梯度与当前的梯度混合起来：",
+   "src": "<strong>Momentum</strong> treats the optimizer like a heavy ball.\n          Instead of the current gradient being the step, it accumulates a\n          <em>velocity</em> that blends past gradients with the current one:",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@$V_t$:@@T1@@ the velocity (a running average of recent\n            gradients).": {
+   "zh": "@@T0@@$V_t$：@@T1@@ 速度（近期梯度的滑动平均）。",
+   "src": "<strong>$V_t$:</strong> the velocity (a running average of recent\n            gradients).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@$\\beta$:@@T1@@ friction, usually 0.9. Smaller values\n            mean shorter memory; larger values mean a heavier ball.": {
+   "zh": "@@T0@@$\\beta$：@@T1@@ 摩擦系数，通常取 0.9。取值越小记忆越短；取值越大则球越重。",
+   "src": "<strong>$\\beta$:</strong> friction, usually 0.9. Smaller values\n            mean shorter memory; larger values mean a heavier ball.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "In a ravine, the oscillating component of the gradient (across the\n          walls) cancels in the velocity because successive steps push in\n          opposite directions. Meanwhile the tiny consistent component\n          (along the floor) @@T0@@accumulates@@T1@@, building up speed exactly\n          where you want it.": {
+   "zh": "在沟壑中，梯度里那部分振荡分量（横向跨越沟壁者）在速度中相互抵消，因为相邻各步的推动方向相反。与此同时，那极小但方向一致的分量（沿着谷底者）则@@T0@@不断累积@@T1@@，恰在你所期望之处积蓄起速度。",
+   "src": "In a ravine, the oscillating component of the gradient (across the\n          walls) cancels in the velocity because successive steps push in\n          opposite directions. Meanwhile the tiny consistent component\n          (along the floor) <em>accumulates</em>, building up speed exactly\n          where you want it.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Adam: adapt per-parameter": {
+   "zh": "Adam：逐参数自适应",
+   "src": "Adam: adapt per-parameter",
+   "tags": []
+  },
+  "@@T0@@Adam@@T1@@ adds a second running average: the squared\n          gradient. It uses the first moment for direction (like momentum) and\n          the second moment to @@T2@@rescale@@T3@@ each parameter individually:": {
+   "zh": "@@T0@@Adam@@T1@@ 增加了第二个滑动平均：梯度的平方。它用一阶矩确定方向（与 momentum 类似），用二阶矩对每个参数@@T2@@分别重新缩放@@T3@@：",
+   "src": "<strong>Adam</strong> adds a second running average: the squared\n          gradient. It uses the first moment for direction (like momentum) and\n          the second moment to <em>rescale</em> each parameter individually:",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The magic is in the division by $\\sqrt{\\hat v_{t+1}}$. Parameters\n          whose gradient wobbles a lot (large second moment) get a @@T0@@smaller@@T1@@\n          effective step. Parameters whose gradient has been small but\n          consistent (small second moment) get a @@T2@@larger@@T3@@ step. It's\n          like running momentum on a warped version of the landscape where\n          steep walls have been flattened and gentle slopes have been steepened.": {
+   "zh": "奇妙之处在于除以 $\\sqrt{\\hat v_{t+1}}$。梯度波动剧烈的参数（二阶矩较大）获得@@T0@@更小@@T1@@的有效步长。梯度一直很小但方向一致的参数（二阶矩较小）则获得@@T2@@更大@@T3@@的步长。这就像是在该曲面的一个扭曲版本上运行 momentum：陡峭的壁被削平，平缓的坡被加陡。",
+   "src": "The magic is in the division by $\\sqrt{\\hat v_{t+1}}$. Parameters\n          whose gradient wobbles a lot (large second moment) get a <em>smaller</em>\n          effective step. Parameters whose gradient has been small but\n          consistent (small second moment) get a <em>larger</em> step. It's\n          like running momentum on a warped version of the landscape where\n          steep walls have been flattened and gentle slopes have been steepened.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "The grand prix: four landscapes": {
+   "zh": "大奖赛：四张曲面",
+   "src": "The grand prix: four landscapes",
+   "tags": []
+  },
+  "Pick a landscape, adjust the learning rate, and click anywhere on the\n          terrain to drop a starting point. Every optimizer runs for the same\n          number of steps from the same start so the comparison is honest.": {
+   "zh": "选择一张曲面，调整学习率，然后在地形上任意处点击以放置起点。每个优化器都从同一起点出发、运行相同的步数，以保证比较的公正。",
+   "src": "Pick a landscape, adjust the learning rate, and click anywhere on the\n          terrain to drop a starting point. Every optimizer runs for the same\n          number of steps from the same start so the comparison is honest.",
+   "tags": []
+  },
+  "Choose a landscape": {
+   "zh": "选择曲面",
+   "src": "Choose a landscape",
+   "tags": []
+  },
+  "Narrow ravine": {
+   "zh": "狭窄沟壑",
+   "src": "Narrow ravine",
+   "tags": []
+  },
+  "Saddle point": {
+   "zh": "鞍点",
+   "src": "Saddle point",
+   "tags": []
+  },
+  "Plateau + bowl": {
+   "zh": "高原 + 碗形",
+   "src": "Plateau + bowl",
+   "tags": []
+  },
+  "Rosenbrock": {
+   "zh": "Rosenbrock 函数",
+   "src": "Rosenbrock",
+   "tags": []
+  },
+  "Sharp Trap (Adam may fail)": {
+   "zh": "尖锐陷阱（Adam 可能失败）",
+   "src": "Sharp Trap (Adam may fail)",
+   "tags": []
+  },
+  "Learning rate @@T0@@&alpha; = @@T1@@0.05@@T2@@@@T3@@": {
+   "zh": "学习率 @@T0@@&alpha; = @@T1@@0.05@@T2@@@@T3@@",
+   "src": "Learning rate <span>&alpha; = <span id=\"lr-val\">0.05</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"lr-val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Maximum steps @@T0@@@@T1@@300@@T2@@@@T3@@": {
+   "zh": "最大步数 @@T0@@@@T1@@300@@T2@@@@T3@@",
+   "src": "Maximum steps <span><span id=\"steps-val\">300</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"steps-val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Click anywhere@@T1@@ to drop a starting point. The\n            global minimum is marked with a star.": {
+   "zh": "@@T0@@在任意处点击@@T1@@ 即可放置起点。全局极小值以星号标出。",
+   "src": "<strong>Click anywhere</strong> to drop a starting point. The\n            global minimum is marked with a star.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@SGD@@T1@@": {
+   "zh": "@@T0@@SGD（随机梯度下降）@@T1@@",
+   "src": "<strong>SGD</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Momentum@@T1@@": {
+   "zh": "@@T0@@Momentum（动量法）@@T1@@",
+   "src": "<strong>Momentum</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Adam@@T1@@": {
+   "zh": "@@T0@@Adam@@T1@@ 优化器",
+   "src": "<strong>Adam</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Live scoreboard": {
+   "zh": "实时计分板",
+   "src": "Live scoreboard",
+   "tags": []
+  },
+  "@@T0@@SGD@@T1@@\n            @@T2@@—@@T3@@\n            @@T4@@steps: 0@@T5@@": {
+   "zh": "@@T0@@SGD@@T1@@\n            @@T2@@—@@T3@@\n            @@T4@@步数：0@@T5@@",
+   "src": "<span class=\"stat-label\">SGD</span>\n            <span class=\"stat-value\" id=\"sgd-loss\" style=\"color:#ca5b2a;\">—</span>\n            <span class=\"stat-sub\" id=\"sgd-steps\">steps: 0</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"sgd-loss\" style=\"color:#ca5b2a;\">",
+    "</span>",
+    "<span class=\"stat-sub\" id=\"sgd-steps\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Momentum@@T1@@\n            @@T2@@—@@T3@@\n            @@T4@@steps: 0@@T5@@": {
+   "zh": "@@T0@@Momentum@@T1@@\n            @@T2@@—@@T3@@\n            @@T4@@步数：0@@T5@@",
+   "src": "<span class=\"stat-label\">Momentum</span>\n            <span class=\"stat-value\" id=\"mom-loss\" style=\"color:#245b8f;\">—</span>\n            <span class=\"stat-sub\" id=\"mom-steps\">steps: 0</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"mom-loss\" style=\"color:#245b8f;\">",
+    "</span>",
+    "<span class=\"stat-sub\" id=\"mom-steps\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Adam@@T1@@\n            @@T2@@—@@T3@@\n            @@T4@@steps: 0@@T5@@": {
+   "zh": "@@T0@@Adam@@T1@@\n            @@T2@@—@@T3@@\n            @@T4@@步数：0@@T5@@",
+   "src": "<span class=\"stat-label\">Adam</span>\n            <span class=\"stat-value\" id=\"adam-loss\" style=\"color:#1e7770;\">—</span>\n            <span class=\"stat-sub\" id=\"adam-steps\">steps: 0</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"adam-loss\" style=\"color:#1e7770;\">",
+    "</span>",
+    "<span class=\"stat-sub\" id=\"adam-steps\">",
+    "</span>"
+   ]
+  },
+  "Loss vs. step": {
+   "zh": "损失随步数的变化",
+   "src": "Loss vs. step",
+   "tags": []
+  },
+  "Log-scale loss curves. Lower is better.": {
+   "zh": "对数尺度的损失曲线。越低越好。",
+   "src": "Log-scale loss curves. Lower is better.",
+   "tags": []
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "What each landscape reveals": {
+   "zh": "各张曲面所揭示的问题",
+   "src": "What each landscape reveals",
+   "tags": []
+  },
+  "Landscape": {
+   "zh": "曲面",
+   "src": "Landscape",
+   "tags": []
+  },
+  "What it tests": {
+   "zh": "考察内容",
+   "src": "What it tests",
+   "tags": []
+  },
+  "Who wins, and why": {
+   "zh": "胜出者及其原因",
+   "src": "Who wins, and why",
+   "tags": []
+  },
+  "@@T0@@Narrow ravine@@T1@@": {
+   "zh": "@@T0@@狭窄沟壑@@T1@@",
+   "src": "<strong>Narrow ravine</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Direction mismatch: gradient points across, not along.": {
+   "zh": "方向错配：梯度指向横向，而非纵向。",
+   "src": "Direction mismatch: gradient points across, not along.",
+   "tags": []
+  },
+  "Momentum and Adam. SGD bounces off the walls.": {
+   "zh": "Momentum 与 Adam。SGD 在两侧壁之间反复弹跳。",
+   "src": "Momentum and Adam. SGD bounces off the walls.",
+   "tags": []
+  },
+  "@@T0@@Saddle point@@T1@@": {
+   "zh": "@@T0@@鞍点@@T1@@",
+   "src": "<strong>Saddle point</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Escaping a \"flat\" region with curvature in both signs.": {
+   "zh": "逃出曲率正负兼具的「平坦」区域。",
+   "src": "Escaping a \"flat\" region with curvature in both signs.",
+   "tags": []
+  },
+  "Adam (aggressive per-parameter scaling). SGD gets stuck; Momentum is slow.": {
+   "zh": "Adam（激进的逐参数缩放）。SGD 会陷住；Momentum 较慢。",
+   "src": "Adam (aggressive per-parameter scaling). SGD gets stuck; Momentum is slow.",
+   "tags": []
+  },
+  "@@T0@@Plateau + bowl@@T1@@": {
+   "zh": "@@T0@@高原 + 碗形@@T1@@",
+   "src": "<strong>Plateau + bowl</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Dead flat region before any real signal appears.": {
+   "zh": "在出现任何真实信号之前的一段完全平坦区域。",
+   "src": "Dead flat region before any real signal appears.",
+   "tags": []
+  },
+  "Adam (bootstraps from tiny gradients). SGD plods. Momentum eventually picks up.": {
+   "zh": "Adam（能从极小梯度中自我启动）。SGD 步履维艰。Momentum 最终会加速。",
+   "src": "Adam (bootstraps from tiny gradients). SGD plods. Momentum eventually picks up.",
+   "tags": []
+  },
+  "@@T0@@Rosenbrock@@T1@@": {
+   "zh": "@@T0@@Rosenbrock 函数@@T1@@",
+   "src": "<strong>Rosenbrock</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "A curved valley that snakes toward the minimum.": {
+   "zh": "一条蜿蜒通向极小值的弯曲山谷。",
+   "src": "A curved valley that snakes toward the minimum.",
+   "tags": []
+  },
+  "Everyone struggles; Adam usually first to the basin because it re-scales per-axis.": {
+   "zh": "三者都很吃力；Adam 通常最先抵达盆地，因为它按轴重新缩放。",
+   "src": "Everyone struggles; Adam usually first to the basin because it re-scales per-axis.",
+   "tags": []
+  },
+  "Try starting each landscape from the same extreme corner and watch\n          the loss curves diverge. The total compute for one step of Adam is\n          roughly twice that of SGD, but the ratio of @@T0@@steps-to-convergence@@T1@@\n          is usually far more than two&mdash;which is why nobody trains modern\n          models with plain SGD anymore.": {
+   "zh": "试着在每张曲面上都从同一个极端角落出发，观察损失曲线如何分道扬镳。Adam 单步的总计算量约为 SGD 的两倍，但@@T0@@收敛所需步数@@T1@@之比通常远超两倍&mdash;&mdash;这正是如今无人再用朴素 SGD 训练现代模型的原因。",
+   "src": "Try starting each landscape from the same extreme corner and watch\n          the loss curves diverge. The total compute for one step of Adam is\n          roughly twice that of SGD, but the ratio of <em>steps-to-convergence</em>\n          is usually far more than two&mdash;which is why nobody trains modern\n          models with plain SGD anymore.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Three things people get wrong about Adam": {
+   "zh": "关于 Adam 的三种常见误解",
+   "src": "Three things people get wrong about Adam",
+   "tags": []
+  },
+  "@@T0@@Myth@@T1@@": {
+   "zh": "@@T0@@误解@@T1@@",
+   "src": "<span class=\"misconception-icon\">Myth</span>",
+   "tags": [
+    "<span class=\"misconception-icon\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@\"Adam always beats SGD.\"@@T1@@@@T2@@\n              On large-scale image classification tasks with well-tuned\n              learning-rate schedules, plain SGD + momentum still outperforms\n              Adam at the final test accuracy. Adam converges @@T3@@faster@@T4@@\n              but can generalize worse. The right optimizer depends on the\n              problem.": {
+   "zh": "@@T0@@「Adam 总能胜过 SGD。」@@T1@@@@T2@@\n              在配有精心调校学习率调度的大规模图像分类任务上，朴素 SGD + momentum 在最终测试精度上仍优于 Adam。Adam 收敛更@@T3@@快@@T4@@，\n              但泛化可能更差。合适的优化器取决于具体问题。",
+   "src": "<strong>\"Adam always beats SGD.\"</strong><br />\n              On large-scale image classification tasks with well-tuned\n              learning-rate schedules, plain SGD + momentum still outperforms\n              Adam at the final test accuracy. Adam converges <em>faster</em>\n              but can generalize worse. The right optimizer depends on the\n              problem.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@\"A higher learning rate always means faster training.\"@@T1@@@@T2@@\n              Crank $\\alpha$ high enough on any of the landscapes above and\n              the optimizers overshoot and diverge (loss balloons to infinity).\n              Every landscape has a range of \"safe\" learning rates, and it\n              differs per algorithm.": {
+   "zh": "@@T0@@「学习率越高，训练总是越快。」@@T1@@@@T2@@\n              在上述任意一张曲面上把 $\\alpha$ 调到足够高，优化器都会越过目标并发散（损失膨胀至无穷）。\n              每张曲面都有一段「安全」的学习率范围，且随算法而异。",
+   "src": "<strong>\"A higher learning rate always means faster training.\"</strong><br />\n              Crank $\\alpha$ high enough on any of the landscapes above and\n              the optimizers overshoot and diverge (loss balloons to infinity).\n              Every landscape has a range of \"safe\" learning rates, and it\n              differs per algorithm.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@\"Momentum is just about speed.\"@@T1@@@@T2@@\n              Its more important job is @@T3@@averaging noise@@T4@@. On\n              mini-batch gradients that jitter from step to step, momentum's\n              running average filters out the noise and keeps the net\n              direction stable. Speed is a side-effect.": {
+   "zh": "@@T0@@「Momentum 只关乎速度。」@@T1@@@@T2@@\n              它更重要的职责是@@T3@@对噪声取平均@@T4@@。对于逐步抖动的 mini-batch 梯度，momentum 的滑动平均可滤除噪声，使净方向保持稳定。速度只是副产物。",
+   "src": "<strong>\"Momentum is just about speed.\"</strong><br />\n              Its more important job is <em>averaging noise</em>. On\n              mini-batch gradients that jitter from step to step, momentum's\n              running average filters out the noise and keeps the net\n              direction stable. Speed is a side-effect.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          Gradient descent is elegant but naive. Momentum adds memory to\n          handle bouncy ravines. Adam adds per-parameter scaling to handle\n          landscapes where every axis has different curvature. Every\n          improvement you see in the race above is the optimizer building a\n          better mental model of the surface&mdash;from a blind stepper to a\n          shape-aware scout.": {
+   "zh": "@@T0@@最终要点。@@T1@@\n          梯度下降优雅却天真。Momentum 增加了记忆，以应对会反复弹跳的沟壑。Adam 增加了逐参数缩放，以应对各轴曲率不同的曲面。你在上述竞速中所见的每一项改进，都是优化器对曲面建立起更完善心智模型的结果&mdash;&mdash;从一个盲目的行者，变为一个能感知形状的侦察者。",
+   "src": "<strong>Final takeaway.</strong>\n          Gradient descent is elegant but naive. Momentum adds memory to\n          handle bouncy ravines. Adam adds per-parameter scaling to handle\n          landscapes where every axis has different curvature. Every\n          improvement you see in the race above is the optimizer building a\n          better mental model of the surface&mdash;from a blind stepper to a\n          shape-aware scout.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "优化器竞速",
+  "tagline": "为何我们使用 Adam，而非纯粹的梯度下降",
+  "summary": "在四张损失曲面（沟壑、鞍点、高原、Rosenbrock）中的任意一张上放置起点，观察 SGD、Momentum 与 Adam 以实时的步数计数、损失计分板与对数尺度损失曲线竞相奔向极小值。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "在四张诊断性曲面之间切换，每张都针对优化器的某一种弱点施加压力。",
+   "并排比较 SGD、Momentum 与 Adam，配有实时步数计数与对数尺度损失曲线。",
+   "调节学习率与最大步数，观察各方法何时发散或停滞。"
+  ],
+  "tags": [
+   "优化",
+   "深度学习",
+   "交互式",
+   "梯度下降"
+  ]
+ },
+ "js": {
+  "Narrow ravine": {
+   "zh": "狭窄沟壑",
+   "exprs": [],
+   "tags": [],
+   "src": "Narrow ravine"
+  },
+  "Elongated bowl: steep in the y-direction, gentle in the x-direction. Classic \"direction mismatch\" test.": {
+   "zh": "拉长的碗形：y 方向陡峭，x 方向平缓。经典的「方向错配」测试。",
+   "exprs": [],
+   "tags": [],
+   "src": "Elongated bowl: steep in the y-direction, gentle in the x-direction. Classic \"direction mismatch\" test."
+  },
+  "Saddle point": {
+   "zh": "鞍点",
+   "exprs": [],
+   "tags": [],
+   "src": "Saddle point"
+  },
+  "Curvature +1 along x and -1 along y: the minimum is at one end of the y-axis, but the origin looks almost flat.": {
+   "zh": "沿 x 的曲率为 +1、沿 y 为 -1：极小值位于 y 轴的一端，但原点附近看起来几乎平坦。",
+   "exprs": [],
+   "tags": [],
+   "src": "Curvature +1 along x and -1 along y: the minimum is at one end of the y-axis, but the origin looks almost flat."
+  },
+  "Plateau + bowl": {
+   "zh": "高原 + 碗形",
+   "exprs": [],
+   "tags": [],
+   "src": "Plateau + bowl"
+  },
+  "Dead-flat middle, bowl on the right. Gradients are near-zero for a long distance, stalling SGD.": {
+   "zh": "中间完全平坦，右侧为碗形。梯度在很长一段距离内接近于零，使 SGD 停滞。",
+   "exprs": [],
+   "tags": [],
+   "src": "Dead-flat middle, bowl on the right. Gradients are near-zero for a long distance, stalling SGD."
+  },
+  "Sharp Trap": {
+   "zh": "尖锐陷阱",
+   "exprs": [],
+   "tags": [],
+   "src": "Sharp Trap"
+  },
+  "Click anywhere on the terrain to start": {
+   "zh": "在地形上任意处点击即可开始",
+   "exprs": [],
+   "tags": [],
+   "src": "Click anywhere on the terrain to start"
+  }
+ }
+}

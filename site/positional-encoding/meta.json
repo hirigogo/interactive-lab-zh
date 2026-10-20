@@ -1,0 +1,28 @@
+{
+  "slug": "positional-encoding",
+  "title": "位置编码 &mdash;&mdash; 正弦式、RoPE、ALiBi",
+  "date": "2026-05-23",
+  "tagline": "注意力具有置换不变性。三种打破该对称性的方法 &mdash;&mdash; 可视化呈现。",
+  "summary": "Transformer 的注意力没有顺序概念：「狗咬人」与「人咬狗」会得到完全相同的 logit。位置必须从外部注入。已有三类方案胜出 &mdash;&mdash; 正弦式（加到嵌入上）、RoPE（旋转查询与键）、ALiBi（对注意力分数施加线性惩罚）。三者均以实时演示呈现：热力图、点积相似度矩阵，以及延伸至 32k 词元的外推曲线。",
+  "readingTime": "16 min",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "order": 14,
+  "status": "published",
+  "tags": [
+    "Transformer",
+    "位置编码",
+    "RoPE",
+    "ALiBi",
+    "长上下文",
+    "交互式"
+  ],
+  "highlights": [
+    "正弦式热力图，配有序列长度与 d_model 的实时滑块 &mdash;&mdash; 观察每个维度上的频带分布。",
+    "每一对位置之间的点积相似度矩阵；观察随着 |i − j| 增大，对角线如何变得锐利。",
+    "把 RoPE 视为二维旋转：拖动位置，观察 q 与 k 按与位置成正比的角旋转；所得点积只取决于相对偏移。",
+    "ALiBi 的线性偏置矩阵叠加在注意力之上；选择某个头，观察其斜率如何决定它惩罚距离的强度。",
+    "外推面板：在 2k 词元上训练，在 32k 上测试 &mdash;&mdash; 正弦式崩溃，RoPE 漂移，ALiBi 保持稳定。",
+    "ES 667 第 14 讲演示（Transformer 架构）；与注意力一文配合，可理解底层的 QKV 机制。"
+  ]
+}

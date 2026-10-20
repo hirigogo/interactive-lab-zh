@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>把 KV 缓存讲明白</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+
+<style>
+:root {
+  --serif: 'Source Serif 4', Georgia, serif;
+  --sans: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+  --bg: #fdfcf9;
+  --paper: #ffffff;
+  --text: #2f2a22;
+  --muted: #6e665b;
+  --border: #e2d8c6;
+  --accent: #2c6fb7;
+  --warm: #d9622b;
+  --success: #1e7770;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; font-family: var(--serif); color: var(--text); background: var(--bg); line-height: 1.65; }
+
+.article { max-width: 980px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+.back-link { display: inline-block; margin-bottom: 1.5rem; color: var(--muted); text-decoration: none; font-family: var(--sans); font-size: 0.9rem; }
+.back-link:hover { color: var(--text); }
+.article-header { margin-bottom: 3rem; text-align: center; }
+.kicker { margin: 0 0 0.75rem; font-family: var(--sans); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); }
+h1 { margin: 0 auto 1rem; font-size: clamp(2.4rem, 5vw, 3.5rem); line-height: 1.1; letter-spacing: -0.02em; color: #1a1815; max-width: 18ch; }
+.abstract { margin: 0 auto 1rem; max-width: 64ch; font-size: 1.15rem; color: #4d463d; }
+.byline { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1.4rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-family: var(--sans); font-size: 0.92rem; }
+
+.step-section {
+  position: relative;
+  margin-top: 4rem;
+  padding: 3rem 2.5rem;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.03);
+}
+.step-badge {
+  position: absolute;
+  top: -16px;
+  left: 32px;
+  background: var(--accent);
+  color: white;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.4rem 1.2rem;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(44, 111, 183, 0.25);
+}
+.step-badge--warm { background: var(--warm); box-shadow: 0 4px 12px rgba(217, 98, 43, 0.25); }
+h2 { margin: 0 0 1rem; font-size: clamp(1.6rem, 3.5vw, 2.2rem); line-height: 1.15; color: #1a1815; }
+h3 { margin-top: 2rem; margin-bottom: 0.8rem; font-size: 1.25rem; color: #1a1815; }
+p { max-width: 68ch; font-size: 1.1rem; }
+ul { max-width: 68ch; font-size: 1.1rem; padding-left: 1.4rem; }
+li { margin-bottom: 0.5rem; }
+code { font-family: var(--mono); font-size: 0.92em; background: #f3efe6; padding: 0.1em 0.35em; border-radius: 4px; }
+.math-block { margin: 1.5rem 0; text-align: center; font-size: 1.05rem; }
+
+/* ---- controls ---- */
+.control-panel {
+  margin: 1.6rem 0 0;
+  padding: 1.5rem 1.6rem 1.7rem;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #faf8f3;
+}
+.panel-title {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--muted);
+  margin: 0 0 1rem;
+}
+.control-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1.3rem 1.5rem;
+  margin: 0;
+}
+.control-block { display: flex; flex-direction: column; gap: 0.5rem; }
+.control-block label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--sans);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.control-block label span { font-family: var(--mono); color: var(--warm); font-weight: 600; font-size: 0.95rem; }
+.control-block.is-dim { opacity: 0.42; }
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px; height: 18px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid var(--paper);
+  box-shadow: 0 2px 6px rgba(44,111,183,0.4);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid var(--paper);
+}
+
+.button-row { display: flex; gap: 0.55rem; flex-wrap: wrap; margin: 0.2rem 0 0; }
+.toggle-label {
+  font-family: var(--sans);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 0.5rem;
+}
+.mode-button {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--paper);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.mode-button:hover { border-color: var(--accent); }
+.mode-button.is-active { background: var(--accent); color: white; border-color: var(--accent); }
+.mode-button.is-active-warm { background: var(--warm); color: white; border-color: var(--warm); }
+.mode-button small { display:block; font-weight: 500; font-size: 0.72rem; opacity: 0.75; margin-top: 1px; }
+
+.preset-button {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--paper);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.preset-button:hover { border-color: var(--warm); color: var(--warm); }
+
+.toggle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.4rem 1.8rem;
+  margin-top: 1.3rem;
+  padding-top: 1.3rem;
+  border-top: 1px dashed var(--border);
+}
+
+.live-formula {
+  margin: 1.4rem 0 0;
+  padding: 0.9rem 1.1rem;
+  border-radius: 10px;
+  background: #1f1b16;
+  color: #f4ede0;
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.live-formula .lf-sym { color: #e8a06a; }
+.live-formula .lf-res { color: #7fd1c4; font-weight: 600; }
+.live-formula .lf-dim { color: #9a9083; }
+
+.interactive-figure { margin: 1.6rem 0 0; }
+.interactive-figure canvas {
+  display: block;
+  width: 100%;
+  background: #fbfaf6;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.interactive-figure figcaption { margin-top: 0.7rem; font-size: 0.9rem; color: var(--muted); text-align: center; font-style: italic; }
+
+.stat-strip { display: flex; gap: 0.9rem; flex-wrap: wrap; margin: 1.6rem 0 0; }
+.stat-pill {
+  flex: 1 1 150px;
+  min-width: 150px;
+  background: var(--paper);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 0.9rem 1.05rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  text-align: left;
+}
+.stat-pill .stat-label { font-family: var(--sans); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 700; }
+.stat-pill .stat-value { font-family: var(--mono); font-size: 1.4rem; font-weight: 600; color: var(--text); }
+.stat-pill .stat-sub { font-family: var(--sans); font-size: 0.74rem; color: var(--muted); }
+.stat-pill--accent { border-color: var(--accent); }
+.stat-pill--accent .stat-value { color: var(--accent); }
+.stat-pill--warm { border-color: var(--warm); }
+.stat-pill--warm .stat-value { color: var(--warm); }
+.stat-pill--danger { border-color: #c0392b; background: rgba(192,57,43,0.05); }
+.stat-pill--danger .stat-value { color: #c0392b; }
+
+.callout {
+  margin: 2rem 0 0.2rem;
+  padding: 1.2rem 1.5rem;
+  border-radius: 12px;
+  border-left: 4px solid var(--accent);
+  background: rgba(44,111,183,0.05);
+  font-size: 1.02rem;
+}
+.callout p { max-width: none; font-size: 1.02rem; margin: 0; }
+.callout strong { color: var(--accent); }
+.callout--think { border-left-color: var(--success); background: rgba(30,119,112,0.06); }
+.callout--think strong { color: var(--success); }
+.callout--warn { border-left-color: var(--warm); background: rgba(217,98,43,0.06); }
+.callout--warn strong { color: var(--warm); }
+
+.escape-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.2rem;
+  margin: 1.5rem 0 0;
+}
+.escape-card {
+  padding: 1.2rem 1.4rem;
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  background: var(--paper);
+}
+.escape-card .escape-tag {
+  display: inline-block;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 0.68rem;
+  color: var(--success);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  background: rgba(30,119,112,0.1);
+  padding: 0.25rem 0.6rem;
+  border-radius: 5px;
+  margin-bottom: 0.6rem;
+}
+.escape-card p { font-size: 0.96rem; max-width: none; margin: 0; }
+.escape-card h3 { margin: 0 0 0.5rem; font-size: 1.08rem; }
+
+.examples-table-wrap { overflow-x: auto; margin: 1.5rem 0 0; }
+.examples-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; min-width: 520px; }
+.examples-table th, .examples-table td { text-align: left; padding: 0.7rem 0.9rem; border-bottom: 1px solid var(--border); }
+.examples-table th { font-family: var(--sans); font-weight: 700; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); background: #faf8f3; }
+.examples-table td:first-child { font-weight: 600; font-family: var(--sans); }
+.examples-table td code { font-size: 0.85em; }
+
+.paged-legend { display: flex; gap: 1.2rem; flex-wrap: wrap; margin-top: 0.8rem; font-family: var(--sans); font-size: 0.82rem; color: var(--muted); }
+.paged-legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.paged-legend i { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+
+footer { margin-top: 4rem; text-align: center; font-family: var(--sans); font-size: 0.85rem; color: var(--muted); }
+
+@media (max-width: 640px) {
+  .step-section { padding: 2rem 1.3rem; }
+  .stat-pill .stat-value { font-size: 1.15rem; }
+}
+</style>
+</head>
+<body>
+
+<article class="article">
+  <header class="article-header">
+    <a class="back-link" href="../index.html">&larr; 讲解库</a>
+    <p class="kicker">交互式讲解</p>
+    <h1>把 KV 缓存讲明白</h1>
+    <p class="abstract">
+      LLM 每生成一个词元，都要重新读取此前所有词元的 key 与 value。
+      将它们缓存起来是必需的——而缓存很快就会远超权重本身。
+      拖动下方的模型、上下文与批量滑块，观察 KV 缓存超过参数的那一瞬间。
+      这正是“LLM 推理受内存限制，而非受算力限制”的原因。
+    </p>
+    <div class="byline">
+      <span>约 11 分钟</span>
+      <span>推理 &middot; LLM 系统</span>
+    </div>
+  </header>
+
+  <!-- ─── 前言 ─── -->
+  <section class="step-section" id="prelude">
+    <div class="step-badge">前言</div>
+    <h2>缓存为何必须存在</h2>
+    <p>
+      为预测词元 $t{+}1$，自注意力会把当前的 query 与此前<em>每一个</em>词元的
+      key 进行比较，并按权重混合它们的 value：
+    </p>
+    <div class="math-block">
+      $$\mathrm{attn}(q_t) = \sum_{i \le t} \mathrm{softmax}\!\big(q_t \cdot k_i / \sqrt{d_h}\big)\, v_i .$$
+    </div>
+    <p>
+      过去词元的 key $k_i$ 与 value $v_i$ 永不改变。若在每一步都重新计算它们，
+      会使生成的时间代价无谓地变为 $\mathcal{O}(n^2)$。因此我们把它们<strong>缓存</strong>起来：
+      一个词元处理完毕后，它的 $k$ 与 $v$（在每一层、每个注意力头中）就被存储并永久复用。
+      这种权衡——用内存换取算力——正是自回归解码得以快速的原因，
+      也正是它<em>受内存限制</em>的原因。每个新词元都要把整个缓存从 HBM 中读回；
+      相对于所搬运的字节数，其中的算术运算微不足道。
+    </p>
+  </section>
+
+  <!-- ─── 第 1 步: the formula ─── -->
+  <section class="step-section" id="formula">
+    <div class="step-badge">第 1 步</div>
+    <h2>支配一切的唯一公式</h2>
+    <p>
+      对单个词元、在单层中而言，一个注意力头存储一个 key 向量与一个 value 向量，
+      其维度均为 $d_h$。在整个模型上相乘展开，就得到<em>每个词元</em>的缓存大小：
+    </p>
+    <div class="math-block">
+      $$\underbrace{\text{bytes}_{\text{token}}}_{\text{per token}}
+        = \underbrace{2}_{K \text{ and } V}\cdot\; L \;\cdot\; n_{kv} \;\cdot\; d_h \;\cdot\; p$$
+    </div>
+    <ul>
+      <li>$L$ &mdash; Transformer 层数（缓存按层存储一次）。</li>
+      <li>$n_{kv}$ &mdash; <em>key/value</em> 注意力头数。在多头注意力下它等于 query 头数；
+      分组查询注意力与多查询注意力会把它缩小。</li>
+      <li>$d_h$ &mdash; 每个注意力头的维度。</li>
+      <li>$p$ &mdash; 每个数值占用的字节数（FP16 = 2，INT8 = 1）。</li>
+      <li>系数 $2$ 是因为我们既存储 key<em>又</em>存储 value。</li>
+    </ul>
+    <p>
+      再乘以上下文长度与批量大小（并发序列数），就得到总占用：
+      $\;\text{bytes}_{\text{total}} = \text{bytes}_{\text{token}} \cdot \text{context} \cdot \text{batch}.$
+      这里没有任何一项依赖于 MLP 的规模或词表大小——
+      缓存完全是注意力形状的纯函数。是时候让它动起来了。
+    </p>
+  </section>
+
+  <!-- ─── 实验台 ─── -->
+  <section class="step-section" id="lab">
+    <div class="step-badge step-badge--warm">实验台</div>
+    <h2>内存悬崖计算器</h2>
+    <p>
+      用滑块设定一个模型，或用预设加载一个真实模型。图表以上下文长度为横轴绘制两条曲线：
+      水平的<span style="color:var(--accent);font-weight:600">模型权重</span>与上升的<span style="color:var(--warm);font-weight:600">KV 缓存</span>。
+      缓存曲线超过权重之处即为<strong>内存悬崖</strong>——越过它之后，
+      你的 GPU 花在记住对话上的内存就超过了模型本身。
+    </p>
+
+    <div class="button-row" id="presetRow" style="margin-bottom:0.4rem">
+      <button class="preset-button" data-preset="llama3_8b">Llama-3 8B（80 亿参数）</button>
+      <button class="preset-button" data-preset="llama3_70b">Llama-3 70B（700 亿参数）</button>
+      <button class="preset-button" data-preset="llama2_70b">Llama-2 70B（700 亿参数）（MHA（多头注意力））</button>
+      <button class="preset-button" data-preset="mistral_7b">Mistral 7B（70 亿参数）</button>
+      <button class="preset-button" data-preset="gpt3_175b">GPT-3 175B（1750 亿参数）</button>
+    </div>
+
+    <div class="control-panel">
+      <p class="panel-title">模型形状</p>
+      <div class="control-row">
+        <div class="control-block">
+          <label>层数 $L$ <span id="LVal">80</span></label>
+          <input type="range" id="L" min="1" max="126" step="1" value="80">
+        </div>
+        <div class="control-block">
+          <label>查询头数 $n_h$ <span id="nhVal">64</span></label>
+          <input type="range" id="nh" min="8" max="128" step="1" value="64">
+        </div>
+        <div class="control-block">
+          <label>注意力头维度 $d_h$ <span id="dhVal">128</span></label>
+          <input type="range" id="dh" min="32" max="256" step="8" value="128">
+        </div>
+      </div>
+
+      <div class="toggle-grid">
+        <div>
+          <p class="toggle-label">注意力类型 &rarr; 决定 KV 头数 $n_{kv}$</p>
+          <div class="button-row" id="modeRow">
+            <button class="mode-button" data-mode="MHA（多头注意力）">MHA（多头注意力）<small>n<sub>kv</sub> = n<sub>h</sub></small>（KV 头数等于查询头数）</button>
+            <button class="mode-button is-active" data-mode="GQA（分组查询注意力）">GQA（分组查询注意力）<small>少数几组</small></button>
+            <button class="mode-button" data-mode="MQA（多查询注意力）">MQA（多查询注意力）<small>n<sub>kv</sub> = 1</small>（KV 头数为 1）</button>
+          </div>
+          <div class="control-block" id="gqaBlock" style="margin-top:0.9rem">
+            <label>GQA（分组查询注意力） 的 key/value 头数 <span id="gqaVal">8</span></label>
+            <input type="range" id="gqa" min="1" max="64" step="1" value="8">
+          </div>
+        </div>
+        <div>
+          <p class="toggle-label">KV 缓存数据类型 &rarr; 每个数值的字节数 $p$</p>
+          <div class="button-row" id="dtypeRow">
+            <button class="mode-button" data-bytes="4">FP32<small>4 字节</small></button>
+            <button class="mode-button is-active-warm" data-bytes="2">FP16 / BF16<small>2 字节</small></button>
+            <button class="mode-button" data-bytes="1">INT8<small>1 字节</small></button>
+          </div>
+          <p style="font-family:var(--sans);font-size:0.82rem;color:var(--muted);margin:0.9rem 0 0;max-width:none">
+            有效 KV 头数：<strong id="nkvReadout" style="color:var(--warm)">8</strong>
+            &mdash; <span id="shareReadout">每个由 8 个查询头共享</span>。
+          </p>
+        </div>
+      </div>
+
+      <div class="toggle-grid" style="margin-top:1.3rem">
+        <div class="control-block">
+          <label>上下文长度 <span id="ctxVal">8,192 tok</span></label>
+          <input type="range" id="ctx" min="1024" max="262144" step="1024" value="8192">
+        </div>
+        <div class="control-block">
+          <label>批量大小（并发用户数）<span id="batchVal">8</span></label>
+          <input type="range" id="batch" min="1" max="256" step="1" value="8">
+        </div>
+      </div>
+    </div>
+
+    <div class="live-formula" id="liveFormula"></div>
+
+    <div class="stat-strip">
+      <div class="stat-pill stat-pill--warm">
+        <span class="stat-label">每个词元</span>
+        <span class="stat-value" id="perTokVal">&mdash;</span>
+        <span class="stat-sub">所有层与 KV 头</span>
+      </div>
+      <div class="stat-pill stat-pill--warm">
+        <span class="stat-label">KV 缓存总量</span>
+        <span class="stat-value" id="totalKVVal">&mdash;</span>
+        <span class="stat-sub" id="totalKVSub">上下文 &times; 批量</span>
+      </div>
+      <div class="stat-pill stat-pill--accent">
+        <span class="stat-label">模型权重</span>
+        <span class="stat-value" id="weightVal">&mdash;</span>
+        <span class="stat-sub" id="paramSub">&mdash; 参数量，FP16</span>
+      </div>
+      <div class="stat-pill" id="ratioPill">
+        <span class="stat-label">KV &divide; 权重</span>
+        <span class="stat-value" id="ratioVal">&mdash;</span>
+        <span class="stat-sub" id="ratioSub">&mdash;</span>
+      </div>
+    </div>
+
+    <figure class="interactive-figure">
+      <canvas id="cliffCanvas" width="920" height="440"></canvas>
+      <figcaption>
+        水平蓝色条带：模型权重（固定）。橙色区域：KV 缓存，在当前批量下随上下文线性增长。
+        竖直虚线即二者相等处的<em>悬崖</em>；橙色实线标记你当前的上下文长度。
+        水平虚线为 80&nbsp;GB 的 GPU 容量刻度。
+      </figcaption>
+    </figure>
+
+    <figure class="interactive-figure" style="margin-top:1.4rem">
+      <canvas id="budgetCanvas" width="920" height="132"></canvas>
+      <figcaption>总占用（权重 + 当前 KV 缓存）与 80&nbsp;GB GPU 容量界限的对照。</figcaption>
+    </figure>
+
+    <div class="callout callout--think">
+      <strong>试试这个。</strong> 加载 <em>Llama-3 70B（700 亿参数）</em>，然后把 <em>批量大小</em>
+      从 1 往上拖。在批量为 1 时，相对于 130&nbsp;GB 的权重，缓存只是脚注。
+      但 KV 随<em>每一个</em>并发用户增长，所以到批量 32 时，橙色
+      区域已越过蓝色条带——同一个模型此时需要多块
+      GPU 才能承载进行中的对话。现在把同一模型切换到
+      <em>MHA（多头注意力）</em>：当 $n_{kv}$ 从 8 跳到 64 时，悬崖会提前 $8\times$
+      出现。正是这一设计选择，使所有现代模型都采用 GQA（分组查询注意力）。
+    </div>
+  </section>
+
+  <!-- ─── 第 2 步: Paged注意力类型（分页注意力） ─── -->
+  <section class="step-section" id="paged">
+    <div class="step-badge">第 2 步</div>
+    <h2>Paged注意力类型（分页注意力）：不要再预留你用不到的内存</h2>
+    <p>
+      还有第二重更隐蔽的浪费。朴素的服务器不知道回复会有多长，
+      于是会为每条序列的事先按最大上下文<em>预留</em>一块连续缓冲区。
+      多数回复都很短，因此这块缓冲区大部分都空着——即<strong>内部碎片</strong>。
+      vLLM 的 Paged注意力类型（分页注意力） 借用了操作系统的分页思路：内存是
+      一池固定大小的<em>块</em>，序列只在增长时才抓取新的块。
+      在两种方式之间切换，观察被浪费（斜线填充）的内存如何坍缩。
+    </p>
+
+    <div class="control-panel">
+      <div class="toggle-grid" style="margin-top:0;padding-top:0;border-top:none">
+        <div>
+          <p class="toggle-label">分配策略</p>
+          <div class="button-row" id="pagedModeRow">
+            <button class="mode-button" data-paged="naive">朴素连续分配</button>
+            <button class="mode-button is-active" data-paged="paged">Paged注意力类型（分页注意力）</button>
+          </div>
+        </div>
+        <div class="control-block">
+          <label>并发序列数 <span id="seqNVal">6</span></label>
+          <input type="range" id="seqN" min="1" max="12" step="1" value="6">
+        </div>
+        <div class="control-block">
+          <label>块大小 <span id="blkVal">128 tok</span></label>
+          <input type="range" id="blk" min="16" max="512" step="16" value="128">
+        </div>
+      </div>
+    </div>
+
+    <figure class="interactive-figure">
+      <canvas id="pagedCanvas" width="920" height="330"></canvas>
+      <figcaption id="pagedCaption">每个单元格为一个块。实心 = 实际存储的词元；斜线填充 = 已预留但为空。</figcaption>
+    </figure>
+    <div class="paged-legend">
+      <span><i style="background:#2c6fb7"></i> 已存储词元</span>
+      <span><i style="background:repeating-linear-gradient(45deg,#d9d2c4,#d9d2c4 3px,#efe9dd 3px,#efe9dd 6px)"></i> 已预留且浪费</span>
+    </div>
+
+    <div class="stat-strip">
+      <div class="stat-pill stat-pill--accent">
+        <span class="stat-label">已用内存</span>
+        <span class="stat-value" id="pagedUsedVal">&mdash;</span>
+        <span class="stat-sub">承载真实词元的块</span>
+      </div>
+      <div class="stat-pill stat-pill--warm">
+        <span class="stat-label">预留总量</span>
+        <span class="stat-value" id="pagedReservedVal">&mdash;</span>
+        <span class="stat-sub">为之付出代价的块</span>
+      </div>
+      <div class="stat-pill" id="utilPill">
+        <span class="stat-label">利用率</span>
+        <span class="stat-value" id="pagedUtilVal">&mdash;</span>
+        <span class="stat-sub" id="pagedUtilSub">已用 &divide; 已预留</span>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>为何重要。</strong> 朴素预留常常浪费
+      60&ndash;80% 的 KV 内存。通过分页，vLLM 把利用率保持在接近
+      100%，这意味着同一块显卡上能容纳远更多的序列——
+      在完全相同的硬件上获得更高吞吐。更小的块在尾部浪费更少，
+      但会增加记账开销；每块 16&ndash;128 个词元通常是最佳折中。
+    </div>
+  </section>
+
+  <!-- ─── 第 3 步: escape hatches ─── -->
+  <section class="step-section" id="escapes">
+    <div class="step-badge">第 3 步</div>
+    <h2>三条逃生出口</h2>
+    <p>
+      $2 \cdot L \cdot n_{kv} \cdot d_h \cdot p$ 中的每一项都是一个杠杆，
+      而该领域已经把每一个都拉动过：
+    </p>
+    <div class="escape-grid">
+      <div class="escape-card">
+        <span class="escape-tag">缩小 n_kv</span>
+        <h3>分组查询注意力</h3>
+        <p>让若干个查询头共享一个 key/value 头。GQA（分组查询注意力）(8) 把 $n_{kv}$
+        从 64 降到 8——缓存缩小 $8\times$，而质量损失可忽略不计。
+        MQA（多查询注意力） 则以单个 KV 头把它推向极致。</p>
+      </div>
+      <div class="escape-card">
+        <span class="escape-tag">缩小 p</span>
+        <h3>INT8 / FP8 KV 缓存</h3>
+        <p>把 key 与 value 用 8 位而非 16 位存储。字节数减半，
+        通常无需付出代价；偶尔会有轻微精度波动。在实验台中切换它，
+        悬崖会向右移动两倍远。</p>
+      </div>
+      <div class="escape-card">
+        <span class="escape-tag">停止浪费</span>
+        <h3>Paged注意力类型（分页注意力）</h3>
+        <p>以固定大小的块分配 KV，而非为每条序列分配一整块连续缓冲区。
+        没有碎片，没有超额预留——这正是 vLLM 高吞吐的核心技巧。</p>
+      </div>
+    </div>
+
+    <h3>各模型的情况</h3>
+    <div class="examples-table-wrap">
+      <table class="examples-table">
+        <thead>
+          <tr><th>模型</th><th>注意力类型</th><th>KV 头数</th><th>每词元 KV（FP16）</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Llama-2 70B（700 亿参数）</td><td>MHA（多头注意力）</td><td>64</td><td><code>~2.5 MB</code></td></tr>
+          <tr><td>Llama-3 70B（700 亿参数）</td><td>GQA（分组查询注意力）</td><td>8</td><td><code>~320 KB</code></td></tr>
+          <tr><td>Mistral 7B（70 亿参数）</td><td>GQA（分组查询注意力）</td><td>8</td><td><code>~128 KB</code></td></tr>
+          <tr><td>多查询（MQA（多查询注意力））</td><td>MQA（多查询注意力）</td><td>1</td><td><code>~40 KB</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout--warn">
+      <strong>要点。</strong> KV 缓存是长上下文与高并发所隐含的代价。
+      其规模完全由注意力形状决定 &mdash;
+      $2 \cdot L \cdot n_{kv} \cdot d_h \cdot p$ &mdash; 且它既随每段对话的长度增长，
+      也随同时进行的对话数量增长。大规模部署 LLM，粗略地说，
+      就是把这一个数字压小的艺术。
+    </div>
+  </section>
+
+  <footer>ES 667 深度学习讲解系列之一 &middot; LLM 推理系统</footer>
+</article>
+
+<script src="../vendor/katex/katex.min.js"></script>
+<script>
+/* ===================== helpers ===================== */
+const GiB = 1024 ** 3, MiB = 1024 ** 2, KiB = 1024;
+const id = s => document.getElementById(s);
+
+function fmtBytes(b) {
+  if (b >= GiB) { const v = b / GiB; return v.toFixed(v >= 100 ? 0 : 1) + ' GB'; }
+  if (b >= MiB) { const v = b / MiB; return v.toFixed(v >= 100 ? 0 : 1) + ' MB'; }
+  if (b >= KiB) { const v = b / KiB; return v.toFixed(v >= 100 ? 0 : 1) + ' KB'; }
+  return Math.round(b) + ' B';
+}
+function fmtTokens(t) {
+  if (t >= 1e6) { const v = t / 1e6; return v.toFixed(v >= 10 ? 0 : 1) + 'M'; }
+  if (t >= 1e3) { const v = t / 1e3; return v.toFixed(v >= 10 ? 0 : 1) + 'k'; }
+  return '' + Math.round(t);
+}
+function fmtInt(n) { return n.toLocaleString('en-US'); }
+function fmtParams(p) {
+  if (p >= 1e9) return (p / 1e9).toFixed(p / 1e9 >= 100 ? 0 : 1) + 'B';
+  if (p >= 1e6) return (p / 1e6).toFixed(0) + 'M';
+  return fmtInt(p);
+}
+function niceNum(v) {
+  if (v <= 0) return 1;
+  const exp = Math.floor(Math.log10(v));
+  const f = v / Math.pow(10, exp);
+  const nf = f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10;
+  return nf * Math.pow(10, exp);
+}
+function fitCanvas(canvas) {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = Math.max(1, rect.width * dpr);
+  canvas.height = Math.max(1, rect.height * dpr);
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { ctx, w: rect.width, h: rect.height };
+}
+function roundRect(ctx, x, y, w, h, r) {
+  if (h <= 0 || w <= 0) return;
+  r = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+/* ===================== state ===================== */
+let MODE = 'GQA（分组查询注意力）';     // MHA（多头注意力） | GQA（分组查询注意力） | MQA（多查询注意力）
+let DTYPE = 2;        // bytes
+const W_BYTES = 2;    // weights assumed FP16
+
+function state() {
+  const L = +id('L').value, nh = +id('nh').value, dh = +id('dh').value;
+  const context = +id('ctx').value, batch = +id('batch').value;
+  let n_kv;
+  if (MODE === 'MHA（多头注意力）') n_kv = nh;
+  else if (MODE === 'MQA（多查询注意力）') n_kv = 1;
+  else n_kv = Math.min(+id('gqa').value, nh);
+  const d_model = nh * dh;
+  const perToken = 2 * L * n_kv * dh * DTYPE;
+  const totalKV = perToken * context * batch;
+  const params = 12 * L * d_model * d_model;   // ~non-embedding transformer params
+  const weights = params * W_BYTES;
+  return { L, nh, dh, context, batch, n_kv, d_model, perToken, totalKV, params, weights };
+}
+
+/* ===================== live formula ===================== */
+function updateFormula(s) {
+  id('liveFormula').innerHTML =
+    '<span class="lf-sym">2</span> <span class="lf-dim">&times;</span> ' +
+    '<span class="lf-sym">' + s.L + '</span><span class="lf-dim">&#8203;L</span> ' +
+    '<span class="lf-dim">&times;</span> <span class="lf-sym">' + s.n_kv + '</span><span class="lf-dim">&#8203;n<sub>kv</sub></span> ' +
+    '<span class="lf-dim">&times;</span> <span class="lf-sym">' + s.dh + '</span><span class="lf-dim">&#8203;d<sub>h</sub></span> ' +
+    '<span class="lf-dim">&times;</span> <span class="lf-sym">' + DTYPE + '</span><span class="lf-dim">&#8203;B</span> ' +
+    '<span class="lf-dim">=</span> <span class="lf-res">' + fmtBytes(s.perToken) + '</span> <span class="lf-dim">/ token</span>' +
+    '<span class="lf-dim">&nbsp;&nbsp;&times; ' + fmtTokens(s.context) + ' ctx &times; ' + s.batch + ' batch =</span> ' +
+    '<span class="lf-res">' + fmtBytes(s.totalKV) + '</span>';
+}
+
+/* ===================== stat pills ===================== */
+function updateStats(s) {
+  id('perTokVal').textContent = fmtBytes(s.perToken);
+  id('totalKVVal').textContent = fmtBytes(s.totalKV);
+  id('totalKVSub').textContent = fmtTokens(s.context) + ' ctx × ' + s.batch + ' batch';
+  id('weightVal').textContent = fmtBytes(s.weights);
+  id('paramSub').textContent = '≈' + fmtParams(s.params) + ' params, FP16';
+  const ratio = s.totalKV / s.weights;
+  id('ratioVal').textContent = ratio >= 1 ? ratio.toFixed(1) + '×' : (ratio * 100).toFixed(0) + '%';
+  const ratioPill = id('ratioPill');
+  ratioPill.classList.remove('stat-pill--danger', 'stat-pill--accent');
+  if (ratio >= 1) { ratioPill.classList.add('stat-pill--danger'); id('ratioSub').textContent = 'cache exceeds weights!'; }
+  else { ratioPill.classList.add('stat-pill--accent'); id('ratioSub').textContent = 'cache as share of weights'; }
+
+  id('nkvReadout').textContent = s.n_kv;
+  const share = Math.round(s.nh / s.n_kv);
+  id('shareReadout').textContent = s.n_kv === s.nh
+    ? 'one per query head (no sharing)'
+    : 'each shared by ' + share + ' query head' + (share === 1 ? '' : 's');
+}
+
+/* ===================== cliff chart ===================== */
+function drawCliff() {
+  const s = state();
+  const { ctx, w, h } = fitCanvas(id('cliffCanvas'));
+  ctx.clearRect(0, 0, w, h);
+  const padL = 62, padR = 96, padT = 26, padB = 46;
+  const cw = w - padL - padR, ch = h - padT - padB;
+
+  const slope = s.perToken * s.batch;                 // bytes per context token
+  const weightsGB = s.weights / GiB;
+  const cross = slope > 0 ? s.weights / slope : Infinity;   // context where KV == weights
+
+  // x range: include current context and the crossover, capped
+  let Xmax = Math.max(s.context * 1.35, Math.min(cross * 1.4, 512 * 1024), 16384);
+  Xmax = niceNum(Xmax);
+  const kvAtMax = slope * Xmax / GiB;
+  let Ymax = niceNum((weightsGB + kvAtMax) * 1.08);
+  if (Ymax < weightsGB * 1.5) Ymax = niceNum(weightsGB * 1.6);
+
+  const X = c => padL + (c / Xmax) * cw;
+  const Y = gb => padT + ch - (gb / Ymax) * ch;
+
+  // y gridlines
+  ctx.font = '500 10.5px Manrope, sans-serif';
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  const ySteps = 5;
+  for (let i = 0; i <= ySteps; i++) {
+    const gb = (i / ySteps) * Ymax, y = Y(gb);
+    ctx.strokeStyle = i === 0 ? 'rgba(47,42,34,0.22)' : 'rgba(47,42,34,0.07)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + cw, y); ctx.stroke();
+    ctx.fillStyle = '#8a8072';
+    ctx.fillText(gb >= 100 ? gb.toFixed(0) : gb.toFixed(gb < 10 ? 1 : 0), padL - 8, y);
+  }
+  ctx.save();
+  ctx.translate(15, padT + ch / 2); ctx.rotate(-Math.PI / 2);
+  ctx.fillStyle = '#6e665b'; ctx.font = '600 11px Manrope, sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('memory (GB)', 0, 0);
+  ctx.restore();
+
+  // x ticks
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  const xSteps = 4;
+  for (let i = 0; i <= xSteps; i++) {
+    const c = (i / xSteps) * Xmax, x = X(c);
+    ctx.strokeStyle = 'rgba(47,42,34,0.06)'; ctx.beginPath();
+    ctx.moveTo(x, padT); ctx.lineTo(x, padT + ch); ctx.stroke();
+    ctx.fillStyle = '#8a8072'; ctx.font = '500 10.5px Manrope, sans-serif';
+    ctx.fillText(fmtTokens(c), x, padT + ch + 7);
+  }
+  ctx.fillStyle = '#6e665b'; ctx.font = '600 11px Manrope, sans-serif';
+  ctx.fillText('context length (tokens)', padL + cw / 2, padT + ch + 24);
+
+  // weights band (fill 0..weightsGB)
+  ctx.fillStyle = 'rgba(44,111,183,0.16)';
+  ctx.fillRect(padL, Y(Math.min(weightsGB, Ymax)), cw, Y(0) - Y(Math.min(weightsGB, Ymax)));
+  ctx.strokeStyle = '#2c6fb7'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(padL, Y(weightsGB)); ctx.lineTo(padL + cw, Y(weightsGB)); ctx.stroke();
+
+  // KV area stacked on top of weights: total = weights + slope*c
+  ctx.beginPath();
+  ctx.moveTo(X(0), Y(weightsGB));
+  for (let px = 0; px <= cw; px += 3) {
+    const c = (px / cw) * Xmax;
+    const totalGB = weightsGB + slope * c / GiB;
+    ctx.lineTo(padL + px, Y(Math.min(totalGB, Ymax)));
+  }
+  ctx.lineTo(padL + cw, Y(weightsGB));
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(217,98,43,0.22)'; ctx.fill();
+
+  // total top line
+  ctx.beginPath();
+  for (let px = 0; px <= cw; px += 2) {
+    const c = (px / cw) * Xmax;
+    const totalGB = weightsGB + slope * c / GiB;
+    const yy = Y(Math.min(totalGB, Ymax));
+    if (px === 0) ctx.moveTo(padL, yy); else ctx.lineTo(padL + px, yy);
+  }
+  ctx.strokeStyle = '#d9622b'; ctx.lineWidth = 2.6; ctx.stroke();
+
+  // GPU capacity lines (80GB increments)
+  ctx.font = '600 9.5px IBM Plex Mono, monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  for (let g = 80, k = 1; g <= Ymax; g *= 2, k *= 2) {
+    const y = Y(g);
+    ctx.strokeStyle = 'rgba(120,60,40,0.35)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + cw, y); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#9a6a4a'; ctx.fillText(k + '×80GB', padL + cw + 6, y);
+  }
+
+  // crossover marker
+  if (isFinite(cross) && cross <= Xmax) {
+    const cx = X(cross), cyGB = 2 * weightsGB;
+    ctx.strokeStyle = 'rgba(47,42,34,0.55)'; ctx.lineWidth = 1.5; ctx.setLineDash([6, 4]);
+    ctx.beginPath(); ctx.moveTo(cx, padT); ctx.lineTo(cx, padT + ch); ctx.stroke();
+    ctx.setLineDash([]);
+    // dot where KV meets weights (total = 2*weights)
+    if (cyGB <= Ymax) {
+      ctx.fillStyle = '#2f2a22';
+      ctx.beginPath(); ctx.arc(cx, Y(cyGB), 4, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.fillStyle = '#5a5247'; ctx.font = '700 10px Manrope, sans-serif';
+    ctx.textAlign = cross > Xmax * 0.7 ? 'right' : 'left'; ctx.textBaseline = 'bottom';
+    const lx = cross > Xmax * 0.7 ? cx - 6 : cx + 6;
+    ctx.fillText('cliff: KV = weights @ ' + fmtTokens(cross), lx, padT + 12);
+  }
+
+  // current context marker
+  const mx = X(Math.min(s.context, Xmax));
+  const curTotalGB = weightsGB + slope * s.context / GiB;
+  ctx.strokeStyle = '#d9622b'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(mx, padT); ctx.lineTo(mx, padT + ch); ctx.stroke();
+  const dotY = Y(Math.min(curTotalGB, Ymax));
+  ctx.fillStyle = '#d9622b'; ctx.beginPath(); ctx.arc(mx, dotY, 5.5, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+
+  // legend
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = '600 10.5px Manrope, sans-serif';
+  ctx.fillStyle = 'rgba(44,111,183,0.55)'; ctx.fillRect(padL + 6, padT + 8, 14, 10);
+  ctx.fillStyle = '#2c6fb7'; ctx.fillText('weights', padL + 24, padT + 13);
+  ctx.fillStyle = 'rgba(217,98,43,0.55)'; ctx.fillRect(padL + 90, padT + 8, 14, 10);
+  ctx.fillStyle = '#d9622b'; ctx.fillText('KV-cache', padL + 108, padT + 13);
+}
+
+/* ===================== budget bar ===================== */
+function drawBudget() {
+  const s = state();
+  const { ctx, w, h } = fitCanvas(id('budgetCanvas'));
+  ctx.clearRect(0, 0, w, h);
+  const padL = 14, padR = 14, padT = 22, barH = 40;
+  const bw = w - padL - padR;
+  const total = s.weights + s.totalKV;
+  const gpus = Math.max(1, Math.ceil(total / (80 * GiB)));
+  let capMax = Math.max(niceNum(total / GiB * 1.1), 80);
+  const gib = bytes => (bytes / GiB) / capMax * bw;
+
+  const y = padT;
+  // track
+  ctx.fillStyle = '#f0ece2'; roundRect(ctx, padL, y, bw, barH, 8); ctx.fill();
+  // weights segment
+  const ww = gib(s.weights);
+  ctx.fillStyle = '#2c6fb7'; roundRect(ctx, padL, y, Math.max(ww, 1), barH, 8); ctx.fill();
+  // KV segment
+  const kvw = gib(s.totalKV);
+  ctx.save();
+  ctx.beginPath(); ctx.rect(padL + ww, y, Math.max(kvw, 0), barH); ctx.clip();
+  ctx.fillStyle = '#d9622b'; roundRect(ctx, padL + ww, y, Math.max(kvw, 1), barH, 8); ctx.fill();
+  ctx.restore();
+  // outline
+  ctx.strokeStyle = 'rgba(47,42,34,0.15)'; ctx.lineWidth = 1; roundRect(ctx, padL, y, bw, barH, 8); ctx.stroke();
+
+  // GPU boundary ticks
+  ctx.font = '600 9.5px IBM Plex Mono, monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (let g = 80, k = 1; g <= capMax + 1; g += 80, k++) {
+    const x = padL + (g / capMax) * bw;
+    if (x > padL + bw + 0.5) break;
+    ctx.strokeStyle = 'rgba(47,42,34,0.4)'; ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(x, y - 5); ctx.lineTo(x, y + barH + 5); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#8a8072'; ctx.fillText(g + 'GB', x, y + barH + 8);
+  }
+
+  // labels
+  ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+  ctx.font = '700 11px Manrope, sans-serif'; ctx.fillStyle = '#2f2a22';
+  ctx.fillText('Total footprint ' + fmtBytes(total) + '  →  needs ' + gpus + '× 80GB GPU' + (gpus > 1 ? 's' : ''), padL, y - 6);
+}
+
+/* ===================== paged attention ===================== */
+const SEQ_LENS = [1850, 320, 940, 1500, 210, 760, 1280, 540, 1620, 410, 880, 150];
+const SEQ_COLORS = ['#2c6fb7', '#d9622b', '#1e7770', '#8e44ad', '#c0392b', '#2980b9',
+                    '#d68910', '#16a085', '#7d5ba6', '#cb4335', '#2471a3', '#ca6f1e'];
+const MAX_LEN = 2048;
+let PAGED_MODE = 'paged';
+
+function drawPaged() {
+  const { ctx, w, h } = fitCanvas(id('pagedCanvas'));
+  ctx.clearRect(0, 0, w, h);
+  const seqN = +id('seqN').value;
+  const blk = +id('blk').value;
+  const lens = SEQ_LENS.slice(0, seqN);
+  const reservedBlocksPer = Math.ceil(MAX_LEN / blk);
+  const usedBlocks = lens.map(l => Math.ceil(l / blk));
+  const totalUsed = usedBlocks.reduce((a, b) => a + b, 0);
+  const totalTokens = lens.reduce((a, b) => a + b, 0);
+
+  const padL = 16, padT = 16, gap = 2;
+  const areaW = w - padL * 2;
+
+  function drawBlock(x, y, cw, chh, color, used) {
+    if (used) {
+      ctx.fillStyle = color; roundRect(ctx, x, y, cw, chh, 2); ctx.fill();
+    } else {
+      ctx.fillStyle = '#efe9dd'; roundRect(ctx, x, y, cw, chh, 2); ctx.fill();
+      ctx.save(); ctx.beginPath(); roundRect(ctx, x, y, cw, chh, 2); ctx.clip();
+      ctx.strokeStyle = '#cfc7b6'; ctx.lineWidth = 1;
+      for (let d = -chh; d < cw; d += 5) {
+        ctx.beginPath(); ctx.moveTo(x + d, y); ctx.lineTo(x + d + chh, y + chh); ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+
+  let reservedTotalBlocks;
+  if (PAGED_MODE === 'naive') {
+    // one row per sequence, each reserves reservedBlocksPer blocks
+    const cols = reservedBlocksPer;
+    const cellW = (areaW - (cols - 1) * gap) / cols;
+    const rowH = Math.min(30, (h - padT - 10 - (seqN - 1) * 8) / seqN);
+    for (let r = 0; r < seqN; r++) {
+      const y = padT + r * (rowH + 8);
+      // label
+      ctx.fillStyle = '#6e665b'; ctx.font = '600 10px Manrope, sans-serif';
+      ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      for (let c = 0; c < cols; c++) {
+        const x = padL + c * (cellW + gap);
+        drawBlock(x, y, cellW, rowH, SEQ_COLORS[r % SEQ_COLORS.length], c < usedBlocks[r]);
+      }
+      ctx.fillStyle = '#9a9083'; ctx.font = '600 9px IBM Plex Mono, monospace';
+      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillText(lens[r] + ' tok', padL + cols * (cellW + gap) - cellW * 0 + 4, y + rowH / 2);
+    }
+    reservedTotalBlocks = seqN * reservedBlocksPer;
+    id('pagedCaption').textContent = 'One row per sequence. Each reserves ' + reservedBlocksPer +
+      ' blocks for the ' + MAX_LEN + '-token maximum; the hatched cells are paid for but empty.';
+  } else {
+    // shared pool, packed. wrap into a grid.
+    const cols = Math.max(reservedBlocksPer, 24);
+    const cellW = (areaW - (cols - 1) * gap) / cols;
+    const cellH = Math.min(26, cellW * 1.4);
+    let idxBlock = 0;
+    for (let r = 0; r < seqN; r++) {
+      for (let b = 0; b < usedBlocks[r]; b++) {
+        const col = idxBlock % cols, row = Math.floor(idxBlock / cols);
+        const x = padL + col * (cellW + gap);
+        const y = padT + row * (cellH + gap);
+        // last block of a sequence may be partially filled -> still counts as used (internal frag only)
+        drawBlock(x, y, cellW, cellH, SEQ_COLORS[r % SEQ_COLORS.length], true);
+        idxBlock++;
+      }
+    }
+    reservedTotalBlocks = totalUsed;
+    id('pagedCaption').textContent = 'One shared pool. Sequences (colours) grab blocks on demand and pack tight — ' +
+      'the only waste is a partial final block per sequence.';
+  }
+
+  // stats
+  const usedBytesTokens = totalTokens;
+  const reservedTokens = reservedTotalBlocks * blk;
+  const util = reservedTokens > 0 ? usedBytesTokens / reservedTokens : 0;
+  id('pagedUsedVal').textContent = totalUsed + ' blk';
+  id('pagedReservedVal').textContent = reservedTotalBlocks + ' blk';
+  id('pagedUtilVal').textContent = (util * 100).toFixed(0) + '%';
+  const utilPill = id('utilPill');
+  utilPill.classList.remove('stat-pill--danger', 'stat-pill--accent');
+  if (util < 0.55) { utilPill.classList.add('stat-pill--danger'); id('pagedUtilSub').textContent = 'mostly wasted'; }
+  else { utilPill.classList.add('stat-pill--accent'); id('pagedUtilSub').textContent = 'tokens ÷ reserved slots'; }
+}
+
+/* ===================== presets ===================== */
+const PRESETS = {
+  llama3_8b:  { L: 32, nh: 32, dh: 128, mode: 'GQA（分组查询注意力）', gqa: 8 },
+  llama3_70b: { L: 80, nh: 64, dh: 128, mode: 'GQA（分组查询注意力）', gqa: 8 },
+  llama2_70b: { L: 80, nh: 64, dh: 128, mode: 'MHA（多头注意力）', gqa: 8 },
+  mistral_7b: { L: 32, nh: 32, dh: 128, mode: 'GQA（分组查询注意力）', gqa: 8 },
+  gpt3_175b:  { L: 96, nh: 96, dh: 128, mode: 'MHA（多头注意力）', gqa: 8 }
+};
+function applyPreset(key) {
+  const p = PRESETS[key];
+  id('L').value = p.L; id('nh').value = p.nh; id('dh').value = p.dh; id('gqa').value = p.gqa;
+  setMode(p.mode);
+  syncLabels();
+  renderLab();
+}
+
+/* ===================== wiring ===================== */
+function setMode(mode) {
+  MODE = mode;
+  document.querySelectorAll('#modeRow .mode-button').forEach(b =>
+    b.classList.toggle('is-active', b.dataset.mode === mode));
+  id('gqaBlock').classList.toggle('is-dim', mode !== 'GQA（分组查询注意力）');
+}
+function setDtype(bytes) {
+  DTYPE = bytes;
+  document.querySelectorAll('#dtypeRow .mode-button').forEach(b =>
+    b.classList.toggle('is-active-warm', +b.dataset.bytes === bytes));
+}
+function syncLabels() {
+  id('LVal').textContent = id('L').value;
+  id('nhVal').textContent = id('nh').value;
+  id('dhVal').textContent = id('dh').value;
+  id('gqaVal').textContent = id('gqa').value;
+  id('ctxVal').textContent = fmtInt(+id('ctx').value) + ' tok';
+  id('batchVal').textContent = id('batch').value;
+}
+function renderLab() {
+  const s = state();
+  updateFormula(s);
+  updateStats(s);
+  drawCliff();
+  drawBudget();
+}
+
+['L', 'nh', 'dh', 'gqa', 'ctx', 'batch'].forEach(k => {
+  id(k).addEventListener('input', () => {
+    if (k === 'gqa') setMode('GQA（分组查询注意力）');
+    syncLabels();
+    renderLab();
+  });
+});
+document.querySelectorAll('#modeRow .mode-button').forEach(b =>
+  b.addEventListener('click', () => { setMode(b.dataset.mode); renderLab(); }));
+document.querySelectorAll('#dtypeRow .mode-button').forEach(b =>
+  b.addEventListener('click', () => { setDtype(+b.dataset.bytes); renderLab(); }));
+document.querySelectorAll('#presetRow .preset-button').forEach(b =>
+  b.addEventListener('click', () => applyPreset(b.dataset.preset)));
+
+['seqN', 'blk'].forEach(k => id(k).addEventListener('input', () => {
+  id('seqNVal').textContent = id('seqN').value;
+  id('blkVal').textContent = id('blk').value + ' tok';
+  drawPaged();
+}));
+document.querySelectorAll('#pagedModeRow .mode-button').forEach(b =>
+  b.addEventListener('click', () => {
+    PAGED_MODE = b.dataset.paged;
+    document.querySelectorAll('#pagedModeRow .mode-button').forEach(x =>
+      x.classList.toggle('is-active', x.dataset.paged === PAGED_MODE));
+    drawPaged();
+  }));
+
+/* ===================== init ===================== */
+function init() {
+  setMode('GQA（分组查询注意力）'); setDtype(2); syncLabels();
+  renderLab();
+  drawPaged();
+}
+window.addEventListener('load', init);
+window.addEventListener('resize', () => { renderLab(); drawPaged(); });
+// draw immediately too (fonts/layout already available in most cases)
+init();
+</script>
+
+
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

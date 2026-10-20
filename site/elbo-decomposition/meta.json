@@ -1,0 +1,24 @@
+{
+  "slug": "elbo-decomposition",
+  "title": "ELBO 分解详解",
+  "date": "2026-05-23",
+  "tagline": "重构与 KL &mdash; 精确看清每一项让你付出的代价。",
+  "summary": "VAE 的目标函数包含两项：重构的负对数似然与到先验的 KL 散度。在浏览器中于 MNIST 上训练一个微型 VAE，观察两条柱状条在训练中的竞逐，滑动 β 使其偏重其中一项。经典的 β-VAE 解耦与重构之间的取舍，由此变得可触可感。",
+  "readingTime": "12 min",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "order": 103,
+  "status": "draft",
+  "tags": [
+    "VAE",
+    "ELBO",
+    "Beta-VAE",
+    "生成模型",
+    "交互式"
+  ],
+  "highlights": [
+    "训练期间实时显示两条柱状条：重构负对数似然与 KL(q‖p)。",
+    "将 β 从 0（普通 AE）经 1（原始 VAE）滑至 50（高度解耦）。",
+    "观察潜空间样本如何随 β 的变化而畸变。"
+  ]
+}

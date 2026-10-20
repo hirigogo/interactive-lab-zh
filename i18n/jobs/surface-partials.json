@@ -1,0 +1,261 @@
+{
+ "slug": "surface-partials",
+ "units": {
+  "Partial Derivatives are Slices": {
+   "zh": "偏导数就是切片",
+   "src": "Partial Derivatives are Slices",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer &middot; Calculus Toolkit": {
+   "zh": "交互式讲解 &middot; 微积分工具箱",
+   "src": "Interactive Explainer &middot; Calculus Toolkit",
+   "tags": []
+  },
+  "A surface $f(x,y)$ has no single slope &mdash; it tilts differently in every\n      direction. A partial derivative fixes that by holding one variable still and\n      asking the ordinary one-dimensional question. Move the point on the map and\n      watch two slices, each with its own tangent, and the gradient arrow that\n      collects them.": {
+   "zh": "曲面 $f(x,y)$ 并没有单一的斜率 &mdash; 它在每个方向上的倾斜都不同。偏导数的做法是固定住一个变量，从而提出那个普通的、一维的问题。在地图上移动该点，观察两个切片——每个都有自己的切线——以及把它们汇总起来的梯度箭头。",
+   "src": "A surface $f(x,y)$ has no single slope &mdash; it tilts differently in every\n      direction. A partial derivative fixes that by holding one variable still and\n      asking the ordinary one-dimensional question. Move the point on the map and\n      watch two slices, each with its own tangent, and the gradient arrow that\n      collects them.",
+   "tags": []
+  },
+  "@@T0@@~9 min@@T1@@\n      @@T2@@Deep Learning &middot; Calculus &middot; Gradients@@T3@@": {
+   "zh": "@@T0@@约 9 分钟@@T1@@\n      @@T2@@深度学习 &middot; 微积分 &middot; 梯度@@T3@@",
+   "src": "<span>~9 min</span>\n      <span>Deep Learning &middot; Calculus &middot; Gradients</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Freeze one axis, take a normal derivative": {
+   "zh": "冻结一根轴，求一个普通的导数",
+   "src": "Freeze one axis, take a normal derivative",
+   "tags": []
+  },
+  "To measure $\\partial f / \\partial x$ at a point $(x_0, y_0)$, pin $y = y_0$.\n      What remains is a curve in $x$ alone, and its ordinary slope @@T0@@is@@T1@@ the\n      partial derivative. Swap the roles for $\\partial f / \\partial y$:": {
+   "zh": "要测量点 $(x_0, y_0)$ 处的 $\\partial f / \\partial x$，就固定 $y = y_0$。剩下的是仅关于 $x$ 的一条曲线，而它普通的斜率@@T0@@就是@@T1@@偏导数。把两者角色互换便得到 $\\partial f / \\partial y$：",
+   "src": "To measure $\\partial f / \\partial x$ at a point $(x_0, y_0)$, pin $y = y_0$.\n      What remains is a curve in $x$ alone, and its ordinary slope <em>is</em> the\n      partial derivative. Swap the roles for $\\partial f / \\partial y$:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Stack the two partials into a vector and you have the gradient\n      $\\nabla f = \\big(\\partial f/\\partial x,\\; \\partial f/\\partial y\\big)$. It points\n      in the direction of steepest ascent, perpendicular to the contour lines &mdash;\n      the single most important object in optimization.": {
+   "zh": "把两个偏导数堆成一个向量，就得到梯度 $\\nabla f = \\big(\\partial f/\\partial x,\\; \\partial f/\\partial y\\big)$。它指向最陡上升的方向，且垂直于等高线 &mdash; 这是优化中最重要的单一对象。",
+   "src": "Stack the two partials into a vector and you have the gradient\n      $\\nabla f = \\big(\\partial f/\\partial x,\\; \\partial f/\\partial y\\big)$. It points\n      in the direction of steepest ascent, perpendicular to the contour lines &mdash;\n      the single most important object in optimization.",
+   "tags": []
+  },
+  "The Lab": {
+   "zh": "实验室",
+   "src": "The Lab",
+   "tags": []
+  },
+  "One point, two slices, one gradient": {
+   "zh": "一个点、两个切片、一个梯度",
+   "src": "One point, two slices, one gradient",
+   "tags": []
+  },
+  "The map is a filled contour plot of $f(x,y)$: blue is low, orange is high.\n      @@T0@@Click or drag on the map@@T1@@ (or use the sliders) to move the\n      point. The dashed lines are the two slices; each slice is redrawn below with\n      its tangent, whose slope is the corresponding partial derivative. The green\n      arrow is $\\nabla f$ &mdash; notice it always points uphill, across the contours.": {
+   "zh": "这张地图是 $f(x,y)$ 的填色等高线图：蓝色表示低，橙色表示高。@@T0@@在地图上点击或拖动@@T1@@（或使用滑块）来移动该点。虚线就是那两个切片；每个切片都在下方连同其切线一起重绘，切线的斜率即为对应的偏导数。绿色箭头是 $\\nabla f$ &mdash; 注意它总是指向上坡，横穿等高线。",
+   "src": "The map is a filled contour plot of $f(x,y)$: blue is low, orange is high.\n      <strong>Click or drag on the map</strong> (or use the sliders) to move the\n      point. The dashed lines are the two slices; each slice is redrawn below with\n      its tangent, whose slope is the corresponding partial derivative. The green\n      arrow is $\\nabla f$ &mdash; notice it always points uphill, across the contours.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Bowl $x^2+y^2$": {
+   "zh": "碗形 $x^2+y^2$",
+   "src": "Bowl $x^2+y^2$",
+   "tags": []
+  },
+  "Saddle $x^2-y^2$": {
+   "zh": "鞍形 $x^2-y^2$",
+   "src": "Saddle $x^2-y^2$",
+   "tags": []
+  },
+  "Ripple $2\\sin x\\cos y$": {
+   "zh": "波纹 $2\\sin x\\cos y$",
+   "src": "Ripple $2\\sin x\\cos y$",
+   "tags": []
+  },
+  "Point @@T0@@$x_0$ = @@T1@@1.00@@T2@@@@T3@@": {
+   "zh": "点 @@T0@@$x_0$ = @@T1@@1.00@@T2@@@@T3@@",
+   "src": "Point <span>$x_0$ = <span id=\"x0Val\">1.00</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"x0Val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Point @@T0@@$y_0$ = @@T1@@0.60@@T2@@@@T3@@": {
+   "zh": "点 @@T0@@$y_0$ = @@T1@@0.60@@T2@@@@T3@@",
+   "src": "Point <span>$y_0$ = <span id=\"y0Val\">0.60</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"y0Val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Contour map of $f(x,y)$. Orange dashed line $y=y_0$ generates the left slice;\n        blue dashed line $x=x_0$ generates the right slice. The green arrow is the\n        gradient $\\nabla f(x_0,y_0)$.": {
+   "zh": "$f(x,y)$ 的等高线图。橙色虚线 $y=y_0$ 生成左侧切片；蓝色虚线 $x=x_0$ 生成右侧切片。绿色箭头是梯度 $\\nabla f(x_0,y_0)$。",
+   "src": "Contour map of $f(x,y)$. Orange dashed line $y=y_0$ generates the left slice;\n        blue dashed line $x=x_0$ generates the right slice. The green arrow is the\n        gradient $\\nabla f(x_0,y_0)$.",
+   "tags": []
+  },
+  "Slice $g(x)=f(x,\\,y_0)$ &mdash; hold $y$ fixed. Tangent slope $=\\partial f/\\partial x$.": {
+   "zh": "切片 $g(x)=f(x,\\,y_0)$ &mdash; 固定 $y$。切线斜率 $=\\partial f/\\partial x$。",
+   "src": "Slice $g(x)=f(x,\\,y_0)$ &mdash; hold $y$ fixed. Tangent slope $=\\partial f/\\partial x$.",
+   "tags": []
+  },
+  "Slice $g(y)=f(x_0,\\,y)$ &mdash; hold $x$ fixed. Tangent slope $=\\partial f/\\partial y$.": {
+   "zh": "切片 $g(y)=f(x_0,\\,y)$ &mdash; 固定 $x$。切线斜率 $=\\partial f/\\partial y$。",
+   "src": "Slice $g(y)=f(x_0,\\,y)$ &mdash; hold $x$ fixed. Tangent slope $=\\partial f/\\partial y$.",
+   "tags": []
+  },
+  "@@T0@@$\\partial f / \\partial x$ (left slice slope)@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@$\\partial f / \\partial x$（左侧切片斜率）@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">$\\partial f / \\partial x$ (left slice slope)</span>\n        <span class=\"stat-value\" id=\"fxVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"fxVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@$\\partial f / \\partial y$ (right slice slope)@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@$\\partial f / \\partial y$（右侧切片斜率）@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">$\\partial f / \\partial y$ (right slice slope)</span>\n        <span class=\"stat-value\" id=\"fyVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"fyVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@$\\lVert \\nabla f \\rVert$ (steepness)@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@$\\lVert \\nabla f \\rVert$（陡峭度）@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">$\\lVert \\nabla f \\rVert$ (steepness)</span>\n        <span class=\"stat-value\" id=\"gnormVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"gnormVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@$f(x_0,y_0)$ (height)@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@$f(x_0,y_0)$（高度）@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">$f(x_0,y_0)$ (height)</span>\n        <span class=\"stat-value\" id=\"fVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"fVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Try the saddle.@@T1@@ Sit at the origin: both partials are $0$, so\n      $\\nabla f = 0$ &mdash; a critical point. Yet the left slice curves @@T2@@up@@T3@@\n      and the right slice curves @@T4@@down@@T5@@. Zero gradient does not mean a minimum;\n      here it is a saddle. Now step off-centre and watch the green arrow snap to point\n      straight uphill.": {
+   "zh": "@@T0@@试试鞍形。@@T1@@ 停在原点：两个偏导数都是 $0$，故 $\\nabla f = 0$ &mdash; 这是一个临界点。但左侧切片向上@@T2@@弯@@T3@@，右侧切片向下@@T4@@弯@@T5@@。梯度为零并不意味着极小值；这里是鞍点。现在移离中心，观察绿色箭头如何骤然指向正上坡方向。",
+   "src": "<strong>Try the saddle.</strong> Sit at the origin: both partials are $0$, so\n      $\\nabla f = 0$ &mdash; a critical point. Yet the left slice curves <em>up</em>\n      and the right slice curves <em>down</em>. Zero gradient does not mean a minimum;\n      here it is a saddle. Now step off-centre and watch the green arrow snap to point\n      straight uphill.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "收获",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Why the gradient points uphill": {
+   "zh": "梯度为何指向坡上",
+   "src": "Why the gradient points uphill",
+   "tags": []
+  },
+  "The two partials are the components of one vector, and that vector has a\n      geometric job. Along any unit direction $u$, the rate of change is the\n      directional derivative $\\nabla f \\cdot u$. By Cauchy&ndash;Schwarz this dot\n      product is largest when $u$ aligns with $\\nabla f$ &mdash; so the gradient\n      points in the direction of steepest ascent, and $-\\nabla f$ is the direction\n      gradient descent actually steps.": {
+   "zh": "这两个偏导数是同一个向量的两个分量，而该向量承担着一项几何职责。沿任意单位方向 $u$，变化率就是方向导数 $\\nabla f \\cdot u$。由 Cauchy&ndash;Schwarz 不等式，当 $u$ 与 $\\nabla f$ 对齐时该点积最大 &mdash; 所以梯度指向最陡上升方向，而 $-\\nabla f$ 才是梯度下降真正迈步的方向。",
+   "src": "The two partials are the components of one vector, and that vector has a\n      geometric job. Along any unit direction $u$, the rate of change is the\n      directional derivative $\\nabla f \\cdot u$. By Cauchy&ndash;Schwarz this dot\n      product is largest when $u$ aligns with $\\nabla f$ &mdash; so the gradient\n      points in the direction of steepest ascent, and $-\\nabla f$ is the direction\n      gradient descent actually steps.",
+   "tags": []
+  },
+  "@@T0@@Perpendicular to contours.@@T1@@ Moving @@T2@@along@@T3@@ a contour keeps $f$ constant, so that direction has zero slope; the gradient, being steepest, must be at right angles to it. Watch the arrow &mdash; it never runs along a colour band.": {
+   "zh": "@@T0@@垂直于等高线。@@T1@@ 沿着@@T2@@等高线@@T3@@移动会保持 $f$ 不变，故该方向的斜率为零；而梯度作为最陡方向，必然与之成直角。观察箭头 &mdash; 它从不沿颜色带延伸。",
+   "src": "<strong>Perpendicular to contours.</strong> Moving <em>along</em> a contour keeps $f$ constant, so that direction has zero slope; the gradient, being steepest, must be at right angles to it. Watch the arrow &mdash; it never runs along a colour band.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Every weight is an axis.@@T1@@ A network's loss depends on millions of parameters. Its gradient has one partial per weight, each the slope of a private one-dimensional slice, and backprop computes them all in a single backward pass.": {
+   "zh": "@@T0@@每个权重都是一根轴。@@T1@@ 网络的损失依赖于数百万个参数。它的梯度为每个权重各有一个偏导数，每个都是该权重专属的一维切片的斜率，而反向传播在一次反向遍历中把它们全部算出。",
+   "src": "<strong>Every weight is an axis.</strong> A network's loss depends on millions of parameters. Its gradient has one partial per weight, each the slope of a private one-dimensional slice, and backprop computes them all in a single backward pass.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Flat spots are ambiguous.@@T1@@ $\\nabla f = 0$ marks minima, maxima, @@T2@@and@@T3@@ saddles alike. The curvature of the slices &mdash; the Hessian &mdash; tells them apart.": {
+   "zh": "@@T0@@平坦之处含义模糊。@@T1@@ $\\nabla f = 0$ 既标志着极小值、极大值，@@T2@@也@@T3@@标志着鞍点。切片的曲率 &mdash; 即 Hessian &mdash; 才能把它们区分开。",
+   "src": "<strong>Flat spots are ambiguous.</strong> $\\nabla f = 0$ marks minima, maxima, <em>and</em> saddles alike. The curvature of the slices &mdash; the Hessian &mdash; tells them apart.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Next up:@@T1@@ when the output is also a vector, each output has its\n      own gradient. Stack them as rows and you get the Jacobian &mdash; a whole matrix\n      of partials that linearizes a map. That is the final explainer,\n      @@T2@@The Jacobian is a Local Warp@@T3@@.": {
+   "zh": "@@T0@@下一节：@@T1@@当输出也是一个向量时，每个输出都有自己的梯度。把它们按行堆叠，就得到 Jacobian &mdash; 一整个由偏导数构成的矩阵，它把映射线性化。那就是最后一篇讲解，@@T2@@《Jacobian 是局部扭曲》@@T3@@。",
+   "src": "<strong>Next up:</strong> when the output is also a vector, each output has its\n      own gradient. Stack them as rows and you get the Jacobian &mdash; a whole matrix\n      of partials that linearizes a map. That is the final explainer,\n      <em>The Jacobian is a Local Warp</em>.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 3: Calculus Toolkit": {
+   "zh": "ES 667 深度学习讲解系列的一部分 &middot; 第 3 讲：微积分工具箱",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 3: Calculus Toolkit",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "偏导数就是切片",
+  "tagline": "冻结一个变量，求一个普通导数——梯度不过是把各条斜率汇总起来",
+  "summary": "曲面在每个方向上的倾斜都不同，因此没有单一斜率。在 f(x,y) 的填色等高线图上移动一个点，观察两个一维切片出现：一个固定 y，一个固定 x，各自带有一条切线，其斜率便是相应的偏导数。绿色梯度箭头把两个偏导数堆叠起来，始终指向上坡且垂直于等高线。碗形、鞍形与波纹三个示例让临界点、最陡上升以及零梯度的含义都变得具体。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "在碗形、鞍形或波纹的填色等高线图上拖动一个点，观察两条切片曲线实时更新。",
+   "每个切片都画出自己的切线，其斜率正是固定住一个变量后所得的偏导数。",
+   "梯度箭头把两个偏导数汇总起来，始终指向上坡，并与等高线带成直角。",
+   "把 ∂f/∂x、∂f/∂y、梯度范数与高度读作四个相互关联的数字。",
+   "理解为何零梯度可能是极小值、极大值或鞍点——以及为何 -grad 才是下降所迈的方向。"
+  ],
+  "tags": [
+   "微积分",
+   "偏导数",
+   "梯度",
+   "优化",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

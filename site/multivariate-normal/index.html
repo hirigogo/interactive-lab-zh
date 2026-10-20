@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>认识多元正态分布</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="progress-bar" aria-hidden="true"><div class="progress-bar__fill" id="progressFill"></div></div>
+
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>认识多元正态分布</h1>
+        <p class="abstract">
+          你已熟悉钟形曲线。本文将展示它如何推广到二维、为何协方差矩阵掌控一切，以及当对一个变量取值以推断另一个变量时会发生什么。下文的每一个公式旁都配有交互式图形 &mdash; 拖动滑块即可实时观察数学结果的更新。
+        </p>
+        <div class="byline">
+          <span>约 20 分钟</span>
+          <span>概率论 &middot; 统计学 &middot; 线性代数</span>
+        </div>
+      </header>
+
+      
+
+      <!-- ===== I. 1D NORMAL ===== -->
+      <section id="one-d" data-nav="1D">
+        <h2><span class="num">I.</span> 一维：密度、面积与 68-95-99.7 法则</h2>
+
+        <p>
+          正态分布描述的是一个围绕中心值聚集、并向两侧对称衰减的随机变量。它完全由两个数确定：决定中心的均值 <code>&mu;</code>，以及决定宽度的标准差 <code>&sigma;</code>。除此之外别无其他。世界上任何一条钟形曲线，只要已知这两个数，在平移与伸缩的意义下都是同一形状。
+        </p>
+
+        <p>
+          密度函数给出落在 <code>x</code> 附近任一特定取值处的相对可能性。它<em>并不是</em>概率 &mdash; 对于较窄的分布，它甚至可以大于 1。概率仅来源于两个端点之间的<em>曲线下面积</em>：
+        </p>
+
+        <div class="math-block" data-katex-display>
+          \[
+            f(x) =
+            \frac{1}{\sigma\sqrt{2\pi}}
+            \exp\!\Bigl(-\frac{(x-\mu)^2}{2\sigma^2}\Bigr),
+            \qquad
+            P(a \le X \le b) = \int_a^b f(x)\,dx
+          \]
+        </div>
+
+        <p>
+          公式中的指数项承担了全部作用。量 <code>(x&minus;&mu;)&sup2; / (2&sigma;&sup2;)</code> 以标准差为单位衡量 <code>x</code> 距中心有多远。在均值处，该指数为零，密度达到峰值。偏离一个标准差处，指数为 <code>&minus;&frac12;</code>，故密度降至 <code>e<sup>&minus;0.5</sup> &approx; 0.61</code> 倍。偏离两个标准差处，指数为 <code>&minus;2</code>，密度降至峰值的 <code>e<sup>&minus;2</sup> &approx; 0.14</code>。衰减十分迅速。
+        </p>
+
+        <p>
+          这便引出著名的 <strong>68-95-99.7 法则</strong>：约 68% 的概率质量位于均值的 &plusmn;1&sigma; 之内，约 95% 位于 &plusmn;2&sigma; 之内，约 99.7% 位于 &plusmn;3&sigma; 之内。这些数值与具体的 &mu; 和 &sigma; 无关 &mdash; 它们是钟形曲线形状的普适性质。你可在下图中调整区间端点加以验证。
+        </p>
+
+        <p>
+          <strong>具体例子。</strong> 设某气象站的温度传感器平均读数为 20.0&deg;C（&mu;&nbsp;=&nbsp;20），测量噪声为 &sigma;&nbsp;=&nbsp;0.5&deg;C。则约 68% 的读数将落在 19.5&deg;C 至 20.5&deg;C 之间，而读数超出 18.5&ndash;21.5&deg;C（&plusmn;3&sigma;）范围的情形出现比例低于 0.3%。这正是正态分布让你仅凭两个数即可作出的定量陈述。
+        </p>
+
+        <figure class="interactive-figure">
+          <div class="figure-controls">
+            <label>均值 &mu; <input id="mu1" type="range" min="-3" max="3" step="0.1" value="0" /> <span id="mu1Value">0.0</span></label>
+            <label>标准差 &sigma; <input id="sigma1" type="range" min="0.4" max="2.6" step="0.05" value="1" /> <span id="sigma1Value">1.0</span></label>
+            <label>左端点 <input id="intervalA" type="range" min="-4" max="4" step="0.1" value="-1" /> <span id="intervalAValue">-1.0</span></label>
+            <label>右端点 <input id="intervalB" type="range" min="-4" max="4" step="0.1" value="1" /> <span id="intervalBValue">1.0</span></label>
+          </div>
+          <div class="figure-canvas">
+            <canvas id="oneDCanvas" width="900" height="420" aria-label="一维正态分布"></canvas>
+          </div>
+          <figcaption>
+            <span class="readout"><strong>P(a&le;X&le;b)</strong> = <span id="oneDProbability">68.27%</span></span>
+            <span class="readout"><strong>z 范围</strong> <span id="oneDZRange">[-1.00, 1.00]</span></span>
+            <span class="readout"><strong>峰值密度</strong> <span id="oneDPeak">0.399</span></span>
+            <span class="readout-text" id="oneDProbabilityCopy">X 落在阴影区域内的概率。</span>
+          </figcaption>
+        </figure>
+
+        <p>
+          <strong>值得注意之处。</strong> 观察随着 &sigma; 增大峰值下降的现象。曲线下总面积恒为 1，因此把概率质量铺得更宽必然压低峰值。对标准正态分布（&mu;=0，&sigma;=1），峰高为 <code>1/&radic;(2&pi;) &approx; 0.399</code>。当 &sigma;=2 时，峰高减半。
+        </p>
+
+        <p>
+          <em>标准化变量</em> <code>z = (x&minus;&mu;)/&sigma;</code> 可将任意正态分布化为标准正态分布。这不仅是查表所用的技巧 &mdash; 它是使高维情形变得可处理的关键概念性操作。在二维中，&ldquo;偏离多少个标准差？&rdquo;的类似物是 <em>马氏距离</em>，它考虑了不同方向上的离散程度可以不同这一事实。
+        </p>
+
+        <div class="try-this">
+          <strong>试一试：</strong>
+          <button class="preset-link" data-one-d-preset="standard">标准正态分布</button> &middot;
+          <button class="preset-link" data-one-d-preset="wide">较宽（&sigma;=1.8）</button> &middot;
+          <button class="preset-link" data-one-d-preset="shifted">右移（&mu;=1.2）</button>
+        </div>
+      </section>
+
+      <!-- ===== II. 2D GAUSSIAN ===== -->
+      <section id="two-d" data-nav="2D">
+        <h2><span class="num">II.</span> 二维：协方差矩阵及其所掌控之物</h2>
+
+        <p>
+          现在设想同时测量两个量 &mdash; 例如学习时长与考试成绩，或带噪 GPS 给出的纬度与经度。每一对观测值都是平面上的一点。若两个坐标上的噪声大致服从高斯分布，则联合分布为<em>二元正态分布</em>。此时得到的不是一条钟形曲线，而是三维空间中一座钟形山峰。从上方俯视，该山峰的等值线为椭圆。
+        </p>
+
+        <p>
+          二元正态分布由五个数参数化：两个均值（&mu;<sub>x</sub>，&nbsp;&mu;<sub>y</sub>）、两个标准差（&sigma;<sub>x</sub>，&nbsp;&sigma;<sub>y</sub>）以及一个相关系数 &rho;。这五个数被打包成一个均值向量与一个 2&times;2 的协方差矩阵：
+        </p>
+
+        <div class="math-block" data-katex-display>
+          \[
+            \mathbf{x} \sim \mathcal{N}\!\left(
+              \boldsymbol{\mu},\;
+              \Sigma
+            \right),
+            \qquad
+            \boldsymbol{\mu} = \begin{bmatrix} \mu_x \\ \mu_y \end{bmatrix},
+            \qquad
+            \Sigma =
+            \begin{bmatrix}
+              \sigma_x^2 & \rho\,\sigma_x\sigma_y \\
+              \rho\,\sigma_x\sigma_y & \sigma_y^2
+            \end{bmatrix}
+          \]
+        </div>
+
+        <p>
+          <strong>解读协方差矩阵。</strong> 对角线元素 &sigma;<sub>x</sub>&sup2; 与 &sigma;<sub>y</sub>&sup2; 即你在一维中已熟知的方差 &mdash; 它们分别独立地掌控沿各坐标轴的离散程度。非对角元素 &rho;&sigma;<sub>x</sub>&sigma;<sub>y</sub> 即为<em>协方差</em>。它告诉你两个变量是倾向于同向增大（正）、反向变化（负），还是独立变动（零）。相关系数 &rho; 不过是归一化到 &minus;1 与 +1 之间的协方差。
+        </p>
+
+        <p>
+          <strong>为何是椭圆？</strong> 二维情形的密度公式包含<em>二次型</em> (<strong>x</strong>&minus;<strong>&mu;</strong>)<sup>T</sup> &Sigma;<sup>&minus;1</sup> (<strong>x</strong>&minus;<strong>&mu;</strong>)。令该二次型等于一个常数，即得椭圆的方程。同一椭圆上的点具有相同的密度，故该分布的等值线为椭圆。&Sigma; 的特征值决定椭圆各轴的长度，特征向量决定其倾斜方向。
+        </p>
+
+        <div class="math-block" data-katex-display>
+          \[
+            f(\mathbf{x}) =
+            \frac{1}{2\pi\,|\Sigma|^{1/2}}
+            \exp\!\Bigl(
+              -\tfrac{1}{2}
+              (\mathbf{x}-\boldsymbol{\mu})^\top
+              \Sigma^{-1}
+              (\mathbf{x}-\boldsymbol{\mu})
+            \Bigr)
+          \]
+        </div>
+
+        <p>
+          前置因子 <code>1/(2&pi;|&Sigma;|<sup>1/2</sup>)</code> 是归一化常数 &mdash; 它保证密度在整个平面上的积分为 1。行列式 |&Sigma;| 度量椭圆的 &ldquo;体积&rdquo;：行列式越大意味着离散程度越高，从而峰值密度越低，这与一维情形完全一致。
+        </p>
+
+        <figure class="interactive-figure">
+          <div class="figure-controls figure-controls--grid">
+            <label>均值 x <input id="muX" type="range" min="-2.5" max="2.5" step="0.1" value="0" /> <span id="muXValue">0.0</span></label>
+            <label>均值 y <input id="muY" type="range" min="-2.5" max="2.5" step="0.1" value="0" /> <span id="muYValue">0.0</span></label>
+            <label>离散度 &sigma;<sub>x</sub> <input id="sigmaX" type="range" min="0.45" max="2.4" step="0.05" value="1.2" /> <span id="sigmaXValue">1.2</span></label>
+            <label>离散度 &sigma;<sub>y</sub> <input id="sigmaY" type="range" min="0.45" max="2.4" step="0.05" value="0.9" /> <span id="sigmaYValue">0.9</span></label>
+            <label class="full-width">相关系数 &rho; <input id="rho" type="range" min="-0.95" max="0.95" step="0.01" value="0.55" /> <span id="rhoValue">0.55</span></label>
+          </div>
+          <div class="figure-canvas">
+            <canvas id="twoDCanvas" width="860" height="520" aria-label="二维高斯等值线与样本"></canvas>
+          </div>
+          <figcaption>
+            <span class="readout"><strong>协方差</strong> <span id="covarianceMatrix"></span></span>
+            <span class="readout"><strong>椭圆倾斜角</strong> <span id="ellipseAngle">31.0&deg;</span></span>
+            <span class="readout"><strong>长轴 &sigma;</strong> <span id="majorSpread">1.41</span></span>
+          </figcaption>
+        </figure>
+
+        <p>
+          <strong>值得注意之处。</strong> 散点为当前分布的随机样本。嵌套椭圆是 1、1.8、2.45 与 3.1 个标准差（马氏距离）处的等值线。当 &rho;=0 时，椭圆与坐标轴对齐 &mdash; 椭圆各轴与坐标轴重合。随着 |&rho;| 增大趋近于 1，椭圆发生倾斜并变窄。当 &rho;&approx;&plusmn;1 时，全部概率质量集中于一条直线附近，两个变量彼此近乎成为确定性的函数。
+        </p>
+
+        <p>
+          <strong>特征值解释。</strong> 协方差矩阵 &Sigma; 可分解为 &Sigma;&nbsp;=&nbsp;Q&Lambda;Q<sup>T</sup>，其中 Q 为旋转矩阵（特征向量），&Lambda; 为对角矩阵（特征值）。特征向量给出椭圆各轴的方向，特征值给出沿这些轴的方差。这一分解正是二元正态分布 &ldquo;看起来像&rdquo; 一个被旋转过的轴对齐高斯分布的原因：因为它本就恰恰如此。
+        </p>
+
+        <h3>具体例子</h3>
+        <ul class="example-list">
+          <li><strong>学习时长与考试成绩</strong>（&rho;&approx;0.7）：学习时间越长，成绩往往越高，但并非完全如此 &mdash; 椭圆向上倾斜，但仍具有相当的宽度。</li>
+          <li><strong>速度与行程时间</strong>（&rho;&approx;&minus;0.8）：速度越快，行程越短，因而呈向下倾斜。</li>
+          <li><strong>道路上 GPS 的纬度与经度</strong>：沿道路方向的不确定性远大于垂直于道路方向的不确定性，因而形成一个与道路方向对齐的很窄的椭圆。</li>
+          <li><strong>制造中的宽度与厚度</strong>（&rho;&approx;0.9）：若生产线发生漂移，两个测量值将一同漂移，故椭圆又窄又倾斜。</li>
+        </ul>
+
+        <div class="try-this">
+          <strong>试一试：</strong>
+          <button class="preset-link" data-two-d-preset="independent">独立（&rho;=0）</button> &middot;
+          <button class="preset-link" data-two-d-preset="positive">正 &rho;</button> &middot;
+          <button class="preset-link" data-two-d-preset="negative">负 &rho;</button> &middot;
+          <button class="preset-link" data-two-d-preset="needle">近乎完全相关</button> &middot;
+          <button class="preset-link" data-two-d-preset="study-habits">学习习惯</button> &middot;
+          <button class="preset-link" data-two-d-preset="budget">预算</button> &middot;
+          <button class="preset-link" data-two-d-preset="road-gps">道路 GPS</button>
+        </div>
+      </section>
+
+      <!-- ===== III. SAMPLING ===== -->
+      <section id="sampling" data-nav="Sampling">
+        <h2><span class="num">III.</span> 采样：将分布转化为真实数据</h2>
+
+        <p>
+          知道一个分布的公式是一回事，能够由它生成真实抽样则是另一回事。在实践中，每一次蒙特卡洛模拟、每一个贝叶斯后验样本，以及每一个生成模型，都依赖于高效采样的能力。对多元正态分布而言，其算法优雅简洁，且仅依赖一个核心思想：<strong>从简单的对象出发，再对其作变换。</strong>
+        </p>
+
+        <ol class="example-list">
+          <li><strong>抽取</strong> 一个由相互独立的标准正态变量构成的向量 <code>z</code> &mdash; 其每个分量都是独立的 N(0,1)。由此得到一个以原点为中心的球状分布。</li>
+          <li><strong>求</strong> 矩阵 <code>L</code> 使其满足 <code>LL<sup>T</sup> = &Sigma;</code>。此即协方差矩阵的<em> Cholesky 分解</em> &mdash; 只要 &Sigma; 正定便存在，而对一个合法的协方差矩阵而言这始终成立。</li>
+          <li><strong>计算</strong> <code>x = &mu; + Lz</code>。乘以 L 将球状分布拉伸并旋转为正确的椭圆形状，再加上 &mu; 将其平移至正确位置。</li>
+        </ol>
+
+        <div class="math-block" data-katex-display>
+          \[
+            z \sim \mathcal{N}(\mathbf{0}, I),
+            \qquad
+            \mathbf{x} = \boldsymbol{\mu} + L\,z,
+            \qquad
+            LL^\top = \Sigma
+          \]
+        </div>
+
+        <p>
+          <strong>为什么这样做有效？</strong> 若 <code>z</code> 的协方差为 <code>I</code>，则 <code>Lz</code> 的协方差为 <code>L &middot; I &middot; L<sup>T</sup> = LL<sup>T</sup> = &Sigma;</code>。这就是全部证明。期望的线性性给出正确的均值，协方差变换法则给出正确的离散程度。这正是线性代数与概率论如此自然地相契合的原因。
+        </p>
+
+        <p>
+          下图从你在第&nbsp;II&nbsp;节中配置的二元正态分布中抽取真实样本。每次点击 &ldquo;重新抽样&rdquo;，都会生成一组新的独立标准正态变量，并经 Cholesky 因子变换。注意样本均值与样本协方差如何随每次抽样而波动，在样本量较小时尤为明显。这就是<em>抽样变异性</em>，也是统计估计之所以必要的最根本原因。
+        </p>
+
+        <figure class="interactive-figure">
+          <div class="figure-controls">
+            <label>样本数量 <input id="samplingCount" type="range" min="20" max="320" step="10" value="120" /> <span id="samplingCountValue">120</span></label>
+            <button class="preset-link" id="resampleSamples" type="button">重新抽样</button>
+            <span class="draw-status" id="samplingDrawStatus">第 1 次抽样</span>
+          </div>
+          <div class="figure-canvas">
+            <canvas id="samplingCanvas" width="920" height="540" aria-label="来自多元正态分布的样本"></canvas>
+          </div>
+          <figcaption>
+            <span class="readout"><strong>样本均值</strong> <span id="samplingMean"></span></span>
+            <span class="readout"><strong>样本协方差</strong> <span id="samplingCovariance"></span></span>
+            <span class="readout-text" id="samplingPreview"></span>
+          </figcaption>
+        </figure>
+
+        <p>
+          <strong>值得注意之处。</strong>
+          <span id="samplingNarrative">当 n=20 时，样本估计值可能偏离甚远。</span>
+          <span id="samplingDetail">当 n=300 时，它们稳定下来并接近真实参数。这种收敛正是大数定律的体现。</span>
+          试着把样本数量设为 20 并多次点击重新抽样。你会看到样本均值来回跳动，样本协方差矩阵在相邻抽样间变化明显。
+          然后设为 300 重复同样的操作 &mdash; 估计值会稳定得多。
+          收敛速率大致与 <code>1/&radic;n</code> 成正比。
+        </p>
+      </section>
+
+      <!-- ===== IV. LEARNING ===== -->
+      <section id="learning" data-nav="Learning">
+        <h2><span class="num">IV.</span> 估计：由观测点拟合参数</h2>
+
+        <p>
+          在实践中，你极少已知 &mu; 与 &Sigma; &mdash; 必须从数据中估计它们。对于高斯分布，最大似然估计具有极其简洁的形式：样本均值即数据点的平均，样本协方差即中心化数据外积的平均。
+        </p>
+
+        <div class="math-block" data-katex-display>
+          \[
+            \hat{\boldsymbol{\mu}} = \frac{1}{n}\sum_{i=1}^n \mathbf{x}_i,
+            \qquad\qquad
+            \hat{\Sigma} = \frac{1}{n}\sum_{i=1}^n
+              (\mathbf{x}_i - \hat{\boldsymbol{\mu}})
+              (\mathbf{x}_i - \hat{\boldsymbol{\mu}})^\top
+          \]
+        </div>
+
+        <p>
+          <strong>外积的作用。</strong> 对每个数据点，项 <code>(x<sub>i</sub>&minus;&mu;&#x0302;)(x<sub>i</sub>&minus;&mu;&#x0302;)<sup>T</sup></code> 是一个 2&times;2 矩阵。其 (1,1) 元素为 x 方向偏差的平方，(2,2) 元素为 y 方向偏差的平方，非对角元素则为 x 与 y 方向偏差之积。对所有数据点取平均，对角线即得样本方差，非对角线即得样本协方差。此处并无黑箱 &mdash; 它字面上就是在对偏差平方取平均。
+        </p>
+
+        <aside class="aside">
+          <strong>关于偏差的说明。</strong> 最大似然估计除以 n，得到的是协方差的有偏估计。无偏版本则除以 n&minus;1（贝塞尔校正）。当 n 较大时二者差异可忽略。当 n 较小时，偏差通常是最不值得担心的问题。
+        </aside>
+
+        <p>
+          下图展示一个小型玩具数据集。实线椭圆是使用样本均值与样本协方差拟合出的高斯分布，虚线椭圆则是生成该数据的真实分布。<strong>在图中任意位置点击即可添加新的数据点</strong>，并实时观察拟合椭圆的变化。在中心附近添加点会使估计更稳定；添加离群点则可能令椭圆大幅倾斜。
+        </p>
+
+        <figure class="interactive-figure">
+          <div class="figure-controls">
+            <span id="datasetTitle" class="dataset-label">当前：睡眠与测验成绩</span>
+            <span id="datasetDescription" class="readout-text">睡眠越多，测验成绩往往越好。</span>
+          </div>
+          <div class="figure-canvas">
+            <canvas id="learningCanvas" width="920" height="540" aria-label="附带拟合高斯分布的玩具数据集；点击以添加数据点"></canvas>
+          </div>
+          <figcaption>
+            <span class="readout"><strong>n</strong> = <span id="datasetSize">18</span></span>
+            <span class="readout"><strong>估计均值</strong> <span id="estimatedMean"></span></span>
+            <span class="readout"><strong>估计协方差</strong> <span id="estimatedCovariance"></span></span>
+            <span class="readout-text" id="datasetTakeaway">拟合椭圆应大致跟随数据的走向。</span>
+          </figcaption>
+        </figure>
+
+        <p id="datasetPreview" class="small-text"></p>
+
+        <div class="data-table-wrap">
+          <table class="data-table" id="datasetTable" aria-label="玩具数据集">
+            <thead><tr><th>#</th><th>x</th><th>y</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <p>
+          <strong>值得注意之处。</strong> 在 10&ndash;15 个点时，拟合椭圆常明显偏离真实椭圆。在 50 个点以上时，二者已相当接近。试着在远离当前均值处点击出一簇点 &mdash; 你会看到均值被拉向新点簇，协方差也随之扩大以覆盖更宽的离散范围。当数据包含若干子总体或离群点时，实践中发生的正是这种情况。
+        </p>
+
+        <div class="try-this">
+          <strong>数据集：</strong>
+          <button class="preset-link" data-learning-dataset="sleep-class">睡眠与测验</button> &middot;
+          <button class="preset-link" data-learning-dataset="budget-class">预算与现金</button> &middot;
+          <button class="preset-link" data-learning-dataset="road-class">道路位置</button>
+          <span class="try-this__sep"></span>
+          <button class="preset-link" id="undoLearningPoint" type="button">撤销</button> &middot;
+          <button class="preset-link" id="resetLearningDataset" type="button">重置</button>
+        </div>
+      </section>
+
+      <!-- ===== V. MARGINALS ===== -->
+      <section id="marginals" data-nav="Marginals">
+        <h2><span class="num">V.</span> 边缘分布：投影掉一个坐标轴</h2>
+
+        <p>
+          <em>边缘分布</em> 回答的问题是：若我完全忽略两个坐标中的一个，余下的坐标单独看来是什么样子？形式上，你对想要遗忘的那个坐标方向对联合密度积分（求和）：
+        </p>
+
+        <div class="math-block" data-katex-display>
+          \[
+            f_X(x) = \int_{-\infty}^{\infty} f_{X,Y}(x,y)\,dy
+            \qquad\Longrightarrow\qquad
+            X \sim \mathcal{N}(\mu_x,\;\sigma_x^2)
+          \]
+        </div>
+
+        <p>
+          对高斯分布而言，这一积分有一个引人注目的结果：边缘分布本身仍是高斯分布，其参数恰为均值向量中对应的分量与协方差矩阵对角线上的对应元素。计算边缘分布无需 &rho;。X 的边缘分布仅依赖 &mu;<sub>x</sub> 与 &sigma;<sub>x</sub>&sup2;；Y 的边缘分布仅依赖 &mu;<sub>y</sub> 与 &sigma;<sub>y</sub>&sup2;。
+        </p>
+
+        <p>
+          <strong>这与直觉相悖。</strong> 你或许会以为，若两个变量相关，其中一个的边缘分布应在某种程度上反映这种相关性。事实并非如此。相关性掌控的是联合分布的<em>形状</em> &mdash; 它决定椭圆如何倾斜 &mdash; 但当把这个椭圆投影到单一坐标轴上时，无论倾斜程度如何，阴影的宽度都相同。不妨一试：回到 <a href="#two-d">第&nbsp;II&nbsp;节</a>，在保持 &sigma;<sub>x</sub> 与 &sigma;<sub>y</sub> 不变的情况下改变 &rho;，观察下方的边缘分布曲线保持不变。
+        </p>
+
+        <p>
+          从几何上看，边缘分布是二维分布投影到单一坐标轴上的 &ldquo;影子&rdquo;。设想有一束光垂直照射到 xy 平面上，观察 x 轴上形成的轮廓。该轮廓的形状即 x 的边缘分布。无论你如何倾斜椭圆，只要其水平方向的范围不变，影子便不变。
+        </p>
+
+        <figure class="interactive-figure wide-figure">
+          <div class="figure-controls figure-controls--grid">
+            <label>均值 x <input id="muXMarg" type="range" min="-2.5" max="2.5" step="0.1" value="0" /> <span id="muXMargValue">0.0</span></label>
+            <label>均值 y <input id="muYMarg" type="range" min="-2.5" max="2.5" step="0.1" value="0" /> <span id="muYMargValue">0.0</span></label>
+            <label>离散度 &sigma;<sub>x</sub> <input id="sigmaXMarg" type="range" min="0.45" max="2.4" step="0.05" value="1.2" /> <span id="sigmaXMargValue">1.2</span></label>
+            <label>离散度 &sigma;<sub>y</sub> <input id="sigmaYMarg" type="range" min="0.45" max="2.4" step="0.05" value="0.9" /> <span id="sigmaYMargValue">0.9</span></label>
+            <label class="full-width">相关系数 &rho; <input id="rhoMarg" type="range" min="-0.95" max="0.95" step="0.01" value="0.55" /> <span id="rhoMargValue">0.55</span></label>
+          </div>
+          <div class="joint-grid">
+            <div class="joint-grid__top">
+              <div class="strip-head"><h3>X 的边缘分布（顶部投影）</h3><p id="marginalTopSummary">X ~ N(0.00, 1.20&sup2;)（X 的边缘分布）</p></div>
+              <canvas id="marginalTopCanvas" width="920" height="220" aria-label="X 边缘分布"></canvas>
+            </div>
+            <div class="joint-grid__note">
+              <p class="note-label">联合模型</p>
+              <div id="jointDistributionMath"></div>
+            </div>
+            <div class="joint-grid__main">
+              <canvas id="marginalMainCanvas" width="920" height="540" aria-label="带边缘分布的联合密度"></canvas>
+            </div>
+            <div class="joint-grid__right">
+              <canvas id="marginalRightCanvas" width="260" height="540" aria-label="Y 边缘分布"></canvas>
+            </div>
+          </div>
+          <figcaption>
+            <span class="readout" id="marginalXMath"></span>
+            <span class="readout" id="marginalYMath"></span>
+            <span class="readout-text" id="marginalCorrelationNote">改变 &rho; 会旋转联合椭圆，但边缘分布曲线的宽度不变。</span>
+          </figcaption>
+        </figure>
+
+        <p>
+          <strong>为何这一点重要。</strong> 在许多应用中，你一次只能观测到一个变量。若你查看的是某位患者的血压而不知其胆固醇水平，你看到的便是边缘分布。边缘分布告诉你该变量在孤立状态下的离散程度，却丢弃了全部关于变量间关系的信息。而条件分布所恢复的，恰恰正是这些关系信息。
+        </p>
+      </section>
+
+      <!-- ===== VI. CONDITIONALS ===== -->
+      <section id="conditionals" data-nav="Conditionals">
+        <h2><span class="num">VI.</span> 条件分布：高斯版本的 &ldquo;在给定…之下&rdquo;</h2>
+
+        <p>
+          <em>条件分布</em> 回答的问题比边缘分布尖锐得多：若我<em>已知</em> X 取某一特定值 x<sub>0</sub>，那么关于 Y 我能说些什么？对高斯分布而言，答案仍是高斯分布，但有两点具体变化：
+        </p>
+
+        <div class="math-block" data-katex-display>
+          \[
+            Y \mid X = x_0
+            \;\sim\;
+            \mathcal{N}\!\left(
+              \underbrace{\mu_y + \rho\,\frac{\sigma_y}{\sigma_x}(x_0 - \mu_x)}_{\text{条件均值}},\;\;
+              \underbrace{(1-\rho^2)\,\sigma_y^2}_{\text{条件方差}}
+            \right)
+          \]
+        </div>
+
+        <p>
+          <strong>条件均值发生平移。</strong> 它不再停留在 &mu;<sub>y</sub>，而是移动一段与 x<sub>0</sub> 偏离 &mu;<sub>x</sub> 的程度成正比的量，并由回归系数 &rho;&sigma;<sub>y</sub>/&sigma;<sub>x</sub> 缩放。这<em>恰好</em> 就是 Y 对 X 的最小二乘回归直线的斜率。随着 x<sub>0</sub> 变化，条件均值描出一条直线 &mdash; 而这条直线正是回归直线。
+        </p>
+
+        <p>
+          <strong>条件方差收缩。</strong> 它由 &sigma;<sub>y</sub>&sup2; 缩减为 (1&minus;&rho;&sup2;)&sigma;<sub>y</sub>&sup2;。因子 (1&minus;&rho;&sup2;) 是 Y 的方差中<em>未</em>被 X 解释的比例。当 &rho;=0 时，没有方差被解释，条件分布等于边缘分布。当 |&rho;|=1 时，全部方差均被解释，条件分布退化为一个点 &mdash; 若你精确已知 X，便精确已知 Y。
+        </p>
+
+        <p>
+          <strong>与 R&sup2; 的联系。</strong> 在线性回归中，R&sup2; 是被预测变量解释的方差比例。对二元正态分布而言，R&sup2;&nbsp;=&nbsp;&rho;&sup2;。条件方差等于 (1&minus;R&sup2;) 乘以边缘方差。因此，简单线性回归的全部机制其实早已潜藏于二元正态分布之中 &mdash; 条件分布字面上就是回归所计算的对象。
+        </p>
+
+        <p>
+          下图在联合分布上添加了两条切片线：x<sub>0</sub> 处的竖直切片（揭示 Y|X）与 y<sub>0</sub> 处的水平切片（揭示 X|Y）。拖动切片线或使用滑块。将每条条件曲线与其边缘分布（以青色显示）比较：条件分布<em>总是</em> 更窄或相等，绝不会更宽。
+        </p>
+
+        <figure class="interactive-figure wide-figure">
+          <div class="figure-controls figure-controls--grid">
+            <label>均值 x <input id="muXCond" type="range" min="-2.5" max="2.5" step="0.1" value="0" /> <span id="muXCondValue">0.0</span></label>
+            <label>均值 y <input id="muYCond" type="range" min="-2.5" max="2.5" step="0.1" value="0" /> <span id="muYCondValue">0.0</span></label>
+            <label>离散度 &sigma;<sub>x</sub> <input id="sigmaXCond" type="range" min="0.45" max="2.4" step="0.05" value="1.2" /> <span id="sigmaXCondValue">1.2</span></label>
+            <label>离散度 &sigma;<sub>y</sub> <input id="sigmaYCond" type="range" min="0.45" max="2.4" step="0.05" value="0.9" /> <span id="sigmaYCondValue">0.9</span></label>
+            <label>相关系数 &rho; <input id="rhoCond" type="range" min="-0.95" max="0.95" step="0.01" value="0.55" /> <span id="rhoCondValue">0.55</span></label>
+            <label>竖直切片 x<sub>0</sub> <input id="xSliceOffset" type="range" min="-3" max="3" step="0.05" value="0" /> <span id="xSliceOffsetValue">+0.00</span></label>
+            <label>水平切片 y<sub>0</sub> <input id="ySliceOffset" type="range" min="-3" max="3" step="0.05" value="0" /> <span id="ySliceOffsetValue">+0.00</span></label>
+          </div>
+          <div class="joint-grid">
+            <div class="joint-grid__top">
+              <div class="strip-head"><h3>X 边缘分布 <span class="color-teal">&mdash;</span> 与 X|Y 条件分布 <span class="color-gold">&mdash;</span></h3><p id="conditionalTopSummary">青色：X 边缘分布。金色：X | Y = 0.00。</p></div>
+              <canvas id="conditionalTopCanvas" width="920" height="220" aria-label="X 的边缘分布与条件分布"></canvas>
+            </div>
+            <div class="joint-grid__note">
+              <p class="note-label">切片读数</p>
+              <p id="sliceReadout">x<sub>0</sub> = 0.00, y<sub>0</sub> = 0.00</p>
+              <p id="jointNarrative" class="note-copy">金色：X|Y。珊瑚色：Y|X。</p>
+            </div>
+            <div class="joint-grid__main">
+              <canvas id="conditionalMainCanvas" width="920" height="540" aria-label="带条件切片的联合密度"></canvas>
+            </div>
+            <div class="joint-grid__right">
+              <canvas id="conditionalRightCanvas" width="260" height="540" aria-label="Y 的边缘分布与条件分布"></canvas>
+            </div>
+          </div>
+          <figcaption>
+            <span class="readout" id="xConditionalFormula"></span>
+            <span class="readout" id="yConditionalFormula"></span>
+            <span class="readout" id="shrinkageFormula"></span>
+            <span class="readout-text" id="jointSummary">边缘分布保持其宽度。随着 |&rho;| 增大，条件分布变得更窄。</span>
+          </figcaption>
+        </figure>
+
+        <p>
+          <strong>值得注意之处。</strong> 在 &rho; 为高正值时把 x<sub>0</sub> 移到 +2 个标准差处。Y 的条件均值跃升至远高于 &mu;<sub>y</sub> 的位置，条件曲线也变得明显比边缘分布更窄。现在令 &rho;=0。条件分布与边缘分布变得完全相同：观测 X 对推断 Y 毫无帮助。这就是高斯变量独立性的操作性定义。
+        </p>
+
+        <p>
+          <strong>封闭性。</strong> 将高斯分布关于某一部分变量取条件后得到的仍是高斯分布，这是该分布族最重要的代数性质。它是 Kalman 滤波得以成立的原因（预测与更新皆为高斯运算），是高斯过程能给出闭式后验的原因，也是贝叶斯线性回归拥有精确解的原因。每当你看到一个模型说 &ldquo;假设数据服从高斯分布&rdquo; 时，这一封闭性通常才是其真正的动机。
+        </p>
+
+        <div class="try-this">
+          <strong>试一试：</strong>
+          <button class="preset-link" data-two-d-preset="symmetric">离散度相等，&rho; 较高</button> &middot;
+          <button class="preset-link" data-two-d-preset="conditional-demo">条件分布极窄</button> &middot;
+          <button class="preset-link" data-two-d-preset="independent">独立（无信息增益）</button>
+        </div>
+      </section>
+
+      <!-- ===== VI½. MISCONCEPTIONS ===== -->
+      <section id="misconceptions" data-nav="Myths">
+        <h2><span class="num">VI&frac12;.</span> 学生屡屡中招的三个误区</h2>
+        <p>
+          高斯分布性质过于良好，以致学生常将其性质推广到一般概率论。其中三种推广是错误的，下面给出简要纠正。
+        </p>
+
+        <div class="misconception">
+          <div class="m-q">误区 1 —— 不相关即独立</div>
+          <p class="m-text">
+            <strong>仅对联合高斯变量成立。</strong> 对其他分布而言，零相关仅意味着不存在<em>线性</em>关系。取 Y = X<sup>2</sup>，其中 X &sim; N(0,1)：cov(X, Y) = E[X<sup>3</sup>] = 0，但 Y 是 X 的确定性函数 —— 依赖关系是完全的。高斯分布之所以特殊：仅对它而言，零相关才强制推出独立。
+          </p>
+        </div>
+
+        <div class="misconception">
+          <div class="m-q">误区 2 —— 边缘分布决定联合分布</div>
+          <p class="m-text">
+            <strong>仅有边缘分布还不够，你还需要协方差。</strong> &rho; = 0.8 的联合高斯分布与 &rho; = &minus;0.8 的联合高斯分布，其 X 与 Y 的边缘分布<em>完全相同</em>。边缘分布是联合分布向各坐标轴所作的投影（影子）；影子丢失了全部关于两个变量<em>如何</em>协同变化的信息。这正是我们无法由两个一维直方图还原出二维分布的原因。
+          </p>
+        </div>
+
+        <div class="misconception">
+          <div class="m-q">误区 3 —— 取条件总能降低不确定性</div>
+          <p class="m-text">
+            <strong>对高斯分布（以及许多性质良好的分布）成立；但并非普适规律。</strong> 对二元正态分布而言，条件方差 &le; 边缘方差恒成立 —— 它恰为 (1 &minus; &rho;<sup>2</sup>)&sigma;<sup>2</sup>。但在一般概率论中，对某个变量取条件反而可能<em>增大</em> 另一个变量的方差（辛普森悖论是最典型的例子）。切勿不经检验便把高斯分布的直觉带入非高斯情形。
+          </p>
+        </div>
+
+        <p>
+          这三条都值得按名称记牢，因为每一条都对应着学生建模时确实会引入的错误。前两条为协方差矩阵提供了动机（联合结构并非与边缘分布冗余）。第三条则提示：每当对一个非高斯协变量取条件时，都需谨慎推理。
+        </p>
+      </section>
+
+      <!-- ===== VII. TAKEAWAYS ===== -->
+      <section id="takeaways" data-nav="Takeaways">
+        <h2><span class="num">VII.</span> 小结与联系</h2>
+
+        <dl class="takeaway-list">
+          <div class="takeaway">
+            <dt>密度不是概率</dt>
+            <dd>某点处密度的取值是相对可能性，而非概率。概率是两点之间曲线下的面积。密度可以大于 1。</dd>
+          </div>
+          <div class="takeaway">
+            <dt>一维中两个参数掌控一切</dt>
+            <dd>&mu; 决定中心，&sigma; 决定宽度。68-95-99.7 法则让你无需计算任何积分即可快速估算概率。</dd>
+          </div>
+          <div class="takeaway">
+            <dt>二维中协方差矩阵就是全部</dt>
+            <dd>对角线元素是方差，非对角元素是协方差。&Sigma; 的特征值与特征向量直接给出椭圆的形状与朝向。</dd>
+          </div>
+          <div class="takeaway">
+            <dt>采样 = 变换标准正态分布</dt>
+            <dd>抽取 z ~ N(0,I)，计算 x = &mu; + Lz，其中 LL<sup>T</sup> = &Sigma;。Cholesky 因子 L 负责拉伸与旋转。每一个蒙特卡洛采样器都以这种方式生成多元正态样本。</dd>
+          </div>
+          <div class="takeaway">
+            <dt>最大似然估计不过是取平均</dt>
+            <dd>最大似然均值即样本平均。最大似然协方差即中心化观测值外积的平均。无需梯度下降，无需迭代 &mdash; 只需求和。</dd>
+          </div>
+          <div class="takeaway">
+            <dt>边缘分布忽略相关性</dt>
+            <dd>无论相关性多强，X 的边缘分布仅依赖 &mu;<sub>x</sub> 与 &sigma;<sub>x</sub>&sup2;。边缘分布是投影，而投影会丢弃关系信息。</dd>
+          </div>
+          <div class="takeaway">
+            <dt>条件分布即回归</dt>
+            <dd>对 X=x<sub>0</sub> 取条件得到 Y 的高斯分布，其均值沿回归直线变化，方差为 (1&minus;&rho;&sup2;)&sigma;<sub>y</sub>&sup2;。条件分布<em>正是</em> 线性回归所计算的对象。</dd>
+          </div>
+          <div class="takeaway">
+            <dt>封闭性才是真正的超能力</dt>
+            <dd>高斯分布经边缘化、取条件以及线性组合后仍为高斯分布。这一封闭性正是该分布族占据主导地位的原因：Kalman 滤波、高斯过程、贝叶斯线性回归与因子分析皆依赖于此。</dd>
+          </div>
+        </dl>
+
+        <h3>后续方向</h3>
+        <p>
+          <strong>更高维。</strong> 上述一切均可直接推广：&mu; 变为 d 维向量，&Sigma; 变为 d&times;d 矩阵，等值线变为椭球面。边缘分布与条件分布仍为高斯分布，公式形式相同（只是涉及 &Sigma; 的子矩阵）。
+        </p>
+        <p>
+          <strong>高斯过程。</strong> GP 是定义在<em>函数</em> 之上的分布，其定义性质为：任意有限个函数值构成的集合服从联合高斯分布。对已观测数据点取条件，正是第&nbsp;VI&nbsp;节中的条件分布公式应用于潜在无穷维协方差结构的结果。
+        </p>
+        <p>
+          <strong>Kalman 滤波。</strong> 线性动力系统在每个时间步的状态服从高斯分布。预测步是边缘化（向时间前方投影），更新步是取条件（纳入新的观测）。两种运算都保持高斯性，这正是 Kalman 滤波既精确又高效的原因。
+        </p>
+        <p>
+          <strong>最大熵。</strong> 在均值与协方差给定的所有分布中，高斯分布的熵最大 &mdash; 它作出的额外假设最少。这就是以高斯分布作为不确定性默认模型的信息论依据。
+        </p>
+      </section>
+
+      <footer class="article-footer"></footer>
+    </article>
+
+    <script defer src="../vendor/katex/katex.min.js"></script>
+    <script defer src="app.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

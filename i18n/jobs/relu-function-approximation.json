@@ -1,0 +1,1031 @@
+{
+ "slug": "relu-function-approximation",
+ "units": {
+  "ReLU Function Lab": {
+   "zh": "ReLU 函数实验室",
+   "src": "ReLU Function Lab",
+   "tags": []
+  },
+  "@@T0@@Skip to experiment output@@T1@@": {
+   "zh": "@@T0@@跳到实验输出@@T1@@",
+   "src": "<a class=\"skip-link\" href=\"#workspace\">Skip to experiment output</a>",
+   "tags": [
+    "<a class=\"skip-link\" href=\"#workspace\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@All interactives@@T1@@": {
+   "zh": "@@T0@@全部交互式文章@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\" aria-label=\"Back to all interactives\">All interactives</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\" aria-label=\"Back to all interactives\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@Deep Learning · Lecture 2@@T1@@\n      @@T2@@ReLU Function Lab@@T3@@": {
+   "zh": "@@T0@@深度学习 · 第二讲@@T1@@\n      @@T2@@ReLU 函数实验室@@T3@@",
+   "src": "<span>Deep Learning · Lecture 2</span>\n      <strong>ReLU Function Lab</strong>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Classification playground@@T1@@\n      @@T2@@Lecture slides@@T3@@": {
+   "zh": "@@T0@@分类实验场@@T1@@\n      @@T2@@课程讲义@@T3@@",
+   "src": "<a href=\"../mlp-decision-boundary/\">Classification playground</a>\n      <a href=\"https://nipunbatra.github.io/dl-teaching/slides-pdf/L2.pdf\">Lecture slides</a>",
+   "tags": [
+    "<a href=\"../mlp-decision-boundary/\">",
+    "</a>",
+    "<a href=\"https://nipunbatra.github.io/dl-teaching/slides-pdf/L2.pdf\">",
+    "</a>"
+   ]
+  },
+  "ONE-DIMENSIONAL WITNESS": {
+   "zh": "一维见证",
+   "src": "ONE-DIMENSIONAL WITNESS",
+   "tags": []
+  },
+  "Build a function from ReLU hinges.": {
+   "zh": "以 ReLU 折点为构件构造函数。",
+   "src": "Build a function from ReLU hinges.",
+   "tags": []
+  },
+  "Construct an interpolant that is guaranteed by its knots, then train the same kind of network from a deterministic random start. Keep existence and optimization as separate claims.": {
+   "zh": "构造一个由其结点所保证的插值函数，再从确定性的随机初值出发训练同类型的网络。请将存在性与优化这两个命题分开看待。",
+   "src": "Construct an interpolant that is guaranteed by its knots, then train the same kind of network from a deterministic random start. Keep existence and optimization as separate claims.",
+   "tags": []
+  },
+  "The theorem boundary": {
+   "zh": "定理的边界",
+   "src": "The theorem boundary",
+   "tags": []
+  },
+  "For continuous @@T0@@f@@T1@@ on a compact domain and every ε &gt; 0, some finite one-hidden-layer ReLU network can make": {
+   "zh": "对于紧致域上的连续函数 @@T0@@f@@T1@@，以及对任意 ε &gt; 0，总存在某个有限宽的含一个隐藏层的 ReLU 网络，使得",
+   "src": "For continuous <i>f</i> on a compact domain and every ε &gt; 0, some finite one-hidden-layer ReLU network can make",
+   "tags": [
+    "<i>",
+    "</i>"
+   ]
+  },
+  "sup@@T0@@x∈D@@T1@@ |f(x) − ĝ(x)| &lt; ε.": {
+   "zh": "sup@@T0@@x∈D@@T1@@ |f(x) − ĝ(x)| &lt; ε。",
+   "src": "sup<sub>x∈D</sub> |f(x) − ĝ(x)| &lt; ε.",
+   "tags": [
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "This lab shows one-dimensional witnesses and optimizer runs. Its 401-point grid maximum is not an exact supremum.": {
+   "zh": "本实验展示一维的见证构造与优化器运行结果。其 401 点网格上的最大值并非精确上确界。",
+   "src": "This lab shows one-dimensional witnesses and optimizer runs. Its 401-point grid maximum is not an exact supremum.",
+   "tags": []
+  },
+  "@@T0@@A@@T1@@\n        @@T2@@@@T3@@Construction@@T4@@@@T5@@fixed knots → exact interpolant@@T6@@@@T7@@": {
+   "zh": "@@T0@@A@@T1@@\n        @@T2@@@@T3@@构造@@T4@@@@T5@@固定结点 → 精确插值@@T6@@@@T7@@",
+   "src": "<span class=\"lane-index\">A</span>\n        <span><strong>Construction</strong><small>fixed knots → exact interpolant</small></span>",
+   "tags": [
+    "<span class=\"lane-index\">",
+    "</span>",
+    "<span>",
+    "<strong>",
+    "</strong>",
+    "<small>",
+    "</small>",
+    "</span>"
+   ]
+  },
+  "@@T0@@B@@T1@@\n        @@T2@@@@T3@@Training@@T4@@@@T5@@random weights → gradient steps@@T6@@@@T7@@": {
+   "zh": "@@T0@@B@@T1@@\n        @@T2@@@@T3@@训练@@T4@@@@T5@@随机权重 → 梯度步@@T6@@@@T7@@",
+   "src": "<span class=\"lane-index\">B</span>\n        <span><strong>Training</strong><small>random weights → gradient steps</small></span>",
+   "tags": [
+    "<span class=\"lane-index\">",
+    "</span>",
+    "<span>",
+    "<strong>",
+    "</strong>",
+    "<small>",
+    "</small>",
+    "</span>"
+   ]
+  },
+  "Choose the target": {
+   "zh": "选择目标函数",
+   "src": "Choose the target",
+   "tags": []
+  },
+  "@@T0@@Continuous function on −1 ≤ x ≤ 1@@T1@@": {
+   "zh": "@@T0@@−1 ≤ x ≤ 1 上的连续函数@@T1@@",
+   "src": "<span>Continuous function on −1 ≤ x ≤ 1</span>",
+   "tags": [
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Sine · sin(πx)": {
+   "zh": "正弦 · sin(πx)",
+   "src": "Sine · sin(πx)",
+   "tags": []
+  },
+  "Tent": {
+   "zh": "帐篷函数",
+   "src": "Tent",
+   "tags": []
+  },
+  "Two bumps": {
+   "zh": "双峰",
+   "src": "Two bumps",
+   "tags": []
+  },
+  "Smooth step": {
+   "zh": "平滑阶跃",
+   "src": "Smooth step",
+   "tags": []
+  },
+  "Draw a target": {
+   "zh": "绘制目标函数",
+   "src": "Draw a target",
+   "tags": []
+  },
+  "Drag inside the main plot to draw a continuous piecewise-linear target.": {
+   "zh": "在主图内拖动以绘制连续的分段线性目标函数。",
+   "src": "Drag inside the main plot to draw a continuous piecewise-linear target.",
+   "tags": []
+  },
+  "Clear drawing": {
+   "zh": "清除绘制",
+   "src": "Clear drawing",
+   "tags": []
+  },
+  "Set capacity": {
+   "zh": "设置容量",
+   "src": "Set capacity",
+   "tags": []
+  },
+  "@@T0@@@@T1@@Interior hinges@@T2@@@@T3@@5@@T4@@@@T5@@": {
+   "zh": "@@T0@@@@T1@@内部折点@@T2@@@@T3@@5@@T4@@@@T5@@",
+   "src": "<span><span id=\"complexityLabel\">Interior hinges</span><output id=\"complexityValue\" for=\"complexityRange\">5</output></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"complexityLabel\">",
+    "</span>",
+    "<output id=\"complexityValue\" for=\"complexityRange\">",
+    "</output>",
+    "</span>"
+   ]
+  },
+  "@@T0@@6 segments · 6 ReLU units · 7 knots@@T1@@": {
+   "zh": "@@T0@@6 段 · 6 个 ReLU 单元 · 7 个结点@@T1@@",
+   "src": "<small id=\"complexityMeta\">6 segments · 6 ReLU units · 7 knots</small>",
+   "tags": [
+    "<small id=\"complexityMeta\">",
+    "</small>"
+   ]
+  },
+  "2 hinges": {
+   "zh": "2 个折点",
+   "src": "2 hinges",
+   "tags": []
+  },
+  "5 hinges": {
+   "zh": "5 个折点",
+   "src": "5 hinges",
+   "tags": []
+  },
+  "15 hinges": {
+   "zh": "15 个折点",
+   "src": "15 hinges",
+   "tags": []
+  },
+  "Precise knot positions": {
+   "zh": "精确结点位置",
+   "src": "Precise knot positions",
+   "tags": []
+  },
+  "@@T0@@@@T1@@Tolerance ε@@T2@@@@T3@@0.05@@T4@@@@T5@@": {
+   "zh": "@@T0@@@@T1@@容差 ε@@T2@@@@T3@@0.05@@T4@@@@T5@@",
+   "src": "<span><span>Tolerance ε</span><output id=\"epsilonValue\" for=\"epsilonRange\">0.05</output></span>",
+   "tags": [
+    "<span>",
+    "<span>",
+    "</span>",
+    "<output id=\"epsilonValue\" for=\"epsilonRange\">",
+    "</output>",
+    "</span>"
+   ]
+  },
+  "@@T0@@The shaded band is f(x) ± ε.@@T1@@": {
+   "zh": "@@T0@@阴影带为 f(x) ± ε。@@T1@@",
+   "src": "<small>The shaded band is f(x) ± ε.</small>",
+   "tags": [
+    "<small>",
+    "</small>"
+   ]
+  },
+  "Set optimization": {
+   "zh": "设置优化",
+   "src": "Set optimization",
+   "tags": []
+  },
+  "@@T0@@Learning rate@@T1@@": {
+   "zh": "@@T0@@学习率@@T1@@",
+   "src": "<span>Learning rate</span>",
+   "tags": [
+    "<span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Initialization seed@@T1@@\n            @@T2@@": {
+   "zh": "@@T0@@初始化随机种子@@T1@@\n            @@T2@@",
+   "src": "<span>Initialization seed</span>\n            <span class=\"seed-row\">",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span class=\"seed-row\">"
+   ]
+  },
+  "Full-batch gradient descent uses 121 fixed samples shown on the target curve.": {
+   "zh": "全批量梯度下降使用目标曲线上所示的 121 个固定样本。",
+   "src": "Full-batch gradient descent uses 121 fixed samples shown on the target curve.",
+   "tags": []
+  },
+  "Inspect or train": {
+   "zh": "检视或训练",
+   "src": "Inspect or train",
+   "tags": []
+  },
+  "Run": {
+   "zh": "运行",
+   "src": "Run",
+   "tags": []
+  },
+  "One step": {
+   "zh": "单步",
+   "src": "One step",
+   "tags": []
+  },
+  "100 steps": {
+   "zh": "100 步",
+   "src": "100 steps",
+   "tags": []
+  },
+  "Reset": {
+   "zh": "重置",
+   "src": "Reset",
+   "tags": []
+  },
+  "@@T0@@Constructed · fixed knots@@T1@@": {
+   "zh": "@@T0@@构造所得 · 固定结点@@T1@@",
+   "src": "<span class=\"provenance-badge\" id=\"provenanceBadge\">Constructed · fixed knots</span>",
+   "tags": [
+    "<span class=\"provenance-badge\" id=\"provenanceBadge\">",
+    "</span>"
+   ]
+  },
+  "Fixed-knot interpolant loaded. No optimizer was used.": {
+   "zh": "已载入固定结点插值函数。未使用优化器。",
+   "src": "Fixed-knot interpolant loaded. No optimizer was used.",
+   "tags": []
+  },
+  "CONSTRUCTED WITNESS": {
+   "zh": "构造所得见证",
+   "src": "CONSTRUCTED WITNESS",
+   "tags": []
+  },
+  "Sine · fixed-knot interpolation": {
+   "zh": "正弦 · 固定结点插值",
+   "src": "Sine · fixed-knot interpolation",
+   "tags": []
+  },
+  "@@T0@@Grid gap ≥ ε@@T1@@": {
+   "zh": "@@T0@@网格间距 ≥ ε@@T1@@",
+   "src": "<span class=\"tolerance-badge\" id=\"toleranceBadge\">Grid gap ≥ ε</span>",
+   "tags": [
+    "<span class=\"tolerance-badge\" id=\"toleranceBadge\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Training-sample MSE@@T1@@@@T2@@—@@T3@@@@T4@@not trained@@T5@@": {
+   "zh": "@@T0@@训练样本 MSE@@T1@@@@T2@@—@@T3@@@@T4@@未训练@@T5@@",
+   "src": "<span>Training-sample MSE</span><strong id=\"trainMseValue\">—</strong><small id=\"trainMseNote\">not trained</small>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong id=\"trainMseValue\">",
+    "</strong>",
+    "<small id=\"trainMseNote\">",
+    "</small>"
+   ]
+  },
+  "@@T0@@Dense-grid MSE@@T1@@@@T2@@0.0000@@T3@@@@T4@@401 evaluation points@@T5@@": {
+   "zh": "@@T0@@稠密网格 MSE@@T1@@@@T2@@0.0000@@T3@@@@T4@@401 个评估点@@T5@@",
+   "src": "<span>Dense-grid MSE</span><strong id=\"denseMseValue\">0.0000</strong><small>401 evaluation points</small>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong id=\"denseMseValue\">",
+    "</strong>",
+    "<small>",
+    "</small>"
+   ]
+  },
+  "@@T0@@Max grid gap@@T1@@@@T2@@0.000@@T3@@@@T4@@max of 401 gaps@@T5@@": {
+   "zh": "@@T0@@最大网格间距@@T1@@@@T2@@0.000@@T3@@@@T4@@401 个间距中的最大值@@T5@@",
+   "src": "<span>Max grid gap</span><strong id=\"maxGapValue\">0.000</strong><small>max of 401 gaps</small>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong id=\"maxGapValue\">",
+    "</strong>",
+    "<small>",
+    "</small>"
+   ]
+  },
+  "@@T0@@Gradient steps@@T1@@@@T2@@0@@T3@@@@T4@@19 parameters@@T5@@": {
+   "zh": "@@T0@@梯度步数@@T1@@@@T2@@0@@T3@@@@T4@@19 个参数@@T5@@",
+   "src": "<span>Gradient steps</span><strong id=\"stepsValue\">0</strong><small id=\"parameterNote\">19 parameters</small>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong id=\"stepsValue\">",
+    "</strong>",
+    "<small id=\"parameterNote\">",
+    "</small>"
+   ]
+  },
+  "TARGET + MODEL": {
+   "zh": "目标函数 + 模型",
+   "src": "TARGET + MODEL",
+   "tags": []
+  },
+  "Can the blue curve stay inside the ε band?": {
+   "zh": "蓝色曲线能否始终落在 ε 带内？",
+   "src": "Can the blue curve stay inside the ε band?",
+   "tags": []
+  },
+  "ĝ(x) = c + Σ vⱼ ReLU(wⱼx + bⱼ)": {
+   "zh": "模型形式：ĝ(x) = c + Σ vⱼ ReLU(wⱼx + bⱼ)",
+   "src": "ĝ(x) = c + Σ vⱼ ReLU(wⱼx + bⱼ)",
+   "tags": []
+  },
+  "@@T0@@@@T1@@@@T2@@Target f(x)@@T3@@\n            @@T4@@@@T5@@@@T6@@Approximation ĝ(x)@@T7@@\n            @@T8@@@@T9@@@@T10@@f(x) ± ε@@T11@@\n            @@T12@@@@T13@@@@T14@@Interpolation knots@@T15@@\n            @@T16@@@@T17@@@@T18@@Training samples@@T19@@": {
+   "zh": "@@T0@@@@T1@@@@T2@@目标 f(x)@@T3@@\n            @@T4@@@@T5@@@@T6@@近似 ĝ(x)@@T7@@\n            @@T8@@@@T9@@@@T10@@f(x) ± ε@@T11@@\n            @@T12@@@@T13@@@@T14@@插值结点@@T15@@\n            @@T16@@@@T17@@@@T18@@训练样本@@T19@@",
+   "src": "<span><i class=\"line-key target-key\"></i>Target f(x)</span>\n            <span><i class=\"line-key model-key\"></i>Approximation ĝ(x)</span>\n            <span><i class=\"band-key\"></i>f(x) ± ε</span>\n            <span class=\"construction-only\"><i class=\"knot-key\"></i>Interpolation knots</span>\n            <span class=\"train-only\" hidden><i class=\"sample-key\"></i>Training samples</span>",
+   "tags": [
+    "<span>",
+    "<i class=\"line-key target-key\">",
+    "</i>",
+    "</span>",
+    "<span>",
+    "<i class=\"line-key model-key\">",
+    "</i>",
+    "</span>",
+    "<span>",
+    "<i class=\"band-key\">",
+    "</i>",
+    "</span>",
+    "<span class=\"construction-only\">",
+    "<i class=\"knot-key\">",
+    "</i>",
+    "</span>",
+    "<span class=\"train-only\" hidden>",
+    "<i class=\"sample-key\">",
+    "</i>",
+    "</span>"
+   ]
+  },
+  "Drag an orange interior knot left or right; endpoint knots stay fixed.": {
+   "zh": "左右拖动橙色内部结点；端点结点保持固定。",
+   "src": "Drag an orange interior knot left or right; endpoint knots stay fixed.",
+   "tags": []
+  },
+  "ERROR": {
+   "zh": "误差",
+   "src": "ERROR",
+   "tags": []
+  },
+  "Pointwise gap |f(x) − ĝ(x)|": {
+   "zh": "逐点间距 |f(x) − ĝ(x)|",
+   "src": "Pointwise gap |f(x) − ĝ(x)|",
+   "tags": []
+  },
+  "@@T0@@max at x = 0.00@@T1@@": {
+   "zh": "@@T0@@x = 0.00 处取最大@@T1@@",
+   "src": "<span class=\"compact-value\" id=\"maxGapAt\">max at x = 0.00</span>",
+   "tags": [
+    "<span class=\"compact-value\" id=\"maxGapAt\">",
+    "</span>"
+   ]
+  },
+  "MODEL CONTRACT": {
+   "zh": "模型约定",
+   "src": "MODEL CONTRACT",
+   "tags": []
+  },
+  "One input → six ReLUs → one output": {
+   "zh": "一个输入 → 六个 ReLU → 一个输出",
+   "src": "One input → six ReLUs → one output",
+   "tags": []
+  },
+  "Source": {
+   "zh": "来源",
+   "src": "Source",
+   "tags": []
+  },
+  "Fixed knots": {
+   "zh": "固定结点",
+   "src": "Fixed knots",
+   "tags": []
+  },
+  "Output bias c": {
+   "zh": "输出偏置 c",
+   "src": "Output bias c",
+   "tags": []
+  },
+  "Objective": {
+   "zh": "目标",
+   "src": "Objective",
+   "tags": []
+  },
+  "No optimization": {
+   "zh": "无优化",
+   "src": "No optimization",
+   "tags": []
+  },
+  "Evaluation": {
+   "zh": "评估",
+   "src": "Evaluation",
+   "tags": []
+  },
+  "401-point grid": {
+   "zh": "401 点网格",
+   "src": "401-point grid",
+   "tags": []
+  },
+  "This construction is a witness for this target and width. It does not show that gradient descent would discover the same weights.": {
+   "zh": "该构造对本目标函数与本宽度构成一个见证。它并不表明梯度下降能够发现同样的权重。",
+   "src": "This construction is a witness for this target and width. It does not show that gradient descent would discover the same weights.",
+   "tags": []
+  },
+  "SIGNED HINGE FUNCTIONS": {
+   "zh": "带符号的折线函数",
+   "src": "SIGNED HINGE FUNCTIONS",
+   "tags": []
+  },
+  "The output is the bias plus every contribution below.": {
+   "zh": "输出等于偏置加上下方每一项贡献。",
+   "src": "The output is the bias plus every contribution below.",
+   "tags": []
+  },
+  "@@T0@@Shared vertical scale ±1.00@@T1@@": {
+   "zh": "@@T0@@共享纵向标度 ±1.00@@T1@@",
+   "src": "<span class=\"shared-scale\" id=\"sharedScale\">Shared vertical scale ±1.00</span>",
+   "tags": [
+    "<span class=\"shared-scale\" id=\"sharedScale\">",
+    "</span>"
+   ]
+  },
+  "All cards use the same zero-centred y-scale. A small curve is genuinely a small contribution.": {
+   "zh": "所有卡片使用相同的以零为中心的 y 轴标度。曲线幅值小即意味着贡献确实小。",
+   "src": "All cards use the same zero-centred y-scale. A small curve is genuinely a small contribution.",
+   "tags": []
+  },
+  "USE IN CLASS": {
+   "zh": "课堂使用建议",
+   "src": "USE IN CLASS",
+   "tags": []
+  },
+  "Change one thing. Predict first.": {
+   "zh": "每次只改变一个因素，并先作出预测。",
+   "src": "Change one thing. Predict first.",
+   "tags": []
+  },
+  "@@T0@@Capacity:@@T1@@ add hinges; predict where the largest gap will move.": {
+   "zh": "@@T0@@容量：@@T1@@ 增加折点，并预测最大间距将向何处移动。",
+   "src": "<strong>Capacity:</strong> add hinges; predict where the largest gap will move.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Optimization:@@T1@@ keep width fixed; compare two initialization seeds.": {
+   "zh": "@@T0@@优化：@@T1@@ 保持宽度固定，比较两个初始化随机种子。",
+   "src": "<strong>Optimization:</strong> keep width fixed; compare two initialization seeds.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Theorem:@@T1@@ say what existence promises, then name what this optimizer run does not prove.": {
+   "zh": "@@T0@@定理：@@T1@@ 说明存在性所承诺的内容，再指出该优化器运行未能证明什么。",
+   "src": "<strong>Theorem:</strong> say what existence promises, then name what this optimizer run does not prove.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@ReLU networks · deterministic runs · computation stays in this page@@T1@@\n    @@T2@@Continue with decision boundaries →@@T3@@": {
+   "zh": "@@T0@@ReLU 网络 · 确定性运行 · 全部计算均在页面内完成@@T1@@\n    @@T2@@继续学习决策边界 →@@T3@@",
+   "src": "<span>ReLU networks · deterministic runs · computation stays in this page</span>\n    <a href=\"../mlp-decision-boundary/\">Continue with decision boundaries →</a>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<a href=\"../mlp-decision-boundary/\">",
+    "</a>"
+   ]
+  },
+  "Back to all interactives": {
+   "zh": "返回全部交互式文章",
+   "src": "Back to all interactives",
+   "tags": []
+  },
+  "Related course material": {
+   "zh": "相关课程材料",
+   "src": "Related course material",
+   "tags": []
+  },
+  "Universal approximation statement": {
+   "zh": "通用逼近定理陈述",
+   "src": "Universal approximation statement",
+   "tags": []
+  },
+  "Approximation lane": {
+   "zh": "逼近通道",
+   "src": "Approximation lane",
+   "tags": []
+  },
+  "Experiment controls": {
+   "zh": "实验控件",
+   "src": "Experiment controls",
+   "tags": []
+  },
+  "Hinge count presets": {
+   "zh": "折点数量预设",
+   "src": "Hinge count presets",
+   "tags": []
+  },
+  "Use the next seed": {
+   "zh": "使用下一个随机种子",
+   "src": "Use the next seed",
+   "tags": []
+  },
+  "Experiment output": {
+   "zh": "实验输出",
+   "src": "Experiment output",
+   "tags": []
+  },
+  "Target function and current ReLU approximation": {
+   "zh": "目标函数与当前 ReLU 近似",
+   "src": "Target function and current ReLU approximation",
+   "tags": []
+  },
+  "Main plot legend": {
+   "zh": "主图图例",
+   "src": "Main plot legend",
+   "tags": []
+  },
+  "Pointwise absolute approximation error": {
+   "zh": "逐点绝对近似误差",
+   "src": "Pointwise absolute approximation error",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "ReLU 函数实验室",
+  "tagline": "以固定 ReLU 折点构造连续函数，再检验确定性梯度下降能发现什么。",
+  "summary": "一个课堂实验，将固定结点的分段线性见证与优化器运行区分开来。比较目标函数与近似曲线，直接移动结点，在共享标度下检视每个带符号的 ReLU 贡献，并将训练 MSE 与稠密网格近似误差加以区分。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "移动固定插值结点，观察每个带符号的 ReLU 折线如何改变所构造的分段线性函数。",
+   "从确定性的随机权重出发训练同一含一个隐藏层的模型，同时分别追踪训练样本 MSE、稠密网格 MSE 与最大网格间距。",
+   "绘制连续的定制目标函数，设置 ε 带，并精确说明该构造、数值网格与优化器运行各自能确立什么、不能确立什么。"
+  ],
+  "tags": [
+   "ReLU",
+   "通用逼近",
+   "函数逼近",
+   "优化",
+   "交互式"
+  ]
+ },
+ "js": {
+  "Training from seed [[[0]]]… [[[1]]] full-batch steps completed.": {
+   "zh": "自随机种子 [[[0]]] 开始训练……已完成 [[[1]]] 个全批量步。",
+   "exprs": [
+    "${state.seed}",
+    "${state.steps}"
+   ],
+   "tags": [],
+   "src": "Training from seed ${state.seed}… ${state.steps} full-batch steps completed."
+  },
+  "[[[0]]] gradient [[[1]]] completed.": {
+   "zh": "已完成 [[[0]]] 梯度 [[[1]]]。",
+   "exprs": [
+    "${count === 1 ? 'One' : count}",
+    "${count === 1 ? 'step' : 'steps'}"
+   ],
+   "tags": [],
+   "src": "${count === 1 ? 'One' : count} gradient ${count === 1 ? 'step' : 'steps'} completed."
+  },
+  "[[[0]]]-step trained model": {
+   "zh": "训练 [[[0]]] 步的模型",
+   "exprs": [
+    "${state.steps}"
+   ],
+   "tags": [],
+   "src": "${state.steps}-step trained model"
+  },
+  "[[[0]]] target, [[[1]]], tolerance [[[2]]], and maximum 401-point grid gap [[[3]]].": {
+   "zh": "目标函数 [[[0]]]，[[[1]]]，容差 [[[2]]]，以及 401 点网格上的最大间距 [[[3]]]。",
+   "exprs": [
+    "${TARGET_NAMES[state.target]}",
+    "${laneText}",
+    "${state.epsilon.toFixed(2)}",
+    "${metrics.maxGap.toFixed(3)}"
+   ],
+   "tags": [],
+   "src": "${TARGET_NAMES[state.target]} target, ${laneText}, tolerance ${state.epsilon.toFixed(2)}, and maximum 401-point grid gap ${metrics.maxGap.toFixed(3)}."
+  },
+  "Pointwise absolute error on a 401-point grid. Maximum sampled gap [[[0]]] at x [[[1]]]; tolerance [[[2]]].": {
+   "zh": "401 点网格上的逐点绝对误差。采样所得最大间距 [[[0]]] 出现在 x [[[1]]]；容差 [[[2]]]。",
+   "exprs": [
+    "${metrics.maxGap.toFixed(3)}",
+    "${metrics.maxX.toFixed(2)}",
+    "${state.epsilon.toFixed(2)}"
+   ],
+   "tags": [],
+   "src": "Pointwise absolute error on a 401-point grid. Maximum sampled gap ${metrics.maxGap.toFixed(3)} at x ${metrics.maxX.toFixed(2)}; tolerance ${state.epsilon.toFixed(2)}."
+  },
+  "Shared vertical scale ±[[[0]]]": {
+   "zh": "共享纵向标度 ±[[[0]]]",
+   "exprs": [
+    "${scale.toPrecision(2)}"
+   ],
+   "tags": [],
+   "src": "Shared vertical scale ±${scale.toPrecision(2)}"
+  },
+  "Signed output contribution [[[0]]], with output weight [[[1]]] and hinge [[[2]]].": {
+   "zh": "带符号的输出贡献 [[[0]]]，对应输出权重 [[[1]]]、折线 [[[2]]]。",
+   "exprs": [
+    "${unit + 1}",
+    "${v.toFixed(2)}",
+    "${Number.isFinite(hinge) ? hinge.toFixed(2) : 'undefined'}"
+   ],
+   "tags": [],
+   "src": "Signed output contribution ${unit + 1}, with output weight ${v.toFixed(2)} and hinge ${Number.isFinite(hinge) ? hinge.toFixed(2) : 'undefined'}."
+  },
+  "Trained · [[[0]]] steps · seed [[[1]]]": {
+   "zh": "已训练 · [[[0]]] 步 · 随机种子 [[[1]]]",
+   "exprs": [
+    "${state.steps}",
+    "${state.seed}"
+   ],
+   "tags": [],
+   "src": "Trained · ${state.steps} steps · seed ${state.seed}"
+  },
+  "Random initialization · seed [[[0]]]": {
+   "zh": "随机初始化 · 随机种子 [[[0]]]",
+   "exprs": [
+    "${state.seed}"
+   ],
+   "tags": [],
+   "src": "Random initialization · seed ${state.seed}"
+  },
+  "Interior knot [[[0]]] position": {
+   "zh": "内部结点 [[[0]]] 的位置",
+   "exprs": [
+    "${index + 1}"
+   ],
+   "tags": [],
+   "src": "Interior knot ${index + 1} position"
+  },
+  "Interior knot [[[0]]] moved to x = [[[1]]].": {
+   "zh": "内部结点 [[[0]]] 已移至 x = [[[1]]]。",
+   "exprs": [
+    "${index + 1}",
+    "${state.constructKnots[index].toFixed(2)}"
+   ],
+   "tags": [],
+   "src": "Interior knot ${index + 1} moved to x = ${state.constructKnots[index].toFixed(2)}."
+  },
+  "[[[0]]] segments · [[[1]]] ReLU units · [[[2]]] knots": {
+   "zh": "[[[0]]] 段 · [[[1]]] 个 ReLU 单元 · [[[2]]] 个结点",
+   "exprs": [
+    "${segments}",
+    "${segments}",
+    "${segments + 1}"
+   ],
+   "tags": [],
+   "src": "${segments} segments · ${segments} ReLU units · ${segments + 1} knots"
+  },
+  "[[[0]]] trainable signed hinge functions": {
+   "zh": "[[[0]]] 个可训练的带符号折线函数",
+   "exprs": [
+    "${state.trainWidth}"
+   ],
+   "tags": [],
+   "src": "${state.trainWidth} trainable signed hinge functions"
+  },
+  "[[[0]]] · fixed-knot interpolation": {
+   "zh": "[[[0]]] · 固定结点插值",
+   "exprs": [
+    "${targetName}"
+   ],
+   "tags": [],
+   "src": "${targetName} · fixed-knot interpolation"
+  },
+  "[[[0]]] · trained ReLU approximation": {
+   "zh": "[[[0]]] · 训练所得 ReLU 近似",
+   "exprs": [
+    "${targetName}"
+   ],
+   "tags": [],
+   "src": "${targetName} · trained ReLU approximation"
+  },
+  "[[[0]]] fixed samples": {
+   "zh": "[[[0]]] 个固定样本",
+   "exprs": [
+    "${TRAIN_COUNT}"
+   ],
+   "tags": [],
+   "src": "${TRAIN_COUNT} fixed samples"
+  },
+  "max at x = [[[0]]]": {
+   "zh": "x = [[[0]]] 处取最大",
+   "exprs": [
+    "${metrics.maxX.toFixed(2)}"
+   ],
+   "tags": [],
+   "src": "max at x = ${metrics.maxX.toFixed(2)}"
+  },
+  "One input → [[[0]]] ReLUs → one output": {
+   "zh": "一个输入 → [[[0]]] 个 ReLU → 一个输出",
+   "exprs": [
+    "${state.model.width}"
+   ],
+   "tags": [],
+   "src": "One input → ${state.model.width} ReLUs → one output"
+  },
+  "MSE on [[[0]]] samples": {
+   "zh": "[[[0]]] 个样本上的 MSE",
+   "exprs": [
+    "${TRAIN_COUNT}"
+   ],
+   "tags": [],
+   "src": "MSE on ${TRAIN_COUNT} samples"
+  },
+  "Paused after [[[0]]] full-batch steps.": {
+   "zh": "已在 [[[0]]] 个全批量步后暂停。",
+   "exprs": [
+    "${state.steps}"
+   ],
+   "tags": [],
+   "src": "Paused after ${state.steps} full-batch steps."
+  },
+  "Training from seed [[[0]]]…": {
+   "zh": "自随机种子 [[[0]]] 开始训练……",
+   "exprs": [
+    "${state.seed}"
+   ],
+   "tags": [],
+   "src": "Training from seed ${state.seed}…"
+  },
+  "Fixed-knot interpolant with [[[0]]] interior hinges. No optimizer was used.": {
+   "zh": "含 [[[0]]] 个内部折点的固定结点插值函数。未使用优化器。",
+   "exprs": [
+    "${state.constructHinges}"
+   ],
+   "tags": [],
+   "src": "Fixed-knot interpolant with ${state.constructHinges} interior hinges. No optimizer was used."
+  },
+  "Deterministic random weights loaded from seed [[[0]]].": {
+   "zh": "已载入由随机种子 [[[0]]] 生成的确定性随机权重。",
+   "exprs": [
+    "${state.seed}"
+   ],
+   "tags": [],
+   "src": "Deterministic random weights loaded from seed ${state.seed}."
+  },
+  "Random initialization loaded from seed [[[0]]].": {
+   "zh": "已载入由随机种子 [[[0]]] 生成的随机初始化。",
+   "exprs": [
+    "${state.seed}"
+   ],
+   "tags": [],
+   "src": "Random initialization loaded from seed ${state.seed}."
+  },
+  "[[[0]]] target loaded; model reset.": {
+   "zh": "已载入目标函数 [[[0]]]；模型已重置。",
+   "exprs": [
+    "${TARGET_NAMES[target]}"
+   ],
+   "tags": [],
+   "src": "${TARGET_NAMES[target]} target loaded; model reset."
+  },
+  "[[[0]]] interior hinges define [[[1]]] linear segments.": {
+   "zh": "[[[0]]] 个内部折点定义了 [[[1]]] 段线性区间。",
+   "exprs": [
+    "${state.constructHinges}",
+    "${state.constructHinges + 1}"
+   ],
+   "tags": [],
+   "src": "${state.constructHinges} interior hinges define ${state.constructHinges + 1} linear segments."
+  },
+  "[[[0]]] random ReLU units loaded at seed [[[1]]].": {
+   "zh": "已在随机种子 [[[1]]] 处载入 [[[0]]] 个随机 ReLU 单元。",
+   "exprs": [
+    "${state.trainWidth}",
+    "${state.seed}"
+   ],
+   "tags": [],
+   "src": "${state.trainWidth} random ReLU units loaded at seed ${state.seed}."
+  },
+  "Tolerance set to ε = [[[0]]].": {
+   "zh": "容差已设为 ε = [[[0]]]。",
+   "exprs": [
+    "${state.epsilon.toFixed(2)}"
+   ],
+   "tags": [],
+   "src": "Tolerance set to ε = ${state.epsilon.toFixed(2)}."
+  },
+  "Learning rate set to [[[0]]]. Current weights are unchanged.": {
+   "zh": "学习率已设为 [[[0]]]。当前权重保持不变。",
+   "exprs": [
+    "${state.learningRate}"
+   ],
+   "tags": [],
+   "src": "Learning rate set to ${state.learningRate}. Current weights are unchanged."
+  },
+  "Two bumps": {
+   "zh": "双峰",
+   "exprs": [],
+   "tags": [],
+   "src": "Two bumps"
+  },
+  "Smooth step": {
+   "zh": "平滑阶跃",
+   "exprs": [],
+   "tags": [],
+   "src": "Smooth step"
+  },
+  "Drawn target": {
+   "zh": "手绘目标函数",
+   "exprs": [],
+   "tags": [],
+   "src": "Drawn target"
+  },
+  "Fixed-knot interpolant loaded. No optimizer was used.": {
+   "zh": "已载入固定结点插值函数。未使用优化器。",
+   "exprs": [],
+   "tags": [],
+   "src": "Fixed-knot interpolant loaded. No optimizer was used."
+  },
+  "Training became numerically unstable. Reset and choose a smaller learning rate.": {
+   "zh": "训练在数值上变得不稳定。请重置并选择更小的学习率。",
+   "exprs": [],
+   "tags": [],
+   "src": "Training became numerically unstable. Reset and choose a smaller learning rate."
+  },
+  "function value": {
+   "zh": "函数值",
+   "exprs": [],
+   "tags": [],
+   "src": "function value"
+  },
+  "DRAG TO DRAW TARGET": {
+   "zh": "拖动以绘制目标函数",
+   "exprs": [],
+   "tags": [],
+   "src": "DRAG TO DRAW TARGET"
+  },
+  "fixed-knot construction with draggable interior knots": {
+   "zh": "含可拖动内部结点的固定结点构造",
+   "exprs": [],
+   "tags": [],
+   "src": "fixed-knot construction with draggable interior knots"
+  },
+  "absolute gap": {
+   "zh": "绝对间距",
+   "exprs": [],
+   "tags": [],
+   "src": "absolute gap"
+  },
+  "left-edge slope": {
+   "zh": "左端斜率",
+   "exprs": [],
+   "tags": [],
+   "src": "left-edge slope"
+  },
+  "hinge off domain": {
+   "zh": "折点位于定义域外",
+   "exprs": [],
+   "tags": [],
+   "src": "hinge off domain"
+  },
+  "Constructed · fixed knots": {
+   "zh": "构造所得 · 固定结点",
+   "exprs": [],
+   "tags": [],
+   "src": "Constructed · fixed knots"
+  },
+  "Interior hinges": {
+   "zh": "内部折点",
+   "exprs": [],
+   "tags": [],
+   "src": "Interior hinges"
+  },
+  "Hidden ReLU units": {
+   "zh": "隐藏 ReLU 单元",
+   "exprs": [],
+   "tags": [],
+   "src": "Hidden ReLU units"
+  },
+  "CONSTRUCTED WITNESS": {
+   "zh": "构造所得见证",
+   "exprs": [],
+   "tags": [],
+   "src": "CONSTRUCTED WITNESS"
+  },
+  "OPTIMIZER RUN": {
+   "zh": "优化器运行",
+   "exprs": [],
+   "tags": [],
+   "src": "OPTIMIZER RUN"
+  },
+  "Grid gap < ε": {
+   "zh": "网格间距 < ε",
+   "exprs": [],
+   "tags": [],
+   "src": "Grid gap < ε"
+  },
+  "Grid gap ≥ ε": {
+   "zh": "网格间距 ≥ ε",
+   "exprs": [],
+   "tags": [],
+   "src": "Grid gap ≥ ε"
+  },
+  "not trained": {
+   "zh": "未训练",
+   "exprs": [],
+   "tags": [],
+   "src": "not trained"
+  },
+  "Fixed uniform knots": {
+   "zh": "固定均匀结点",
+   "exprs": [],
+   "tags": [],
+   "src": "Fixed uniform knots"
+  },
+  "Fixed learner-moved knots": {
+   "zh": "固定由学习器移动的结点",
+   "exprs": [],
+   "tags": [],
+   "src": "Fixed learner-moved knots"
+  },
+  "No optimization": {
+   "zh": "无优化",
+   "exprs": [],
+   "tags": [],
+   "src": "No optimization"
+  },
+  "This construction is a witness for this target and width. It does not show that gradient descent would discover the same weights.": {
+   "zh": "该构造对本目标函数与本宽度构成一个见证。它并不表明梯度下降能够发现同样的权重。",
+   "exprs": [],
+   "tags": [],
+   "src": "This construction is a witness for this target and width. It does not show that gradient descent would discover the same weights."
+  },
+  "This curve is one deterministic optimizer run. Low training MSE does not by itself establish a uniform guarantee or generalization.": {
+   "zh": "该曲线来自一次确定性的优化器运行。训练 MSE 较低本身并不能确立一致性的保证或泛化能力。",
+   "exprs": [],
+   "tags": [],
+   "src": "This curve is one deterministic optimizer run. Low training MSE does not by itself establish a uniform guarantee or generalization."
+  },
+  "Fixed-knot construction loaded. No optimizer was used.": {
+   "zh": "已载入固定结点构造。未使用优化器。",
+   "exprs": [],
+   "tags": [],
+   "src": "Fixed-knot construction loaded. No optimizer was used."
+  },
+  "Drawn target updated. The target remains continuous between sampled points.": {
+   "zh": "手绘目标函数已更新。目标函数在采样点之间保持连续。",
+   "exprs": [],
+   "tags": [],
+   "src": "Drawn target updated. The target remains continuous between sampled points."
+  },
+  "Uniform knot positions restored.": {
+   "zh": "已恢复均匀结点位置。",
+   "exprs": [],
+   "tags": [],
+   "src": "Uniform knot positions restored."
+  },
+  "Interior knots updated directly.": {
+   "zh": "内部结点已直接更新。",
+   "exprs": [],
+   "tags": [],
+   "src": "Interior knots updated directly."
+  }
+ }
+}

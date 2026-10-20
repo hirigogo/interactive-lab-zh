@@ -1,0 +1,27 @@
+{
+  "slug": "eo-foundation-models",
+  "title": "深入理解对地观测基础模型",
+  "date": "2026-05-10",
+  "tagline": "卫星预训练骨干网络为何与众不同 — 模态、训练方案、下游评估与 2026 年的模型库",
+  "summary": "对地观测基础模型深度导览：为何单块 Sentinel-2 瓦片就会打破 ImageNet 所建立的一切假设，哪些预训练目标真正实现了规模化（MAE / SatMAE / DINO / 像素-语言），2026 年的模型库（Prithvi、SatMAE++、Clay、AnySat、MMEarth、GFM、Presto），以及从原始 L1C 瓦片经预训练到真正超越 ImageNet 权重的微调的完整实例地图。包含一个在合成瓦片上运行的多波段掩码重建实时演示。",
+  "readingTime": "30 min",
+  "difficulty": "进阶",
+  "collection": "计算机视觉",
+  "order": 28,
+  "status": "published",
+  "tags": [
+    "基础模型",
+    "对地观测",
+    "卫星",
+    "MAE",
+    "多光谱",
+    "交互式"
+  ],
+  "highlights": [
+    "为何 ImageNet 骨干网络会败给对地观测预训练的骨干网络（模态、尺度、标注稀缺）。",
+    "在合成 6 波段瓦片上实时运行多波段 MAE，并提供掩码比例与待掩蔽波段滑块。",
+    "2026 年模型库（Prithvi-100M / Prithvi-EO 600M、SatMAE / SatMAE++、Clay v1、AnySat、MMEarth、Presto、GFM、IBM/NASA Granite、SatlasPretrain）及其各自的预训练数据。",
+    "端到端完整流程：下载 Sentinel-2 → 切块 → 归一化 → 掩码 → 预训练 → 线性探测 → 为下游任务微调（窑炉检测、作物类型、生物量）。",
+    "与通用基础模型（DINOv2、SAM2、CLIP）的交叉引用，并说明通用基础模型在对地观测专用模型面前何时占优、何时落败。"
+  ]
+}

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>逐场竞速看排序</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&dis播放=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>逐场竞速看排序</h1>
+        <p class="abstract">
+          五种经典排序算法作用于同一数组，同步逐操作步进。比较次数与写入次数实时累加。切换输入分布，观察快速排序的最坏情形如何出现，以及插入排序如何在极小数组上取胜。其中三种算法的渐近阶相同 —— 但常数因子不同。
+        </p>
+        <div class="byline">
+          <span>约 14 分钟</span>
+          <span>数据结构 &middot; 算法 &middot; 复杂度</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>渐近答案掩盖了真正的答案</h2>
+        <p>
+          每一本算法教科书都列出同一张表：归并排序、快速排序、堆排序 —— 全为 $O(n \log n)$；插入排序、冒泡排序、选择排序 —— 全为 $O(n^2)$。故事到此为止。然而你所用标准库的排序却并非这三种 $n \log n$ 算法中的任何一种，而是 Timsort（Python 内置排序）（Python、Java）或 pdqsort（Rust、C++）。二者都在相当多的代码中调用<em>插入排序</em>。
+        </p>
+        <p>
+          渐近分析告诉你代价如何随规模增长，却不告诉你代价<em>究竟是多少</em>。在 16 个元素上，插入排序快于快速排序。在近乎有序的百万元素数组上，Timsort（Python 内置排序） 通过检测已有的有序段而以 10× 的优势胜过朴素快速排序。在对抗性输入下，朴素快速排序退化为 $O(n^2)$，而均衡的归并排序不会。
+        </p>
+        <p>
+          下方的竞速直接展示了这一切。五种算法从同一数组出发，每次步进一个操作。你可以选择输入分布、统计比较与写入次数，并看到大 O 记号所丢弃的那些常数。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>竞速</h2>
+        <p>
+          每张卡片展示一种算法的当前状态：柱条表示数值，高亮的柱条为当前正在比较的位置，交换时会闪烁，已排序的区段变为青色。所有卡片每拍推进一个操作。
+        </p>
+        <div class="controls">
+          <label>分布
+            <select id="race-dist">
+              <option value="随机" selected>随机</option>
+              <option value="nearly">近乎有序</option>
+              <option value="逆序">逆序</option>
+              <option value="sorted">已有序</option>
+              <option value="few">少量不同值</option>
+            </select>
+          </label>
+          <label>规模
+            <select id="race-规模">
+              <option value="24">24</option>
+              <option value="40" selected>40</option>
+              <option value="60">60</option>
+            </select>
+          </label>
+          <label>速度
+            <select id="race-速度">
+              <option value="60">慢</option>
+              <option value="16" selected>正常</option>
+              <option value="4">快</option>
+              <option value="1">极速</option>
+            </select>
+          </label>
+          <button class="btn" id="race-播放">播放</button>
+          <button class="btn btn--ghost" id="race-暂停" disabled>暂停</button>
+          <button class="btn btn--ghost" id="race-重置">重置</button>
+        </div>
+        <div class="legend">
+          <span><span class="legend-swatch" style="background: var(--bar-fill);"></span>未排序柱条</span>
+          <span><span class="legend-swatch" style="background: var(--bar-cmp);"></span>比较中</span>
+          <span><span class="legend-swatch" style="background: var(--bar-write);"></span>写入中</span>
+          <span><span class="legend-swatch" style="background: var(--bar-pivot);"></span>基准 / 辅助</span>
+          <span><span class="legend-swatch" style="background: var(--bar-sorted);"></span>最终位置</span>
+        </div>
+        <div class="race-grid" id="race-grid"></div>
+        <p>
+          值得一试的操作：
+        </p>
+        <ul class="explanation-list">
+          <li>将分布设为<em>已有序</em>。插入排序以 $n-1$ 次比较完成 —— 这是它的最好情形。以首元素为基准的快速排序则需要 $\binom{n}{2}$ 次比较 —— 这是它的最坏情形。相同的输入，截然相反的结局。</li>
+          <li>将分布设为<em>逆序</em>。此时冒泡排序执行其最大次数的交换。归并排序则毫不在意。</li>
+          <li>将规模设为 24、分布设为<em>随机</em>。观察快速排序与归并排序尽管递归结构不同，完成时间却大致相当。</li>
+          <li>将规模设为 60、分布设为<em>随机</em>。插入排序与冒泡排序明显落后于那些 $n \log n$ 的参赛者。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>插入排序 —— 小规模之王</h2>
+        <p>
+          沿数组遍历。对每个新元素，将其向左滑动越过所有比它大的元素，直至落位。
+        </p>
+        <div class="math-block" id="math-插入排序"></div>
+        <p>
+          有两个事实使插入排序的重要性超出教科书的示例范围：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>在极小数组上它是最优选择。</strong>
+            现代混合排序（introsort、pdqsort、Timsort（Python 内置排序））在低于某个阈值（通常为 16 或 32）时调用插入排序。
+            渐近意义上的损失是有界的，而常数因子无可匹敌。</li>
+          <li><strong>它是<em>自适应性</em>的。</strong> 对
+            $k$-近乎有序的输入（$k$ 个逆序对），插入排序运行时间为 $O(n + k)$。对已有序输入则为 $O(n)$。归并排序与堆排序在自适应输入上并不会加速。</li>
+          <li><strong>它是稳定的且原地排序。</strong> 相等的键保持其相对顺序；无需辅助内存。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>归并排序 —— 确定性的 n log n</h2>
+        <p>
+          将数组一分为二，递归地排序每一半，再以线性时间合并两个已排序的半区。合并正是其核心：
+        </p>
+        <div class="math-block" id="math-归并排序"></div>
+        <p>
+          归并排序的保证：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>最坏情形为 $O(n \log n)$</strong> —— 任何对抗性输入都无法拖慢它。</li>
+          <li><strong>稳定</strong>（在标准实现下）。</li>
+          <li><strong>为合并缓冲区付出 $O(n)$ 的额外内存</strong>。这正是归并排序尽管最坏情形更优，却在原地排序的竞争中输给快速排序的原因。</li>
+          <li><strong>对外部排序友好。</strong> 当归并排序是数据无法全部装入内存时所使用的算法：切分为若干内存大小的有序段，分别排序，再从磁盘合并。数据库排序 TB 级数据正是如此。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>快速排序 —— 以及基准的选择问题</h2>
+        <p>
+          选取一个基准。将数组划分为“小于基准”“等于”“大于基准”三部分。对两侧的分区递归处理。其数学形式与归并排序相似 —— 是一个平均代价为 $O(n \log n)$ 的分治递归 —— 但实现上有一个令人头疼的决定：<em>选哪个基准？</em>
+        </p>
+        <div class="math-block" id="math-quick"></div>
+        <p>
+          基准策略，按从“易被攻破”到“可上生产”排序：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>首元素。</strong> 教科书中的入门做法。对已有序或逆序的输入，划分会极度不均衡，快速排序退化为 $O(n^2)$。</li>
+          <li><strong>随机基准。</strong> 每次划分选取一个均匀随机的下标。无论输入分布如何，期望复杂度为 $O(n \log n)$。但能看到你随机源的对手仍可造成伤害，因此请使用真正的伪随机数生成器。</li>
+          <li><strong>三数取中。</strong> 基准 = 首、中、尾三个元素的中位数。可破解已有序与逆序输入（在有序数组上三数取中所选即中间元素，也就是真正的中位数）；但无法破解精心构造的“杀手”输入。开销低廉且极为常用。</li>
+          <li><strong>内省排序。</strong> 以快速排序开始；若递归深度超过 $2 \log n$ 则改用堆排序。既保证最坏情形为 $O(n \log n)$，又保留快速排序对缓存友好的平均表现。C++ 中的 <code>std::sort</code> 即采用此法。</li>
+          <li><strong>三路划分</strong>（Bentley-McIlroy）。以 $O(n)$ 处理含大量重复元素的数组 —— 当你把划分方式从“$\le$, $&gt;$”改为“$&lt;$, $=$, $&gt;$”时，上方的“少量不同值”分布会使快速排序降为线性时间。</li>
+        </ul>
+        <div class="callout">
+          <strong>为何快速排序尽管最坏情形更差，却在真实数据上胜出。</strong>
+          缓存局部性。每一次划分都访问连续内存；递归进入越来越小、可容纳于 L1 / L2 缓存的连续区间。堆排序与归并排序的访问模式会使缓存失效。渐近分析看不到这一点 —— 但你的 CPU 看得到。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>堆排序 —— 保证 n log n，且原地</h2>
+        <p>
+          以 $O(n)$ 由数组构建最大堆（Floyd 自底向上的建堆 —— 参见<a href="../trees/index.html">树
+          一文</a>）。随后反复取出最大值并放入数组末尾的槽位，堆的规模减一。被取出的最大值按有序顺序在尾部累积。
+        </p>
+        <div class="math-block" id="math-堆排序sort"></div>
+        <p>
+          这一组合既罕见又实用：最坏情形 $O(n \log n)$、原地、无需辅助内存。那它为何不是标准做法？答案是缓存。隐式二叉树的数组下标 $i, 2i+1, 2i+2$ 使访问散布于内存各处；每次下沉都是一连串缓存未命中。快速排序访问连续区域，堆排序则跳跃访问。在真实硬件上，相同 $n$ 时快速排序以 2–3× 的优势取胜。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>大 O 表 —— 以及它所遗漏的内容</h2>
+        <table class="cmp-table">
+          <thead>
+            <tr>
+              <th>算法</th>
+              <th>最好</th>
+              <th>平均</th>
+              <th>最坏</th>
+              <th>内存</th>
+              <th>稳定</th>
+              <th>原地</th>
+              <th>自适应</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>插入排序</td>
+              <td>$O(n)$</td>
+              <td>$O(n^2)$</td>
+              <td>$O(n^2)$</td>
+              <td>$O(1)$</td>
+              <td class="y">是</td>
+              <td class="y">是</td>
+              <td class="y">是</td>
+            </tr>
+            <tr>
+              <td>冒泡排序</td>
+              <td>$O(n)$</td>
+              <td>$O(n^2)$</td>
+              <td>$O(n^2)$</td>
+              <td>$O(1)$</td>
+              <td class="y">是</td>
+              <td class="y">是</td>
+              <td class="y">是</td>
+            </tr>
+            <tr>
+              <td>归并排序</td>
+              <td>$O(n \log n)$</td>
+              <td>$O(n \log n)$</td>
+              <td>$O(n \log n)$</td>
+              <td>$O(n)$</td>
+              <td class="y">是</td>
+              <td class="n">no</td>
+              <td class="n">no</td>
+            </tr>
+            <tr>
+              <td>快速排序（随机基准）</td>
+              <td>$O(n \log n)$</td>
+              <td>$O(n \log n)$</td>
+              <td>$O(n^2)$</td>
+              <td>$O(\log n)$ 栈空间</td>
+              <td class="n">no</td>
+              <td class="y">是</td>
+              <td class="n">no</td>
+            </tr>
+            <tr>
+              <td>堆排序</td>
+              <td>$O(n \log n)$</td>
+              <td>$O(n \log n)$</td>
+              <td>$O(n \log n)$</td>
+              <td>$O(1)$</td>
+              <td class="n">no</td>
+              <td class="y">是</td>
+              <td class="n">no</td>
+            </tr>
+            <tr>
+              <td>Timsort（Python 内置排序）</td>
+              <td>$O(n)$</td>
+              <td>$O(n \log n)$</td>
+              <td>$O(n \log n)$</td>
+              <td>$O(n)$</td>
+              <td class="y">是</td>
+              <td class="n">no</td>
+              <td class="y">是</td>
+            </tr>
+            <tr>
+              <td>内省排序（pdqsort）</td>
+              <td>$O(n \log n)$</td>
+              <td>$O(n \log n)$</td>
+              <td>$O(n \log n)$</td>
+              <td>$O(\log n)$ 栈空间</td>
+              <td class="n">no</td>
+              <td class="y">是</td>
+              <td>部分</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          教科书表格所略去的那些列 —— <em>稳定</em>、<em>原地</em>、<em>自适应</em> —— 恰恰决定了你的标准库实际搭载何种排序。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-7">
+        <div class="step-badge">第 7 步</div>
+        <h2>超越比较排序的上限</h2>
+        <p>
+          任何基于比较的排序在最坏情形下都必须进行至少 $\Omega(n \log n)$ 次比较 —— 每种排列都需可被区分，而深度为 $d$ 的比较树至多区分 $2^d$ 种排列。
+        </p>
+        <div class="math-block" id="math-bound"></div>
+        <p>
+          若你无需比较 —— 也就是说，你的键具有结构 —— 便能做得更好。
+        </p>
+        <ul class="explanation-list">
+          <li><strong>计数排序。</strong> 键取值于 $\{0, \ldots,
+            k\}$？以 $O(n + k)$ 统计出现次数，再依次输出。当 $k = O(n)$ 时为线性。这是基数排序底层的块排序。</li>
+          <li><strong>基数排序。</strong> 先按最低位排序，再按次低位、依此类推。$O(d \cdot n)$，其中 $d$ 为位数。对定宽整数快于 $n \log n$；但在短数组上因缓存行为而不占优势。</li>
+          <li><strong>桶排序。</strong> 散列到 $k$ 个桶中，对每个桶排序，再拼接。对均匀输入期望为 $O(n + k)$。对抗性输入会使其退化为 $O(n^2)$。</li>
+        </ul>
+        <div class="callout callout--key">
+          <strong>一条经验法则。</strong>
+          对于可比较对象的一般性排序，请使用你所用语言的内置排序 —— 它是 Timsort（Python 内置排序） 或 pdqsort，且经过精心调校。只有在以下情形才求助于自定义排序：(a) 你需要标准排序无法提供的保证（最坏情形 $O(n \log n)$？在基本类型与对象上均稳定？）；或 (b) 你的键结构足够强，使计数 / 基数 / 桶排序确实能够取胜。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-8">
+        <div class="step-badge">第 8 步</div>
+        <h2>推荐阅读</h2>
+        <ul class="explanation-list">
+          <li><strong>Knuth，TAOCP 第&nbsp;3&nbsp;卷</strong> —— 排序与查找。至今仍是权威参考。仅其中关于归并网络的章节便值回书价。</li>
+          <li><strong>Sedgewick，1978</strong> —— <em>Implementing
+            Quicksort Programs.</em> 该文引入的三数取中法以及沿用数十年的原地划分技巧。</li>
+          <li><strong>Bentley &amp; McIlroy，1993</strong> ——
+            <em>Engineering a Sort Function.</em> 破解重复元素情形的三路划分；针对大数组的伪中位数划分。正是这篇论文使 <code>qsort</code> 真正可用。</li>
+          <li><strong>Peters，2002</strong> —— <em>Timsort（Python 内置排序） 原始设计文档
+            listsort.txt.</em> Python 排序的设计笔记。工程写作的典范。</li>
+          <li><strong>Auger、Nicaud、Pivoteau，2018</strong> ——
+            <em>Merge Strategies: from Merge Sort to TimSort.</em>
+            首篇对 Timsort（Python 内置排序） 的完整复杂度分析，其中包括他们在归并不变量中发现的缺陷。</li>
+          <li><strong>Edelkamp、Weiss、Wild，2020</strong> ——
+            <em>BlockQuicksort.</em> 无分支划分，通过减少分支预测失败在现代 CPU 上胜过 <code>std::sort</code>。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

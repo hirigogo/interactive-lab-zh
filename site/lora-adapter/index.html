@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>LoRA（低秩适配） · 低秩适配器实验场</title>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="../shared/site.css" />
+    <style>
+      :root { --ink:#1f1f1e; --paper:#faf8f3; --paper-alt:#f0eee5; --rule:#c9c4b5; --muted:#6b6a65; --accent:#d97757; --accent-soft:#ead3c5; --sage:#7b9e89; --slate:#4a6670; --wine:#a8324b; }
+      body { font-family:"Source Serif 4",Georgia,serif; background:var(--paper); color:var(--ink); line-height:1.6; max-width:860px; margin:0 auto; padding:40px 24px 80px 24px; }
+      .kicker { font-family:"Manrope",sans-serif; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin:0 0 6px 0; }
+      h1 { font-size:44px; line-height:1.1; margin:0 0 16px 0; }
+      h2 { font-size:26px; line-height:1.2; margin:48px 0 14px 0; }
+      h3 { font-size:18px; margin:28px 0 8px 0; font-family:"Manrope",sans-serif; font-weight:700; }
+      .abstract { font-size:18px; color:var(--muted); font-style:italic; margin:0 0 16px 0; }
+      .byline { font-family:"Manrope",sans-serif; font-size:13px; color:var(--muted); border-top:1px solid var(--rule); border-bottom:1px solid var(--rule); padding:12px 0; margin-bottom:36px; }
+      .byline span { margin-right:14px; }
+      a.back-link { font-family:"Manrope",sans-serif; font-size:13px; color:var(--accent); text-decoration:none; display:inline-block; margin-bottom:24px; }
+      p, ul, ol { margin:0 0 16px 0; }
+      ul, ol { padding-left: 1.4em; }
+      li { margin-bottom: 6px; }
+      code { font-family:"IBM Plex Mono",monospace; font-size:.9em; background:var(--paper-alt); padding:2px 6px; border-radius:3px; }
+      .figure { background:var(--paper-alt); border:1px solid var(--rule); border-radius:6px; padding:20px; margin:24px 0; }
+      .controls { display:flex; flex-wrap:wrap; gap:18px; align-items:center; margin-bottom:16px; font-family:"Manrope",sans-serif; font-size:14px; }
+      .controls label { display:flex; align-items:center; gap:8px; }
+      input[type="range"] { width:220px; accent-color:var(--accent); }
+      .mode-toggle { display:inline-flex; border:1px solid var(--rule); border-radius:4px; overflow:hidden; }
+      .mode-toggle button { font-family:"Manrope",sans-serif; font-size:13px; padding:6px 12px; background:var(--paper); color:var(--muted); border:none; border-right:1px solid var(--rule); cursor:pointer; }
+      .mode-toggle button:last-child { border-right:none; }
+      .mode-toggle button.active { background:var(--accent); color:var(--paper); }
+      table { width:100%; border-collapse:collapse; margin-top:12px; font-family:"IBM Plex Mono", monospace; font-size:13px; }
+      th, td { border-bottom:1px solid var(--rule); padding:8px 10px; text-align:left; vertical-align: top; }
+      th { color:var(--muted); font-family:"Manrope", sans-serif; font-size:12px; letter-spacing:0.1em; text-transform:uppercase; }
+      .hilite { color:var(--accent); font-weight:600; }
+      pre.code { font-family:"IBM Plex Mono",monospace; font-size:13px; background:var(--paper-alt); padding:14px; border-radius:4px; border:1px solid var(--rule); overflow-x:auto; }
+      .math-block { margin: 1.2rem 0; padding: 0.6rem 0.8rem; overflow-x: auto; background: rgba(0,0,0,0.025); border-radius: 8px; text-align: center; }
+      canvas { display:block; max-width:100%; margin:0 auto; }
+      .callout { margin: 20px 0; padding: 16px 18px; border-left: 4px solid var(--accent); background: rgba(217,119,87,0.06); border-radius: 0 8px 8px 0; }
+      .callout strong { font-family: "Manrope", sans-serif; font-size: 0.85em; letter-spacing: 0.05em; text-transform: uppercase; }
+    </style>
+  </head>
+  <body>
+    <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+    <p class="kicker">交互式讲解</p>
+    <h1>LoRA（低秩适配） · 低秩适配器实验场</h1>
+    <p class="abstract">
+      对 70B 模型做全量微调需要更新 700 亿个参数。LoRA（低秩适配） 则仅更新 2 亿个。二者质量往往难以区分，而 checkpoint 体积小 300 倍。拖动秩的滑块，观察各数值的变化；随后观看一个实时 SVD 如何随 $r$ 增大而复原目标矩阵。
+    </p>
+    <div class="byline"><span>约 16 分钟</span><span>深度学习 · LoRA（低秩适配） · 微调 · PEFT</span></div>
+
+    <h2>一句话洞察本质</h2>
+    <p>
+      <strong>你希望对预训练权重所作的<em>改变</em>通常是低秩的</strong>（Hu 等，2021）。你并不需要 700 亿参数的更新预算 &mdash;&mdash; 你需要的只是一处微小的修正。因此，与其微调 $W \in \mathbb{R}^{d \times d}$，不如将更新参数化为
+    </p>
+    <div class="math-block" id="math-lora"></div>
+    <p>
+      其中 $B \in \mathbb{R}^{d \times r}$、$A \in \mathbb{R}^{r \times d}$，且 $r \ll d$。基座 $W_0$ 保持冻结；只有 $A$ 与 $B$ 获得梯度。标量 $\alpha/r$ 使有效步长在不同秩之间保持稳定。在初始化时 $B = 0$，因此 LoRA（低秩适配） 项恒为零，模型恰为预训练模型 &mdash;&mdash; 这是一个有保证的起点。
+    </p>
+
+    <h2>为何「低秩更新」是恰当的先验</h2>
+    <p>
+      Hu 等的论文测量了在下游任务上微调预训练 transformer 的内在维度，发现它极小 &mdash;&mdash; 当 $d = 4096$ 时往往低于 $r = 8$。对此有两种理解方式：
+    </p>
+    <ul>
+      <li><strong>实证角度。</strong> 与预训练（万亿词元）相比，微调数据集很小（数千个样本）。微调数据中的信号不足以让权重沿数千个独立方向移动；只有少数几个方向占主导。</li>
+      <li><strong>几何角度。</strong> 预训练特征已经张成了大部分有用的子空间。微调只是将该子空间轻微旋转，而这恰恰就是一个低秩扰动。</li>
+    </ul>
+
+    <h2>实时演示：秩 $r$ 如何逼近真实更新</h2>
+    <p>
+      下图：一个合成的「真实更新」$\Delta W^\star \in \mathbb{R}^{32 \times 32}$，其奇异值谱呈重尾（真实微调的典型情形）。秩 $r$ 的截断 SVD 是 Eckart–Young 意义下的最佳秩 $r$ 逼近。滑动 $r$，观察逼近误差与被捕获的谱。
+    </p>
+    <div class="figure">
+      <div class="controls">
+        <label>秩 r： <input type="range" id="svd-r" min="1" max="32" step="1" value="4" /><span id="svd-r-val" style="font-family:'IBM Plex Mono',monospace; min-width:24px;">4</span></label>
+        <label>谱尾
+          <select id="svd-tail">
+            <option value="heavy" selected>重尾（如真实 LLM 微调）</option>
+            <option value="中等">中等</option>
+            <option value="flat">平坦（最坏情形）</option>
+          </select>
+        </label>
+        <button id="svd-resample">重新采样目标</button>
+      </div>
+      <canvas id="svd-canvas" width="800" height="320"></canvas>
+      <p style="font-family:'Manrope',sans-serif; font-size:13px; color:var(--muted); margin-top:8px;">
+        左：目标 $\Delta W^\star$（上）及其秩 $r$ 逼近（下）。右：前 $r$ 个奇异值所捕获的累积谱能量。重尾谱只需极小的 $r$ 即可捕获 &gt; 95% 的能量。
+      </p>
+    </div>
+
+    <h2>参数预算实验场</h2>
+    <div class="figure">
+      <div class="controls">
+        <label>基座模型：
+          <div class="mode-toggle">
+            <button class="m-btn" data-d="1B">1B</button>
+            <button class="m-btn active" data-d="7B">7B</button>
+            <button class="m-btn" data-d="70B">70B</button>
+          </div>
+        </label>
+        <label>LoRA（低秩适配） 秩 r： <input type="range" id="r" min="1" max="64" step="1" value="8" /><span id="r-val" style="font-family:'IBM Plex Mono',monospace; min-width:30px;">8</span></label>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>方法</th><th>可训练参数量</th><th>占全量微调之比</th><th>适配器磁盘占用</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>全量微调</td><td id="full-p">–</td><td>1.00×</td><td id="full-d">–</td></tr>
+          <tr><td class="hilite" id="lora-name">LoRA（低秩适配） · r=8（每层两矩阵）</td><td class="hilite" id="lora-p">–</td><td class="hilite" id="lora-r">–</td><td class="hilite" id="lora-d">–</td></tr>
+          <tr><td>QLoRA（低秩适配）（量化 LoRA（低秩适配））（4 位基座 + r=8）</td><td id="qlora-p">–</td><td id="qlora-r">–</td><td id="qlora-d">–</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      对于 7B 模型，在 $r = 8$ 时你有约 400 万个可训练参数。你可以在单张 24 GB 消费级 GPU 上完成微调，将适配器保存为约 16 MB 的文件，并与基座权重一同分发。基座从不改变 &mdash;&mdash; 你可以在其上叠加许多适配器。
+    </p>
+
+    <h2>超参数的选择与设定方法</h2>
+    <h3>1. 秩 $r$</h3>
+    <p>
+      对大多数 LLM 任务而言 $r \in \{4, 8, 16\}$ 已足够。除非你的任务对模型作出显著适配 &mdash;&mdash; 例如注入一种全新的模态 &mdash;&mdash; 否则更大的 $r$ 并无助益。若怀疑需要更高的秩，可按对数尺度扫描 $r$。
+    </p>
+    <h3>2. 缩放系数 $\alpha$ 与 $\alpha/r$ 约定</h3>
+    <p>
+      $\alpha$ 是推理时施加于 $BA$ 的标量。约定「$\alpha/r$」可在扫描 $r$ 时使 LoRA（低秩适配） 项的有效学习率大致保持恒定 &mdash;&mdash; 便于超参数搜索。常见取法：$\alpha = 2r$，或不论 $r$ 如何均取 $\alpha = 16$。
+    </p>
+    <h3>3. 注入哪些模块</h3>
+    <p>
+      原始论文仅推荐 $W_q$ 与 $W_v$。较新的实证研究（Dettmers、Pagnoni 等，2023）为获得最佳质量，往往注入全部 $\{W_q, W_k, W_v, W_o\}$ 以及 MLP 的上、下投影。成本与注入模块数量成正比。
+    </p>
+    <h3>4. Dropout（丢弃法）</h3>
+    <p>
+      在 LoRA（低秩适配） 路径内部使用较小的 dropout（0.05–0.10），可在小规模微调集上稳定训练，且不影响基座。对于极小的适配器可略去。
+    </p>
+
+    <h2>PEFT 家族一览表</h2>
+    <table>
+      <thead>
+        <tr><th>方法</th><th>可训练比例 %</th><th>推理开销</th><th>核心思想</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>全量微调</td><td>100%</td><td>0</td><td>训练全部参数</td></tr>
+        <tr><td>BitFit（仅微调偏置）</td><td>~0.1%</td><td>0</td><td>仅训练偏置</td></tr>
+        <tr><td>前缀 / 提示微调</td><td>~0.01%</td><td>+ 序列长度</td><td>前置可学习词元</td></tr>
+        <tr><td>适配器（Houlsby，2019）</td><td>~3%</td><td>+ 每层一个小型 MLP</td><td>插入瓶颈模块</td></tr>
+        <tr><td>LoRA（低秩适配）</td><td>~0.05%</td><td>合并后为 0</td><td>低秩权重增量</td></tr>
+        <tr><td>QLoRA（低秩适配）（量化 LoRA（低秩适配））</td><td>~0.05%</td><td>合并后为 0</td><td>在 4 位基座之上叠加 LoRA（低秩适配）</td></tr>
+        <tr><td>DoRA（2024）</td><td>~0.1%</td><td>合并后为 0</td><td>将权重分解为幅值与方向；对方向施加 LoRA（低秩适配）</td></tr>
+        <tr><td>VeRA（2023）</td><td>~0.01%</td><td>合并后为 0</td><td>在各层间共享冻结的随机 $A, B$；仅训练极小的缩放向量</td></tr>
+        <tr><td>AdaLoRA（低秩适配）（自适应秩分配）</td><td>~0.05%</td><td>合并后为 0</td><td>按层自适应地分配秩预算</td></tr>
+      </tbody>
+    </table>
+
+    <h2>数学细节</h2>
+    <p>
+      前向传播变为
+    </p>
+    <div class="math-block" id="math-fwd"></div>
+    <p>
+      在初始化时：$A \sim \mathcal{N}(0, \sigma^2)$（Kaiming 式），$B = 0$。于是 $BA = 0$，模型输出恰为预训练模型。关键在于，这意味着在训练做出任何有益之事之前，LoRA（低秩适配） 从不<em>损害</em>基座。
+    </p>
+    <p>
+      训练之后，你有两种选择：
+    </p>
+    <ul>
+      <li><strong>将 LoRA（低秩适配） 模块保持独立。</strong> 每层推理前向传播的开销为 $O(d^2 + 2rd)$。这使你能在服务时切换或组合适配器。当你希望在一个基座上托管众多任务专用适配器时使用。</li>
+      <li><strong>合并进基座。</strong> 令 $W \leftarrow W_0 + \frac{\alpha}{r} BA$。推理与基座完全相同 &mdash;&mdash; 零开销。当该适配器即为最终版本时使用。</li>
+    </ul>
+
+    <h2>QLoRA（低秩适配）（量化 LoRA（低秩适配）） &mdash;&mdash; 在单张 48 GB GPU 上微调 70B</h2>
+    <p>
+      QLoRA（低秩适配）（量化 LoRA（低秩适配））（Dettmers 等，2023）即「在 4 位基座上做 LoRA（低秩适配）」。包含三个部分：
+    </p>
+    <ul>
+      <li><strong>NF4 量化。</strong> 4 位正态浮点 &mdash;&mdash; 其设计使量化分桶与预训练权重的分布相匹配。体积约为 fp16 的 1/4。</li>
+      <li><strong>二次量化。</strong> 对量化常数本身再作量化；可再节省若干比特。</li>
+      <li><strong>分页优化器。</strong> 使用统一内存，使优化器状态在梯度累积的高峰期溢出到 CPU。</li>
+    </ul>
+    <p>
+      基座以 4 位冻结存放，在做矩阵乘法时即时反量化；LoRA（低秩适配） 路径则保持 fp16/bf16。最终结果：以一小部分显存获得与 fp16 LoRA（低秩适配） 相同的精度。
+    </p>
+
+    <h2>PyTorch + peft 代码示例</h2>
+    <pre class="code">from peft import LoraConfig, get_peft_model
+
+lora_cfg = LoraConfig(
+    r=8,                           # rank
+    lora_alpha=16,                 # scale
+    target_modules=["q_proj", "v_proj"],  # where to inject
+    lora_dropout=0.05,
+    bias="none",
+)
+model = get_peft_model(base_model, lora_cfg)
+model.print_trainable_parameters()
+# > trainable params: 4.2M   all params: 7B   trainable%: 0.06%</pre>
+
+    <h2>实践中的坑</h2>
+    <ul>
+      <li><strong>灾难性遗忘。</strong> 由于基座保持冻结，LoRA（低秩适配） 的遗忘少于全量微调，但在域外生成上仍会漂移。应使用较小的学习率（典型为 1e-4）、早停，以及一个留出的域外评估集。</li>
+      <li><strong>混合适配器。</strong> 适配器专家混合（LoRA（低秩适配）Hub、Composing-LoRA（低秩适配）s）使你能在推理时线性组合各任务适配器。对密切相关的任务有效；对相互正交的任务则迅速退化。</li>
+      <li><strong>不要用 LoRA（低秩适配） 做从零预训练。</strong> 低秩先验仅当存在一个强大的预训练初始化可供扰动时才成立。预训练请使用全秩。</li>
+      <li><strong>合并多个适配器。</strong> $W_0 + \sum_i \frac{\alpha_i}{r_i} B_i A_i$ &mdash;&mdash; 但它们可能相互干扰。在堆叠许多适配器时，使用 TIES 合并或 DARE 可获得更干净的结果。</li>
+      <li><strong>量化推理与 fp16 推理。</strong> 若你使用 QLoRA（低秩适配）（量化 LoRA（低秩适配）） 训练，仍可以 fp16 部署合并后的模型 &mdash;&mdash; 只需在合并前将基座反量化一次。</li>
+    </ul>
+
+    <div class="callout">
+      <strong>最终要点。</strong>
+      <p style="margin:8px 0 0 0;">
+        LoRA（低秩适配） 是一种罕见的技术：「偷懒」的做法竟然能与严谨的做法相匹敌。对于参数规模 &gt; 10 亿的预训练模型上 99% 的微调任务，都从 LoRA（低秩适配） $r=8$、$\alpha = 16$、注入 $\{W_q, W_v\}$ 开始。若无法承担 fp16 基座的成本，则转向 QLoRA（低秩适配）（量化 LoRA（低秩适配））。只有在测到真实差距之后，才考虑 DoRA / AdaLoRA（低秩适配）（自适应秩分配）。
+      </p>
+    </div>
+
+    <h2>参考文献</h2>
+    <ul>
+      <li><strong>Hu、Shen、Wallis、Allen-Zhu、Li、Wang、Wang、Chen（2021）</strong> &mdash;&mdash; <em>LoRA（低秩适配）: Low-Rank Adaptation of Large Language Models.</em> 原始论文。</li>
+      <li><strong>Dettmers、Pagnoni、Holtzman、Zettlemoyer（2023）</strong> &mdash;&mdash; <em>QLoRA（低秩适配）（量化 LoRA（低秩适配））: Efficient Finetuning of Quantized LLMs.</em></li>
+      <li><strong>Liu、Wang、Han 等（2024）</strong> &mdash;&mdash; <em>DoRA: Weight-Decomposed Low-Rank Adaptation.</em></li>
+      <li><strong>Kopiczko、Blankevoort、Asano（2023）</strong> &mdash;&mdash; <em>VeRA: Vector-based Random Matrix Adaptation.</em></li>
+      <li><strong>Zhang 等（2023）</strong> &mdash;&mdash; <em>AdaLoRA（低秩适配）（自适应秩分配）: Adaptive Budget Allocation.</em></li>
+      <li><strong>Houlsby 等（2019）</strong> &mdash;&mdash; <em>Parameter-Efficient Transfer Learning for NLP.</em> 适配器原始论文。</li>
+    </ul>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script>
+      // ---------- Budget playground ----------
+      const sizes = { "1B": { P: 1e9, d_typ: 2048, n_layers: 24 },
+                      "7B": { P: 7e9, d_typ: 4096, n_layers: 32 },
+                      "70B": { P: 70e9, d_typ: 8192, n_layers: 80 } };
+      let size = "7B", r = 8;
+
+      function fmt(n) {
+        if (n >= 1e9) return (n / 1e9).toFixed(2) + " B";
+        if (n >= 1e6) return (n / 1e6).toFixed(2) + " M";
+        if (n >= 1e3) return (n / 1e3).toFixed(0) + " K";
+        return n.toFixed(0);
+      }
+      function fmtBytes(bytes) {
+        if (bytes >= 1e9) return (bytes / 1e9).toFixed(2) + " GB";
+        if (bytes >= 1e6) return (bytes / 1e6).toFixed(1) + " MB";
+        if (bytes >= 1e3) return (bytes / 1e3).toFixed(0) + " KB";
+        return bytes + " B";
+      }
+      function update() {
+        const s = sizes[size];
+        const lora_params = s.n_layers * 2 * (2 * s.d_typ * r);
+        const full_params = s.P;
+        const ratio = lora_params / full_params;
+        const lora_disk = lora_params * 2;
+        const full_disk = full_params * 2;
+        const qlora_base = full_params * 0.5;
+        const qlora_params = lora_params;
+        document.getElementById("full-p").textContent = fmt(full_params);
+        document.getElementById("full-d").textContent = fmtBytes(full_disk);
+        document.getElementById("lora-name").textContent = `LoRA（低秩适配） · r=${r}`;
+        document.getElementById("lora-p").textContent = fmt(lora_params);
+        document.getElementById("lora-r").textContent = (ratio * 100).toFixed(3) + "%";
+        document.getElementById("lora-d").textContent = fmtBytes(lora_disk);
+        document.getElementById("qlora-p").textContent = fmt(qlora_params);
+        document.getElementById("qlora-r").textContent = (ratio * 100).toFixed(3) + "%";
+        document.getElementById("qlora-d").textContent = fmtBytes(lora_disk) + " + " + fmtBytes(qlora_base) + " (base, 4-bit)";
+      }
+      document.getElementById("r").addEventListener("input", (e) => {
+        r = parseInt(e.target.value);
+        document.getElementById("r-val").textContent = r;
+        update();
+      });
+      document.querySelectorAll(".m-btn").forEach(b => b.addEventListener("click", () => {
+        document.querySelectorAll(".m-btn").forEach(x => x.classList.remove("active"));
+        b.classList.add("active");
+        size = b.dataset.d;
+        update();
+      }));
+      update();
+
+      // ---------- SVD demo ----------
+      const D = 32;
+      const SVD = { r: 4, tail: 'heavy', target: null, U: null, S: null, V: null };
+      function randn() { const u = Math.random() || 1e-12, v = Math.random();
+        return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+      function makeTarget(tail) {
+        // Build with explicit singular spectrum: diag(s)
+        const s = new Array(D);
+        for (let i = 0; i < D; i++) {
+          if (tail === 'heavy') s[i] = Math.exp(-0.35 * i) * (1 + 0.1 * Math.random());
+          else if (tail === '中等') s[i] = Math.exp(-0.12 * i) * (1 + 0.1 * Math.random());
+          else s[i] = 0.7 + 0.3 * Math.random(); // flat
+        }
+        // Random orthonormal U, V via Gram-Schmidt on Gaussian columns
+        function ortho() {
+          const M = [];
+          for (let i = 0; i < D; i++) {
+            const col = new Array(D).fill(0).map(() => randn());
+            for (let j = 0; j < i; j++) {
+              let dot = 0;
+              for (let k = 0; k < D; k++) dot += col[k] * M[j][k];
+              for (let k = 0; k < D; k++) col[k] -= dot * M[j][k];
+            }
+            let norm = 0; for (let k = 0; k < D; k++) norm += col[k] * col[k];
+            norm = Math.sqrt(norm) || 1;
+            for (let k = 0; k < D; k++) col[k] /= norm;
+            M.push(col);
+          }
+          return M;
+        }
+        const U = ortho(), V = ortho();
+        const target = [];
+        for (let i = 0; i < D; i++) {
+          const row = new Array(D).fill(0);
+          for (let j = 0; j < D; j++) {
+            let v = 0;
+            for (let k = 0; k < D; k++) v += U[i][k] * s[k] * V[j][k];
+            row[j] = v;
+          }
+          target.push(row);
+        }
+        SVD.target = target; SVD.U = U; SVD.S = s; SVD.V = V;
+      }
+      function lowRankApprox(r) {
+        const approx = [];
+        for (let i = 0; i < D; i++) {
+          const row = new Array(D).fill(0);
+          for (let j = 0; j < D; j++) {
+            let v = 0;
+            for (let k = 0; k < r; k++) v += SVD.U[i][k] * SVD.S[k] * SVD.V[j][k];
+            row[j] = v;
+          }
+          approx.push(row);
+        }
+        return approx;
+      }
+      function renderSVD() {
+        const canvas = document.getElementById('svd-canvas');
+        if (!canvas) return;
+        const W = 800, H = 320;
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+        const ctx = canvas.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.fillStyle = '#faf8f3'; ctx.fillRect(0, 0, W, H);
+        // Layout: left = two heatmaps (target top, approx bottom); right = spectrum.
+        const cell = 5;
+        const leftW = D * cell + 8;
+        const heatY1 = 20, heatY2 = heatY1 + D * cell + 30;
+        // Find max abs for color scaling
+        let maxAbs = 0;
+        for (const row of SVD.target) for (const v of row) maxAbs = Math.max(maxAbs, Math.abs(v));
+        function drawHeat(M, x0, y0, label) {
+          ctx.font = '12px Manrope'; ctx.fillStyle = '#1f1f1e'; ctx.textAlign = 'left';
+          ctx.fillText(label, x0, y0 - 6);
+          for (let i = 0; i < D; i++) {
+            for (let j = 0; j < D; j++) {
+              const v = M[i][j] / (maxAbs || 1);
+              if (v > 0) ctx.fillStyle = `rgba(217,119,87,${Math.min(1, v).toFixed(3)})`;
+              else ctx.fillStyle = `rgba(74,102,112,${Math.min(1, -v).toFixed(3)})`;
+              ctx.fillRect(x0 + j * cell, y0 + i * cell, cell, cell);
+            }
+          }
+        }
+        const approx = lowRankApprox(SVD.r);
+        drawHeat(SVD.target, 14, heatY1, 'target ΔW★');
+        drawHeat(approx, 14, heatY2, `rank-${SVD.r} approx`);
+        // Spectrum panel right
+        const sx = leftW + 60, sy = 30;
+        const spw = W - sx - 30, sph = H - 60;
+        ctx.strokeStyle = '#c9c4b5';
+        ctx.strokeRect(sx, sy, spw, sph);
+        // Cumulative energy
+        let total = 0; for (const s of SVD.S) total += s * s;
+        const cum = [];
+        let acc = 0;
+        for (let k = 0; k < D; k++) { acc += SVD.S[k] * SVD.S[k]; cum.push(acc / total); }
+        // Singular values bars (normalised)
+        const maxS = SVD.S[0];
+        for (let k = 0; k < D; k++) {
+          const xb = sx + 8 + k * ((spw - 16) / D);
+          const hb = (SVD.S[k] / maxS) * (sph - 30);
+          ctx.fillStyle = k < SVD.r ? '#d97757' : '#c9c4b5';
+          ctx.fillRect(xb, sy + (sph - 30) - hb + 4, ((spw - 16) / D) - 2, hb);
+        }
+        // Cumulative line
+        ctx.strokeStyle = '#4a6670'; ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let k = 0; k < D; k++) {
+          const xb = sx + 8 + k * ((spw - 16) / D) + ((spw - 16) / D) / 2;
+          const yb = sy + (sph - 30) - cum[k] * (sph - 30) + 4;
+          if (k === 0) ctx.moveTo(xb, yb); else ctx.lineTo(xb, yb);
+        }
+        ctx.stroke();
+        // Captured-energy label
+        ctx.font = '12px Manrope'; ctx.fillStyle = '#1f1f1e'; ctx.textAlign = 'left';
+        ctx.fillText('spectrum (top-r highlighted)', sx, sy - 8);
+        ctx.fillStyle = '#4a6670';
+        ctx.fillText(`captured energy = ${(cum[SVD.r - 1] * 100).toFixed(1)}%`, sx, sy + sph + 14);
+        // Error
+        let err = 0, mag = 0;
+        for (let i = 0; i < D; i++) for (let j = 0; j < D; j++) {
+          err += (SVD.target[i][j] - approx[i][j]) ** 2;
+          mag += SVD.target[i][j] ** 2;
+        }
+        ctx.fillStyle = '#a8324b';
+        ctx.fillText(`Frobenius error = ${Math.sqrt(err / mag).toFixed(3)} · ‖ΔW★‖`, sx, sy + sph + 30);
+      }
+      function refreshSVD() {
+        SVD.r = parseInt(document.getElementById('svd-r').value, 10);
+        SVD.tail = document.getElementById('svd-tail').value;
+        document.getElementById('svd-r-val').textContent = SVD.r;
+        renderSVD();
+      }
+      function reseedSVD() { makeTarget(SVD.tail); renderSVD(); }
+      makeTarget(SVD.tail);
+      document.getElementById('svd-r').addEventListener('input', refreshSVD);
+      document.getElementById('svd-tail').addEventListener('change', () => { makeTarget(document.getElementById('svd-tail').value); refreshSVD(); });
+      document.getElementById('svd-resample').addEventListener('click', reseedSVD);
+      refreshSVD();
+
+      // ---------- KaTeX ----------
+      function renderMath() {
+        if (!window.katex) return;
+        const blocks = {
+          'math-lora': 'W = W_0 + \\frac{\\alpha}{r}\\, B\\, A,\\qquad W_0 \\in \\mathbb{R}^{d \\times d},\\; B \\in \\mathbb{R}^{d \\times r},\\; A \\in \\mathbb{R}^{r \\times d},\\; r \\ll d',
+          'math-fwd': 'y = W_0 x + \\frac{\\alpha}{r}\\, B(A x),\\qquad \\text{forward cost: } O(d^2) + O(2rd) \\approx O(d^2)'
+        };
+        Object.keys(blocks).forEach((id) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          try { katex.render(blocks[id], el, { displayMode: true, throwOnError: false }); } catch (_) {}
+        });
+      }
+      if (window.katex) renderMath();
+      else {
+        const s = document.querySelector('script[src*="katex"]');
+        if (s) s.addEventListener('load', renderMath);
+      }
+    </script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

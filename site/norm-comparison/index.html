@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BatchNorm 与 LayerNorm、GroupNorm、InstanceNorm 之比较</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../vendor/katex/katex.min.css">
+<script defer src="../vendor/katex/katex.min.js"></script>
+
+<style>
+:root {
+  --serif: 'Source Serif 4', Georgia, serif;
+  --sans: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+  --bg: #fdfcf9;
+  --paper: #ffffff;
+  --text: #2f2a22;
+  --muted: #6e665b;
+  --border: #e2d8c6;
+  --accent: #2c6fb7;
+  --warm: #d9622b;
+  --success: #1e7770;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; font-family: var(--serif); color: var(--text); background: var(--bg); line-height: 1.65; }
+
+.article { max-width: 980px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+.back-link { display: inline-block; margin-bottom: 1.5rem; color: var(--muted); text-decoration: none; font-family: var(--sans); font-size: 0.9rem; }
+.back-link:hover { color: var(--text); }
+.article-header { margin-bottom: 3rem; text-align: center; }
+.kicker { margin: 0 0 0.75rem; font-family: var(--sans); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); }
+h1 { margin: 0 auto 1rem; font-size: clamp(2.1rem, 4.6vw, 3.1rem); line-height: 1.1; letter-spacing: -0.02em; color: #1a1815; max-width: 22ch; }
+.abstract { margin: 0 auto 1rem; max-width: 64ch; font-size: 1.15rem; color: #4d463d; }
+.byline { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1.4rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-family: var(--sans); font-size: 0.92rem; }
+
+.step-section {
+  position: relative;
+  margin-top: 4rem;
+  padding: 3rem 2.5rem;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.03);
+}
+.step-badge {
+  position: absolute;
+  top: -16px;
+  left: 32px;
+  background: var(--accent);
+  color: white;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.4rem 1.2rem;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(44, 111, 183, 0.25);
+}
+h2 { margin: 0 0 1rem; font-size: clamp(1.55rem, 3.4vw, 2.1rem); line-height: 1.15; color: #1a1815; }
+h3 { margin-top: 2rem; margin-bottom: 0.8rem; font-size: 1.2rem; color: #1a1815; }
+p { max-width: 68ch; font-size: 1.1rem; }
+ul { max-width: 68ch; font-size: 1.1rem; padding-left: 1.4rem; }
+li { margin-bottom: 0.5rem; }
+.math-block { margin: 1.5rem 0; text-align: center; font-size: 1.05rem; overflow-x: auto; }
+
+/* ---------- SEGMENTED NORM TOGGLE ---------- */
+.norm-toggle { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.4rem 0 1.6rem; }
+.norm-toggle button {
+  font-family: var(--sans); font-weight: 600; font-size: 0.9rem;
+  padding: 0.6rem 1.15rem; border-radius: 10px;
+  border: 1.5px solid var(--border); background: var(--paper); color: var(--text);
+  cursor: pointer; transition: all 0.15s ease;
+}
+.norm-toggle button:hover { border-color: var(--accent); color: var(--accent); }
+.norm-toggle button.active {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(44, 111, 183, 0.25);
+}
+.norm-toggle button .sub { display: block; font-weight: 500; font-size: 0.72rem; opacity: 0.75; margin-top: 1px; }
+
+/* ---------- CONTROLS ---------- */
+.control-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1.4rem;
+  margin: 1.4rem 0;
+}
+.control-block { display: flex; flex-direction: column; gap: 0.5rem; transition: opacity 0.15s; }
+.control-block.dim { opacity: 0.35; pointer-events: none; }
+.control-block label {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-family: var(--sans); font-size: 0.9rem; font-weight: 600; color: var(--text);
+}
+.control-block label span { font-family: var(--mono); color: var(--warm); font-weight: 500; font-size: 0.95rem; }
+input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 4px; background: var(--border); border-radius: 2px; outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 18px; height: 18px; background: var(--accent);
+  border-radius: 50%; cursor: pointer; border: 3px solid var(--paper);
+  box-shadow: 0 2px 6px rgba(44, 111, 183, 0.4);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px; background: var(--accent); border-radius: 50%;
+  cursor: pointer; border: 3px solid var(--paper);
+}
+
+/* ---------- TENSOR FIGURE ---------- */
+.interactive-figure { margin: 1.4rem 0 0.6rem; }
+.interactive-figure canvas {
+  display: block; width: 100%;
+  background: #fbfaf6; border: 1px solid var(--border);
+  border-radius: 12px; cursor: pointer;
+}
+.interactive-figure figcaption { margin-top: 0.7rem; font-size: 0.92rem; color: var(--muted); text-align: center; font-style: italic; }
+
+.legend { display: flex; gap: 1.3rem; flex-wrap: wrap; justify-content: center; font-family: var(--sans); font-size: 0.85rem; color: var(--muted); margin: 0.6rem 0 0; }
+.legend .chip { display: inline-flex; align-items: center; gap: 0.42rem; }
+.legend .sw { width: 15px; height: 15px; border-radius: 4px; display: inline-block; border: 1px solid rgba(0,0,0,0.08); }
+.legend .sw-ring { width: 15px; height: 15px; border-radius: 4px; display: inline-block; border: 2.5px solid var(--warm); }
+
+/* ---------- FORMULA + USED NOTE ---------- */
+.norm-formula { margin: 1.6rem 0 0.4rem; text-align: center; overflow-x: auto; min-height: 2.6rem; }
+.used-note {
+  margin: 1.2rem 0 0; padding: 0.95rem 1.2rem; border-radius: 12px;
+  border-left: 4px solid var(--accent); background: rgba(44, 111, 183, 0.06);
+  font-size: 1.02rem; font-family: var(--serif);
+}
+.used-note strong { color: var(--accent); }
+
+/* ---------- STAT PILLS ---------- */
+.stat-strip { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0 0; }
+.stat-pill {
+  flex: 1 1 150px; min-width: 150px; background: var(--paper);
+  border: 1.5px solid var(--border); border-radius: 12px;
+  padding: 0.9rem 1.1rem; display: flex; flex-direction: column; gap: 0.2rem; text-align: left;
+}
+.stat-pill .stat-label { font-family: var(--sans); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+.stat-pill .stat-value { font-family: var(--mono); font-size: 1.5rem; font-weight: 600; color: var(--text); }
+.stat-pill--accent { border-color: var(--accent); }
+.stat-pill--accent .stat-value { color: var(--accent); }
+.stat-pill--warm { border-color: var(--warm); }
+.stat-pill--warm .stat-value { color: var(--warm); }
+.stat-sub { font-family: var(--sans); font-size: 0.78rem; color: var(--muted); }
+
+/* ---------- CALLOUTS ---------- */
+.callout {
+  margin: 2rem 0 0.5rem; padding: 1.2rem 1.5rem; border-radius: 12px;
+  border-left: 4px solid var(--accent); background: rgba(44, 111, 183, 0.05); font-size: 1.02rem;
+}
+.callout strong { color: var(--accent); }
+.callout--think { border-left-color: var(--success); background: rgba(30, 119, 112, 0.06); }
+.callout--think strong { color: var(--success); }
+.callout--warn { border-left-color: var(--warm); background: rgba(217, 98, 43, 0.06); }
+.callout--warn strong { color: var(--warm); }
+
+footer { margin-top: 4rem; text-align: center; font-family: var(--sans); font-size: 0.85rem; color: var(--muted); }
+
+@media (max-width: 640px) { .step-section { padding: 2rem 1.4rem; } }
+</style>
+</head>
+<body>
+
+<article class="article">
+  <header class="article-header">
+    <a class="back-link" href="../index.html">&larr; 讲解库</a>
+    <p class="kicker">交互式讲解</p>
+    <h1>BatchNorm 与 LayerNorm、GroupNorm、InstanceNorm 之比较</h1>
+    <p class="abstract">
+      四种归一化层，共享同一种方程形式：减去均值，再除以标准差。
+      唯一的差别在于<em>均值与方差是在激活张量的哪一</em><strong>切片</strong>上进行池化。
+      正是这一设计选择，使得 BatchNorm 主宰了 CNN、LayerNorm 主宰了 Transformer，
+      而 GroupNorm 拯救了小批量训练。在下方选择一种归一化，
+      观察究竟哪些元素共享同一个统计量。
+    </p>
+    <div class="byline">
+      <span>约 12 分钟</span>
+      <span>归一化 &middot; CNN &middot; Transformer</span>
+    </div>
+  </header>
+
+  <section class="step-section" id="prelude">
+    <div class="step-badge">前言</div>
+    <h2>一个方程，四种切片</h2>
+    <p>
+      取一批形状为 $(N, C, H, W)$ 的激活值——$N$ 个样本、$C$ 个
+      通道，每个通道对应一张 $H\times W$ 的空间图。每一种归一化层
+      都对每个元素施加相同的变换，随后再乘以可学习的缩放 $\gamma$ 与
+      平移 $\beta$：
+    </p>
+    <div class="math-block">
+      $$\hat{x} = \gamma \cdot \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}} + \beta .$$
+    </div>
+    <p>
+      差别在于均值 $\mu$ 与方差 $\sigma^2$。每种方法在不同的坐标轴集合上求和
+      &mdash; 即张量的不同<em>切片</em> &mdash;
+      因而产生数量不同的独立统计量：
+    </p>
+    <ul>
+      <li><strong>BatchNorm</strong> &middot; 在 $N, H, W$ 上池化 &mdash; 每个通道一组 $(\mu,\sigma^2)$<em></em>。</li>
+      <li><strong>LayerNorm</strong> &middot; 在 $C, H, W$ 上池化 &mdash; 每个样本一组<em></em>。</li>
+      <li><strong>InstanceNorm</strong> &middot; 在 $H, W$ 上池化 &mdash; 每个（样本, 通道）一组<em></em>。</li>
+      <li><strong>GroupNorm</strong> &middot; 在一个通道组 $+\,H, W$ 上池化 &mdash; 每个（样本, 组）一组<em></em>。</li>
+    </ul>
+  </section>
+
+  <section class="step-section" id="lab">
+    <div class="step-badge">实验台</div>
+    <h2>哪些元素共享同一个统计量？</h2>
+    <p>
+      下面是一个激活张量。行表示批中的 $N$ 个样本，列表示 $C$ 个通道，
+      每个小方块则是该通道的 $H\times W$ 空间图（此处为 $2\times2$）。
+      选择一种归一化方案 &mdash; 高亮单元格正是
+      <strong>为同一个</strong> $(\mu,\sigma^2)$ 一起求平均的那些元素。
+      <em>点击任意方块</em> 即可移动参考单元，并查看它属于哪个切片。
+    </p>
+
+    <div class="norm-toggle" id="normToggle">
+      <button data-norm="bn" class="active">BatchNorm<span class="sub">在 N, H, W 上</span></button>
+      <button data-norm="ln">LayerNorm<span class="sub">在 C, H, W 上</span></button>
+      <button data-norm="gn">GroupNorm<span class="sub">在组、H, W 上</span></button>
+      <button data-norm="in">InstanceNorm<span class="sub">在 H, W 上</span></button>
+    </div>
+
+    <div class="control-row">
+      <div class="control-block" id="ctlN">
+        <label>批量大小 $N$ <span id="nVal">4</span></label>
+        <input type="range" id="nSlider" min="1" max="6" step="1" value="4">
+      </div>
+      <div class="control-block" id="ctlC">
+        <label>通道数 $C$ <span id="cVal">6</span></label>
+        <input type="range" id="cSlider" min="1" max="8" step="1" value="6">
+      </div>
+      <div class="control-block dim" id="ctlG">
+        <label>每组的通道数 $G$ <span id="gVal">3</span></label>
+        <input type="range" id="gSlider" min="1" max="8" step="1" value="3">
+      </div>
+    </div>
+
+    <figure class="interactive-figure">
+      <canvas id="tensorCanvas" width="880" height="360"></canvas>
+      <figcaption id="figCap">每个方块是一个通道的 2&times;2 空间图。蓝色方块被池化为同一个均值与方差。</figcaption>
+    </figure>
+
+    <div class="legend">
+      <span class="chip"><span class="sw" style="background:#2c6fb7"></span> 一起求平均（同一个 $\mu,\sigma^2$）</span>
+      <span class="chip"><span class="sw" style="background:#c9c2b6"></span> 其他元素</span>
+      <span class="chip"><span class="sw-ring"></span> 参考单元 &middot; 点击以移动</span>
+    </div>
+
+    <div class="norm-formula" id="normFormula"></div>
+
+    <div class="stat-strip">
+      <div class="stat-pill stat-pill--accent">
+        <span class="stat-label">高亮部分的均值 $\mu$</span>
+        <span class="stat-value" id="meanVal">&mdash;</span>
+      </div>
+      <div class="stat-pill stat-pill--warm">
+        <span class="stat-label">高亮部分的方差 $\sigma^2$</span>
+        <span class="stat-value" id="varVal">&mdash;</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-label">被池化的元素数</span>
+        <span class="stat-value" id="cntVal">&mdash;</span>
+        <span class="stat-sub" id="cntSub">&mdash;</span>
+      </div>
+    </div>
+
+    <div class="used-note" id="usedNote"></div>
+
+    <div class="callout callout--think">
+      <strong>试试这个。</strong> 固定参考方块，在
+      <em>BatchNorm</em> 与 <em>LayerNorm</em> 之间来回切换。观察均值指示器：
+      BatchNorm 在整个批上对一个完整通道做池化，所以当你点击另一个样本时，
+      其统计量几乎不动——而 LayerNorm 会为<em>每个</em>样本重新计算一个
+      全新的均值，因此它会跃变。这种批与样本之分正是全部要点：BatchNorm
+      把各样本耦合在一起（大批量时极佳，小批量时脆弱）；
+      LayerNorm 则让每个样本各自独立（对变长的 Transformer
+      序列而言再合适不过）。现在把 GroupNorm 下的 $G$ 从 $1$ 拖到 $C$——当 $G=1$ 时它
+      <em>就是</em> InstanceNorm，当 $G=C$ 时它 <em>就是</em> LayerNorm。
+    </div>
+  </section>
+
+  <section class="step-section" id="why">
+    <div class="step-badge">回报</div>
+    <h2>各自为何在其擅长的场合取胜</h2>
+    <ul>
+      <li>
+        <strong>大批量 CNN &middot; BatchNorm。</strong> 一个通道是一个
+        在每个空间位置、每张图像上重复应用的特征检测器，因此
+        $N\!\cdot\!H\!\cdot\!W$ 个样本能给出其均值的稳定估计。问题在于：
+        该统计量依赖于<em>整个批</em>，所以批大小为 2&ndash;4 时（在
+        检测/分割中很常见）它会变得噪声很大，而且训练与评估之间必须切换为
+        滑动平均。
+      </li>
+      <li>
+        <strong>Transformer 与 RNN &middot; LayerNorm。</strong> 序列长度
+        各异，批量大小可能为 1，因此<em>不依赖批</em>至关重要。
+        LayerNorm 各自独立地归一化每个词元的特征向量——
+        训练与评估时行为完全一致，无需滑动统计量。
+      </li>
+      <li>
+        <strong>小批量视觉 &middot; GroupNorm。</strong> 它保留了 LayerNorm 的
+        批独立性，但把通道分为若干组，从而恢复了 BatchNorm 所利用的
+        部分逐通道结构。在批大小为 2 时，它在 ImageNet 上能达到与
+        BatchNorm 相当的准确率，而后者此时已经崩溃。
+      </li>
+      <li>
+        <strong>风格迁移 &middot; InstanceNorm。</strong> 分别独立地归一化每张图像
+        与每个通道，会剥离掉逐图像的对比度与色彩统计量 &mdash;
+        而这些恰恰是你随后想要重新绘制的“风格”，这正是它成为
+        风格迁移与许多 GAN 生成器默认选择的原因。
+      </li>
+    </ul>
+    <div class="callout callout--warn">
+      <strong>那 RMSNorm 呢？</strong> 这位现代 Transformer 的宠儿其实只是
+      去掉了均值中心化的 LayerNorm：$\hat{x} = \gamma \cdot x / \sqrt{\overline{x^2} + \epsilon}$。
+      切片与 LayerNorm 相同（在 $C$ 上），但它省去了减去 $\mu$ 的步骤——
+      少一个统计量、少一个参数，而准确率几乎相同。这里的每一种方法，
+      都是你刚才一路点击所探讨的同一个问题的变体：
+      <em>我们究竟在哪些坐标轴上做池化？</em>
+    </div>
+  </section>
+
+  <footer>ES 667 深度学习讲解系列之一 &middot; 归一化</footer>
+</article>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  /* ================= config ================= */
+  var HW = 2, S = HW * HW;          // spatial map is HW x HW
+  var MAXN = 6, MAXC = 8;
+  var cfg = { N: 4, C: 6, G: 3, norm: 'bn', n0: 0, c0: 0 };
+
+  /* ================= seeded activations ================= */
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      var t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  var rng = mulberry32(20260523);
+  var spare = null;
+  function randn() {
+    if (spare !== null) { var s = spare; spare = null; return s; }
+    var u, v, q;
+    do { u = 2 * rng() - 1; v = 2 * rng() - 1; q = u * u + v * v; } while (q >= 1 || q === 0);
+    var m = Math.sqrt(-2 * Math.log(q) / q);
+    spare = v * m; return u * m;
+  }
+  // Each channel gets its own base level so BatchNorm (per-channel) is tight
+  // while LayerNorm (across channels) sees more spread — pedagogically honest.
+  var chBase = [];
+  for (var c = 0; c < MAXC; c++) chBase[c] = 0.30 + 0.45 * rng();
+  var vals = new Float64Array(MAXN * MAXC * S);
+  for (var n = 0; n < MAXN; n++)
+    for (var cc = 0; cc < MAXC; cc++)
+      for (var s2 = 0; s2 < S; s2++) {
+        var x = chBase[cc] + 0.12 * randn();
+        x = Math.max(0.03, Math.min(0.97, x));
+        vals[(n * MAXC + cc) * S + s2] = x;
+      }
+  function getVal(n, c, s) { return vals[(n * MAXC + c) * S + s]; }
+
+  /* ================= membership ================= */
+  function grp(c) { return Math.floor(c / cfg.G); }
+  function inSet(n, c) {
+    switch (cfg.norm) {
+      case 'bn': return c === cfg.c0;
+      case 'ln': return n === cfg.n0;
+      case 'in': return n === cfg.n0 && c === cfg.c0;
+      case 'gn': return n === cfg.n0 && grp(c) === grp(cfg.c0);
+    }
+    return false;
+  }
+  function groupSize(gi) {
+    var cnt = 0;
+    for (var c = 0; c < cfg.C; c++) if (grp(c) === gi) cnt++;
+    return cnt;
+  }
+
+  /* ================= colours ================= */
+  var GRAY_LO = [238, 235, 229], GRAY_HI = [150, 142, 130];
+  var BLUE_LO = [204, 224, 245], BLUE_HI = [26, 82, 146];
+  function lerp(a, b, t) {
+    return 'rgb(' + Math.round(a[0] + (b[0] - a[0]) * t) + ',' +
+      Math.round(a[1] + (b[1] - a[1]) * t) + ',' +
+      Math.round(a[2] + (b[2] - a[2]) * t) + ')';
+  }
+  function heat(v, hot) {
+    return hot ? lerp(BLUE_LO, BLUE_HI, v) : lerp(GRAY_LO, GRAY_HI, v);
+  }
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  /* ================= layout ================= */
+  var canvas = document.getElementById('tensorCanvas');
+  var LAY = null;
+  function computeLayout() {
+    var host = canvas.parentElement;
+    var cssW = Math.max(320, Math.min(host.clientWidth || 880, 880));
+    var leftM = 54, topM = 34, rightM = 14, botM = 10, gap = 8;
+    var availW = cssW - leftM - rightM;
+    var blockW = (availW - (cfg.C - 1) * gap) / cfg.C;
+    blockW = Math.max(24, Math.min(blockW, 88));
+    var blockH = blockW;
+    var usedW = cfg.C * blockW + (cfg.C - 1) * gap;
+    var x0 = leftM + Math.max(0, (availW - usedW) / 2);
+    var cssH = topM + cfg.N * blockH + (cfg.N - 1) * gap + botM;
+    return { cssW: cssW, cssH: cssH, leftM: leftM, topM: topM, gap: gap,
+             blockW: blockW, blockH: blockH, x0: x0, usedW: usedW };
+  }
+  function blockX(L, c) { return L.x0 + c * (L.blockW + L.gap); }
+  function blockY(L, n) { return L.topM + n * (L.blockH + L.gap); }
+
+  function setupCanvas(cssW, cssH) {
+    var dpr = window.devicePixelRatio || 1;
+    canvas.style.width = cssW + 'px';
+    canvas.style.height = cssH + 'px';
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+    var ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return ctx;
+  }
+
+  /* ================= draw ================= */
+  function draw() {
+    var L = computeLayout();
+    LAY = L;
+    var ctx = setupCanvas(L.cssW, L.cssH);
+    ctx.clearRect(0, 0, L.cssW, L.cssH);
+
+    var subGap = HW > 1 ? 2 : 0;
+    var subW = (L.blockW - (HW - 1) * subGap) / HW;
+
+    // axis captions
+    ctx.fillStyle = '#8a8072';
+    ctx.font = '600 11px Manrope, sans-serif';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText('channels (c) →', L.x0, 14);
+    ctx.save();
+    ctx.translate(15, L.topM + (cfg.N * L.blockH + (cfg.N - 1) * L.gap) / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center';
+    ctx.fillText('batch (n) →', 0, 0);
+    ctx.restore();
+
+    // group separators (GroupNorm only) — faint dashed verticals between groups
+    if (cfg.norm === 'gn' && cfg.G < cfg.C) {
+      ctx.strokeStyle = 'rgba(47,42,34,0.18)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      for (var c = cfg.G; c < cfg.C; c += cfg.G) {
+        var gx = blockX(L, c) - L.gap / 2;
+        ctx.beginPath();
+        ctx.moveTo(gx, L.topM - 6);
+        ctx.lineTo(gx, L.topM + cfg.N * L.blockH + (cfg.N - 1) * L.gap + 2);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+    }
+
+    // column (channel) labels
+    ctx.font = '600 11px IBM Plex Mono, monospace';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    for (var cl = 0; cl < cfg.C; cl++) {
+      ctx.fillStyle = (cl === cfg.c0) ? '#d9622b' : '#a49a89';
+      ctx.fillText(cl, blockX(L, cl) + L.blockW / 2, L.topM - 8);
+    }
+    // row (batch) labels
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    for (var rl = 0; rl < cfg.N; rl++) {
+      ctx.fillStyle = (rl === cfg.n0) ? '#d9622b' : '#a49a89';
+      ctx.fillText(rl, L.x0 - 8, blockY(L, rl) + L.blockH / 2);
+    }
+
+    // blocks
+    for (var nn = 0; nn < cfg.N; nn++) {
+      for (var ch = 0; ch < cfg.C; ch++) {
+        var bx = blockX(L, ch);
+        var by = blockY(L, nn);
+        var hot = inSet(nn, ch);
+        for (var s = 0; s < S; s++) {
+          var sr = Math.floor(s / HW), sc = s % HW;
+          var x = bx + sc * (subW + subGap);
+          var y = by + sr * (subW + subGap);
+          ctx.fillStyle = heat(getVal(nn, ch, s), hot);
+          roundRect(ctx, x, y, subW, subW, Math.min(3, subW / 4));
+          ctx.fill();
+        }
+        // block outline
+        if (hot) {
+          ctx.strokeStyle = '#1a5292';
+          ctx.lineWidth = 2.4;
+        } else {
+          ctx.strokeStyle = 'rgba(47,42,34,0.10)';
+          ctx.lineWidth = 1;
+        }
+        roundRect(ctx, bx - 1.5, by - 1.5, L.blockW + 3, L.blockH + 3, 5);
+        ctx.stroke();
+      }
+    }
+
+    // reference-cell ring
+    var rx = blockX(L, cfg.c0), ry = blockY(L, cfg.n0);
+    ctx.strokeStyle = '#d9622b';
+    ctx.lineWidth = 2.8;
+    roundRect(ctx, rx - 3.5, ry - 3.5, L.blockW + 7, L.blockH + 7, 7);
+    ctx.stroke();
+  }
+
+  /* ================= stats + formula + notes ================= */
+  var FORMULA = {
+    bn: '\\mu_c=\\dfrac{1}{N\\,H\\,W}\\sum_{n}\\sum_{h,w} x_{nchw}',
+    ln: '\\mu_n=\\dfrac{1}{C\\,H\\,W}\\sum_{c}\\sum_{h,w} x_{nchw}',
+    in: '\\mu_{nc}=\\dfrac{1}{H\\,W}\\sum_{h,w} x_{nchw}',
+    gn: '\\mu_{ng}=\\dfrac{1}{(C/G)\\,H\\,W}\\sum_{c\\in\\mathcal{G}_g}\\sum_{h,w} x_{nchw}'
+  };
+  var USED = {
+    bn: '<strong>BatchNorm</strong> &middot; CNNs with a large batch. Statistics pool the whole batch per channel, so they are stable only when the batch is big &mdash; and train vs eval must swap in running averages.',
+    ln: '<strong>LayerNorm</strong> &middot; Transformers &amp; RNNs. No batch dependence, so it behaves identically at batch size 1 and with variable-length sequences.',
+    in: '<strong>InstanceNorm</strong> &middot; style transfer &amp; GANs. Normalizing each image-channel on its own erases per-image contrast so a new style can be painted in.',
+    gn: '<strong>GroupNorm</strong> &middot; detection &amp; small-batch training. A middle ground: batch-independent like LayerNorm, but grouped channels keep some of BatchNorm’s per-channel structure.'
+  };
+
+  function computeStats() {
+    var sum = 0, k = 0, arr = [];
+    for (var n = 0; n < cfg.N; n++)
+      for (var c = 0; c < cfg.C; c++)
+        if (inSet(n, c))
+          for (var s = 0; s < S; s++) { var v = getVal(n, c, s); sum += v; k++; arr.push(v); }
+    var mean = sum / k, vs = 0;
+    for (var i = 0; i < arr.length; i++) vs += (arr[i] - mean) * (arr[i] - mean);
+    return { mean: mean, varr: vs / k, count: k };
+  }
+  function setDesc() {
+    var sp = HW + '×' + HW;
+    switch (cfg.norm) {
+      case 'bn': return cfg.N + ' samples × 1 channel × ' + sp;
+      case 'ln': return '1 sample × ' + cfg.C + ' channels × ' + sp;
+      case 'in': return '1 sample × 1 channel × ' + sp;
+      case 'gn': return '1 sample × ' + groupSize(grp(cfg.c0)) + ' channels × ' + sp;
+    }
+    return '';
+  }
+
+  var katexReady = false;
+  function renderFormula() {
+    var el = document.getElementById('normFormula');
+    function go() {
+      if (window.katex) {
+        katexReady = true;
+        try {
+          katex.render(FORMULA[cfg.norm], el, { displayMode: true, throwOnError: false });
+        } catch (e) { el.textContent = FORMULA[cfg.norm]; }
+      } else if (!katexReady) {
+        setTimeout(go, 60);
+      }
+    }
+    go();
+  }
+
+  function updatePanels() {
+    var st = computeStats();
+    document.getElementById('meanVal').textContent = st.mean.toFixed(3);
+    document.getElementById('varVal').textContent = st.varr.toFixed(4);
+    document.getElementById('cntVal').textContent = st.count;
+    document.getElementById('cntSub').textContent = setDesc();
+    document.getElementById('usedNote').innerHTML = USED[cfg.norm];
+    var ng = Math.ceil(cfg.C / cfg.G);
+    document.getElementById('figCap').innerHTML =
+      cfg.norm === 'gn'
+        ? 'Channels split into <strong>' + ng + '</strong> group' + (ng === 1 ? '' : 's')
+          + ' of ' + cfg.G + '. Blue tiles share one mean &amp; variance.'
+        : 'Each tile is a channel’s ' + HW + '×' + HW
+          + ' spatial map. Blue tiles are pooled into one mean &amp; variance.';
+    renderFormula();
+  }
+
+  /* ================= full render ================= */
+  function render() { draw(); updatePanels(); }
+
+  /* ================= interaction ================= */
+  // click a tile -> set reference (n0, c0)
+  canvas.addEventListener('click', function (e) {
+    if (!LAY) return;
+    var rect = canvas.getBoundingClientRect();
+    var px = e.clientX - rect.left, py = e.clientY - rect.top;
+    for (var n = 0; n < cfg.N; n++) {
+      for (var c = 0; c < cfg.C; c++) {
+        var bx = blockX(LAY, c), by = blockY(LAY, n);
+        if (px >= bx - 3 && px <= bx + LAY.blockW + 3 &&
+            py >= by - 3 && py <= by + LAY.blockH + 3) {
+          cfg.n0 = n; cfg.c0 = c; render(); return;
+        }
+      }
+    }
+  });
+
+  // norm toggle
+  var toggleBtns = document.querySelectorAll('#normToggle button');
+  toggleBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      toggleBtns.forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      cfg.norm = btn.dataset.norm;
+      document.getElementById('ctlG').classList.toggle('dim', cfg.norm !== 'gn');
+      render();
+    });
+  });
+
+  // sliders
+  var nS = document.getElementById('nSlider');
+  var cS = document.getElementById('cSlider');
+  var gS = document.getElementById('gSlider');
+  nS.addEventListener('input', function () {
+    cfg.N = +nS.value;
+    document.getElementById('nVal').textContent = cfg.N;
+    if (cfg.n0 >= cfg.N) cfg.n0 = cfg.N - 1;
+    render();
+  });
+  cS.addEventListener('input', function () {
+    cfg.C = +cS.value;
+    document.getElementById('cVal').textContent = cfg.C;
+    gS.max = cfg.C;
+    if (cfg.G > cfg.C) { cfg.G = cfg.C; gS.value = cfg.G; document.getElementById('gVal').textContent = cfg.G; }
+    if (cfg.c0 >= cfg.C) cfg.c0 = cfg.C - 1;
+    render();
+  });
+  gS.addEventListener('input', function () {
+    cfg.G = +gS.value;
+    document.getElementById('gVal').textContent = cfg.G;
+    render();
+  });
+
+  window.addEventListener('resize', function () { draw(); });
+
+  /* ================= go ================= */
+  gS.max = cfg.C;
+  render();
+});
+</script>
+
+
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

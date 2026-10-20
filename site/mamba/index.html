@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mamba 与状态空间模型，可视化</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>Mamba &amp; 状态空间模型，可视化</h1>
+        <p class="abstract">
+          一个关于隐藏状态的线性递推。观察它在处理一段
+          256 步信号时状态如何演化。切换那个依赖输入的 Δ，
+          正是它赋予 Mamba 选择性的优势。
+          看清为何 O(N) 才是百万词元级上下文
+          应有的复杂度。
+        </p>
+        <div class="byline">
+          <span>约 18 分钟</span>
+          <span>SSM &middot; Mamba &middot; 长上下文</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>长上下文瓶颈</h2>
+        <p>
+          自注意力在序列长度上的复杂度为 $O(N^2)$。在 1k 词元时
+          尚可；在 100k 时已成为主要开销；在 1M 时则
+          不可行。状态空间模型（S4、S5、H3、Mamba）
+          用线性递推取代注意力，其
+          每个词元的开销为 $O(1)$，与序列长度无关。
+        </p>
+        <div class="callout callout--key">
+          <strong>一句口号。</strong>
+          离散时间 SSM 是一个动力学经过精心选择的
+          进阶版 RNN，它让你能通过一次「扫描」并行计算
+          许多词元。它保留了 RNN 随长度线性增长的开销，
+          同时重新获得了注意力的并行性。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>递推式</h2>
+        <div class="math-block" id="math-ssm"></div>
+        <p>
+          $h_t \in \mathbb{R}^d$ 是隐藏状态。$\bar A, \bar B$
+          是离散化后的动力学；$C$ 是输出投影。
+          对 S4 / S5 而言，这些是固定的（或是学习得到但
+          与输入无关的）。Mamba 的重大思想是：让 $\bar A, \bar
+          B$ 依赖于当前输入 $x_t$。仅此一处改动
+          便带来了「选择性」SSM，它能决定哪些输入应当
+          继续携带、哪些应当遗忘。
+        </p>
+        <div class="math-block" id="math-mamba"></div>
+        <p>
+          Δ 是每个词元的步长；极小的 Δ 意味着「几乎不更新
+          状态」（有利于跳过无信息的输入）；较大的
+          Δ 意味着「把这个输入视为重要」。二者都是学习得到的。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>观察状态的演化</h2>
+        <p>
+          一个单通道的离散 SSM，取 $A = -0.2$（缓慢衰减）、$B =
+          C = 1$，以及一个 Δ 由你选择：固定不变，或依据输入
+          进行调制。下方面板显示 $|h_t|$ 在 256 步
+          序列上的变化；上方显示输入。
+        </p>
+        <div class="train-controls">
+          <label>信号
+            <select id="mb-sig">
+              <option value="impulse" selected>脉冲（3 个尖峰）</option>
+              <option value="square">方波脉冲</option>
+              <option value="needle">噪声中的针</option>
+            </select>
+          </label>
+          <label>固定 Δ &nbsp;<span id="mb-d-val">0.30</span> <input type="range" id="mb-d" min="0.02" max="2" step="0.02" value="0.3"></label>
+          <label class="toggle-pair"><input type="checkbox" id="mb-sel"> 选择性 Δ（Mamba）</label>
+        </div>
+        <div class="mb-figure">
+          <canvas id="mb-canvas" width="880" height="320"></canvas>
+          <figcaption>上：输入 x_t。下：|h_t|（状态幅度）。采用选择性 Δ 时，状态会忽略低幅度的输入，并锁住稀疏而重要的事件。</figcaption>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>开销与序列长度的关系</h2>
+        <p>
+          Mamba 随长度线性增长；注意力则是二次的。下方：
+          两者相对于序列长度的合成运算次数。
+          平衡点取决于隐藏宽度，但对任何
+          足够长的序列而言，注意力都会落败。
+        </p>
+        <div class="mb-figure">
+          <canvas id="mb-cost" width="880" height="240"></canvas>
+          <figcaption>运算次数（双对数坐标）。注意力的 $O(N^2)$ 与 Mamba 扫描的 $O(N \cdot d_{\text{state}})$。</figcaption>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-scan">
+        <div class="step-badge">第 3½ 步</div>
+        <h2>并行扫描 —— 使 SSM 能够大规模训练的技巧</h2>
+        <p>
+          线性递推 $h_t = A h_{t-1} + B x_t$ <em>看起来</em>
+          天生是顺序的&mdash;每一步都依赖前一步。RNN 正困在这个
+          陷阱里：其训练耗时（墙钟时间）为
+          $O(N)$，因为每一层都要等待前一个
+          词元的隐藏状态。SSM 通过<strong>并行扫描</strong>
+          摆脱了这一点（Blelloch, 1990；Smith
+          等人，2023）：一种可结合的树形归约，
+          以 $O(\log N)$ 的深度计算出全部 $h_1, \dots, h_N$。
+        </p>
+        <div class="math-block" id="math-scan"></div>
+        <p>
+          诀窍在于：算子 $(c_1, M_1) \oplus (c_2, M_2) =
+          (M_2 c_1 + c_2,\; M_2 M_1)$ 是可结合的。先将相邻元素
+          两两归约，再将相邻元素组的相邻元素两两归约，
+          依此类推。每一层都把数量减半；$\log_2 N$ 层
+          便完成扫描。在 GPU 上其吞吐可与矩阵乘法相当。
+        </p>
+        <div class="bayes-figure">
+          <canvas id="scan-canvas" width="880" height="380"></canvas>
+          <figcaption>N=8 的并行扫描树。第 1 步合并 (1,2)、(3,4)、(5,6)、(7,8)。第 2 步合并 (1:2, 3:4) 与 (5:6, 7:8)。第 3 步合并 (1:4, 5:8)。经过 log₂N 层之后，每个前缀都计算完毕。</figcaption>
+        </div>
+        <div class="train-controls">
+          <label>序列长度 N &nbsp;<span id="scan-N-val">8</span> <input type="range" id="scan-N" min="2" max="64" step="1" value="8"></label>
+          <label class="toggle-pair"><input type="checkbox" id="scan-rnn"> 动画：与顺序 RNN 的对比</label>
+        </div>
+        <div class="bayes-figure">
+          <canvas id="scan-cost-canvas" width="880" height="220"></canvas>
+          <figcaption>墙钟时间深度：顺序 RNN 为 $O(N)$；并行扫描为 $O(\log N)$。在一段百万词元的上下文上，这意味着 100 万个顺序步骤对 20 个步骤。</figcaption>
+        </div>
+        <div class="callout callout--key">
+          <strong>为何这是 SSM 的超能力。</strong>
+          并行扫描是 SSM（S4、S5、Mamba）尽管是递推式的，
+          却能训练得像 Transformer 一样快的唯一原因。
+          没有它，「随长度线性增长」就只是纸面上的说法。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>各自胜出之处</h2>
+        <ul class="explanation-list">
+          <li><strong>注意力胜出于：</strong> 短序列、
+            需要精确长程复制 / 查找的任务、任意模式的上下文内
+            学习。大多数 32k 上下文以下的
+            LLM 任务。</li>
+          <li><strong>Mamba 胜出于：</strong> 极长的上下文
+            （DNA、音频、长文档、时间序列）。线性扩展
+            不再只是一个研究细节，而开始成为
+            可行与不可行之间的分水岭。</li>
+          <li><strong>混合架构胜出：</strong> Mamba-2、Jamba、
+            Nemotron-H、Zamba 交错堆叠 SSM 层与注意力层，
+            胜过了二者各自的纯版本。这是 2026 年的默认选择。</li>
+          <li><strong>时间序列预测。</strong> Mamba 与 S5
+            目前在长预测跨度上与 PatchTST 互有胜负。
+            对于跨越数年、以小时 / 分钟为
+            分辨率的数据，这是天然的骨干网络。</li>
+        </ul>
+        <div class="callout callout--think">
+          <strong>最终要点。</strong>
+          理解 SSM 的正确方式是把它看作「一个特征值经过精心调校、
+          对并行友好的 RNN」。在此基础上理解 Mamba 的正确方式是
+          「SSM 可以在决定更新多少之前先看看它的输入」。
+          二者结合，在不牺牲训练速度的前提下
+          移除了上下文长度上的 $N^2$ 天花板。
+        </div>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

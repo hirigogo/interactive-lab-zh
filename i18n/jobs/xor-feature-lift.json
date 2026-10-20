@@ -1,0 +1,1025 @@
+{
+ "slug": "xor-feature-lift",
+ "units": {
+  "XOR and the Feature Lift": {
+   "zh": "XOR 与特征提升",
+   "src": "XOR and the Feature Lift",
+   "tags": []
+  },
+  "@@T0@@Skip to experiment output@@T1@@": {
+   "zh": "@@T0@@跳至实验输出@@T1@@",
+   "src": "<a class=\"skip-link\" href=\"#workspace\">Skip to experiment output</a>",
+   "tags": [
+    "<a class=\"skip-link\" href=\"#workspace\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@All interactives@@T1@@": {
+   "zh": "@@T0@@全部交互式文章@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\" aria-label=\"Back to all interactives\">All interactives</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\" aria-label=\"Back to all interactives\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@Deep Learning · Lecture 1@@T1@@\n      @@T2@@XOR and the Feature Lift@@T3@@": {
+   "zh": "@@T0@@深度学习 · 第 1 讲@@T1@@\n      @@T2@@XOR 与特征提升@@T3@@",
+   "src": "<span>Deep Learning · Lecture 1</span>\n      <strong>XOR and the Feature Lift</strong>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@ReLU playground@@T1@@\n      @@T2@@Lecture slides@@T3@@": {
+   "zh": "@@T0@@ReLU 演练场@@T1@@\n      @@T2@@讲义幻灯片@@T3@@",
+   "src": "<a href=\"../mlp-decision-boundary/\">ReLU playground</a>\n      <a href=\"https://nipunbatra.github.io/dl-teaching/slides-pdf/L1.pdf\">Lecture slides</a>",
+   "tags": [
+    "<a href=\"../mlp-decision-boundary/\">",
+    "</a>",
+    "<a href=\"https://nipunbatra.github.io/dl-teaching/slides-pdf/L1.pdf\">",
+    "</a>"
+   ]
+  },
+  "ONE LINEAR MODEL, TWO VIEWS": {
+   "zh": "一个线性模型，两种视角",
+   "src": "ONE LINEAR MODEL, TWO VIEWS",
+   "tags": []
+  },
+  "One line cannot learn XOR. One more column can.": {
+   "zh": "直线无法学会 XOR，再加一列特征就可以。",
+   "src": "One line cannot learn XOR. One more column can.",
+   "tags": []
+  },
+  "Train a logistic regression on XOR and watch the best possible line fail. Then append the feature x@@T0@@1@@T1@@x@@T2@@2@@T3@@: the same linear model separates the lifted points with a flat plane in three dimensions, and that plane, seen from above, is the curve you get in the input plane.": {
+   "zh": "在 XOR 上训练逻辑回归，观察最优的直线如何失效。随后追加特征 x@@T0@@1@@T1@@x@@T2@@2@@T3@@：同一个线性模型用一个三维平面将提升后的数据点分开；从正上方俯视该平面，得到的正是输入平面中的那条曲线。",
+   "src": "Train a logistic regression on XOR and watch the best possible line fail. Then append the feature x<sub>1</sub>x<sub>2</sub>: the same linear model separates the lifted points with a flat plane in three dimensions, and that plane, seen from above, is the curve you get in the input plane.",
+   "tags": [
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "The model": {
+   "zh": "模型",
+   "src": "The model",
+   "tags": []
+  },
+  "The boundary z = 0 is linear in the features (x@@T0@@1@@T1@@, x@@T2@@2@@T3@@, φ). Every control in this lab changes only the data or φ. The classifier stays linear throughout.": {
+   "zh": "决策边界 z = 0 在特征 (x@@T0@@1@@T1@@, x@@T2@@2@@T3@@, φ) 中是线性的。本实验中的每一个控件都只改变数据或 φ，分类器本身始终保持线性。",
+   "src": "The boundary z = 0 is linear in the features (x<sub>1</sub>, x<sub>2</sub>, φ). Every control in this lab changes only the data or φ. The classifier stays linear throughout.",
+   "tags": [
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "Choose the data": {
+   "zh": "选择数据",
+   "src": "Choose the data",
+   "tags": []
+  },
+  "@@T0@@Four clusters@@T1@@@@T2@@100 points@@T3@@": {
+   "zh": "@@T0@@四个簇@@T1@@@@T2@@100 个数据点@@T3@@",
+   "src": "<strong>Four clusters</strong><small>100 points</small>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<small>",
+    "</small>"
+   ]
+  },
+  "@@T0@@Four corners@@T1@@@@T2@@4 Boolean points@@T3@@": {
+   "zh": "@@T0@@四个角点@@T1@@@@T2@@4 个布尔点@@T3@@",
+   "src": "<strong>Four corners</strong><small>4 Boolean points</small>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<small>",
+    "</small>"
+   ]
+  },
+  "XOR labels: blue where x@@T0@@1@@T1@@ and x@@T2@@2@@T3@@ share a sign, orange where the signs differ.": {
+   "zh": "XOR 标签：x@@T0@@1@@T1@@ 与 x@@T2@@2@@T3@@ 同号处为蓝色，异号处为橙色。",
+   "src": "XOR labels: blue where x<sub>1</sub> and x<sub>2</sub> share a sign, orange where the signs differ.",
+   "tags": [
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "Choose the features": {
+   "zh": "选择特征",
+   "src": "Choose the features",
+   "tags": []
+  },
+  "@@T0@@x₁, x₂ only@@T1@@@@T2@@a line@@T3@@": {
+   "zh": "@@T0@@仅 x₁, x₂@@T1@@@@T2@@一条直线@@T3@@",
+   "src": "<strong>x₁, x₂ only</strong><small>a line</small>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<small>",
+    "</small>"
+   ]
+  },
+  "@@T0@@+ x₁x₂@@T1@@@@T2@@the lift@@T3@@": {
+   "zh": "@@T0@@+ x₁x₂@@T1@@@@T2@@特征提升@@T3@@",
+   "src": "<strong>+ x₁x₂</strong><small>the lift</small>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<small>",
+    "</small>"
+   ]
+  },
+  "@@T0@@+ x₁² + x₂²@@T1@@@@T2@@a decoy@@T3@@": {
+   "zh": "@@T0@@+ x₁² + x₂²@@T1@@@@T2@@干扰特征@@T3@@",
+   "src": "<strong>+ x₁² + x₂²</strong><small>a decoy</small>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<small>",
+    "</small>"
+   ]
+  },
+  "@@T0@@+ ReLU(x₁ + x₂ − 1)@@T1@@@@T2@@one hidden neuron@@T3@@": {
+   "zh": "@@T0@@+ ReLU(x₁ + x₂ − 1)@@T1@@@@T2@@单个隐藏神经元@@T3@@",
+   "src": "<strong>+ ReLU(x₁ + x₂ − 1)</strong><small>one hidden neuron</small>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<small>",
+    "</small>"
+   ]
+  },
+  "Logistic regression on the raw inputs.": {
+   "zh": "在原始输入上的逻辑回归。",
+   "src": "Logistic regression on the raw inputs.",
+   "tags": []
+  },
+  "Set or learn the weights": {
+   "zh": "手动设定或学习权重",
+   "src": "Set or learn the weights",
+   "tags": []
+  },
+  "@@T0@@b · bias@@T1@@": {
+   "zh": "@@T0@@b · 偏置@@T1@@",
+   "src": "<span>b · bias</span>",
+   "tags": [
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Run": {
+   "zh": "运行",
+   "src": "Run",
+   "tags": []
+  },
+  "One step": {
+   "zh": "单步",
+   "src": "One step",
+   "tags": []
+  },
+  "Reset": {
+   "zh": "重置",
+   "src": "Reset",
+   "tags": []
+  },
+  "Step": {
+   "zh": "步数",
+   "src": "Step",
+   "tags": []
+  },
+  "Learning rate": {
+   "zh": "学习率",
+   "src": "Learning rate",
+   "tags": []
+  },
+  "Update": {
+   "zh": "更新方式",
+   "src": "Update",
+   "tags": []
+  },
+  "full batch": {
+   "zh": "全批量",
+   "src": "full batch",
+   "tags": []
+  },
+  "Try the sliders first.": {
+   "zh": "请先试试滑块。",
+   "src": "Try the sliders first.",
+   "tags": []
+  },
+  "Prediction to test": {
+   "zh": "待检验的预测",
+   "src": "Prediction to test",
+   "tags": []
+  },
+  "With x₁ and x₂ alone, the loss cannot drop below @@T0@@ln 2 ≈ 0.693@@T1@@, the loss of guessing 0.5. With x₁x₂ added, it can go to @@T2@@zero@@T3@@.": {
+   "zh": "仅用 x₁ 与 x₂ 时，损失无法低于 @@T0@@ln 2 ≈ 0.693@@T1@@，即处处猜测 0.5 的损失。加入 x₁x₂ 后，损失可以降到 @@T2@@零@@T3@@。",
+   "src": "With x₁ and x₂ alone, the loss cannot drop below <strong>ln 2 ≈ 0.693</strong>, the loss of guessing 0.5. With x₁x₂ added, it can go to <strong>zero</strong>.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "TWO FEATURES: x₁ AND x₂": {
+   "zh": "两个特征：x₁ 与 x₂",
+   "src": "TWO FEATURES: x₁ AND x₂",
+   "tags": []
+  },
+  "Can one straight line separate XOR?": {
+   "zh": "一条直线能分开 XOR 吗？",
+   "src": "Can one straight line separate XOR?",
+   "tags": []
+  },
+  "@@T0@@100 points · 25 per corner@@T1@@": {
+   "zh": "@@T0@@100 个数据点 · 每个角点 25 个@@T1@@",
+   "src": "<span class=\"dataset-badge\" id=\"datasetBadge\">100 points · 25 per corner</span>",
+   "tags": [
+    "<span class=\"dataset-badge\" id=\"datasetBadge\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Binary cross-entropy@@T1@@@@T2@@—@@T3@@@@T4@@chance = ln 2 = 0.693@@T5@@": {
+   "zh": "@@T0@@二元交叉熵@@T1@@@@T2@@—@@T3@@@@T4@@随机水平 = ln 2 = 0.693@@T5@@",
+   "src": "<span>Binary cross-entropy</span><strong id=\"lossValue\">—</strong><small id=\"lossNote\">chance = ln 2 = 0.693</small>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong id=\"lossValue\">",
+    "</strong>",
+    "<small id=\"lossNote\">",
+    "</small>"
+   ]
+  },
+  "@@T0@@Accuracy@@T1@@@@T2@@—@@T3@@@@T4@@100 points@@T5@@": {
+   "zh": "@@T0@@准确率@@T1@@@@T2@@—@@T3@@@@T4@@100 个数据点@@T5@@",
+   "src": "<span>Accuracy</span><strong id=\"accuracyValue\">—</strong><small id=\"accuracyNote\">100 points</small>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong id=\"accuracyValue\">",
+    "</strong>",
+    "<small id=\"accuracyNote\">",
+    "</small>"
+   ]
+  },
+  "@@T0@@Boundary in input space@@T1@@@@T2@@—@@T3@@@@T4@@the set z = 0 drawn in (x₁, x₂)@@T5@@": {
+   "zh": "@@T0@@输入空间中的边界@@T1@@@@T2@@—@@T3@@@@T4@@在 (x₁, x₂) 中绘制的集合 z = 0@@T5@@",
+   "src": "<span>Boundary in input space</span><strong id=\"boundaryValue\">—</strong><small>the set z = 0 drawn in (x₁, x₂)</small>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong id=\"boundaryValue\">",
+    "</strong>",
+    "<small>",
+    "</small>"
+   ]
+  },
+  "@@T0@@Boundary in feature space@@T1@@@@T2@@—@@T3@@@@T4@@always flat@@T5@@": {
+   "zh": "@@T0@@特征空间中的边界@@T1@@@@T2@@—@@T3@@@@T4@@始终是平面@@T5@@",
+   "src": "<span>Boundary in feature space</span><strong id=\"dimensionValue\">—</strong><small id=\"dimensionNote\">always flat</small>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong id=\"dimensionValue\">",
+    "</strong>",
+    "<small id=\"dimensionNote\">",
+    "</small>"
+   ]
+  },
+  "INPUT SPACE": {
+   "zh": "输入空间",
+   "src": "INPUT SPACE",
+   "tags": []
+  },
+  "What the classifier draws in (x₁, x₂)": {
+   "zh": "分类器在 (x₁, x₂) 中绘出的边界",
+   "src": "What the classifier draws in (x₁, x₂)",
+   "tags": []
+  },
+  "Your browser does not support the input-space canvas.": {
+   "zh": "你的浏览器不支持输入空间画布。",
+   "src": "Your browser does not support the input-space canvas.",
+   "tags": []
+  },
+  "@@T0@@@@T1@@@@T2@@p(y = 1) near 0@@T3@@\n              @@T4@@@@T5@@@@T6@@p(y = 1) near 1@@T7@@\n              @@T8@@@@T9@@@@T10@@class 0@@T11@@\n              @@T12@@@@T13@@@@T14@@class 1@@T15@@\n              @@T16@@@@T17@@@@T18@@boundary z = 0@@T19@@": {
+   "zh": "@@T0@@@@T1@@@@T2@@p(y = 1) 接近 0@@T3@@\n              @@T4@@@@T5@@@@T6@@p(y = 1) 接近 1@@T7@@\n              @@T8@@@@T9@@@@T10@@类别 0@@T11@@\n              @@T12@@@@T13@@@@T14@@类别 1@@T15@@\n              @@T16@@@@T17@@@@T18@@边界 z = 0@@T19@@",
+   "src": "<span><i class=\"swatch class-zero\"></i>p(y = 1) near 0</span>\n              <span><i class=\"swatch class-one\"></i>p(y = 1) near 1</span>\n              <span><i class=\"point-key point-zero\"></i>class 0</span>\n              <span><i class=\"point-key point-one\"></i>class 1</span>\n              <span><i class=\"curve-key\"></i>boundary z = 0</span>",
+   "tags": [
+    "<span>",
+    "<i class=\"swatch class-zero\">",
+    "</i>",
+    "</span>",
+    "<span>",
+    "<i class=\"swatch class-one\">",
+    "</i>",
+    "</span>",
+    "<span>",
+    "<i class=\"point-key point-zero\">",
+    "</i>",
+    "</span>",
+    "<span>",
+    "<i class=\"point-key point-one\">",
+    "</i>",
+    "</span>",
+    "<span>",
+    "<i class=\"curve-key\">",
+    "</i>",
+    "</span>"
+   ]
+  },
+  "Background colour is the model probability. The dark curve is where z = 0, traced from the live weights.": {
+   "zh": "背景颜色表示模型概率。深色曲线为 z = 0 的轨迹，由当前权重实时绘出。",
+   "src": "Background colour is the model probability. The dark curve is where z = 0, traced from the live weights.",
+   "tags": []
+  },
+  "FEATURE SPACE": {
+   "zh": "特征空间",
+   "src": "FEATURE SPACE",
+   "tags": []
+  },
+  "The same boundary in (x₁, x₂, φ)": {
+   "zh": "在 (x₁, x₂, φ) 中的同一条边界",
+   "src": "The same boundary in (x₁, x₂, φ)",
+   "tags": []
+  },
+  "Orbit": {
+   "zh": "环绕",
+   "src": "Orbit",
+   "tags": []
+  },
+  "Edge-on": {
+   "zh": "侧视",
+   "src": "Edge-on",
+   "tags": []
+  },
+  "Top": {
+   "zh": "俯视",
+   "src": "Top",
+   "tags": []
+  },
+  "Your browser does not support the feature-space canvas.": {
+   "zh": "你的浏览器不支持特征空间画布。",
+   "src": "Your browser does not support the feature-space canvas.",
+   "tags": []
+  },
+  "@@T0@@@@T1@@@@T2@@surface z = φ, coloured by p@@T3@@\n              @@T4@@@@T5@@@@T6@@plane z = 0@@T7@@\n              @@T8@@@@T9@@@@T10@@plane ∩ surface@@T11@@\n              @@T12@@@@T13@@@@T14@@its shadow on the floor@@T15@@": {
+   "zh": "@@T0@@@@T1@@@@T2@@曲面 z = φ，按 p 着色@@T3@@\n              @@T4@@@@T5@@@@T6@@平面 z = 0@@T7@@\n              @@T8@@@@T9@@@@T10@@平面 ∩ 曲面@@T11@@\n              @@T12@@@@T13@@@@T14@@其在底面上的投影@@T15@@",
+   "src": "<span><i class=\"swatch surface-key\"></i>surface z = φ, coloured by p</span>\n              <span><i class=\"swatch plane-key\"></i>plane z = 0</span>\n              <span><i class=\"curve-key\"></i>plane ∩ surface</span>\n              <span><i class=\"curve-key curve-dashed\"></i>its shadow on the floor</span>",
+   "tags": [
+    "<span>",
+    "<i class=\"swatch surface-key\">",
+    "</i>",
+    "</span>",
+    "<span>",
+    "<i class=\"swatch plane-key\">",
+    "</i>",
+    "</span>",
+    "<span>",
+    "<i class=\"curve-key\">",
+    "</i>",
+    "</span>",
+    "<span>",
+    "<i class=\"curve-key curve-dashed\">",
+    "</i>",
+    "</span>"
+   ]
+  },
+  "Drag to orbit, scroll to zoom, arrow keys to rotate, 0 to reset. Edge-on turns the plane into a line. Top reproduces the left panel.": {
+   "zh": "拖动可环绕，滚轮可缩放，方向键可旋转，按 0 复位。侧视将平面压缩为一条直线，俯视则重现左侧面板。",
+   "src": "Drag to orbit, scroll to zoom, arrow keys to rotate, 0 to reset. Edge-on turns the plane into a line. Top reproduces the left panel.",
+   "tags": []
+  },
+  "TRAINING": {
+   "zh": "训练",
+   "src": "TRAINING",
+   "tags": []
+  },
+  "Loss after every gradient step": {
+   "zh": "每次梯度步后的损失",
+   "src": "Loss after every gradient step",
+   "tags": []
+  },
+  "Your browser does not support the loss-history canvas.": {
+   "zh": "你的浏览器不支持损失历史画布。",
+   "src": "Your browser does not support the loss-history canvas.",
+   "tags": []
+  },
+  "The dashed line is ln 2, the loss of predicting 0.5 everywhere. The logistic loss is convex, so gradient descent reaches the best weights for the chosen features.": {
+   "zh": "虚线为 ln 2，即处处预测 0.5 的损失。逻辑损失是凸的，因此梯度下降能收敛到所选特征下的最优权重。",
+   "src": "The dashed line is ln 2, the loss of predicting 0.5 everywhere. The logistic loss is convex, so gradient descent reaches the best weights for the chosen features.",
+   "tags": []
+  },
+  "WHAT THE PICTURES PROVE": {
+   "zh": "图形说明了什么",
+   "src": "WHAT THE PICTURES PROVE",
+   "tags": []
+  },
+  "The nonlinearity was never in the classifier.": {
+   "zh": "非线性从来不在分类器里。",
+   "src": "The nonlinearity was never in the classifier.",
+   "tags": []
+  },
+  "No line can do it": {
+   "zh": "任何直线都无法做到",
+   "src": "No line can do it",
+   "tags": []
+  },
+  "Suppose a line puts both blue corners, (1, 1) and (−1, −1), on its positive side. A half-plane is convex, so it also contains their midpoint, the origin. The same argument for the orange corners (1, −1) and (−1, 1) puts the origin on the negative side. Contradiction.": {
+   "zh": "假设某条直线把两个蓝色角点 (1, 1) 与 (−1, −1) 都放在正侧。半平面是凸集，故它也包含二者的中点，即原点。对两个橙色角点 (1, −1) 与 (−1, 1) 施以同样的论证，则原点落在负侧。矛盾。",
+   "src": "Suppose a line puts both blue corners, (1, 1) and (−1, −1), on its positive side. A half-plane is convex, so it also contains their midpoint, the origin. The same argument for the orange corners (1, −1) and (−1, 1) puts the origin on the negative side. Contradiction.",
+   "tags": []
+  },
+  "Training is not the problem. The logistic loss is convex in (w, b), so gradient descent reaches the global optimum, and on symmetric XOR that optimum is w = 0: predict 0.5 everywhere, loss ln 2.": {
+   "zh": "问题不在训练。逻辑损失关于 (w, b) 是凸的，故梯度下降能到达全局最优；而在对称的 XOR 上，该最优解为 w = 0：处处预测 0.5，损失为 ln 2。",
+   "src": "Training is not the problem. The logistic loss is convex in (w, b), so gradient descent reaches the global optimum, and on symmetric XOR that optimum is w = 0: predict 0.5 everywhere, loss ln 2.",
+   "tags": []
+  },
+  "One column fixes it": {
+   "zh": "一列特征即可解决",
+   "src": "One column fixes it",
+   "tags": []
+  },
+  "On the corners the new column x@@T0@@1@@T1@@x@@T2@@2@@T3@@ is +1 for blue and −1 for orange, so it separates the classes on its own. The weights (0, 0, −1) give z = −x@@T4@@1@@T5@@x@@T6@@2@@T7@@: p = σ(−1) ≈ 0.27 on blue, σ(+1) ≈ 0.73 on orange, and scaling w@@T8@@3@@T9@@ sharpens both.": {
+   "zh": "在角点上，新列 x@@T0@@1@@T1@@x@@T2@@2@@T3@@ 对蓝色取 +1、对橙色取 −1，因而它自身就能分开两类。权重 (0, 0, −1) 给出 z = −x@@T4@@1@@T5@@x@@T6@@2@@T7@@：蓝色上 p = σ(−1) ≈ 0.27，橙色上 σ(+1) ≈ 0.73；增大 w@@T8@@3@@T9@@ 可使二者同时更锐利。",
+   "src": "On the corners the new column x<sub>1</sub>x<sub>2</sub> is +1 for blue and −1 for orange, so it separates the classes on its own. The weights (0, 0, −1) give z = −x<sub>1</sub>x<sub>2</sub>: p = σ(−1) ≈ 0.27 on blue, σ(+1) ≈ 0.73 on orange, and scaling w<sub>3</sub> sharpens both.",
+   "tags": [
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "In feature space that boundary is the flat sheet u@@T0@@3@@T1@@ = 0. Train with the product feature and watch the plane settle near it.": {
+   "zh": "在特征空间中，该边界是平面 u@@T0@@3@@T1@@ = 0。加入乘积特征并训练，观察平面如何稳定在其附近。",
+   "src": "In feature space that boundary is the flat sheet u<sub>3</sub> = 0. Train with the product feature and watch the plane settle near it.",
+   "tags": [
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "Same boundary, two views": {
+   "zh": "同一条边界，两种视角",
+   "src": "Same boundary, two views",
+   "tags": []
+  },
+  "In feature coordinates the boundary is b + w@@T0@@1@@T1@@u@@T2@@1@@T3@@ + w@@T4@@2@@T5@@u@@T6@@2@@T7@@ + w@@T8@@3@@T9@@u@@T10@@3@@T11@@ = 0, a plane, flat by construction. Substitute u@@T12@@3@@T13@@ = x@@T14@@1@@T15@@x@@T16@@2@@T17@@ and solve: x@@T18@@2@@T19@@ = −(b + w@@T20@@1@@T21@@x@@T22@@1@@T23@@) / (w@@T24@@2@@T25@@ + w@@T26@@3@@T27@@x@@T28@@1@@T29@@), a hyperbola with asymptotes x@@T30@@1@@T31@@ = −w@@T32@@2@@T33@@/w@@T34@@3@@T35@@ and x@@T36@@2@@T37@@ = −w@@T38@@1@@T39@@/w@@T40@@3@@T41@@.": {
+   "zh": "在特征坐标下，边界为 b + w@@T0@@1@@T1@@u@@T2@@1@@T3@@ + w@@T4@@2@@T5@@u@@T6@@2@@T7@@ + w@@T8@@3@@T9@@u@@T10@@3@@T11@@ = 0，按构造即为一个平面。代入 u@@T12@@3@@T13@@ = x@@T14@@1@@T15@@x@@T16@@2@@T17@@ 并求解得 x@@T18@@2@@T19@@ = −(b + w@@T20@@1@@T21@@x@@T22@@1@@T23@@) / (w@@T24@@2@@T25@@ + w@@T26@@3@@T27@@x@@T28@@1@@T29@@)，这是一条双曲线，其渐近线为 x@@T30@@1@@T31@@ = −w@@T32@@2@@T33@@/w@@T34@@3@@T35@@ 与 x@@T36@@2@@T37@@ = −w@@T38@@1@@T39@@/w@@T40@@3@@T41@@。",
+   "src": "In feature coordinates the boundary is b + w<sub>1</sub>u<sub>1</sub> + w<sub>2</sub>u<sub>2</sub> + w<sub>3</sub>u<sub>3</sub> = 0, a plane, flat by construction. Substitute u<sub>3</sub> = x<sub>1</sub>x<sub>2</sub> and solve: x<sub>2</sub> = −(b + w<sub>1</sub>x<sub>1</sub>) / (w<sub>2</sub> + w<sub>3</sub>x<sub>1</sub>), a hyperbola with asymptotes x<sub>1</sub> = −w<sub>2</sub>/w<sub>3</sub> and x<sub>2</sub> = −w<sub>1</sub>/w<sub>3</sub>.",
+   "tags": [
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "Press Edge-on to see the plane as a line, then Top to see its trace as the curve on the left. Same object, two projections.": {
+   "zh": "点击侧视可将平面看作一条直线，再点击俯视可看到其迹线即左侧的曲线。同一个对象，两种投影。",
+   "src": "Press Edge-on to see the plane as a line, then Top to see its trace as the curve on the left. Same object, two projections.",
+   "tags": []
+  },
+  "Networks learn φ": {
+   "zh": "网络学习 φ",
+   "src": "Networks learn φ",
+   "tags": []
+  },
+  "The decoy x@@T0@@1@@T1@@² + x@@T2@@2@@T3@@² equals 2 at every corner and helps nobody: a useful feature must differ across classes. The ReLU feature max(0, x@@T4@@1@@T5@@ + x@@T6@@2@@T7@@ − 1) is one hidden neuron with weights (1, 1) and bias −1, chosen by hand. It flags the (1, 1) corner, and with the line it solves XOR.": {
+   "zh": "干扰特征 x@@T0@@1@@T1@@² + x@@T2@@2@@T3@@² 在每个角点上都等于 2，因而无助于分类：有用的特征必须在不同类别间取值不同。ReLU 特征 max(0, x@@T4@@1@@T5@@ + x@@T6@@2@@T7@@ − 1) 是权重为 (1, 1)、偏置为 −1 的单个隐藏神经元，此处由手工设定。它标记出 (1, 1) 角点，与那条直线配合即可解出 XOR。",
+   "src": "The decoy x<sub>1</sub>² + x<sub>2</sub>² equals 2 at every corner and helps nobody: a useful feature must differ across classes. The ReLU feature max(0, x<sub>1</sub> + x<sub>2</sub> − 1) is one hidden neuron with weights (1, 1) and bias −1, chosen by hand. It flags the (1, 1) corner, and with the line it solves XOR.",
+   "tags": [
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "A hidden layer is a bank of such units whose weights are learned by the same gradient descent. The ReLU playground shows that happening.": {
+   "zh": "隐藏层就是这样一组单元的集合，其权重由同样的梯度下降学习得到。ReLU 演练场展示了这一过程。",
+   "src": "A hidden layer is a bank of such units whose weights are learned by the same gradient descent. The ReLU playground shows that happening.",
+   "tags": []
+  },
+  "@@T0@@logistic regression · full-batch gradient descent · computation stays in this page@@T1@@\n    @@T2@@Continue: let a network learn φ →@@T3@@": {
+   "zh": "@@T0@@逻辑回归 · 全批量梯度下降 · 全部计算均在本页完成@@T1@@\n    @@T2@@继续：让网络学习 φ →@@T3@@",
+   "src": "<span>logistic regression · full-batch gradient descent · computation stays in this page</span>\n    <a href=\"../mlp-decision-boundary/\">Continue: let a network learn φ →</a>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<a href=\"../mlp-decision-boundary/\">",
+    "</a>"
+   ]
+  },
+  "Back to all interactives": {
+   "zh": "返回全部交互式文章",
+   "src": "Back to all interactives",
+   "tags": []
+  },
+  "Related course material": {
+   "zh": "相关课程材料",
+   "src": "Related course material",
+   "tags": []
+  },
+  "Experiment controls": {
+   "zh": "实验控件",
+   "src": "Experiment controls",
+   "tags": []
+  },
+  "Dataset": {
+   "zh": "数据集",
+   "src": "Dataset",
+   "tags": []
+  },
+  "Feature map": {
+   "zh": "特征映射",
+   "src": "Feature map",
+   "tags": []
+  },
+  "Experiment output": {
+   "zh": "实验输出",
+   "src": "Experiment output",
+   "tags": []
+  },
+  "Input-space decision map with the XOR training points": {
+   "zh": "带有 XOR 训练点的输入空间决策图",
+   "src": "Input-space decision map with the XOR training points",
+   "tags": []
+  },
+  "Input space legend": {
+   "zh": "输入空间图例",
+   "src": "Input space legend",
+   "tags": []
+  },
+  "Camera view": {
+   "zh": "相机视角",
+   "src": "Camera view",
+   "tags": []
+  },
+  "Feature-space view of the lifted data and the separating plane": {
+   "zh": "提升后数据与分离平面的特征空间视图",
+   "src": "Feature-space view of the lifted data and the separating plane",
+   "tags": []
+  },
+  "Feature space legend": {
+   "zh": "特征空间图例",
+   "src": "Feature space legend",
+   "tags": []
+  },
+  "Binary cross-entropy loss per gradient step": {
+   "zh": "每次梯度步的二元交叉熵损失",
+   "src": "Binary cross-entropy loss per gradient step",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "XOR 与特征提升",
+  "tagline": "观察最优直线如何在 XOR 上失效，再引入一列 x₁x₂，看三维平面如何化为二维曲线",
+  "summary": "在 XOR 上训练逻辑回归，观察梯度下降停在随机损失 ln 2 处，因为任何直线都无法分开四个角点。追加特征 x₁x₂ 后，同一个线性模型用一个三维平面将提升后的数据分开。环绕该平面，从侧面观察，再从顶部俯视：它在鞍面上的迹线正是你在输入平面中看到的那条双曲线。",
+  "difficulty": "入门",
+  "collection": "深度学习",
+  "highlights": [
+   "在 XOR 上手工调参或训练逻辑回归，观察损失稳定在 ln 2 ≈ 0.693，即猜测概率 0.5 的损失。",
+   "加入 x₁x₂ 列，看数据点被提升到鞍面上，由一个平面将两类分开。",
+   "环绕特征空间，将视点与平面平行，再从顶部俯视，还原出二维的双曲线边界。",
+   "尝试一个无助于分类的干扰特征，以及一个手工构造的 ReLU 特征，后者通向隐藏层。"
+  ],
+  "tags": [
+   "逻辑回归",
+   "XOR",
+   "特征工程",
+   "决策边界",
+   "线性可分性",
+   "交互式"
+  ]
+ },
+ "js": {
+  "Unknown view: [[[0]]]": {
+   "zh": "未知视角：[[[0]]]",
+   "exprs": [
+    "${name}"
+   ],
+   "tags": [],
+   "src": "Unknown view: ${name}"
+  },
+  "top view · [[[0]]] points at you": {
+   "zh": "俯视图 · [[[0]]] 正对你",
+   "exprs": [
+    "${FEATURES[state.lift.to].axis}"
+   ],
+   "tags": [],
+   "src": "top view · ${FEATURES[state.lift.to].axis} points at you"
+  },
+  "   ·   a circle centred at ([[[0]]], [[[1]]])": {
+   "zh": "   ·   以 ([[[0]]], [[[1]]]) 为圆心的圆",
+   "exprs": [
+    "${formatWeight(-w1 / (2 * w3))}",
+    "${formatWeight(-w2 / (2 * w3))}"
+   ],
+   "tags": [],
+   "src": "   ·   a circle centred at (${formatWeight(-w1 / (2 * w3))}, ${formatWeight(-w2 / (2 * w3))})"
+  },
+  "plane: [[[0]]][[[1]]][[[2]]] + 0.00u₃ = 0   ·   u₃ has weight 0, so the plane stands vertical: its top view is the line on the left": {
+   "zh": "平面：[[[0]]][[[1]]][[[2]]] + 0.00u₃ = 0   ·   u₃ 的权重为 0，故平面竖直：其俯视图即左侧那条直线",
+   "exprs": [
+    "${formatWeight(b)}",
+    "${signedTerm(w1, 'u₁')}",
+    "${signedTerm(w2, 'u₂')}"
+   ],
+   "tags": [],
+   "src": "plane: ${formatWeight(b)}${signedTerm(w1, 'u₁')}${signedTerm(w2, 'u₂')} + 0.00u₃ = 0   ·   u₃ has weight 0, so the plane stands vertical: its top view is the line on the left"
+  },
+  "plane: [[[0]]][[[1]]][[[2]]][[[3]]] = 0   ·   normal ([[[4]]], [[[5]]], [[[6]]])   ·   flat whatever the values": {
+   "zh": "平面：[[[0]]][[[1]]][[[2]]][[[3]]] = 0   ·   法向量 ([[[4]]], [[[5]]], [[[6]]])   ·   无论取值如何都是平面",
+   "exprs": [
+    "${formatWeight(b)}",
+    "${signedTerm(w1, 'u₁')}",
+    "${signedTerm(w2, 'u₂')}",
+    "${signedTerm(w3, 'u₃')}",
+    "${formatWeight(w1)}",
+    "${formatWeight(w2)}",
+    "${formatWeight(w3)}"
+   ],
+   "tags": [],
+   "src": "plane: ${formatWeight(b)}${signedTerm(w1, 'u₁')}${signedTerm(w2, 'u₂')}${signedTerm(w3, 'u₃')} = 0   ·   normal (${formatWeight(w1)}, ${formatWeight(w2)}, ${formatWeight(w3)})   ·   flat whatever the values"
+  },
+  "Weights set by hand: loss [[[0]]], accuracy [[[1]]]. [[[2]]]": {
+   "zh": "手工设定权重：损失 [[[0]]]，准确率 [[[1]]]。[[[2]]]",
+   "exprs": [
+    "${lossText}",
+    "${percent(metrics.accuracy)}",
+    "${tail}"
+   ],
+   "tags": [],
+   "src": "Weights set by hand: loss ${lossText}, accuracy ${percent(metrics.accuracy)}. ${tail}"
+  },
+  "[[[0]]]: loss [[[1]]] against a floor of ln 2 ≈ 0.693. Gradient descent is shrinking the line toward w = 0, the convex optimum. No line beats chance on XOR.": {
+   "zh": "[[[0]]]：损失为 [[[1]]]，下界为 ln 2 ≈ 0.693。梯度下降正把直线收缩至 w = 0，即凸最优解。在 XOR 上没有任何直线能超越随机水平。",
+   "exprs": [
+    "${step}",
+    "${lossText}"
+   ],
+   "tags": [],
+   "src": "${step}: loss ${lossText} against a floor of ln 2 ≈ 0.693. Gradient descent is shrinking the line toward w = 0, the convex optimum. No line beats chance on XOR."
+  },
+  "[[[0]]]: every point is on the correct side. The plane is flat in (x₁, x₂, x₁x₂); its trace on the saddle projects to the hyperbola on the left.": {
+   "zh": "[[[0]]]：所有点都位于正确一侧。该平面在 (x₁, x₂, x₁x₂) 中是平直的；它在鞍面上的迹线投影到左侧即为那条双曲线。",
+   "exprs": [
+    "${step}"
+   ],
+   "tags": [],
+   "src": "${step}: every point is on the correct side. The plane is flat in (x₁, x₂, x₁x₂); its trace on the saddle projects to the hyperbola on the left."
+  },
+  "[[[0]]]: w₃ is growing negative, tilting the plane so that the raised blue corners fall on its negative side.": {
+   "zh": "[[[0]]]：w₃ 正朝负方向增大，使平面倾斜，从而让被抬高的蓝色角点落在其负侧。",
+   "exprs": [
+    "${step}"
+   ],
+   "tags": [],
+   "src": "${step}: w₃ is growing negative, tilting the plane so that the raised blue corners fall on its negative side."
+  },
+  "[[[0]]]: accuracy [[[1]]]. All four clusters were lifted by about the same amount, so the plane still cannot separate them.": {
+   "zh": "[[[0]]]：准确率为 [[[1]]]。四个簇被抬升的幅度大致相同，因此该平面仍无法将它们分开。",
+   "exprs": [
+    "${step}",
+    "${percent(metrics.accuracy)}"
+   ],
+   "tags": [],
+   "src": "${step}: accuracy ${percent(metrics.accuracy)}. All four clusters were lifted by about the same amount, so the plane still cannot separate them."
+  },
+  "[[[0]]]: every point is correct. The line handles three corners and the ReLU feature carves out the fourth.": {
+   "zh": "[[[0]]]：所有点均分类正确。直线处理三个角点，ReLU 特征则切分出第四个。",
+   "exprs": [
+    "${step}"
+   ],
+   "tags": [],
+   "src": "${step}: every point is correct. The line handles three corners and the ReLU feature carves out the fourth."
+  },
+  "[[[0]]]: the ReLU column is nonzero only near (1, 1); the plane is learning to push that corner down.": {
+   "zh": "[[[0]]]：ReLU 列仅在 (1, 1) 附近非零；平面正在学习把该角点压低。",
+   "exprs": [
+    "${step}"
+   ],
+   "tags": [],
+   "src": "${step}: the ReLU column is nonzero only near (1, 1); the plane is learning to push that corner down."
+  },
+  "[[[0]]] [[[1]]] at p = 0.5, counted as half": {
+   "zh": "[[[0]]] [[[1]]] 在 p = 0.5 处，按半数计入",
+   "exprs": [
+    "${metrics.ties}",
+    "${metrics.ties === 1 ? 'point sits' : 'points sit'}"
+   ],
+   "tags": [],
+   "src": "${metrics.ties} ${metrics.ties === 1 ? 'point sits' : 'points sit'} at p = 0.5, counted as half"
+  },
+  "flat in (x₁, x₂, [[[0]]])": {
+   "zh": "在 (x₁, x₂, [[[0]]]) 中为平面",
+   "exprs": [
+    "${feature.third}"
+   ],
+   "tags": [],
+   "src": "flat in (x₁, x₂, ${feature.third})"
+  },
+  "step [[[0]]] · [[[1]]] correct": {
+   "zh": "第 [[[0]]] 步 · [[[1]]] 正确",
+   "exprs": [
+    "${state.steps.toLocaleString('en-US')}",
+    "${percent(metrics.accuracy)}"
+   ],
+   "tags": [],
+   "src": "step ${state.steps.toLocaleString('en-US')} · ${percent(metrics.accuracy)} correct"
+  },
+  "[[[0]]] steps · loss [[[1]]]": {
+   "zh": "[[[0]]] 步 · 损失 [[[1]]]",
+   "exprs": [
+    "${state.steps.toLocaleString('en-US')}",
+    "${metrics.loss.toFixed(3)}"
+   ],
+   "tags": [],
+   "src": "${state.steps.toLocaleString('en-US')} steps · loss ${metrics.loss.toFixed(3)}"
+  },
+  "Running from step [[[0]]]…": {
+   "zh": "从第 [[[0]]] 步开始运行…",
+   "exprs": [
+    "${state.steps.toLocaleString('en-US')}"
+   ],
+   "tags": [],
+   "src": "Running from step ${state.steps.toLocaleString('en-US')}…"
+  },
+  "Input-space decision map after [[[0]]] gradient steps: [[[1]]] boundary, [[[2]]] accuracy.": {
+   "zh": "经过 [[[0]]] 次梯度步后的输入空间决策图：边界 [[[1]]]，准确率 [[[2]]]。",
+   "exprs": [
+    "${state.steps}",
+    "${kind}",
+    "${percent(metrics.accuracy)}"
+   ],
+   "tags": [],
+   "src": "Input-space decision map after ${state.steps} gradient steps: ${kind} boundary, ${percent(metrics.accuracy)} accuracy."
+  },
+  "Feature-space view ([[[0]]]) of the data lifted by [[[1]]], with a [[[2]]] flat plane; [[[3]]] accuracy.": {
+   "zh": "由 [[[1]]] 提升后的数据的特征空间视图（[[[0]]]），含一个 [[[2]]] 的平面；准确率 [[[3]]]。",
+   "exprs": [
+    "${state.view}",
+    "${feature.third || 'nothing'}",
+    "${state.feature === 'none' ? 'vertical' : 'tilted'}",
+    "${percent(metrics.accuracy)}"
+   ],
+   "tags": [],
+   "src": "Feature-space view (${state.view}) of the data lifted by ${feature.third || 'nothing'}, with a ${state.feature === 'none' ? 'vertical' : 'tilted'} flat plane; ${percent(metrics.accuracy)} accuracy."
+  },
+  "Loss history over [[[0]]] steps, currently [[[1]]] against the chance level [[[2]]].": {
+   "zh": "[[[0]]] 步的损失历史，当前为 [[[1]]]，随机水平为 [[[2]]]。",
+   "exprs": [
+    "${state.steps}",
+    "${metrics.loss.toFixed(3)}",
+    "${CHANCE_LOSS.toFixed(3)}"
+   ],
+   "tags": [],
+   "src": "Loss history over ${state.steps} steps, currently ${metrics.loss.toFixed(3)} against the chance level ${CHANCE_LOSS.toFixed(3)}."
+  },
+  "Unknown feature: [[[0]]]": {
+   "zh": "未知特征：[[[0]]]",
+   "exprs": [
+    "${key}"
+   ],
+   "tags": [],
+   "src": "Unknown feature: ${key}"
+  },
+  "Unknown dataset: [[[0]]]": {
+   "zh": "未知数据集：[[[0]]]",
+   "exprs": [
+    "${kind}"
+   ],
+   "tags": [],
+   "src": "Unknown dataset: ${kind}"
+  },
+  "straight line": {
+   "zh": "直线",
+   "exprs": [],
+   "tags": [],
+   "src": "straight line"
+  },
+  "TWO FEATURES: x₁ AND x₂": {
+   "zh": "两个特征：x₁ 与 x₂",
+   "exprs": [],
+   "tags": [],
+   "src": "TWO FEATURES: x₁ AND x₂"
+  },
+  "Can one straight line separate XOR?": {
+   "zh": "一条直线能分开 XOR 吗？",
+   "exprs": [],
+   "tags": [],
+   "src": "Can one straight line separate XOR?"
+  },
+  "Try the sliders first. Can any line put both blue corners on one side and both orange corners on the other?": {
+   "zh": "请先试试滑块。是否存在一条直线，能把两个蓝色角点放在一侧、两个橙色角点放在另一侧？",
+   "exprs": [],
+   "tags": [],
+   "src": "Try the sliders first. Can any line put both blue corners on one side and both orange corners on the other?"
+  },
+  "THREE FEATURES: x₁, x₂ AND x₁x₂": {
+   "zh": "三个特征：x₁、x₂ 与 x₁x₂",
+   "exprs": [],
+   "tags": [],
+   "src": "THREE FEATURES: x₁, x₂ AND x₁x₂"
+  },
+  "Lift the data by x₁x₂. Which flat plane separates it?": {
+   "zh": "用 x₁x₂ 提升数据。哪一个平面能将其分开？",
+   "exprs": [],
+   "tags": [],
+   "src": "Lift the data by x₁x₂. Which flat plane separates it?"
+  },
+  "A third column, x₁x₂, lifts every point to height x₁x₂. Blue corners rise to +1 and orange corners sink to −1.": {
+   "zh": "第三列 x₁x₂ 把每个点抬升到高度 x₁x₂。蓝色角点升至 +1，橙色角点降至 −1。",
+   "exprs": [],
+   "tags": [],
+   "src": "A third column, x₁x₂, lifts every point to height x₁x₂. Blue corners rise to +1 and orange corners sink to −1."
+  },
+  "The points now sit on a saddle. Run gradient descent and watch a flat plane in feature space become a curve in input space.": {
+   "zh": "这些点现在位于一个鞍面上。运行梯度下降，观察特征空间中的平面如何在输入空间中化为一条曲线。",
+   "exprs": [],
+   "tags": [],
+   "src": "The points now sit on a saddle. Run gradient descent and watch a flat plane in feature space become a curve in input space."
+  },
+  "A DECOY FEATURE: x₁² + x₂²": {
+   "zh": "干扰特征：x₁² + x₂²",
+   "exprs": [],
+   "tags": [],
+   "src": "A DECOY FEATURE: x₁² + x₂²"
+  },
+  "Does any extra feature work?": {
+   "zh": "任意额外的特征都有效吗？",
+   "exprs": [],
+   "tags": [],
+   "src": "Does any extra feature work?"
+  },
+  "The squared radius is 2 at every corner, so this lift raises blue and orange corners by the same amount.": {
+   "zh": "平方半径在每个角点上都等于 2，因此该提升把蓝色与橙色角点抬升了相同的幅度。",
+   "exprs": [],
+   "tags": [],
+   "src": "The squared radius is 2 at every corner, so this lift raises blue and orange corners by the same amount."
+  },
+  "Every corner is lifted to the same height. Predict the accuracy before you press Run.": {
+   "zh": "每个角点都被抬升到相同高度。在点击「运行」之前，先预测一下准确率。",
+   "exprs": [],
+   "tags": [],
+   "src": "Every corner is lifted to the same height. Predict the accuracy before you press Run."
+  },
+  "bent line": {
+   "zh": "弯曲的线",
+   "exprs": [],
+   "tags": [],
+   "src": "bent line"
+  },
+  "ONE HAND-MADE HIDDEN NEURON": {
+   "zh": "一个手工构造的隐藏神经元",
+   "exprs": [],
+   "tags": [],
+   "src": "ONE HAND-MADE HIDDEN NEURON"
+  },
+  "What if the feature is a ReLU unit?": {
+   "zh": "如果该特征是一个 ReLU 单元呢？",
+   "exprs": [],
+   "tags": [],
+   "src": "What if the feature is a ReLU unit?"
+  },
+  "   ·   one weight per input, so nothing can bend the line": {
+   "zh": "   ·   每个输入一个权重，因而无法使直线弯曲",
+   "exprs": [],
+   "tags": [],
+   "src": "   ·   one weight per input, so nothing can bend the line"
+  },
+  "   ·   one line where the ReLU is off, another where it is on": {
+   "zh": "   ·   ReLU 关闭处为一条直线，开启处为另一条直线",
+   "exprs": [],
+   "tags": [],
+   "src": "   ·   one line where the ReLU is off, another where it is on"
+  },
+  "Whatever you try, at least one corner stays on the wrong side.": {
+   "zh": "无论怎么尝试，总至少有一个角点停留在错误的一侧。",
+   "exprs": [],
+   "tags": [],
+   "src": "Whatever you try, at least one corner stays on the wrong side."
+  },
+  "Press Run to let gradient descent finish the job.": {
+   "zh": "点击「运行」，让梯度下降完成剩下的工作。",
+   "exprs": [],
+   "tags": [],
+   "src": "Press Run to let gradient descent finish the job."
+  },
+  "4 points · the Boolean corners": {
+   "zh": "4 个点 · 布尔角点",
+   "exprs": [],
+   "tags": [],
+   "src": "4 points · the Boolean corners"
+  },
+  "100 points · 25 per corner": {
+   "zh": "100 个数据点 · 每个角点 25 个",
+   "exprs": [],
+   "tags": [],
+   "src": "100 points · 25 per corner"
+  },
+  "point sits": {
+   "zh": "个点位于",
+   "exprs": [],
+   "tags": [],
+   "src": "point sits"
+  },
+  "points sit": {
+   "zh": "个点位于",
+   "exprs": [],
+   "tags": [],
+   "src": "points sit"
+  },
+  "on the 4 XOR corners": {
+   "zh": "在 4 个 XOR 角点上",
+   "exprs": [],
+   "tags": [],
+   "src": "on the 4 XOR corners"
+  },
+  "on 100 points, 25 per corner": {
+   "zh": "在 100 个数据点上，每个角点 25 个",
+   "exprs": [],
+   "tags": [],
+   "src": "on 100 points, 25 per corner"
+  },
+  "line in 2D": {
+   "zh": "二维中的直线",
+   "exprs": [],
+   "tags": [],
+   "src": "line in 2D"
+  },
+  "plane in 3D": {
+   "zh": "三维中的平面",
+   "exprs": [],
+   "tags": [],
+   "src": "plane in 3D"
+  },
+  "Only the four Boolean corners. Try to place a line that gets all four right.": {
+   "zh": "仅四个布尔角点。试着找到一条能把四个点全部分对的直线。",
+   "exprs": [],
+   "tags": [],
+   "src": "Only the four Boolean corners. Try to place a line that gets all four right."
+  },
+  "Four noisy clusters, 25 points each, one per corner.": {
+   "zh": "四个含噪声的簇，每簇 25 个点，分别位于一个角点。",
+   "exprs": [],
+   "tags": [],
+   "src": "Four noisy clusters, 25 points each, one per corner."
+  }
+ }
+}

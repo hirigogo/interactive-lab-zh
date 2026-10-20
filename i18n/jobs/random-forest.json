@@ -1,0 +1,673 @@
+{
+ "slug": "random-forest",
+ "units": {
+  "Random Forests, Tree by Tree": {
+   "zh": "随机森林：逐棵树地理解",
+   "src": "Random Forests, Tree by Tree",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Bagging + random feature sampling — the simplest tabular\n          ensemble that still wins half the time. Add trees one at a\n          time; watch the boundary smooth, OOB error fall, feature\n          importance stabilise. Compare RF to bagging-only and\n          Extra-Trees on the same dataset.": {
+   "zh": "Bagging + 随机特征采样——最简单却仍能在半数场合取胜的表格数据集成方法。\n          逐棵添加树；观察决策边界变得平滑、OOB 误差下降、特征重要性\n          趋于稳定。在同一数据集上把 RF 与纯 bagging、Extra-Trees 进行比较。",
+   "src": "Bagging + random feature sampling — the simplest tabular\n          ensemble that still wins half the time. Add trees one at a\n          time; watch the boundary smooth, OOB error fall, feature\n          importance stabilise. Compare RF to bagging-only and\n          Extra-Trees on the same dataset.",
+   "tags": []
+  },
+  "@@T0@@~16 min@@T1@@\n          @@T2@@Classical ML &middot; Ensembles &middot; Bagging@@T3@@": {
+   "zh": "@@T0@@约 16 分钟@@T1@@\n          @@T2@@经典机器学习 &middot; 集成方法 &middot; Bagging@@T3@@",
+   "src": "<span>~16 min</span>\n          <span>Classical ML &middot; Ensembles &middot; Bagging</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "The variance-reduction argument in two lines": {
+   "zh": "两行说清方差缩减的论证",
+   "src": "The variance-reduction argument in two lines",
+   "tags": []
+  },
+  "A single deep tree is high-variance: small training perturbations move splits a lot. If we have $T$ trees with pairwise correlation $\\rho$ and per-tree variance $\\sigma^2$, the variance of the average prediction is": {
+   "zh": "单棵深树具有高方差：训练集上的微小扰动会大幅改变划分点。若我们有 $T$ 棵树，两两相关系数为 $\\rho$，每棵树的方差为 $\\sigma^2$，则平均预测的方差为",
+   "src": "A single deep tree is high-variance: small training perturbations move splits a lot. If we have $T$ trees with pairwise correlation $\\rho$ and per-tree variance $\\sigma^2$, the variance of the average prediction is",
+   "tags": []
+  },
+  "Two terms: an irreducible part driven by between-tree correlation, and a $1/T$ part driven by independence. @@T0@@Bagging@@T1@@ lowers $\\rho$ by training each tree on a different bootstrap sample. @@T2@@Random feature subsampling@@T3@@ lowers $\\rho$ further by forcing different trees to split on different features. The combination is what makes a random forest stable: $T \\to \\infty$ drives the $\\sigma^2/T$ term to zero, and the residual $\\rho\\sigma^2$ is much smaller than $\\sigma^2$.": {
+   "zh": "它由两项构成：一项由树间相关性驱动、不可消除；另一项为 $1/T$，由独立性驱动。@@T0@@Bagging@@T1@@ 通过让每棵树在不同的自助样本上训练来降低 $\\rho$。@@T2@@随机特征子采样@@T3@@ 进一步迫使不同的树在不同特征上划分，从而降低 $\\rho$。二者的结合正是随机森林稳定性的来源：$T \\to \\infty$ 使 $\\sigma^2/T$ 项趋于零，而残余项 $\\rho\\sigma^2$ 远小于 $\\sigma^2$。",
+   "src": "Two terms: an irreducible part driven by between-tree correlation, and a $1/T$ part driven by independence. <strong>Bagging</strong> lowers $\\rho$ by training each tree on a different bootstrap sample. <strong>Random feature subsampling</strong> lowers $\\rho$ further by forcing different trees to split on different features. The combination is what makes a random forest stable: $T \\to \\infty$ drives the $\\sigma^2/T$ term to zero, and the residual $\\rho\\sigma^2$ is much smaller than $\\sigma^2$.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "A single deep tree is unbiased-ish but variance-heavy; averaging hundreds of them keeps the bias and crushes the variance. This is the entire intuition behind every bagged ensemble.": {
+   "zh": "单棵深树近似无偏但方差很大；对数百棵这样的树求平均可保持偏置并压平方差。这就是所有 bagged 集成方法背后的全部直觉。",
+   "src": "A single deep tree is unbiased-ish but variance-heavy; averaging hundreds of them keeps the bias and crushes the variance. This is the entire intuition behind every bagged ensemble.",
+   "tags": []
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "Two sources of diversity": {
+   "zh": "多样性的两个来源",
+   "src": "Two sources of diversity",
+   "tags": []
+  },
+  "A single deep decision tree is high-variance — small\n          training-set perturbations move the splits a lot.\n          Random Forest (Breiman, 2001) averages many such trees, each\n          de-correlated from the others by two tricks:": {
+   "zh": "单棵深决策树具有高方差——训练集上的微小扰动会大幅改变划分点。\n          随机森林（Breiman，2001）对许多这样的树求平均，\n          并通过两个技巧使每棵树与其余树去相关：",
+   "src": "A single deep decision tree is high-variance — small\n          training-set perturbations move the splits a lot.\n          Random Forest (Breiman, 2001) averages many such trees, each\n          de-correlated from the others by two tricks:",
+   "tags": []
+  },
+  "@@T0@@Bagging.@@T1@@ Each tree sees a bootstrap\n            sample of the training data (sampled with replacement,\n            same size as the original). About 63% of unique points\n            appear in each bootstrap; the other 37% are the\n            @@T2@@out-of-bag@@T3@@ samples for that tree — a free held-out\n            set per tree.": {
+   "zh": "@@T0@@Bagging。@@T1@@ 每棵树看到的都是训练数据的一个自助样本\n            （有放回抽样，规模与原数据相同）。约 63% 的不重复样本点\n            会出现在每个自助样本中；其余 37% 即该树的\n            @@T2@@袋外（out-of-bag）@@T3@@ 样本——每棵树都免费获得一个\n            留出集。",
+   "src": "<strong>Bagging.</strong> Each tree sees a bootstrap\n            sample of the training data (sampled with replacement,\n            same size as the original). About 63% of unique points\n            appear in each bootstrap; the other 37% are the\n            <em>out-of-bag</em> samples for that tree — a free held-out\n            set per tree.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Random feature subsampling.@@T1@@ At each\n            split, only $m$ of the $d$ features are eligible to be\n            picked. Defaults: $m = \\sqrt d$ for classification,\n            $m = d/3$ for regression. Forces different trees to look\n            at different features and beats bagging-on-features-alone.": {
+   "zh": "@@T0@@随机特征子采样。@@T1@@ 在每次划分时，\n            只有 $d$ 个特征中的 $m$ 个有资格被选中。默认值：分类任务 $m = \\sqrt d$，\n            回归任务 $m = d/3$。它迫使不同的树关注不同的特征，\n            效果优于仅对特征做 bagging。",
+   "src": "<strong>Random feature subsampling.</strong> At each\n            split, only $m$ of the $d$ features are eligible to be\n            picked. Defaults: $m = \\sqrt d$ for classification,\n            $m = d/3$ for regression. Forces different trees to look\n            at different features and beats bagging-on-features-alone.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Extra-Trees (Geurts et al., 2006) goes further: at each\n          split, pick the threshold @@T0@@randomly@@T1@@ rather than\n          optimally. Trades a little bias for even more variance\n          reduction; often slightly worse on signal-rich data,\n          slightly better on noisy data.": {
+   "zh": "Extra-Trees（Geurts 等，2006）更进一步：在每次划分时，\n          以@@T0@@随机@@T1@@方式而非最优方式选取阈值。它以略增偏置\n          换取更大的方差缩减；在信号丰富的数据上往往略差，\n          在噪声数据上则略好。",
+   "src": "Extra-Trees (Geurts et al., 2006) goes further: at each\n          split, pick the threshold <em>randomly</em> rather than\n          optimally. Trades a little bias for even more variance\n          reduction; often slightly worse on signal-rich data,\n          slightly better on noisy data.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Watch the forest grow": {
+   "zh": "观察森林生长",
+   "src": "Watch the forest grow",
+   "tags": []
+  },
+  "Click @@T0@@Add tree@@T1@@ to add one tree at a time. The\n          forest's predicted class is the majority vote of its trees.\n          The boundary smooths quickly in the first 10 trees and\n          gradually after that. OOB error is reported only once\n          $\\ge$ 3 trees exist.": {
+   "zh": "点击 @@T0@@添加树@@T1@@ 以逐棵添加树。\n          森林预测的类别是其各棵树的多数投票结果。\n          决策边界在前 10 棵树时迅速变平滑，此后逐渐平缓。\n          仅当树的数量 $\\ge$ 3 时才报告 OOB 误差。",
+   "src": "Click <em>Add tree</em> to add one tree at a time. The\n          forest's predicted class is the majority vote of its trees.\n          The boundary smooths quickly in the first 10 trees and\n          gradually after that. OOB error is reported only once\n          $\\ge$ 3 trees exist.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Add tree": {
+   "zh": "添加树",
+   "src": "Add tree",
+   "tags": []
+  },
+  "+10 trees": {
+   "zh": "+10 棵树",
+   "src": "+10 trees",
+   "tags": []
+  },
+  "Reset forest": {
+   "zh": "重置森林",
+   "src": "Reset forest",
+   "tags": []
+  },
+  "New data": {
+   "zh": "新数据",
+   "src": "New data",
+   "tags": []
+  },
+  "max depth &nbsp;@@T0@@6@@T1@@": {
+   "zh": "最大深度 &nbsp;@@T0@@6@@T1@@",
+   "src": "max depth &nbsp;<span id=\"rf-depth-val\">6</span>",
+   "tags": [
+    "<span id=\"rf-depth-val\">",
+    "</span>"
+   ]
+  },
+  "features per split (m) &nbsp;@@T0@@1@@T1@@": {
+   "zh": "每次划分的特征数 (m) &nbsp;@@T0@@1@@T1@@",
+   "src": "features per split (m) &nbsp;<span id=\"rf-mtry-val\">1</span>",
+   "tags": [
+    "<span id=\"rf-mtry-val\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@trees @@T1@@0@@T2@@@@T3@@\n          @@T4@@OOB error @@T5@@—@@T6@@@@T7@@": {
+   "zh": "@@T0@@树的数量 @@T1@@0@@T2@@@@T3@@\n          @@T4@@OOB 误差 @@T5@@—@@T6@@@@T7@@",
+   "src": "<span class=\"train-stat\">trees <strong id=\"rf-n\">0</strong></span>\n          <span class=\"train-stat\">OOB error <strong id=\"rf-oob\">—</strong></span>",
+   "tags": [
+    "<span class=\"train-stat\">",
+    "<strong id=\"rf-n\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"rf-oob\">",
+    "</strong>",
+    "</span>"
+   ]
+  },
+  "Bagging only (m = d = 2)": {
+   "zh": "仅 bagging（m = d = 2）",
+   "src": "Bagging only (m = d = 2)",
+   "tags": []
+  },
+  "Random Forest (m via slider)": {
+   "zh": "随机森林（m 由滑块控制）",
+   "src": "Random Forest (m via slider)",
+   "tags": []
+  },
+  "Extra-Trees (random splits)": {
+   "zh": "Extra-Trees（随机划分）",
+   "src": "Extra-Trees (random splits)",
+   "tags": []
+  },
+  "OOB error + feature importance, tree by tree": {
+   "zh": "OOB 误差 + 特征重要性，逐棵树呈现",
+   "src": "OOB error + feature importance, tree by tree",
+   "tags": []
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "OOB error — the free held-out set": {
+   "zh": "OOB 误差——免费的留出集",
+   "src": "OOB error — the free held-out set",
+   "tags": []
+  },
+  "Each training point is \"out-of-bag\" for the ~37% of trees\n          whose bootstrap didn't include it. To get its OOB\n          prediction: vote across just those trees. The OOB error is\n          the misclassification rate over all training points using\n          their respective OOB predictions.": {
+   "zh": "对约 37% 的自助样本未包含该点的树而言，每个训练点都是“袋外”的。\n          要得到它的 OOB 预测：仅在这些树上投票。OOB 误差即\n          所有训练点使用各自 OOB 预测得到的误分类率。",
+   "src": "Each training point is \"out-of-bag\" for the ~37% of trees\n          whose bootstrap didn't include it. To get its OOB\n          prediction: vote across just those trees. The OOB error is\n          the misclassification rate over all training points using\n          their respective OOB predictions.",
+   "tags": []
+  },
+  "Properties: (1) no leakage; (2) you don't have to split into\n          train/test for tuning; (3) converges to the true test error\n          as trees grow. The OOB curve in Step 2 should match the\n          slope of a held-out test curve within noise.": {
+   "zh": "其性质为：(1) 无信息泄漏；(2) 调参时无需划分训练/测试集；\n          (3) 随着树的数量增加，收敛到真实的测试误差。\n          第 2 步中的 OOB 曲线应与留出测试曲线的走势在噪声范围内一致。",
+   "src": "Properties: (1) no leakage; (2) you don't have to split into\n          train/test for tuning; (3) converges to the true test error\n          as trees grow. The OOB curve in Step 2 should match the\n          slope of a held-out test curve within noise.",
+   "tags": []
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Feature importance — three ways, none perfect": {
+   "zh": "特征重要性——三种方法，皆非完美",
+   "src": "Feature importance — three ways, none perfect",
+   "tags": []
+  },
+  "@@T0@@Mean decrease in impurity (MDI).@@T1@@ Sum\n            up the impurity drop a feature contributed at every split\n            in every tree; normalise. Fast, biased toward\n            high-cardinality features.": {
+   "zh": "@@T0@@不纯度平均下降量（MDI）。@@T1@@ 把某个特征\n            在每棵树的每次划分中所贡献的不纯度下降量求和，再归一化。\n            速度快，但对高基数特征有偏。",
+   "src": "<strong>Mean decrease in impurity (MDI).</strong> Sum\n            up the impurity drop a feature contributed at every split\n            in every tree; normalise. Fast, biased toward\n            high-cardinality features.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Permutation importance.@@T1@@ Shuffle one\n            feature in the OOB set; measure the drop in OOB accuracy;\n            larger drop = more important. Unbiased, expensive.": {
+   "zh": "@@T0@@置换重要性。@@T1@@ 在 OOB 集中打乱某个特征；\n            测量 OOB 准确率的下降幅度；下降越大表示越重要。\n            无偏，但计算代价高。",
+   "src": "<strong>Permutation importance.</strong> Shuffle one\n            feature in the OOB set; measure the drop in OOB accuracy;\n            larger drop = more important. Unbiased, expensive.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@SHAP / TreeSHAP.@@T1@@ Per-prediction\n            contributions with Shapley-value guarantees. The standard\n            modern way to explain RF / boosting predictions.": {
+   "zh": "@@T0@@SHAP / TreeSHAP。@@T1@@ 具备 Shapley 值保证的\n            逐预测贡献。解释 RF / boosting 预测的现代标准方法。",
+   "src": "<strong>SHAP / TreeSHAP.</strong> Per-prediction\n            contributions with Shapley-value guarantees. The standard\n            modern way to explain RF / boosting predictions.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "MDI is what the live demo shows. Always cross-check with\n          permutation importance on real datasets — MDI can flag a\n          random-noise high-cardinality feature as \"important\".": {
+   "zh": "实时演示展示的是 MDI。在真实数据集上务必用\n          置换重要性交叉验证——MDI 可能把某个随机噪声的高基数特征\n          标记为“重要”。",
+   "src": "MDI is what the live demo shows. Always cross-check with\n          permutation importance on real datasets — MDI can flag a\n          random-noise high-cardinality feature as \"important\".",
+   "tags": []
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "What RF is good at — and what trips it up": {
+   "zh": "RF 擅长什么——以及它会在哪里栽跟头",
+   "src": "What RF is good at — and what trips it up",
+   "tags": []
+  },
+  "@@T0@@Strengths.@@T1@@ Mixed-type tabular data,\n            many features, mild interactions, robust to outliers,\n            handles missing values, parallel training, OOB tuning.": {
+   "zh": "@@T0@@优势。@@T1@@ 混合类型的表格数据、\n            特征众多、交互作用温和、对离群点稳健、\n            能处理缺失值、可并行训练、可用 OOB 调参。",
+   "src": "<strong>Strengths.</strong> Mixed-type tabular data,\n            many features, mild interactions, robust to outliers,\n            handles missing values, parallel training, OOB tuning.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Weaknesses.@@T1@@ Extrapolation outside\n            training range (zero by construction); smooth low-dim\n            regression (a GP is better); highly imbalanced classes\n            (use class-weighted sampling); very high-dim sparse\n            (XGBoost / LightGBM tend to win); cannot capture rotated\n            decision boundaries efficiently.": {
+   "zh": "@@T0@@劣势。@@T1@@ 在训练范围之外的推断\n            （构造上即为零）；平滑的低维回归（高斯过程更好）；\n            类别高度不平衡（应使用类别加权采样）；极高维稀疏\n            （XGBoost / LightGBM 往往更优）；无法高效地捕捉\n            旋转后的决策边界。",
+   "src": "<strong>Weaknesses.</strong> Extrapolation outside\n            training range (zero by construction); smooth low-dim\n            regression (a GP is better); highly imbalanced classes\n            (use class-weighted sampling); very high-dim sparse\n            (XGBoost / LightGBM tend to win); cannot capture rotated\n            decision boundaries efficiently.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Where it sits in 2026.@@T1@@ Still the\n            default first-try on any tabular task you can throw 10\n            lines of sklearn at. If you want one more lap of accuracy,\n            switch to @@T2@@XGBoost /\n            LightGBM@@T3@@ and tune. If you need probabilistic outputs,\n            wrap with @@T4@@conformal\n            prediction@@T5@@ or use NGBoost.": {
+   "zh": "@@T0@@它在 2026 年的地位。@@T1@@ 对任何\n            能用 10 行 sklearn 代码处理的表格任务而言，它仍是默认的首选。\n            若想再提升一轮准确率，可改用 @@T2@@XGBoost /\n            LightGBM@@T3@@ 并调参。若需要概率输出，\n            可用@@T4@@保形预测@@T5@@包装，或使用 NGBoost。",
+   "src": "<strong>Where it sits in 2026.</strong> Still the\n            default first-try on any tabular task you can throw 10\n            lines of sklearn at. If you want one more lap of accuracy,\n            switch to <a href=\"../xgboost/index.html\">XGBoost /\n            LightGBM</a> and tune. If you need probabilistic outputs,\n            wrap with <a href=\"../conformal/index.html\">conformal\n            prediction</a> or use NGBoost.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<a href=\"../xgboost/index.html\">",
+    "</a>",
+    "<a href=\"../conformal/index.html\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@The slogan.@@T1@@\n          Wisdom-of-crowds, but each crowd-member sees a different\n          slice of the world. The math behind it is one line\n          (averaging i.i.d. weak learners reduces variance by 1/n);\n          the practical implication is that you should never train\n          one decision tree when you can train fifty.": {
+   "zh": "@@T0@@口号。@@T1@@\n          群体智慧，但群体中的每个成员看到的是世界的不同侧面。\n          其背后的数学只有一行\n          （对独立同分布的弱学习器求平均可把方差降低为 1/n）；\n          其实践含义是：只要能训练五十棵决策树，就绝不要只训练一棵。",
+   "src": "<strong>The slogan.</strong>\n          Wisdom-of-crowds, but each crowd-member sees a different\n          slice of the world. The math behind it is one line\n          (averaging i.i.d. weak learners reduces variance by 1/n);\n          the practical implication is that you should never train\n          one decision tree when you can train fifty.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "RF vs Gradient Boosting — when to use which": {
+   "zh": "RF 与梯度提升——何时使用哪一种",
+   "src": "RF vs Gradient Boosting — when to use which",
+   "tags": []
+  },
+  "Axis": {
+   "zh": "维度",
+   "src": "Axis",
+   "tags": []
+  },
+  "Random Forest": {
+   "zh": "随机森林",
+   "src": "Random Forest",
+   "tags": []
+  },
+  "Gradient Boosting (XGBoost / LightGBM)": {
+   "zh": "梯度提升（XGBoost / LightGBM）",
+   "src": "Gradient Boosting (XGBoost / LightGBM)",
+   "tags": []
+  },
+  "Training": {
+   "zh": "训练方式",
+   "src": "Training",
+   "tags": []
+  },
+  "Trees are independent (parallel)": {
+   "zh": "各树相互独立（可并行）",
+   "src": "Trees are independent (parallel)",
+   "tags": []
+  },
+  "Trees are sequential (later trees fix earlier mistakes)": {
+   "zh": "各树依序训练（后续树修正先前树的错误）",
+   "src": "Trees are sequential (later trees fix earlier mistakes)",
+   "tags": []
+  },
+  "Per-tree depth": {
+   "zh": "单树深度",
+   "src": "Per-tree depth",
+   "tags": []
+  },
+  "Deep (often unlimited)": {
+   "zh": "较深（往往不加限制）",
+   "src": "Deep (often unlimited)",
+   "tags": []
+  },
+  "Shallow (3–8)": {
+   "zh": "较浅（3–8）",
+   "src": "Shallow (3–8)",
+   "tags": []
+  },
+  "Sensitivity to hyperparameters": {
+   "zh": "对超参数的敏感度",
+   "src": "Sensitivity to hyperparameters",
+   "tags": []
+  },
+  "Robust — defaults usually work": {
+   "zh": "稳健——默认值通常即可",
+   "src": "Robust — defaults usually work",
+   "tags": []
+  },
+  "Sensitive — must tune learning rate, max_depth, regulariser": {
+   "zh": "敏感——必须调节学习率、max_depth、正则化项",
+   "src": "Sensitive — must tune learning rate, max_depth, regulariser",
+   "tags": []
+  },
+  "Risk of overfit": {
+   "zh": "过拟合风险",
+   "src": "Risk of overfit",
+   "tags": []
+  },
+  "Low (averaging)": {
+   "zh": "较低（得益于平均）",
+   "src": "Low (averaging)",
+   "tags": []
+  },
+  "Higher — need early stopping": {
+   "zh": "较高——需要早停",
+   "src": "Higher — need early stopping",
+   "tags": []
+  },
+  "Calibration": {
+   "zh": "概率校准",
+   "src": "Calibration",
+   "tags": []
+  },
+  "Poorly calibrated probabilities": {
+   "zh": "概率校准较差",
+   "src": "Poorly calibrated probabilities",
+   "tags": []
+  },
+  "Slightly better, still wrap with Platt / isotonic": {
+   "zh": "略好，但仍需用 Platt / isotonic 包装",
+   "src": "Slightly better, still wrap with Platt / isotonic",
+   "tags": []
+  },
+  "Best on": {
+   "zh": "最适用于",
+   "src": "Best on",
+   "tags": []
+  },
+  "Many features, mild signal, fast prototyping": {
+   "zh": "特征众多、信号温和、快速原型开发",
+   "src": "Many features, mild signal, fast prototyping",
+   "tags": []
+  },
+  "Tight accuracy targets, large datasets, Kaggle": {
+   "zh": "准确率目标严苛、数据集庞大、Kaggle 竞赛",
+   "src": "Tight accuracy targets, large datasets, Kaggle",
+   "tags": []
+  },
+  "Mental model: @@T0@@RF averages many trained-from-scratch trees; boosting trains a sequence of small trees on each other's residuals.@@T1@@ See @@T2@@the XGBoost article@@T3@@ for boosting's mechanics.": {
+   "zh": "思维模型：@@T0@@RF 对许多从零训练的树求平均；boosting 则在一系列小树上依次拟合彼此的残差。@@T1@@ 关于 boosting 的机制，参见 @@T2@@XGBoost 一文@@T3@@。",
+   "src": "Mental model: <em>RF averages many trained-from-scratch trees; boosting trains a sequence of small trees on each other's residuals.</em> See <a href=\"../xgboost/index.html\">the XGBoost article</a> for boosting's mechanics.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<a href=\"../xgboost/index.html\">",
+    "</a>"
+   ]
+  },
+  "Step 7": {
+   "zh": "第 7 步",
+   "src": "Step 7",
+   "tags": []
+  },
+  "Hyperparameter cheat sheet": {
+   "zh": "超参数速查表",
+   "src": "Hyperparameter cheat sheet",
+   "tags": []
+  },
+  "Parameter": {
+   "zh": "参数",
+   "src": "Parameter",
+   "tags": []
+  },
+  "Default": {
+   "zh": "默认值",
+   "src": "Default",
+   "tags": []
+  },
+  "What to change &amp; when": {
+   "zh": "何时改、如何改",
+   "src": "What to change &amp; when",
+   "tags": []
+  },
+  "@@T0@@n_estimators@@T1@@": {
+   "zh": "@@T0@@n_estimators@@T1@@（树的数量）",
+   "src": "<code>n_estimators</code>",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Increase until OOB error plateaus; cheap upside, no overfit.": {
+   "zh": "增加到 OOB 误差趋于平稳为止；收益廉价，且不会过拟合。",
+   "src": "Increase until OOB error plateaus; cheap upside, no overfit.",
+   "tags": []
+  },
+  "@@T0@@max_depth@@T1@@": {
+   "zh": "@@T0@@max_depth@@T1@@（最大深度）",
+   "src": "<code>max_depth</code>",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "None (full)": {
+   "zh": "None（完全生长）",
+   "src": "None (full)",
+   "tags": []
+  },
+  "Cap at 10–15 if memory matters; small effect on accuracy.": {
+   "zh": "若内存受限则限制在 10–15；对准确率影响较小。",
+   "src": "Cap at 10–15 if memory matters; small effect on accuracy.",
+   "tags": []
+  },
+  "@@T0@@max_features@@T1@@": {
+   "zh": "@@T0@@max_features@@T1@@（最大特征数）",
+   "src": "<code>max_features</code>",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "$\\sqrt d$ (clf) / $d/3$ (reg)": {
+   "zh": "$\\sqrt d$（分类）/ $d/3$（回归）",
+   "src": "$\\sqrt d$ (clf) / $d/3$ (reg)",
+   "tags": []
+  },
+  "Lower for redundant features; raise for sparse / weak features.": {
+   "zh": "特征冗余时调低；特征稀疏 / 微弱时调高。",
+   "src": "Lower for redundant features; raise for sparse / weak features.",
+   "tags": []
+  },
+  "@@T0@@min_samples_leaf@@T1@@": {
+   "zh": "@@T0@@min_samples_leaf@@T1@@（叶节点最小样本数）",
+   "src": "<code>min_samples_leaf</code>",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Raise to 5 if labels are noisy; smoother boundary.": {
+   "zh": "标签含噪时提高到 5；决策边界更平滑。",
+   "src": "Raise to 5 if labels are noisy; smoother boundary.",
+   "tags": []
+  },
+  "@@T0@@bootstrap@@T1@@": {
+   "zh": "@@T0@@bootstrap@@T1@@（自助采样）",
+   "src": "<code>bootstrap</code>",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "True": {
+   "zh": "True（真）",
+   "src": "True",
+   "tags": []
+  },
+  "Set False to disable bagging (then OOB is undefined).": {
+   "zh": "设为 False 可关闭 bagging（此时 OOB 无定义）。",
+   "src": "Set False to disable bagging (then OOB is undefined).",
+   "tags": []
+  },
+  "@@T0@@class_weight@@T1@@": {
+   "zh": "@@T0@@class_weight@@T1@@（类别权重）",
+   "src": "<code>class_weight</code>",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "None": {
+   "zh": "None（无）",
+   "src": "None",
+   "tags": []
+  },
+  "Use @@T0@@\"balanced\"@@T1@@ for imbalanced classification.": {
+   "zh": "对不平衡分类使用 @@T0@@\"balanced\"@@T1@@。",
+   "src": "Use <code>\"balanced\"</code> for imbalanced classification.",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@n_jobs@@T1@@": {
+   "zh": "@@T0@@n_jobs@@T1@@（并行任务数）",
+   "src": "<code>n_jobs</code>",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@-1@@T1@@ to use all CPU cores — embarrassingly parallel.": {
+   "zh": "设为 @@T0@@-1@@T1@@（即使用全部 CPU 核心）——可完美并行。",
+   "src": "<code>-1</code> to use all CPU cores — embarrassingly parallel.",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Step 8": {
+   "zh": "第 8 步",
+   "src": "Step 8",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "阅读清单",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Breiman (2001)@@T1@@ &mdash; @@T2@@Random Forests.@@T3@@ The original paper. Highly readable.": {
+   "zh": "@@T0@@Breiman (2001)@@T1@@ &mdash; @@T2@@《Random Forests》@@T3@@。原始论文。可读性很高。",
+   "src": "<strong>Breiman (2001)</strong> &mdash; <em>Random Forests.</em> The original paper. Highly readable.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Geurts, Ernst, Wehenkel (2006)@@T1@@ &mdash; @@T2@@Extremely Randomized Trees.@@T3@@": {
+   "zh": "@@T0@@Geurts, Ernst, Wehenkel (2006)@@T1@@ &mdash; @@T2@@《Extremely Randomized Trees》@@T3@@。",
+   "src": "<strong>Geurts, Ernst, Wehenkel (2006)</strong> &mdash; <em>Extremely Randomized Trees.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Hastie, Tibshirani, Friedman@@T1@@, @@T2@@The Elements of Statistical Learning@@T3@@, ch. 15.": {
+   "zh": "@@T0@@Hastie, Tibshirani, Friedman@@T1@@，@@T2@@《The Elements of Statistical Learning》@@T3@@，第 15 章。",
+   "src": "<strong>Hastie, Tibshirani, Friedman</strong>, <em>The Elements of Statistical Learning</em>, ch. 15.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Louppe (2014)@@T1@@ &mdash; @@T2@@Understanding Random Forests: From Theory to Practice.@@T3@@ PhD thesis, depth on bias-variance and importance estimators.": {
+   "zh": "@@T0@@Louppe (2014)@@T1@@ &mdash; @@T2@@《Understanding Random Forests: From Theory to Practice》@@T3@@。博士学位论文，深入讨论偏置-方差与重要性估计量。",
+   "src": "<strong>Louppe (2014)</strong> &mdash; <em>Understanding Random Forests: From Theory to Practice.</em> PhD thesis, depth on bias-variance and importance estimators.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Strobl et&nbsp;al. (2007)@@T1@@ &mdash; @@T2@@Bias in random forest variable importance measures.@@T3@@ The MDI bias paper; canonical reference for \"use permutation importance instead\".": {
+   "zh": "@@T0@@Strobl et&nbsp;al. (2007)@@T1@@ &mdash; @@T2@@《Bias in random forest variable importance measures》@@T3@@。关于 MDI 偏置的论文；“应改用置换重要性”的经典参考文献。",
+   "src": "<strong>Strobl et&nbsp;al. (2007)</strong> &mdash; <em>Bias in random forest variable importance measures.</em> The MDI bias paper; canonical reference for \"use permutation importance instead\".",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Grinsztajn, Oyallon, Varoquaux (2022)@@T1@@ &mdash; @@T2@@Why do tree-based models still outperform deep learning on tabular data?@@T3@@": {
+   "zh": "@@T0@@Grinsztajn, Oyallon, Varoquaux (2022)@@T1@@ &mdash; @@T2@@《Why do tree-based models still outperform deep learning on tabular data?》@@T3@@",
+   "src": "<strong>Grinsztajn, Oyallon, Varoquaux (2022)</strong> &mdash; <em>Why do tree-based models still outperform deep learning on tabular data?</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "随机森林：逐棵树地理解",
+  "tagline": "Bagging + 随机特征采样——为何由弱树组成的森林能胜过单棵强树",
+  "summary": "在一个二维分类问题上，观察树如何一棵棵加入森林；决策边界逐渐平滑，袋外误差逐步收敛，特征重要性柱状图趋于稳定。把纯 bagging、RF（= bagging + 随机特征）与 Extra-Trees 并排比较；调整 n_estimators 与 max_features，实时观看偏置-方差权衡的展开。",
+  "difficulty": "入门",
+  "collection": "经典机器学习",
+  "highlights": [
+   "点击“添加树”，逐棵树地观察森林决策边界如何变平滑。",
+   "随树加入实时追踪 OOB 误差；它收敛到无需另设留出集即可获得的测试误差。",
+   "在同一数据集上并排比较纯 bagging、RF 与 Extra-Trees。",
+   "特征重要性柱状图 + 偏依赖面板，使“为何做出这一预测”有了诚实的答案。"
+  ],
+  "tags": [
+   "随机森林",
+   "Bagging",
+   "OOB",
+   "集成方法",
+   "交互式"
+  ]
+ },
+ "js": {
+  "Extra-Trees": {
+   "zh": "Extra-Trees（极端随机树）",
+   "exprs": [],
+   "tags": [],
+   "src": "Extra-Trees"
+  },
+  "OOB error vs # trees": {
+   "zh": "OOB 误差随树数量变化",
+   "exprs": [],
+   "tags": [],
+   "src": "OOB error vs # trees"
+  }
+ }
+}

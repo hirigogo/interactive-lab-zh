@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>视觉 Transformer：在真实照片上运行</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>视觉 Transformer：在真实照片上运行</h1>
+        <p class="abstract">
+          一个预训练的 <strong>MobileNet&nbsp;v2</strong> 在你的浏览器中运行，将你照片的每个 patch 转成真实的 1024 维特征向量。我们以这些真实特征充当 Transformer 编码器模块的 Q/K/V，在其上计算货真价实的点积 softmax 注意力，并把结果绘制回照片之上。下文没有任何内容是合成的。
+        </p>
+        <div class="byline">
+          <span>约 17 分钟</span>
+          <span>深度学习 &middot; 视觉 &middot; TensorFlow.js</span>
+        </div>
+      </header>
+
+      <!-- ─── 前言 ─── -->
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>从 CNN 到「由 patch 构成的句子」</h2>
+        <p>
+          CNN 通过逐层在邻近像素上滑动小卷积核来处理图像。它的先验&mdash;&mdash;局部性、平移等变性、多尺度金字塔&mdash;&mdash;都是手工设定的。<strong>视觉 Transformer</strong> 则把这一切统统舍弃：它将图像切成互不重叠的 patch，把每个 patch 展平为向量，再将这个序列送入一个标准的 Transformer。没有卷积，也没有池化&mdash;&mdash;只有自注意力。
+        </p>
+        <p>
+          生产级的 ViT（<code>vit-base-patch16</code>、<code>DINOv2</code>）目前尚不易在浏览器中运行，但真实的 <strong>MobileNet&nbsp;v2</strong> 可以，而且关键在于它在倒数第二层的空间特征图是一个 7&times;7&times;1280 的张量&mdash;&mdash;即在 ImageNet 上学习得到的、7&times;7 网格的真实 1280 维向量。凡是在 ViT 中本应使用 patch 嵌入的 Q/K/V 投影之处，我们都改用这些向量。其中的数学完全一致：真实特征、真实点积、真实 softmax。
+        </p>
+
+        <h3>
+          选择一张照片
+          <span class="model-status is-loading" id="model-status">
+            <span class="dot"></span><span id="model-status-text">正在加载 MobileNet&hellip;</span>
+          </span>
+        </h3>
+        <div class="photo-picker">
+          <label class="upload-zone" id="upload-zone" for="photo-input">
+            <strong>将照片拖到此处，或点击上传。</strong>
+            <small>支持任意 JPEG 或 PNG。推理在本地进行；不会上传任何内容。</small>
+            <div class="button-row" style="margin:0.4rem 0 0;">
+              <button class="action-btn action-btn--small" id="webcam-btn" type="button">使用摄像头</button>
+            </div>
+            <input type="file" id="photo-input" accept="image/*" />
+          </label>
+          <div>
+            <div class="sample-grid" id="sample-grid"></div>
+            <p style="font-family: var(--sans); color: var(--muted); font-size: 0.8rem; margin: 0.5rem 0 0;">
+              六张采用 CC 授权的图库照片。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── 第 1 步 ─── -->
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>将图像切分为 patch</h2>
+        <p>
+          ViT 中第一个&mdash;&mdash;实际上也是唯一一个与图像相关的&mdash;&mdash;步骤，是把输入切分成大小相等的 patch 网格。对于 224&times;224 的图像、patch 尺寸为 16&times;16 时，得到 14&times;14 = 196 的 patch 网格。这个网格就是 Transformer 所消费的「句子」。
+        </p>
+        <div class="math-block" id="math-patches"></div>
+
+        <div class="control-row">
+          <div class="control-block" style="grid-column: 1 / -1;">
+            <label>Patch 尺寸 <span>P = <span id="val-patch-size">32</span> 像素</span></label>
+            <input type="range" id="patch-size" min="0" max="3" step="1" value="1" />
+          </div>
+        </div>
+
+        <div class="split-grid">
+          <div class="interactive-figure">
+            <div class="image-stage-wrap">
+              <canvas id="patchCanvas" class="image-canvas"></canvas>
+            </div>
+            <figcaption>叠加 patch 网格的图像。点击任意 patch。</figcaption>
+          </div>
+          <div>
+            <div class="stat-strip" style="grid-template-columns: 1fr 1fr; margin-top: 0;">
+              <div class="stat-pill"><span class="stat-label">网格</span><span class="stat-value" id="stat-grid">—</span></div>
+              <div class="stat-pill stat-pill--accent"><span class="stat-label">Patch 数</span><span class="stat-value" id="stat-n-patches">—</span></div>
+              <div class="stat-pill"><span class="stat-label">每 patch 像素数</span><span class="stat-value" id="stat-ppp">—</span></div>
+              <div class="stat-pill stat-pill--warm"><span class="stat-label">展平向量维度</span><span class="stat-value" id="stat-flat">—</span></div>
+            </div>
+            <div class="callout callout--think" style="margin-top: 1rem;">
+              <strong>Patch 尺寸的权衡。</strong>
+              更小的 patch 意味着更多词元，空间分辨率更精细，但注意力开销呈二次增长。更大的 patch 意味着更少词元，但空间推理更模糊。ViT-Base 在 224&times;224 图像上使用 16&times;16 的 patch → 196 个词元。
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── 第 2 步 ─── -->
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>将每个 patch 展平为向量</h2>
+        <p>
+          一个 patch 就是一幅微小的图像：$P \times P$ 个像素，每个像素含 3 个 RGB 通道。ViT 只是按光栅扫描顺序读取这 $3 P^2$ 个数：
+        </p>
+        <div class="math-block" id="math-flatten"></div>
+        <p>
+          随后，一个学习得到的 $D \times 3P^2$ 投影矩阵将其映射到 Transformer 的隐藏维度 $D$。点击第&nbsp;1 步中或下方的某个 patch，即可查看其展平后的原始数值。
+        </p>
+
+        <div class="split-grid split-grid--2-1">
+          <div class="interactive-figure">
+            <div class="image-stage-wrap">
+              <canvas id="patchDetailCanvas" class="image-canvas"></canvas>
+            </div>
+            <figcaption>点击一个 patch 进行检查。</figcaption>
+          </div>
+          <div>
+            <h3 style="margin-top: 0;">选中的 patch</h3>
+            <div id="patchInfoBox" class="patch-detail patch-detail-empty">
+              尚未选中任何 patch。请点击上方的一个。
+            </div>
+            <h3>展平原始向量的前 12 个维度</h3>
+            <div id="patchVectorRow" class="vector-row">
+              <span class="patch-detail-empty" style="font-style:italic">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout">
+          <strong>为何该投影并不平凡。</strong>
+          原始展平向量过于底层，它不过是像素亮度而已。$D$ 维投影会学习这些像素的哪些线性组合携带有效信号&mdash;&mdash;实践中它最终计算出的类似梯度特征，与 CNN 第一层所做之事相同。在本页中，我们改用真实 MobileNet 主干倒数第二层的特征图，它已学习到足以覆盖数千个 ImageNet 类别的特征。
+        </div>
+      </section>
+
+      <!-- ─── 第 3 步 ─── -->
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>添加位置嵌入</h2>
+        <p>
+          自注意力具有置换不变性&mdash;&mdash;打乱词元的顺序，输出完全相同。这对图像而言是致命的。解决办法成本很低：为每个 patch 词元加上一个学习得到的位置嵌入 $p_i$，使 Transformer 知道它来自何处。
+        </p>
+        <div class="math-block" id="math-position"></div>
+
+        <div class="button-row">
+          <button class="toggle-btn is-active" id="pos-on">含位置嵌入</button>
+          <button class="toggle-btn" id="pos-off">不含（patch 词袋）</button>
+        </div>
+
+        <h3>Transformer 所看到的序列</h3>
+        <div id="sequenceStrip" class="sequence-strip">正在等待照片&hellip;</div>
+
+        <p style="margin-top:1.5rem;">
+          在第&nbsp;5 步中，你将能够比较<em>含</em>与<em>不含</em>该位置信号的注意力。若不含位置信号，注意力就退化为纯粹的特征相似度检索&mdash;&mdash;位于不同角落而外观相同的 patch 会获得相同的权重。
+        </p>
+      </section>
+
+      <!-- ─── 第 4 步 ─── -->
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>前置 [CLS] 词元</h2>
+        <p>
+          ViT 借用了 BERT 的一个技巧：前置一个<strong>可学习的 [CLS] 词元</strong>，其职责是聚合来自所有 patch 的信息。它背后没有任何像素&mdash;&mdash;只是一个模型学会去使用的自由参数向量。自注意力运行完毕后，CLS 词元的最终嵌入被送入一个小型 MLP，由后者输出类别 logit。
+        </p>
+        <div class="math-block" id="math-cls"></div>
+
+        <div class="callout callout--warn">
+          <strong>为何要专门设一个词元，而不直接取平均？</strong>
+          取平均并无不可，较新的模型（DeiT-III、许多 MAE 变体）正是这么做的。可学习的 CLS 只是给模型一份自由的参数预算，让它自行决定<em>如何</em>按类别进行聚合&mdash;&mdash;不同的注意力头可能为标签的不同部分「抓取」不同的 patch。
+        </div>
+      </section>
+
+      <!-- ─── 第 5 步 ─── -->
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>自注意力：patch 相互「倾听」</h2>
+        <p>
+          精彩之处在此。每个词元都将自身投影为 <strong>查询（query）</strong>、<strong>键（key）</strong> 与 <strong>值（value）</strong>。注意力权重是缩放后 query-key 点积的 softmax，而每个词元的新取值是所有词元取值的加权和：
+        </p>
+        <div class="math-block" id="math-attention"></div>
+
+        <h3>实时注意力热力图 &mdash;&mdash; 基于真实 MobileNet 特征</h3>
+        <p>
+          点击下方任意 patch。我们以其真实的 1280 维 MobileNet 特征向量作为查询 $q$，以其他每个 patch 的特征作为键 $k$，并对全部 patch 计算 $q^\top k$ 的 softmax。结果是一幅真实的、基于学习特征的注意力图，绘制回你的照片之上。它与训练好的 ViT 所产出者并不完全相同（这里是 CNN 特征，而非 ViT 的 Q/K 投影），但每一个数都是真实特征上的真实点积&mdash;&mdash;绝非替代品。
+        </p>
+
+        <div class="split-grid split-grid--narrow">
+          <div class="interactive-figure">
+            <div class="image-stage-wrap">
+              <canvas id="attnCanvas" class="image-canvas"></canvas>
+            </div>
+            <figcaption>点击任意 patch，使其成为查询。</figcaption>
+          </div>
+          <div>
+            <div class="stat-strip" style="grid-template-columns: 1fr 1fr; margin-top: 0;">
+              <div class="stat-pill">
+                <span class="stat-label">查询 patch</span>
+                <span class="stat-value" id="stat-query">—</span>
+              </div>
+              <div class="stat-pill stat-pill--warm">
+                <span class="stat-label">注意力最高者</span>
+                <span class="stat-value" id="stat-top-attn">—</span>
+              </div>
+            </div>
+            <h3>注意力权重前 5 位</h3>
+            <div id="topAttnTable" class="patch-detail patch-detail-empty">
+              请先点击一个 patch。
+            </div>
+            <div class="legend-row" style="margin-top: 1rem;">
+              <div class="legend-item"><span class="legend-swatch" style="background:#d9622b"></span>高</div>
+              <div class="legend-item"><span class="legend-swatch" style="background:#f6c8a4"></span>中</div>
+              <div class="legend-item"><span class="legend-swatch" style="background:rgba(0,0,0,0.06)"></span>低</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout--think">
+          <strong>可以尝试的操作。</strong>
+          在肖像照上，点击面部的一个 patch&mdash;&mdash;注意力会聚集到其他面部/皮肤 patch 上。在风景照上，点击天空，它会迅速集中到整幅图像中其他天空 patch 上
+          （这正是 CNN 难以应对的<em>长程</em>注意力）。关闭位置嵌入（第&nbsp;3 步），你会看到被关注的 patch 更加遥远，因为仅基于内容的相似度完全忽略了空间布局。
+        </div>
+      </section>
+
+      <!-- ─── 第 6 步 — NEW: attention rollout across L stacked layers ─── -->
+      <section class="step-section" id="step-rollout">
+        <div class="step-badge">第 6 步</div>
+        <h2>堆叠注意力 &mdash;&mdash; rollout 视角</h2>
+        <p>
+          一层注意力只将信息传播「一跳」。经过第一个模块后，每个 patch 词元都已混入了其他词元的一个加权邻域。经过两个模块后，它混入的是邻域<em>的</em>邻域。感受野随每个模块不断扩张；到第&nbsp;12 层（ViT-Base 的深度）时，几乎所有 patch 原则上都能「听到」其他任何一个 patch。
+        </p>
+        <p>
+          为将其可视化，我们由你照片的特征合成 $L$ 层。第&nbsp;1 层具有强烈的局部性偏好（邻近 patch 占主导）；此后每一层都会削弱这一偏好并强化内容相似度。随后我们应用 <strong>注意力 rollout</strong> &mdash;&mdash; 即 Abnar 与 Zuidema（2020）提出的顾及残差的做法 &mdash;&mdash; 将注意力矩阵相乘，并计入残差流 $A_l \to (A_l + I)/2$：
+        </p>
+        <div class="math-block" id="math-rollout"></div>
+        <p>
+          点击左侧画布上的任意 patch，使其成为查询词元。下方每个面板都显示它在所要求深度上的输出注意力。拖动滑块逐层推进，观察被关注的区域如何扩张。
+        </p>
+
+        <div class="control-row" style="grid-template-columns: 1fr 1fr;">
+          <div class="control-block">
+            <label>堆叠层数 &nbsp;<span id="rollout-L-val">8</span> <input type="range" id="rollout-L" min="1" max="12" step="1" value="8"></label>
+          </div>
+          <div class="control-block">
+            <label>查看单层 $\ell$ &nbsp;<span id="rollout-l-val">1</span> <input type="range" id="rollout-l" min="1" max="12" step="1" value="1"></label>
+          </div>
+        </div>
+
+        <div class="rollout-grid">
+          <div class="interactive-figure">
+            <div class="image-stage-wrap">
+              <canvas id="rolloutQueryCanvas" class="image-canvas"></canvas>
+            </div>
+            <figcaption>请选择一个查询 patch。</figcaption>
+          </div>
+          <div class="rollout-panels">
+            <div class="rollout-panel">
+              <div class="rollout-panel-label">第 1 层注意力（局部）</div>
+              <div class="image-stage-wrap rollout-thumb-wrap">
+                <canvas id="rolloutCanvasLayer1" class="image-canvas"></canvas>
+              </div>
+            </div>
+            <div class="rollout-panel">
+              <div class="rollout-panel-label">单独的第 $\ell$ 层</div>
+              <div class="image-stage-wrap rollout-thumb-wrap">
+                <canvas id="rolloutCanvasLayerL" class="image-canvas"></canvas>
+              </div>
+            </div>
+            <div class="rollout-panel">
+              <div class="rollout-panel-label">Rollout：第 $1{:}\ell$ 层复合结果</div>
+              <div class="image-stage-wrap rollout-thumb-wrap">
+                <canvas id="rolloutCanvasRollup" class="image-canvas"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout">
+          <strong>为何复合注意力大于各层之简单相加。</strong>
+          单层只能混合邻域。层层堆叠之后，注意力便成为 patch 图上的一次<em>随机游走</em>&mdash;&mdash;
+          深度为 $L$ 处的词元 $i$，实际上「聆听」了在 $L$ 步内沿高权重边可达的所有 $j$。这正是 ViT 能够进行长程推理的原因，尽管每一张单独的注意力图看起来都相当局部。
+        </div>
+
+        <div class="callout callout--warn">
+          <strong>哪些是模拟的，哪些是真实的。</strong>
+          我们只有一张 MobileNet 特征图，而非 12 个 ViT 层。我们通过在相同特征之上改变位置偏置温度来生成每个「层」&mdash;&mdash; 这是对 ViT 注意力随深度由局部漂向全局这一观察结果的风格化建模（Caron 等，2021；Raghu 等，2021）。
+          rollout 的数学本身则完全依照已发表的做法。
+        </div>
+      </section>
+
+      <!-- ─── 第 7 步 ─── -->
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 7 步</div>
+        <h2>完整流程</h2>
+        <p>
+          ViT 的一个编码器模块为：自注意力 &rarr; 残差相加 &rarr; LayerNorm &rarr; MLP &rarr; 残差相加 &rarr; LayerNorm。ViT-Base 将其堆叠 12 次。最终的 CLS 词元经过一个单隐藏层的 MLP 头部，产生类别 logit。
+        </p>
+        <div class="examples-table-wrap">
+          <table class="examples-table">
+            <thead><tr><th>阶段</th><th>作用</th><th>本页照片上的取值</th></tr></thead>
+            <tbody id="pipelineTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="reveal-card">
+          <h3>送入 Transformer 的序列长度</h3>
+          <div class="reveal-number" id="reveal-seqlen">—</div>
+          <p>
+            = <span id="reveal-breakdown">1 个 CLS + N 个 patch 词元</span>。
+            每个词元都关注其他所有词元；即每层需进行 $N^2$ 次两两比较。
+          </p>
+        </div>
+
+        <h3>不同 patch 尺寸下的计算量对比</h3>
+        <div class="examples-table-wrap">
+          <table class="examples-table">
+            <thead><tr><th>Patch 尺寸</th><th>网格</th><th>词元数（含 CLS）</th><th>注意力运算量（相对）</th></tr></thead>
+            <tbody id="scalingTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ─── 第 8 步 ─── -->
+      <section class="step-section" id="step-7">
+        <div class="step-badge">第 8 步</div>
+        <h2>关于 ViT 的四个常见误解</h2>
+        <div class="misconception-grid">
+          <div class="misconception-card">
+            <span class="misconception-icon">误解</span>
+            <p><strong>「ViT 对图像没有任何归纳偏置。」</strong><br />
+              其归纳偏置确实少于 CNN，但远非没有。patch 嵌入本质上就是步长为 $P$ 的卷积。位置嵌入编码了网格结构。而自注意力本身即是一种平滑、可学习的先验，用以抵抗无意义的置换。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">误解</span>
+            <p><strong>「它们需要数亿张图像。」</strong><br />
+              <em>最初的</em> ViT 确实如此，原因在于其归纳偏置较弱。2021 年之后的变体（DeiT、DINOv2、SwiT、MAE 预训练）仅用 ImageNet-1k 训练，即可与 CNN 持平或超越之。对数据的渴求是一种做法上的选择，而非根本性的局限。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">误解</span>
+            <p><strong>「注意力权重能告诉你模型看到了什么。」</strong><br />
+              这种想法很诱人，但并不严谨。在深层残差堆叠中，注意力只是众多信号之一。同一个预测可由许多不同的注意力模式支撑，而基于梯度的归因往往与之相左。应把热力图视为提示，而非证据。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">误解</span>
+            <p><strong>「patch 越小越好。」</strong><br />
+              将 patch 尺寸减半，词元数变为四倍，而注意力开销则变成<em>四倍的平方</em>。混合模型（Swin、MaxViT）使用局部注意力窗口，在保持精度的同时免去 $N^2$ 的开销。</p>
+          </div>
+        </div>
+
+        <div class="callout callout--think" style="margin-top: 2rem;">
+          <strong>最终要点。</strong>
+          视觉 Transformer 就是一个 patch 词袋加上它们的位置，经由与处理文本时完全相同的那套注意力模块。至此你已在一张真实照片上看到了沿途的每一个数&mdash;&mdash;patch 网格、展平向量、位置标记、CLS 词元，以及建立在真实预训练特征之上的注意力热力图。该领域的其余工作则是将其规模化、寻找更好的预训练目标，以及以更低成本重新引入局部性。
+        </div>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

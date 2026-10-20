@@ -1,0 +1,1054 @@
+{
+ "slug": "object-detection",
+ "units": {
+  "Object Detection, with a Real Detector": {
+   "zh": "基于真实检测器的目标检测",
+   "src": "Object Detection, with a Real Detector",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "A pretrained @@T0@@SSD-MobileNetV2@@T1@@, trained on the full\n          COCO dataset (80 classes), loads in your browser and runs live on\n          whatever photo you feed it. You draw ground-truth boxes, it\n          predicts, and every metric on this page&mdash;IoU, precision,\n          recall, F1, non-max suppression, average precision&mdash;is\n          computed against the real detector's real output.": {
+   "zh": "一个预训练的 @@T0@@SSD-MobileNetV2@@T1@@ 在完整的 COCO 数据集（80 个类别）上训练后，可在你的浏览器中加载，并对你提供的任意照片实时运行。你绘制真实标注框（ground-truth boxes），它做出预测，而本页的每一项指标&mdash;&mdash;IoU、精确率（precision）、召回率（recall）、F1、非极大值抑制（non-max suppression）、平均精度（average precision）&mdash;&mdash;都针对真实检测器的真实输出计算得出。",
+   "src": "A pretrained <strong>SSD-MobileNetV2</strong>, trained on the full\n          COCO dataset (80 classes), loads in your browser and runs live on\n          whatever photo you feed it. You draw ground-truth boxes, it\n          predicts, and every metric on this page&mdash;IoU, precision,\n          recall, F1, non-max suppression, average precision&mdash;is\n          computed against the real detector's real output.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@~16 min@@T1@@\n          @@T2@@Computer Vision &middot; TensorFlow.js &middot; Real Model@@T3@@": {
+   "zh": "@@T0@@约 16 分钟@@T1@@\n          @@T2@@计算机视觉 &middot; TensorFlow.js &middot; 真实模型@@T3@@",
+   "src": "<span>~16 min</span>\n          <span>Computer Vision &middot; TensorFlow.js &middot; Real Model</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "A real detector running in your browser": {
+   "zh": "一个在浏览器中运行的真实检测器",
+   "src": "A real detector running in your browser",
+   "tags": []
+  },
+  "The model loaded below is\n          @@T0@@SSD (Single-Shot Detector)@@T1@@\n          with a MobileNetV2 backbone, trained on\n          @@T2@@MS-COCO@@T3@@\n          to detect 80 everyday classes (person, dog, car, laptop, bottle,\n          &hellip;). It runs entirely on your GPU via\n          @@T4@@TensorFlow.js@@T5@@&mdash;\n          no network calls once the model is cached. Everything you see in\n          the rest of the article is computed from its @@T6@@real@@T7@@\n          predictions on @@T8@@your@@T9@@ photo.": {
+   "zh": "下面加载的模型是 @@T0@@SSD（Single-Shot Detector，单阶段检测器）@@T1@@，其骨干网络为 MobileNetV2，在 @@T2@@MS-COCO@@T3@@ 上训练，可检测 80 个日常类别（人、狗、汽车、笔记本电脑、瓶子&hellip;&hellip;）。它完全通过 @@T4@@TensorFlow.js@@T5@@ 在你的 GPU 上运行&mdash;&mdash;模型缓存后便不再有网络请求。本文其余部分你所看到的一切，都是由它在 @@T8@@你的@@T9@@ 照片上的 @@T6@@真实@@T7@@ 预测计算而来。",
+   "src": "The model loaded below is\n          <a href=\"https://arxiv.org/abs/1512.02325\" target=\"_blank\" rel=\"noopener noreferrer\">SSD (Single-Shot Detector)</a>\n          with a MobileNetV2 backbone, trained on\n          <a href=\"https://cocodataset.org/\" target=\"_blank\" rel=\"noopener noreferrer\">MS-COCO</a>\n          to detect 80 everyday classes (person, dog, car, laptop, bottle,\n          &hellip;). It runs entirely on your GPU via\n          <a href=\"https://www.tensorflow.org/js\" target=\"_blank\" rel=\"noopener noreferrer\">TensorFlow.js</a>&mdash;\n          no network calls once the model is cached. Everything you see in\n          the rest of the article is computed from its <em>real</em>\n          predictions on <em>your</em> photo.",
+   "tags": [
+    "<a href=\"https://arxiv.org/abs/1512.02325\" target=\"_blank\" rel=\"noopener noreferrer\">",
+    "</a>",
+    "<a href=\"https://cocodataset.org/\" target=\"_blank\" rel=\"noopener noreferrer\">",
+    "</a>",
+    "<a href=\"https://www.tensorflow.org/js\" target=\"_blank\" rel=\"noopener noreferrer\">",
+    "</a>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Pick a photo\n          @@T0@@\n            @@T1@@@@T2@@@@T3@@Loading detector&hellip;@@T4@@\n          @@T5@@": {
+   "zh": "选择一张照片\n          @@T0@@\n            @@T1@@@@T2@@@@T3@@正在加载检测器&hellip;&hellip;@@T4@@\n          @@T5@@",
+   "src": "Pick a photo\n          <span class=\"model-status is-loading\" id=\"model-status\">\n            <span class=\"dot\"></span><span id=\"model-status-text\">Loading detector&hellip;</span>\n          </span>",
+   "tags": [
+    "<span class=\"model-status is-loading\" id=\"model-status\">",
+    "<span class=\"dot\">",
+    "</span>",
+    "<span id=\"model-status-text\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Drop a photo here, or click to upload.@@T1@@\n            @@T2@@Any JPEG or PNG. Runs locally; nothing is uploaded to a server.@@T3@@": {
+   "zh": "@@T0@@将照片拖放到此处，或点击上传。@@T1@@\n            @@T2@@支持任意 JPEG 或 PNG。本地运行，不会上传到服务器。@@T3@@",
+   "src": "<strong>Drop a photo here, or click to upload.</strong>\n            <small>Any JPEG or PNG. Runs locally; nothing is uploaded to a server.</small>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<small>",
+    "</small>"
+   ]
+  },
+  "Use webcam": {
+   "zh": "使用摄像头",
+   "src": "Use webcam",
+   "tags": []
+  },
+  "Six CC-licensed stock photos chosen for COCO coverage.": {
+   "zh": "六张 CC 授权的图库照片，选取以覆盖 COCO 类别。",
+   "src": "Six CC-licensed stock photos chosen for COCO coverage.",
+   "tags": []
+  },
+  "Loading&hellip; the detector will draw its predictions here as\n            soon as the model is ready and a photo is loaded.": {
+   "zh": "加载中&hellip;&hellip;一旦模型就绪且照片载入，检测器就会在此处绘制其预测结果。",
+   "src": "Loading&hellip; the detector will draw its predictions here as\n            soon as the model is ready and a photo is loaded.",
+   "tags": []
+  },
+  "@@T0@@Raw detections@@T1@@\n            @@T2@@—@@T3@@": {
+   "zh": "@@T0@@原始检测结果@@T1@@\n            @@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Raw detections</span>\n            <span class=\"stat-value\" id=\"raw-count\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"raw-count\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Inference time@@T1@@\n            @@T2@@—@@T3@@": {
+   "zh": "@@T0@@推理时间@@T1@@\n            @@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Inference time</span>\n            <span class=\"stat-value\" id=\"inference-ms\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"inference-ms\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Detector@@T1@@\n            @@T2@@SSD-MobileNetV2@@T3@@": {
+   "zh": "@@T0@@检测器@@T1@@\n            @@T2@@SSD-MobileNetV2@@T3@@",
+   "src": "<span class=\"stat-label\">Detector</span>\n            <span class=\"stat-value\" style=\"font-size: 0.92rem;\">SSD-MobileNetV2</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" style=\"font-size: 0.92rem;\">",
+    "</span>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "A detection is four numbers plus a label": {
+   "zh": "一次检测就是四个数加一个标签",
+   "src": "A detection is four numbers plus a label",
+   "tags": []
+  },
+  "Every entry in the model's output list looks like this:": {
+   "zh": "模型输出列表中的每一条都如下所示：",
+   "src": "Every entry in the model's output list looks like this:",
+   "tags": []
+  },
+  "The box is given in pixel coordinates on your image. The class is\n          one of COCO's 80 categories. The score is the model's confidence.\n          Below is the live list of @@T0@@every@@T1@@ detection above a 5%\n          confidence threshold&mdash;that's usually everything the SSD\n          proposes. Click a row to highlight that box on the image.": {
+   "zh": "框以你图像上的像素坐标给出。类别是 COCO 80 个类别之一。分数是模型的置信度。下面是所有置信度高于 5% 阈值的 @@T0@@每一项@@T1@@ 检测的实时列表&mdash;&mdash;这通常就是 SSD 提出的全部候选。点击某一行可在图像上高亮该框。",
+   "src": "The box is given in pixel coordinates on your image. The class is\n          one of COCO's 80 categories. The score is the model's confidence.\n          Below is the live list of <em>every</em> detection above a 5%\n          confidence threshold&mdash;that's usually everything the SSD\n          proposes. Click a row to highlight that box on the image.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Click any detection to highlight it.": {
+   "zh": "点击任意检测即可高亮它。",
+   "src": "Click any detection to highlight it.",
+   "tags": []
+  },
+  "Raw output": {
+   "zh": "原始输出",
+   "src": "Raw output",
+   "tags": []
+  },
+  "class": {
+   "zh": "类别",
+   "src": "class",
+   "tags": []
+  },
+  "score": {
+   "zh": "分数",
+   "src": "score",
+   "tags": []
+  },
+  "box": {
+   "zh": "框",
+   "src": "box",
+   "tags": []
+  },
+  "Waiting for model&hellip;": {
+   "zh": "正在等待模型&hellip;&hellip;",
+   "src": "Waiting for model&hellip;",
+   "tags": []
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Intersection over Union (IoU)": {
+   "zh": "交并比（Intersection over Union，IoU）",
+   "src": "Intersection over Union (IoU)",
+   "tags": []
+  },
+  "The single most important number in detection. IoU measures how\n          much two boxes overlap, scaled so that identical boxes score 1 and\n          disjoint boxes score 0:": {
+   "zh": "这是检测中最重要的一个数值。IoU 度量两个框重叠的程度，其标度使得完全相同的框得分为 1，而不相交的框得分为 0：",
+   "src": "The single most important number in detection. IoU measures how\n          much two boxes overlap, scaled so that identical boxes score 1 and\n          disjoint boxes score 0:",
+   "tags": []
+  },
+  "Below, you draw the ground truth. Click the @@T0@@Draw GT@@T1@@\n          button, drag a rectangle around whichever object you want to\n          evaluate, and release. The nearest detection is matched\n          automatically and the IoU pops out. Draw as many as you like.\n          Click @@T2@@Clear@@T3@@ to reset.": {
+   "zh": "下面由你绘制真实标注。点击 @@T0@@绘制 GT@@T1@@ 按钮，围绕你想评估的任意目标拖出一个矩形并松开。最接近的检测会被自动匹配，IoU 随即给出。你可以按需绘制任意多个。点击 @@T2@@清除@@T3@@ 重置。",
+   "src": "Below, you draw the ground truth. Click the <strong>Draw GT</strong>\n          button, drag a rectangle around whichever object you want to\n          evaluate, and release. The nearest detection is matched\n          automatically and the IoU pops out. Draw as many as you like.\n          Click <strong>Clear</strong> to reset.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Draw ground-truth box": {
+   "zh": "绘制真实标注框",
+   "src": "Draw ground-truth box",
+   "tags": []
+  },
+  "Clear all GT boxes": {
+   "zh": "清除全部 GT 框",
+   "src": "Clear all GT boxes",
+   "tags": []
+  },
+  "@@T0@@Tip: you can also drag corners of existing boxes to resize.@@T1@@": {
+   "zh": "@@T0@@提示：你也可以拖动现有框的角点来调整其大小。@@T1@@",
+   "src": "<span style=\"font-family: var(--sans); color: var(--muted); font-size: 0.85rem;\">Tip: you can also drag corners of existing boxes to resize.</span>",
+   "tags": [
+    "<span style=\"font-family: var(--sans); color: var(--muted); font-size: 0.85rem;\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Green@@T1@@ = your GT.\n            @@T2@@Orange@@T3@@ = best-matching detection.\n            @@T4@@Purple shade@@T5@@ = intersection.": {
+   "zh": "@@T0@@绿色@@T1@@ = 你的 GT。\n            @@T2@@橙色@@T3@@ = 匹配最佳的检测。\n            @@T4@@紫色阴影@@T5@@ = 交集。",
+   "src": "<span style=\"color: var(--truth); font-weight: 700;\">Green</span> = your GT.\n            <span style=\"color: var(--pred); font-weight: 700;\">Orange</span> = best-matching detection.\n            <span style=\"color: var(--iou); font-weight: 700;\">Purple shade</span> = intersection.",
+   "tags": [
+    "<span style=\"color: var(--truth); font-weight: 700;\">",
+    "</span>",
+    "<span style=\"color: var(--pred); font-weight: 700;\">",
+    "</span>",
+    "<span style=\"color: var(--iou); font-weight: 700;\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@GT boxes drawn@@T1@@@@T2@@0@@T3@@": {
+   "zh": "@@T0@@已绘制 GT 框@@T1@@@@T2@@0@@T3@@",
+   "src": "<span class=\"stat-label\">GT boxes drawn</span><span class=\"stat-value\" id=\"gt-count\">0</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"gt-count\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Mean IoU (best-match)@@T1@@@@T2@@—@@T3@@": {
+   "zh": "@@T0@@平均 IoU（最佳匹配）@@T1@@@@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Mean IoU (best-match)</span><span class=\"stat-value\" id=\"mean-iou\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"mean-iou\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Last IoU@@T1@@@@T2@@—@@T3@@": {
+   "zh": "@@T0@@最近一次 IoU@@T1@@@@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Last IoU</span><span class=\"stat-value\" id=\"last-iou\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"last-iou\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@The 0.5 threshold is a convention, not a law.@@T1@@\n          COCO averages AP over IoU thresholds from 0.5 to 0.95 in steps of\n          0.05 precisely because a single threshold rewards lazy slightly-off\n          boxes as much as pixel-perfect ones. Slide the GT box to tighter\n          and looser versions of the same object and see how IoU changes.": {
+   "zh": "@@T0@@0.5 这个阈值是一种惯例，而非定律。@@T1@@\n          COCO 之所以在 0.5 到 0.95 的 IoU 阈值上以 0.05 为步长对 AP 取平均，正是因为单一阈值会像奖励像素级完美的框那样，奖励那些偷懒而略有偏差的框。请把 GT 框调整为同一目标的更紧与更松版本，观察 IoU 如何变化。",
+   "src": "<strong>The 0.5 threshold is a convention, not a law.</strong>\n          COCO averages AP over IoU thresholds from 0.5 to 0.95 in steps of\n          0.05 precisely because a single threshold rewards lazy slightly-off\n          boxes as much as pixel-perfect ones. Slide the GT box to tighter\n          and looser versions of the same object and see how IoU changes.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Confidence thresholding": {
+   "zh": "置信度阈值筛选",
+   "src": "Confidence thresholding",
+   "tags": []
+  },
+  "The detector emits dozens of low-confidence guesses alongside its\n          good ones. In production, you pick a score threshold; only\n          detections above the bar survive. Slide the threshold and watch\n          boxes appear and vanish.": {
+   "zh": "检测器在给出优质猜测的同时，还会输出数十个低置信度的猜测。在实际生产环境中，你会选定一个分数阈值；只有越过该阈值的检测才会保留。滑动阈值，观察框的出现与消失。",
+   "src": "The detector emits dozens of low-confidence guesses alongside its\n          good ones. In production, you pick a score threshold; only\n          detections above the bar survive. Slide the threshold and watch\n          boxes appear and vanish.",
+   "tags": []
+  },
+  "Confidence threshold @@T0@@c &ge; @@T1@@0.30@@T2@@@@T3@@": {
+   "zh": "置信度阈值 @@T0@@c &ge; @@T1@@0.30@@T2@@@@T3@@",
+   "src": "Confidence threshold <span>c &ge; <span id=\"conf-val\">0.30</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"conf-val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Showing @@T0@@@@T1@@—@@T2@@ / @@T3@@—@@T4@@ boxes@@T5@@": {
+   "zh": "显示 @@T0@@@@T1@@—@@T2@@ / @@T3@@—@@T4@@ 个框@@T5@@",
+   "src": "Showing <span><span id=\"showing-count\">—</span> / <span id=\"total-count\">—</span> boxes</span>",
+   "tags": [
+    "<span>",
+    "<span id=\"showing-count\">",
+    "</span>",
+    "<span id=\"total-count\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@@@T1@@ground-truth": {
+   "zh": "@@T0@@@@T1@@真实标注",
+   "src": "<span class=\"legend-swatch\" style=\"background:var(--truth)\"></span>ground-truth",
+   "tags": [
+    "<span class=\"legend-swatch\" style=\"background:var(--truth)\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@@@T1@@above threshold": {
+   "zh": "@@T0@@@@T1@@高于阈值",
+   "src": "<span class=\"legend-swatch\" style=\"background:var(--pred)\"></span>above threshold",
+   "tags": [
+    "<span class=\"legend-swatch\" style=\"background:var(--pred)\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@@@T1@@below threshold": {
+   "zh": "@@T0@@@@T1@@低于阈值",
+   "src": "<span class=\"legend-swatch\" style=\"background:#c4beb1\"></span>below threshold",
+   "tags": [
+    "<span class=\"legend-swatch\" style=\"background:#c4beb1\">",
+    "</span>"
+   ]
+  },
+  "Live threshold sweep on the current detector output.": {
+   "zh": "对当前检测器输出进行实时阈值扫描。",
+   "src": "Live threshold sweep on the current detector output.",
+   "tags": []
+  },
+  "Precision, Recall, F1 vs your ground truth": {
+   "zh": "相对你的真实标注的精确率、召回率与 F1",
+   "src": "Precision, Recall, F1 vs your ground truth",
+   "tags": []
+  },
+  "If you've drawn any GT boxes in Step 2, we match them to the\n          surviving detections by IoU &ge; 0.5 (classical COCO TP rule).\n          Unmatched GTs are false negatives; unmatched detections are false\n          positives.": {
+   "zh": "若你在第 2 步绘制了任意 GT 框，我们会按 IoU &ge; 0.5 将它们与存留的检测相匹配（经典的 COCO 真阳性规则）。未被匹配的 GT 为假阴性；未被匹配的检测为假阳性。",
+   "src": "If you've drawn any GT boxes in Step 2, we match them to the\n          surviving detections by IoU &ge; 0.5 (classical COCO TP rule).\n          Unmatched GTs are false negatives; unmatched detections are false\n          positives.",
+   "tags": []
+  },
+  "@@T0@@True positives@@T1@@@@T2@@0@@T3@@": {
+   "zh": "@@T0@@真阳性@@T1@@@@T2@@0@@T3@@",
+   "src": "<span class=\"stat-label\">True positives</span><span class=\"stat-value\" id=\"tp\">0</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"tp\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@False positives@@T1@@@@T2@@0@@T3@@": {
+   "zh": "@@T0@@假阳性@@T1@@@@T2@@0@@T3@@",
+   "src": "<span class=\"stat-label\">False positives</span><span class=\"stat-value\" id=\"fp\">0</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"fp\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@False negatives@@T1@@@@T2@@0@@T3@@": {
+   "zh": "@@T0@@假阴性@@T1@@@@T2@@0@@T3@@",
+   "src": "<span class=\"stat-label\">False negatives</span><span class=\"stat-value\" id=\"fn\">0</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"fn\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Precision@@T1@@@@T2@@—@@T3@@": {
+   "zh": "@@T0@@精确率@@T1@@@@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Precision</span><span class=\"stat-value\" id=\"precision\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"precision\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Recall@@T1@@@@T2@@—@@T3@@": {
+   "zh": "@@T0@@召回率@@T1@@@@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Recall</span><span class=\"stat-value\" id=\"recall\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"recall\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Draw a few GT boxes first.@@T1@@\n          With no ground truth, precision and recall are undefined. Draw 2–3\n          GT boxes around real objects, then slide the confidence threshold.\n          Watch the F1 curve peak near the model's \"natural\" operating\n          point&mdash;typically around 0.3&ndash;0.5 for SSD.": {
+   "zh": "@@T0@@请先绘制几个 GT 框。@@T1@@\n          没有真实标注时，精确率与召回率无从定义。围绕真实目标绘制 2–3 个 GT 框，然后滑动置信度阈值。观察 F1 曲线在模型的「自然」工作点附近达到峰值&mdash;&mdash;对 SSD 而言通常在 0.3&ndash;0.5 左右。",
+   "src": "<strong>Draw a few GT boxes first.</strong>\n          With no ground truth, precision and recall are undefined. Draw 2–3\n          GT boxes around real objects, then slide the confidence threshold.\n          Watch the F1 curve peak near the model's \"natural\" operating\n          point&mdash;typically around 0.3&ndash;0.5 for SSD.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Non-Max Suppression (NMS)": {
+   "zh": "非极大值抑制（NMS）",
+   "src": "Non-Max Suppression (NMS)",
+   "tags": []
+  },
+  "Detectors fire on the same object many times. NMS is the classical\n          deduplication rule:": {
+   "zh": "检测器会对同一目标多次响应。NMS 是经典的去重规则：",
+   "src": "Detectors fire on the same object many times. NMS is the classical\n          deduplication rule:",
+   "tags": []
+  },
+  "Sort detections by confidence, highest first.": {
+   "zh": "按置信度从高到低对检测排序。",
+   "src": "Sort detections by confidence, highest first.",
+   "tags": []
+  },
+  "Keep the top detection.": {
+   "zh": "保留排名最高的检测。",
+   "src": "Keep the top detection.",
+   "tags": []
+  },
+  "Discard every other detection whose IoU with the kept one\n            exceeds the NMS threshold.": {
+   "zh": "丢弃所有与已保留检测的 IoU 超过 NMS 阈值的其他检测。",
+   "src": "Discard every other detection whose IoU with the kept one\n            exceeds the NMS threshold.",
+   "tags": []
+  },
+  "Repeat on the remaining detections.": {
+   "zh": "对剩余的检测重复上述过程。",
+   "src": "Repeat on the remaining detections.",
+   "tags": []
+  },
+  "COCO-SSD already applies its own NMS internally. To see NMS in\n          action, we load the detector with @@T0@@maxNumBoxes: 40@@T1@@ and\n          an internal IoU threshold of 1.0&mdash;meaning @@T2@@nothing@@T3@@\n          is suppressed at the model level. You then apply NMS yourself below.": {
+   "zh": "COCO-SSD 内部已经应用了自己的 NMS。为了观察 NMS 的实际运作，我们以 @@T0@@maxNumBoxes: 40@@T1@@ 和内部 IoU 阈值 1.0 加载检测器&mdash;&mdash;这意味着在模型层面 @@T2@@没有任何@@T3@@ 检测被抑制。随后你将在下方自行应用 NMS。",
+   "src": "COCO-SSD already applies its own NMS internally. To see NMS in\n          action, we load the detector with <code>maxNumBoxes: 40</code> and\n          an internal IoU threshold of 1.0&mdash;meaning <em>nothing</em>\n          is suppressed at the model level. You then apply NMS yourself below.",
+   "tags": [
+    "<code>",
+    "</code>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "NMS IoU threshold @@T0@@IoU &ge; @@T1@@0.50@@T2@@@@T3@@": {
+   "zh": "NMS IoU 阈值 @@T0@@IoU &ge; @@T1@@0.50@@T2@@@@T3@@",
+   "src": "NMS IoU threshold <span>IoU &ge; <span id=\"nms-val\">0.50</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"nms-val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Pre-NMS confidence floor @@T0@@c &ge; @@T1@@0.20@@T2@@@@T3@@": {
+   "zh": "NMS 前置信度下限 @@T0@@c &ge; @@T1@@0.20@@T2@@@@T3@@",
+   "src": "Pre-NMS confidence floor <span>c &ge; <span id=\"nms-conf-val\">0.20</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"nms-conf-val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Faint = suppressed. Solid = kept.": {
+   "zh": "浅色 = 被抑制。实色 = 被保留。",
+   "src": "Faint = suppressed. Solid = kept.",
+   "tags": []
+  },
+  "@@T0@@Pre-NMS@@T1@@@@T2@@—@@T3@@": {
+   "zh": "@@T0@@NMS 前@@T1@@@@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Pre-NMS</span><span class=\"stat-value\" id=\"nms-in\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"nms-in\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Kept@@T1@@@@T2@@—@@T3@@": {
+   "zh": "@@T0@@保留@@T1@@@@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Kept</span><span class=\"stat-value\" id=\"nms-out\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"nms-out\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Suppressed@@T1@@@@T2@@—@@T3@@": {
+   "zh": "@@T0@@被抑制@@T1@@@@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Suppressed</span><span class=\"stat-value\" id=\"nms-sup\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"nms-sup\">",
+    "</span>"
+   ]
+  },
+  "NMS trace": {
+   "zh": "NMS 追踪",
+   "src": "NMS trace",
+   "tags": []
+  },
+  "step": {
+   "zh": "步骤",
+   "src": "step",
+   "tags": []
+  },
+  "action": {
+   "zh": "操作",
+   "src": "action",
+   "tags": []
+  },
+  "against": {
+   "zh": "针对",
+   "src": "against",
+   "tags": []
+  },
+  "Waiting&hellip;": {
+   "zh": "等待中&hellip;&hellip;",
+   "src": "Waiting&hellip;",
+   "tags": []
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Detector families": {
+   "zh": "检测器家族",
+   "src": "Detector families",
+   "tags": []
+  },
+  "The SSD running on this page is one point in a bigger design\n          space. The three dominant families:": {
+   "zh": "本页运行的 SSD 只是更大设计空间中的一个点。三大主流家族为：",
+   "src": "The SSD running on this page is one point in a bigger design\n          space. The three dominant families:",
+   "tags": []
+  },
+  "Family": {
+   "zh": "家族",
+   "src": "Family",
+   "tags": []
+  },
+  "How it proposes boxes": {
+   "zh": "如何提出框",
+   "src": "How it proposes boxes",
+   "tags": []
+  },
+  "Representatives": {
+   "zh": "代表模型",
+   "src": "Representatives",
+   "tags": []
+  },
+  "Gotcha": {
+   "zh": "注意事项",
+   "src": "Gotcha",
+   "tags": []
+  },
+  "@@T0@@Anchor-based (this page)@@T1@@": {
+   "zh": "@@T0@@基于锚框（本页）@@T1@@",
+   "src": "<strong>Anchor-based (this page)</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Dense grid of prior boxes at many scales / aspect ratios; each predicts class + offsets.": {
+   "zh": "在多种尺度 / 宽高比上布置的先验框稠密网格；每个框预测类别 + 偏移量。",
+   "src": "Dense grid of prior boxes at many scales / aspect ratios; each predicts class + offsets.",
+   "tags": []
+  },
+  "SSD, Faster R-CNN, RetinaNet, YOLOv3/v4/v5": {
+   "zh": "SSD、Faster R-CNN、RetinaNet、YOLOv3/v4/v5",
+   "src": "SSD, Faster R-CNN, RetinaNet, YOLOv3/v4/v5",
+   "tags": []
+  },
+  "Needs NMS. Anchor hyperparameters are sensitive.": {
+   "zh": "需要 NMS。锚框超参数较为敏感。",
+   "src": "Needs NMS. Anchor hyperparameters are sensitive.",
+   "tags": []
+  },
+  "@@T0@@Anchor-free / point-based@@T1@@": {
+   "zh": "@@T0@@无锚框 / 基于点@@T1@@",
+   "src": "<strong>Anchor-free / point-based</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Per pixel (or cell): predict \"am I a centre?\" + box extents.": {
+   "zh": "逐像素（或逐单元）：预测「我是否是中心？」+ 框的范围。",
+   "src": "Per pixel (or cell): predict \"am I a centre?\" + box extents.",
+   "tags": []
+  },
+  "FCOS, CenterNet, YOLOX, YOLOv8": {
+   "zh": "FCOS、CenterNet、YOLOX、YOLOv8",
+   "src": "FCOS, CenterNet, YOLOX, YOLOv8",
+   "tags": []
+  },
+  "Assignment loss is trickier; still typically uses NMS.": {
+   "zh": "匹配损失（assignment loss）更为棘手；通常仍使用 NMS。",
+   "src": "Assignment loss is trickier; still typically uses NMS.",
+   "tags": []
+  },
+  "@@T0@@Set-based (DETR style)@@T1@@": {
+   "zh": "@@T0@@基于集合（DETR 风格）@@T1@@",
+   "src": "<strong>Set-based (DETR style)</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Fixed set of learned queries; Hungarian matching against GT.": {
+   "zh": "固定的可学习查询集合；与 GT 进行匈牙利匹配。",
+   "src": "Fixed set of learned queries; Hungarian matching against GT.",
+   "tags": []
+  },
+  "DETR, Deformable DETR, DINO": {
+   "zh": "DETR、Deformable DETR、DINO",
+   "src": "DETR, Deformable DETR, DINO",
+   "tags": []
+  },
+  "NMS-free. Trains slowly; originally weak on small objects.": {
+   "zh": "无需 NMS。训练缓慢；最初在小型目标上表现较弱。",
+   "src": "NMS-free. Trains slowly; originally weak on small objects.",
+   "tags": []
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Precision–Recall curve and AP": {
+   "zh": "精确率–召回率曲线与 AP",
+   "src": "Precision–Recall curve and AP",
+   "tags": []
+  },
+  "A single confidence threshold picks one point on a precision-recall\n          curve. Benchmarks want the whole curve. If you've drawn GT boxes,\n          we sweep the threshold from 1 down to 0, plot precision against\n          recall, and integrate to get Average Precision (AP).": {
+   "zh": "单一置信度阈值只对应精确率–召回率曲线上的一个点。基准评测需要整条曲线。若你已绘制 GT 框，我们会将阈值从 1 扫到 0，绘制精确率对召回率的曲线，并积分得到平均精度（AP）。",
+   "src": "A single confidence threshold picks one point on a precision-recall\n          curve. Benchmarks want the whole curve. If you've drawn GT boxes,\n          we sweep the threshold from 1 down to 0, plot precision against\n          recall, and integrate to get Average Precision (AP).",
+   "tags": []
+  },
+  "Click \"Draw GT\" in Step 2 to populate this curve.": {
+   "zh": "点击第 2 步中的「绘制 GT」以填充此曲线。",
+   "src": "Click \"Draw GT\" in Step 2 to populate this curve.",
+   "tags": []
+  },
+  "Average Precision on this photo": {
+   "zh": "本照片上的平均精度",
+   "src": "Average Precision on this photo",
+   "tags": []
+  },
+  "Area under the PR curve computed from your drawn GT boxes.\n            Usually improves when you draw GT around visually clear objects\n            and shrinks on crowded or occluded scenes.": {
+   "zh": "由你所绘 GT 框计算得到的 PR 曲线下面积。通常在你围绕视觉上清晰的目标绘制 GT 时更高，而在拥挤或被遮挡的场景中更低。",
+   "src": "Area under the PR curve computed from your drawn GT boxes.\n            Usually improves when you draw GT around visually clear objects\n            and shrinks on crowded or occluded scenes.",
+   "tags": []
+  },
+  "Step 7": {
+   "zh": "第 7 步",
+   "src": "Step 7",
+   "tags": []
+  },
+  "Four things that still get people": {
+   "zh": "仍然会难住人们的四件事",
+   "src": "Four things that still get people",
+   "tags": []
+  },
+  "@@T0@@Myth@@T1@@": {
+   "zh": "@@T0@@误区@@T1@@",
+   "src": "<span class=\"misconception-icon\">Myth</span>",
+   "tags": [
+    "<span class=\"misconception-icon\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@\"A 99% confidence means the model is right.\"@@T1@@@@T2@@\n              Modern detectors are badly calibrated. Upload a photo with a\n              borderline case and you'll see SSD spike to 0.9 on plausibly\n              wrong boxes. Use the PR curve, not the raw number.": {
+   "zh": "@@T0@@「99% 置信度意味着模型是对的。」@@T1@@@@T2@@\n              现代检测器的校准很差。上传一张包含临界情形的照片，你会看到 SSD 在看似合理的错误框上飙升至 0.9。请使用 PR 曲线，而非原始数值。",
+   "src": "<strong>\"A 99% confidence means the model is right.\"</strong><br />\n              Modern detectors are badly calibrated. Upload a photo with a\n              borderline case and you'll see SSD spike to 0.9 on plausibly\n              wrong boxes. Use the PR curve, not the raw number.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@\"NMS is just cleanup.\"@@T1@@@@T2@@\n              On crowded scenes, classic NMS @@T3@@deletes real duplicate\n              objects@@T4@@. Try a photo with two cats sitting close and watch\n              one box get killed. That's Soft-NMS / DETR territory.": {
+   "zh": "@@T0@@「NMS 只是清理工作。」@@T1@@@@T2@@\n              在拥挤场景中，经典 NMS 会 @@T3@@删除真实的重复目标@@T4@@。试一张两只猫挨着坐的照片，观察其中一个框被抹掉。那是 Soft-NMS / DETR 的领域。",
+   "src": "<strong>\"NMS is just cleanup.\"</strong><br />\n              On crowded scenes, classic NMS <em>deletes real duplicate\n              objects</em>. Try a photo with two cats sitting close and watch\n              one box get killed. That's Soft-NMS / DETR territory.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@\"mAP summarises everything.\"@@T1@@@@T2@@\n              Maybe you want 100% recall at any precision (medical scan), or\n              100% precision at any recall (autopilot). Always plot the full\n              PR curve before picking a model.": {
+   "zh": "@@T0@@「mAP 概括了一切。」@@T1@@@@T2@@\n              也许你想要任意精确率下的 100% 召回率（医学扫描），或者任意召回率下的 100% 精确率（自动驾驶）。在选定模型之前，请始终绘制完整的 PR 曲线。",
+   "src": "<strong>\"mAP summarises everything.\"</strong><br />\n              Maybe you want 100% recall at any precision (medical scan), or\n              100% precision at any recall (autopilot). Always plot the full\n              PR curve before picking a model.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@\"A bigger box is a safer box.\"@@T1@@@@T2@@\n              A prediction that strictly contains the truth has\n              IoU&nbsp;=&nbsp;truth/pred. Huge \"safety\" boxes tank IoU. Tight\n              wins.": {
+   "zh": "@@T0@@「框越大越安全。」@@T1@@@@T2@@\n              严格包含真实框的预测，其 IoU&nbsp;=&nbsp;真实/预测。巨大的「安全」框会拖垮 IoU。紧致者胜。",
+   "src": "<strong>\"A bigger box is a safer box.\"</strong><br />\n              A prediction that strictly contains the truth has\n              IoU&nbsp;=&nbsp;truth/pred. Huge \"safety\" boxes tank IoU. Tight\n              wins.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          You just ran a real COCO detector on real images, measured its\n          output against ground truth you drew by hand, and watched\n          precision, recall, NMS, and AP all behave as the math predicts.\n          The rest of modern detection research is about replacing SSD with\n          better backbones (ViT, ConvNeXt), better assignment (set-based,\n          anchor-free), and better losses&mdash;but every piece ultimately\n          lands on this same scoreboard.": {
+   "zh": "@@T0@@最终总结。@@T1@@\n          你刚刚在真实图像上运行了一个真实的 COCO 检测器，用手绘的真实标注度量了它的输出，并观察到精确率、召回率、NMS 与 AP 都如数学所预测的那样表现。现代检测研究的其余部分，就是用一个更好的骨干网络（ViT、ConvNeXt）、更好的匹配方式（基于集合、无锚框）以及更好的损失函数来替代 SSD&mdash;&mdash;但每一个部分最终都落到同一张记分板上。",
+   "src": "<strong>Final takeaway.</strong>\n          You just ran a real COCO detector on real images, measured its\n          output against ground truth you drew by hand, and watched\n          precision, recall, NMS, and AP all behave as the math predicts.\n          The rest of modern detection research is about replacing SSD with\n          better backbones (ViT, ConvNeXt), better assignment (set-based,\n          anchor-free), and better losses&mdash;but every piece ultimately\n          lands on this same scoreboard.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 8": {
+   "zh": "第 8 步",
+   "src": "Step 8",
+   "tags": []
+  },
+  "Architecture family tree": {
+   "zh": "架构谱系图",
+   "src": "Architecture family tree",
+   "tags": []
+  },
+  "@@T0@@Two-stage: R-CNN → Fast R-CNN → Faster R-CNN.@@T1@@ First propose regions, then classify and refine. Accurate but slow.": {
+   "zh": "@@T0@@两阶段：R-CNN → Fast R-CNN → Faster R-CNN。@@T1@@ 先提出候选区域，再进行分类与精修。准确但缓慢。",
+   "src": "<strong>Two-stage: R-CNN → Fast R-CNN → Faster R-CNN.</strong> First propose regions, then classify and refine. Accurate but slow.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@One-stage with anchors: SSD, YOLO v1–v5, RetinaNet.@@T1@@ Dense grid of anchor boxes; predict (class, offset) per anchor. Fast, real-time on consumer GPUs.": {
+   "zh": "@@T0@@带锚框的单阶段：SSD、YOLO v1–v5、RetinaNet。@@T1@@ 锚框的稠密网格；对每个锚框预测（类别, 偏移量）。速度快，在消费级 GPU 上可实时运行。",
+   "src": "<strong>One-stage with anchors: SSD, YOLO v1–v5, RetinaNet.</strong> Dense grid of anchor boxes; predict (class, offset) per anchor. Fast, real-time on consumer GPUs.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Anchor-free: FCOS, CenterNet.@@T1@@ Predict (class, box) directly at each spatial location, no anchors to tune. Simpler, competitive accuracy.": {
+   "zh": "@@T0@@无锚框：FCOS、CenterNet。@@T1@@ 在每个空间位置直接预测（类别, 框），无需调校锚框。更简单，精度具竞争力。",
+   "src": "<strong>Anchor-free: FCOS, CenterNet.</strong> Predict (class, box) directly at each spatial location, no anchors to tune. Simpler, competitive accuracy.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Set-based: DETR (2020), Deformable DETR, DINO, RT-DETR.@@T1@@ Transformer decoder with object queries; no NMS — bipartite matching during training ensures unique predictions per object. The 2024+ default for accuracy-first detection.": {
+   "zh": "@@T0@@基于集合：DETR（2020）、Deformable DETR、DINO、RT-DETR。@@T1@@ 带目标查询的 Transformer 解码器；无需 NMS —— 训练时的二分匹配确保每个目标只有唯一预测。2024 年以后精度优先检测的默认方案。",
+   "src": "<strong>Set-based: DETR (2020), Deformable DETR, DINO, RT-DETR.</strong> Transformer decoder with object queries; no NMS — bipartite matching during training ensures unique predictions per object. The 2024+ default for accuracy-first detection.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Open-vocabulary: Grounding DINO, OWL-ViT, OmDet.@@T1@@ Detect any class described in free text. Combines a vision backbone with a language encoder.": {
+   "zh": "@@T0@@开放词汇：Grounding DINO、OWL-ViT、OmDet。@@T1@@ 检测由自由文本描述的任意类别。将视觉骨干网络与语言编码器相结合。",
+   "src": "<strong>Open-vocabulary: Grounding DINO, OWL-ViT, OmDet.</strong> Detect any class described in free text. Combines a vision backbone with a language encoder.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 9": {
+   "zh": "第 9 步",
+   "src": "Step 9",
+   "tags": []
+  },
+  "The assignment problem — anchors, FCOS, Hungarian": {
+   "zh": "匹配问题 —— 锚框、FCOS、匈牙利算法",
+   "src": "The assignment problem — anchors, FCOS, Hungarian",
+   "tags": []
+  },
+  "During training, each predicted box must be matched to a ground-truth box (or labelled \"background\"). This @@T0@@assignment@@T1@@ is the largest difference between detector families.": {
+   "zh": "训练期间，每个预测框都必须匹配到一个真实标注框（或被标记为「背景」）。这种 @@T0@@匹配（assignment）@@T1@@ 是各检测器家族之间最大的差异。",
+   "src": "During training, each predicted box must be matched to a ground-truth box (or labelled \"background\"). This <em>assignment</em> is the largest difference between detector families.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Anchor-based.@@T1@@ A predicted box at anchor $a$ matches GT $g$ if $\\mathrm{IoU}(a, g) &gt; \\tau$ (typical $\\tau = 0.5$). Simple, but the choice of anchor scales/ratios is a hyperparameter.": {
+   "zh": "@@T0@@基于锚框。@@T1@@ 若 $\\mathrm{IoU}(a, g) &gt; \\tau$（典型值 $\\tau = 0.5$），则位于锚框 $a$ 处的预测框与 GT $g$ 匹配。简单，但锚框尺度/比例的选择是一个超参数。",
+   "src": "<strong>Anchor-based.</strong> A predicted box at anchor $a$ matches GT $g$ if $\\mathrm{IoU}(a, g) &gt; \\tau$ (typical $\\tau = 0.5$). Simple, but the choice of anchor scales/ratios is a hyperparameter.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Centre-based (FCOS).@@T1@@ A spatial location matches GT $g$ if it's inside $g$ and within a per-scale band of its centre. No anchors.": {
+   "zh": "@@T0@@基于中心（FCOS）。@@T1@@ 若某空间位置位于 $g$ 内部，且处在以其中心为基准的、随尺度变化的带状区域内，则该位置与 GT $g$ 匹配。无需锚框。",
+   "src": "<strong>Centre-based (FCOS).</strong> A spatial location matches GT $g$ if it's inside $g$ and within a per-scale band of its centre. No anchors.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Hungarian / bipartite (DETR).@@T1@@ Solve an assignment problem so each GT matches @@T2@@exactly one@@T3@@ prediction, minimising a (cost + IoU + class) loss. No duplicates means no NMS post-processing.": {
+   "zh": "@@T0@@匈牙利 / 二分匹配（DETR）。@@T1@@ 求解一个分配问题，使每个 GT 恰好匹配 @@T2@@一个@@T3@@ 预测，并最小化一个（代价 + IoU + 类别）损失。没有重复预测就意味着无需 NMS 后处理。",
+   "src": "<strong>Hungarian / bipartite (DETR).</strong> Solve an assignment problem so each GT matches <em>exactly one</em> prediction, minimising a (cost + IoU + class) loss. No duplicates means no NMS post-processing.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Set-based DETR-style assignment was the breakthrough that finally made transformer detectors competitive with one-stage CNNs. Once you remove the assignment hand-crafting, scaling backbones gives clean gains.": {
+   "zh": "基于集合的 DETR 式匹配是一项突破，它最终使 Transformer 检测器能够与单阶段 CNN 相抗衡。一旦移除了人工设计的匹配规则，扩大骨干网络的规模就能带来干净的性能提升。",
+   "src": "Set-based DETR-style assignment was the breakthrough that finally made transformer detectors competitive with one-stage CNNs. Once you remove the assignment hand-crafting, scaling backbones gives clean gains.",
+   "tags": []
+  },
+  "Step 10": {
+   "zh": "第 10 步",
+   "src": "Step 10",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "阅读清单",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Girshick (2014–15)@@T1@@ — R-CNN, Fast R-CNN. The two-stage foundations.": {
+   "zh": "@@T0@@Girshick（2014–15）@@T1@@ —— R-CNN、Fast R-CNN。两阶段方法的基石。",
+   "src": "<strong>Girshick (2014–15)</strong> — R-CNN, Fast R-CNN. The two-stage foundations.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Ren et&nbsp;al. (2015)@@T1@@ — @@T2@@Faster R-CNN.@@T3@@": {
+   "zh": "@@T0@@Ren 等（2015）@@T1@@ —— @@T2@@Faster R-CNN。@@T3@@",
+   "src": "<strong>Ren et&nbsp;al. (2015)</strong> — <em>Faster R-CNN.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Liu et&nbsp;al. (2016)@@T1@@ — @@T2@@SSD.@@T3@@": {
+   "zh": "@@T0@@Liu 等（2016）@@T1@@ —— @@T2@@SSD。@@T3@@",
+   "src": "<strong>Liu et&nbsp;al. (2016)</strong> — <em>SSD.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Redmon et&nbsp;al. (2016+)@@T1@@ — @@T2@@YOLO v1–v5.@@T3@@": {
+   "zh": "@@T0@@Redmon 等（2016+）@@T1@@ —— @@T2@@YOLO v1–v5。@@T3@@",
+   "src": "<strong>Redmon et&nbsp;al. (2016+)</strong> — <em>YOLO v1–v5.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Tian et&nbsp;al. (2019)@@T1@@ — @@T2@@FCOS.@@T3@@ Anchor-free.": {
+   "zh": "@@T0@@Tian 等（2019）@@T1@@ —— @@T2@@FCOS。@@T3@@ 无锚框。",
+   "src": "<strong>Tian et&nbsp;al. (2019)</strong> — <em>FCOS.</em> Anchor-free.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Carion et&nbsp;al. (2020)@@T1@@ — @@T2@@DETR.@@T3@@ The transformer-based set predictor.": {
+   "zh": "@@T0@@Carion 等（2020）@@T1@@ —— @@T2@@DETR。@@T3@@ 基于 Transformer 的集合预测器。",
+   "src": "<strong>Carion et&nbsp;al. (2020)</strong> — <em>DETR.</em> The transformer-based set predictor.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Zhang, Li, Liu et&nbsp;al. (2023)@@T1@@ — @@T2@@DINO / Grounding DINO.@@T3@@": {
+   "zh": "@@T0@@Zhang, Li, Liu 等（2023）@@T1@@ —— @@T2@@DINO / Grounding DINO。@@T3@@",
+   "src": "<strong>Zhang, Li, Liu et&nbsp;al. (2023)</strong> — <em>DINO / Grounding DINO.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "基于真实检测器的目标检测",
+  "tagline": "上传任意照片，实时运行真实的 COCO-SSD 模型，并审视其每一个决策",
+  "summary": "一个预训练的 COCO-SSD 模型可在你的浏览器中加载并运行于你提供的任意照片。拖出真实标注框以与其预测相比较，扫描置信度阈值，运行 NMS，并绘制精确率–召回率曲线 —— 全部基于真实的检测器输出。",
+  "difficulty": "中级",
+  "collection": "计算机视觉",
+  "highlights": [
+   "通过 TensorFlow.js 在浏览器内加载真正预训练的 SSD-MobileNetV2（COCO）模型 —— 真实的检测结果、真实的置信度。",
+   "上传任意照片、尝试摄像头帧，或从六张图库样例中挑选一张；所有下游数值均实时更新。",
+   "绘制你自己的真实标注框；交并比、精确率、召回率、F1、NMS 与 AP 均针对真实模型输出计算。",
+   "滑动置信度与 NMS-IoU 阈值，观察精确率–召回率曲线重新绘制。"
+  ],
+  "tags": [
+   "目标检测",
+   "COCO-SSD",
+   "IoU",
+   "NMS",
+   "TensorFlow.js",
+   "计算机视觉",
+   "交互式"
+  ]
+ },
+ "js": {
+  "Failed to load [[[0]]]": {
+   "zh": "加载失败：[[[0]]]",
+   "exprs": [
+    "${url}"
+   ],
+   "tags": [],
+   "src": "Failed to load ${url}"
+  },
+  "[[[0]]] — detector predictions will be drawn over it.": {
+   "zh": "[[[0]]] —— 检测器的预测将绘制在其上。",
+   "exprs": [
+    "${s.label}"
+   ],
+   "tags": [],
+   "src": "${s.label} — detector predictions will be drawn over it."
+  },
+  "Could not load “[[[0]]]”. Drop a photo into the upload area.": {
+   "zh": "无法加载「[[[0]]]」。请将照片拖放到上传区域。",
+   "exprs": [
+    "${s.label}"
+   ],
+   "tags": [],
+   "src": "Could not load “${s.label}”. Drop a photo into the upload area."
+  },
+  "suppress (IoU [[[0]]])": {
+   "zh": "抑制（IoU [[[0]]]）",
+   "exprs": [
+    "${u.toFixed(2)}"
+   ],
+   "tags": [],
+   "src": "suppress (IoU ${u.toFixed(2)})"
+  },
+  "Person in scene": {
+   "zh": "场景中的人",
+   "exprs": [],
+   "tags": [],
+   "src": "Person in scene"
+  },
+  "Street scene": {
+   "zh": "街景",
+   "exprs": [],
+   "tags": [],
+   "src": "Street scene"
+  },
+  "Living room": {
+   "zh": "客厅",
+   "exprs": [],
+   "tags": [],
+   "src": "Living room"
+  },
+  "Still life": {
+   "zh": "静物",
+   "exprs": [],
+   "tags": [],
+   "src": "Still life"
+  },
+  "Detector ready": {
+   "zh": "检测器就绪",
+   "exprs": [],
+   "tags": [],
+   "src": "Detector ready"
+  },
+  "Model load failed:": {
+   "zh": "模型加载失败：",
+   "exprs": [],
+   "tags": [],
+   "src": "Model load failed:"
+  },
+  "Model failed to load — check network": {
+   "zh": "模型加载失败 —— 请检查网络",
+   "exprs": [],
+   "tags": [],
+   "src": "Model failed to load — check network"
+  },
+  "— trying next fallback": {
+   "zh": "—— 正在尝试下一个备选",
+   "exprs": [],
+   "tags": [],
+   "src": "— trying next fallback"
+  },
+  "All sample URLs failed": {
+   "zh": "所有样例 URL 均失败",
+   "exprs": [],
+   "tags": [],
+   "src": "All sample URLs failed"
+  },
+  "Sample load failed:": {
+   "zh": "样例加载失败：",
+   "exprs": [],
+   "tags": [],
+   "src": "Sample load failed:"
+  },
+  "tr[data-idx]": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": "tr[data-idx]"
+  },
+  "Draw ground-truth boxes in Step 2 to populate this curve.": {
+   "zh": "请在第 2 步绘制真实标注框以填充此曲线。",
+   "exprs": [],
+   "tags": [],
+   "src": "Draw ground-truth boxes in Step 2 to populate this curve."
+  },
+  "Draw ground-truth box": {
+   "zh": "绘制真实标注框",
+   "exprs": [],
+   "tags": [],
+   "src": "Draw ground-truth box"
+  },
+  "Webcam access failed: ": {
+   "zh": "摄像头访问失败：",
+   "exprs": [],
+   "tags": [],
+   "src": "Webcam access failed: "
+  }
+ }
+}

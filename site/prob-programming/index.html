@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>概率编程实践</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>概率编程实践</h1>
+        <p class="abstract">
+          PyMC、NumPyro、Stan —— 贝叶斯建模的高效配方。声明模型，选择推断引擎，检查诊断信息。本页包含浏览器中的两个实时演示，以及每次运行后应查看内容的清单。
+        </p>
+        <div class="byline">
+          <span>约 20 分钟</span>
+          <span>贝叶斯 &middot; MCMC &middot; VI</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>概率编程语言（PPL）是什么 —— 以及不是什么</h2>
+        <p>
+          概率编程语言让你以代码的形式编写生成模型。你声明先验、采样分布、观测；运行时负责后验推断。同一个模型只需改动一行开关，就可以用 HMC、NUTS、ADVI、SMC 或拉普拉斯近似来运行。
+        </p>
+        <div class="examples-table-wrap">
+          <table class="examples-table">
+            <thead><tr><th>工具</th><th>后端</th><th>优势</th><th>特点</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Stan</strong></td><td>自研 + C++</td><td>最好的 NUTS 采样器；对分层模型极为稳健</td><td>使用不同的语言；编译较慢</td></tr>
+              <tr><td><strong>PyMC</strong></td><td>PyTensor / JAX</td><td>Python 风格；用户基础庞大；工具丰富（ArviZ）</td><td>首次运行时有编译时间</td></tr>
+              <tr><td><strong>NumPyro</strong></td><td>JAX</td><td>通过 JAX 实现快速 NUTS；对 GPU 友好；与深度学习的互操作最为干净</td><td>社区比 PyMC 小</td></tr>
+              <tr><td><strong>Turing.jl</strong></td><td>Julia</td><td>可与 Julia 的机器学习技术栈组合；灵活</td><td>仅限 Julia</td></tr>
+              <tr><td><strong>Pyro</strong></td><td>PyTorch</td><td>可对大型模型做随机 VI；适合 BNN / 隐变量模型</td><td>HMC 不如 NumPyro 成熟</td></tr>
+              <tr><td><strong>Edward2 / TFP</strong></td><td>TensorFlow</td><td>可扩展；有生态系统的接口</td><td>API 变动频繁</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout callout--key">
+          <strong>一句口号。</strong>
+          你只需写一次数学。PPL 负责推断。在 HMC 与 VI 之间切换只是改一个标志，而非重写代码。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>伪代码模板</h2>
+        <pre class="ppl-pre">with model:
+    theta = Beta("theta", alpha=1, beta=1)        # prior
+    y = Binomial("y", n=20, p=theta, observed=14) # likelihood + obs
+
+    trace = sample(2000, chains=4)                 # NUTS
+    az.plot_trace(trace)
+    az.summary(trace)                              # r-hat, ESS</pre>
+        <p>
+          每个 PPL 都为你提供三样东西：
+        </p>
+        <ol class="explanation-list">
+          <li><strong>声明式模型。</strong> 变量有名称，分布有先验，观测与数据相绑定。</li>
+          <li><strong>推断引擎。</strong> 默认使用 NUTS / HMC；按需使用 VI / 拉普拉斯近似。</li>
+          <li><strong>诊断信息。</strong> r-hat（链间收敛性）、ESS（有效样本量）、发散转移、后验预测检验。</li>
+        </ol>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>实时：硬币偏置模型 —— HMC 与解析解对比</h2>
+        <p>
+          最简单的贝叶斯模型：$\theta \sim \mathrm{Beta}(1, 1)$，$y \sim \mathrm{Bernoulli}(\theta)$。Beta-二项共轭给出解析后验；一条 HMC 链应当与之吻合。用按钮添加数据，并实时运行 HMC。
+        </p>
+        <div class="train-controls">
+          <button class="action-btn" id="ppl-flipH">+ 正面</button>
+          <button class="action-btn action-btn--ghost" id="ppl-flipT">+ 反面</button>
+          <button class="action-btn action-btn--ghost" id="ppl-reset">重置数据</button>
+          <button class="action-btn" id="ppl-runHMC">运行 HMC 链（500）</button>
+          <span class="train-stat">k / n <strong id="ppl-kn">0/0</strong></span>
+          <span class="train-stat">r-hat <strong id="ppl-rhat">—</strong></span>
+          <span class="train-stat">ESS <strong id="ppl-ess">—</strong></span>
+        </div>
+        <div class="ppl-grid">
+          <div class="ppl-panel">
+            <div class="panel-label">后验：HMC 样本与解析 Beta 对比</div>
+            <canvas id="ppl-posterior" width="540" height="320"></canvas>
+          </div>
+          <div class="ppl-panel">
+            <div class="panel-label">HMC 轨迹图（链 1）</div>
+            <canvas id="ppl-trace" width="540" height="320"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>实时：二维贝叶斯回归 —— HMC 与 VI 对比</h2>
+        <p>
+          一个小数据集上的贝叶斯线性回归。HMC 给出诚实的后验；均值场 VI 拟合一个因子化的高斯分布。观察可信带如何不同：VI 通常过窄，尤其是在参数存在相关性的方向上。
+        </p>
+        <div class="train-controls">
+          <button class="action-btn action-btn--ghost" id="bl-newdata">新数据</button>
+          <span class="train-stat">n <strong id="bl-n">—</strong></span>
+        </div>
+        <div class="ppl-grid">
+          <div class="ppl-panel">
+            <div class="panel-label">(斜率, 截距) 上的 HMC 后验</div>
+            <canvas id="bl-hmc" width="540" height="380"></canvas>
+          </div>
+          <div class="ppl-panel">
+            <div class="panel-label">VI 高斯拟合（均值场）</div>
+            <canvas id="bl-vi" width="540" height="380"></canvas>
+          </div>
+        </div>
+        <div class="callout callout--warn">
+          <strong>VI 的陷阱。</strong>
+          均值场 VI 在参数之间做因子化分解，因此无法表示相关的后验。HMC 的等高线常常是倾斜的；而 VI 的等高线总是与坐标轴平行。若要获得高质量的可信区间，宜选用 HMC 或满秩 VI。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>诊断清单</h2>
+        <ul class="explanation-list">
+          <li><strong>r-hat &lt; 1.01。</strong> 每个参数上的链间一致性。高于 1.05 = 链尚未收敛；请运行更久或重新参数化。</li>
+          <li><strong>ESS &gt; 400。</strong> 有效样本量。低于此值，你的后验摘要会有噪声。</li>
+          <li><strong>发散转移。</strong> NUTS 特有的问题。哪怕只有 5 次发散（占链的 ≥ 0%）也意味着几何过于弯曲 —— 试试非中心化参数化，或增大 <code>target_accept</code>。</li>
+          <li><strong>后验预测检验。</strong> 从后验模拟新数据，并与观测数据比较。此处拟合不佳，其重要性远胜过任何单一诊断。</li>
+          <li><strong>先验预测检验。</strong> 仅从先验采样。若这些样本看起来不合理，则你的先验是以一种糟糕的方式无信息的。</li>
+          <li><strong>LOO / WAIC。</strong> 用于模型比较的交叉验证预测精度。ArviZ 两者都提供。</li>
+        </ul>
+        <div class="math-block" id="math-rhat"></div>
+      </section>
+
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>PPL 适合（以及不适合）做什么</h2>
+        <ul class="explanation-list">
+          <li><strong>合适的场景。</strong> 分层模型、少数据、校准良好的不确定性、参数解释、带机制性先验的科学模型。</li>
+          <li><strong>改用其他方案：</strong> 数百万样本上的深度学习（梯度下降更快）、纯点估计（sklearn / XGBoost）、生产环境部署（PPL 在研究里很棒，在生产里则很别扭）。</li>
+          <li><strong>深度 BNN 的鸿沟。</strong> 贝叶斯神经网络很难。PyMC + NUTS 在参数超过几千个后就难以为继；对贝叶斯深度模型做 VI 是有偏的。SWAG、拉普拉斯近似、深度集成与 SGLD 是实用的折中方案。</li>
+          <li><strong>交叉链接。</strong> <a href="../bayesian-posterior/index.html">贝叶斯后验演练场</a> 从另一个角度讲述 MCMC 与 VI；<a href="../neural-processes/index.html">神经过程</a> 一文展示了摊销推断这一替代方案。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

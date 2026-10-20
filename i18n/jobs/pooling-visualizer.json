@@ -1,0 +1,252 @@
+{
+ "slug": "pooling-visualizer",
+ "units": {
+  "Pooling, Cell by Cell": {
+   "zh": "池化：逐格解析",
+   "src": "Pooling, Cell by Cell",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Pooling is the quiet workhorse of a CNN: it shrinks a feature map by summarising\n      each little window with a single number. Slide the window below and watch the\n      output grid fill in &mdash; @@T0@@max@@T1@@ keeps the strongest activation in each\n      patch, @@T2@@average@@T3@@ smooths it. The output size is no mystery either; one\n      floor formula predicts it exactly.": {
+   "zh": "池化是 CNN 中默默承担重任的构件：它通过对每个小窗口\n      取一个数值来缩小特征图。滑动下方的窗口，观察\n      输出网格如何逐格填充 &mdash; @@T0@@最大值@@T1@@ 保留每个\n      图块中最强的激活，@@T2@@平均值@@T3@@ 则将其平滑。输出尺寸亦非谜团；\n      一个下取整公式便能精确预测它。",
+   "src": "Pooling is the quiet workhorse of a CNN: it shrinks a feature map by summarising\n      each little window with a single number. Slide the window below and watch the\n      output grid fill in &mdash; <em>max</em> keeps the strongest activation in each\n      patch, <em>average</em> smooths it. The output size is no mystery either; one\n      floor formula predicts it exactly.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~7 min@@T1@@\n      @@T2@@Deep Learning &middot; CNNs &middot; Downsampling@@T3@@": {
+   "zh": "@@T0@@约 7 分钟@@T1@@\n      @@T2@@深度学习 &middot; CNN &middot; 下采样@@T3@@",
+   "src": "<span>~7 min</span>\n      <span>Deep Learning &middot; CNNs &middot; Downsampling</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "The Lab": {
+   "zh": "演练区",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Slide the window, watch the output": {
+   "zh": "滑动窗口，观察输出",
+   "src": "Slide the window, watch the output",
+   "tags": []
+  },
+  "A $6\\times6$ feature map sits on the left. A pooling window of size $K$ slides\n      across it with stride $S$; each landing produces one number on the right. Step\n      through the positions, or press play. The highlighted patch on the left is the\n      current window; the outlined cell on the right is the number it produces. In\n      @@T0@@max@@T1@@ mode the winning input cell is starred.": {
+   "zh": "左侧是一个 $6\\times6$ 的特征图。一个尺寸为 $K$ 的池化窗口\n      以步长 $S$ 在其上滑动；每次停留都会在右侧产生一个数值。可逐步\n      遍历各位置，或按下播放。左侧高亮的图块即\n      当前窗口；右侧带描边的格子即它产生的数值。在\n      @@T0@@最大值@@T1@@ 模式下，胜出的输入单元标有星号。",
+   "src": "A $6\\times6$ feature map sits on the left. A pooling window of size $K$ slides\n      across it with stride $S$; each landing produces one number on the right. Step\n      through the positions, or press play. The highlighted patch on the left is the\n      current window; the outlined cell on the right is the number it produces. In\n      <strong>max</strong> mode the winning input cell is starred.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Window $K$@@T1@@": {
+   "zh": "@@T0@@窗口 $K$@@T1@@",
+   "src": "<span style=\"font-family:var(--sans);font-size:0.85rem;font-weight:600;color:var(--muted)\">Window $K$</span>",
+   "tags": [
+    "<span style=\"font-family:var(--sans);font-size:0.85rem;font-weight:600;color:var(--muted)\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@@@T1@@\n      @@T2@@Pooling@@T3@@": {
+   "zh": "@@T0@@@@T1@@\n      @@T2@@池化方式@@T3@@",
+   "src": "<span style=\"width:0.6rem\"></span>\n      <span style=\"font-family:var(--sans);font-size:0.85rem;font-weight:600;color:var(--muted)\">Pooling</span>",
+   "tags": [
+    "<span style=\"width:0.6rem\">",
+    "</span>",
+    "<span style=\"font-family:var(--sans);font-size:0.85rem;font-weight:600;color:var(--muted)\">",
+    "</span>"
+   ]
+  },
+  "Max": {
+   "zh": "最大值",
+   "src": "Max",
+   "tags": []
+  },
+  "Average": {
+   "zh": "平均值",
+   "src": "Average",
+   "tags": []
+  },
+  "Stride @@T0@@$S$ = @@T1@@2@@T2@@@@T3@@": {
+   "zh": "步长 @@T0@@$S$ = @@T1@@2@@T2@@@@T3@@",
+   "src": "Stride <span>$S$ = <span id=\"strideVal\">2</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"strideVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Window position @@T0@@step @@T1@@0@@T2@@@@T3@@": {
+   "zh": "窗口位置 @@T0@@步 @@T1@@0@@T2@@@@T3@@",
+   "src": "Window position <span>step <span id=\"posVal\">0</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"posVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Step &rarr;": {
+   "zh": "步进 &rarr;",
+   "src": "Step &rarr;",
+   "tags": []
+  },
+  "Play": {
+   "zh": "播放",
+   "src": "Play",
+   "tags": []
+  },
+  "Reset": {
+   "zh": "重置",
+   "src": "Reset",
+   "tags": []
+  },
+  "New values": {
+   "zh": "新数值",
+   "src": "New values",
+   "tags": []
+  },
+  "Left: the input feature map with the live pooling window. Right: the output map, filling one cell at a time.": {
+   "zh": "左：带实时池化窗口的输入特征图。右：输出特征图，逐格填充。",
+   "src": "Left: the input feature map with the live pooling window. Right: the output map, filling one cell at a time.",
+   "tags": []
+  },
+  "@@T0@@Output size@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@输出尺寸@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Output size</span>\n        <span class=\"stat-value\" id=\"outSizeVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"outSizeVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Cells produced@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@已产生格数@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Cells produced</span>\n        <span class=\"stat-value\" id=\"doneVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"doneVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Current window &rarr; value@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@当前窗口 &rarr; 数值@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\" id=\"curLabel\">Current window &rarr; value</span>\n        <span class=\"stat-value\" id=\"curVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\" id=\"curLabel\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"curVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Set $K=2$, $S=2$.@@T1@@ This is the classic pooling layer: it halves each\n      spatial dimension, turning $6\\times6$ into $3\\times3$ with no overlap. Now switch to\n      @@T2@@Max@@T3@@ versus @@T4@@Average@@T5@@ on the same window and watch the produced number\n      change &mdash; max reports the single strongest response, average reports the mean.": {
+   "zh": "@@T0@@设置 $K=2$、$S=2$。@@T1@@ 这是经典的池化层：它将每个\n      空间维度减半，把 $6\\times6$ 变为无重叠的 $3\\times3$。现在在同一个窗口上\n      于 @@T2@@最大值@@T3@@ 与 @@T4@@平均值@@T5@@ 之间切换，观察所产生的数值\n      如何变化 &mdash; 最大值报告单个最强的响应，平均值则报告均值。",
+   "src": "<strong>Set $K=2$, $S=2$.</strong> This is the classic pooling layer: it halves each\n      spatial dimension, turning $6\\times6$ into $3\\times3$ with no overlap. Now switch to\n      <em>Max</em> versus <em>Average</em> on the same window and watch the produced number\n      change &mdash; max reports the single strongest response, average reports the mean.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "回报",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Why pool at all?": {
+   "zh": "为何要池化？",
+   "src": "Why pool at all?",
+   "tags": []
+  },
+  "@@T0@@Downsampling.@@T1@@ Pooling shrinks the feature map so later layers see a coarser, cheaper representation. With $K=S=2$ you drop three-quarters of the activations in one step.": {
+   "zh": "@@T0@@下采样。@@T1@@ 池化缩小特征图，使后续层看到更粗糙、更廉价的表示。当 $K=S=2$ 时，你一步便丢弃了四分之三的激活。",
+   "src": "<strong>Downsampling.</strong> Pooling shrinks the feature map so later layers see a coarser, cheaper representation. With $K=S=2$ you drop three-quarters of the activations in one step.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Max keeps the strongest signal.@@T1@@ If a filter fires anywhere in the window, max-pool passes that response through &mdash; a small amount of translation invariance for free. The starred cell is the one that \"wins\".": {
+   "zh": "@@T0@@最大值保留最强信号。@@T1@@ 若某个滤波器在窗口内任意位置被激活，最大池化便会将该响应传递出去 &mdash; 免费获得一定程度的平移不变性。标有星号的格子便是“胜出”的那一个。",
+   "src": "<strong>Max keeps the strongest signal.</strong> If a filter fires anywhere in the window, max-pool passes that response through &mdash; a small amount of translation invariance for free. The starred cell is the one that \"wins\".",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Average smooths.@@T1@@ Average-pool blends every cell equally, which suppresses noise but can wash out a sharp, localised activation. Global average pooling at the very end of a network is average-pool taken to the whole feature map.": {
+   "zh": "@@T0@@平均值起平滑作用。@@T1@@ 平均池化对每个格子等同地加权混合，这能抑制噪声，却可能抹平尖锐而局部的激活。网络最末端的全局平均池化，就是作用于整张特征图的平均池化。",
+   "src": "<strong>Average smooths.</strong> Average-pool blends every cell equally, which suppresses noise but can wash out a sharp, localised activation. Global average pooling at the very end of a network is average-pool taken to the whole feature map.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@No parameters.@@T1@@ Pooling has nothing to learn &mdash; it is a fixed reduction. That is why it is cheap, and why many modern nets replace it with stride-2 convolutions when they want the downsampling to be learnable.": {
+   "zh": "@@T0@@无参数。@@T1@@ 池化没有任何需要学习的内容 &mdash; 它是一种固定的归约运算。这使它代价低廉，也正是当许多现代网络希望下采样可学习时，改用步长为 2 的卷积来替代它的原因。",
+   "src": "<strong>No parameters.</strong> Pooling has nothing to learn &mdash; it is a fixed reduction. That is why it is cheap, and why many modern nets replace it with stride-2 convolutions when they want the downsampling to be learnable.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Read the formula as a count.@@T1@@ Starting at position $0$, each step advances\n      the window by $S$; it fits as long as the window's far edge stays inside the map. The number\n      of landings is exactly $\\lfloor (W-K)/S \\rfloor + 1$ &mdash; the same shape formula as\n      convolution, just with padding $P=0$.": {
+   "zh": "@@T0@@把公式读作计数。@@T1@@ 从位置 $0$ 开始，每步将\n      窗口推进 $S$；只要窗口的远端边缘仍在特征图内，它就能放下。\n      停留次数恰为 $\\lfloor (W-K)/S \\rfloor + 1$ &mdash; 与\n      卷积的形状公式相同，只是填充 $P=0$。",
+   "src": "<strong>Read the formula as a count.</strong> Starting at position $0$, each step advances\n      the window by $S$; it fits as long as the window's far edge stays inside the map. The number\n      of landings is exactly $\\lfloor (W-K)/S \\rfloor + 1$ &mdash; the same shape formula as\n      convolution, just with padding $P=0$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 8: Convolutional Neural Networks": {
+   "zh": "ES 667 深度学习讲解系列的一部分 &middot; 第 8 讲：卷积神经网络",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 8: Convolutional Neural Networks",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "池化：逐格解析",
+  "tagline": "在特征图上滑动池化窗口，实时观察最大值与平均值如何将其下采样",
+  "summary": "一个 6x6 的特征图，配以逐个格子滑动的池化窗口。选择窗口尺寸（2 或 3）、步长，以及最大值或平均值池化，然后逐步或连续播放在每次停留处的变化。当前窗口在输入上高亮，其产生的数值在输出上带描边，最大值模式下胜出的格子标有星号。输出尺寸公式 floor((W-K)/S)+1 实时更新，使缩小过程不再出乎意料。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "观察池化窗口在 6x6 特征图上滑动，每次停留产生一个输出格。",
+   "在同一个窗口上切换最大值与平均值池化，精确观察汇总所得的数值如何变化。",
+   "最大值模式下，唯一胜出的输入格子标有星号，使平移不变性变得具体可感。",
+   "改变窗口尺寸与步长，直接从 floor((W-K)/S)+1 读出输出维度。",
+   "步进、播放、拖动或重新生成输入，以建立关于为何 K=S=2 会使每个空间维度减半的直觉。"
+  ],
+  "tags": [
+   "池化",
+   "CNN",
+   "下采样",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

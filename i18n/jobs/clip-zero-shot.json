@@ -1,0 +1,1041 @@
+{
+ "slug": "clip-zero-shot",
+ "units": {
+  "CLIP, Zero-Shot, from the Embeddings Up": {
+   "zh": "CLIP 与零样本分类：从嵌入出发",
+   "src": "CLIP, Zero-Shot, from the Embeddings Up",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "In 2021, OpenAI's CLIP model did something no image classifier had\n          done before: it could tell you whether a photo was \"a photo of a\n          parrot\" or \"a photo of a skateboard\" @@T0@@without ever being\n          fine-tuned on those classes@@T1@@. This page runs the real\n          CLIP-ViT-B/32 in your browser, embeds whatever labels you type\n          into a shared space with your photo, and shows every cosine\n          similarity and softmax on the way.": {
+   "zh": "2021 年，OpenAI 的 CLIP 模型做到了此前任何图像分类器都未能做到的事：它可以判断一张照片究竟是「一只鹦鹉的照片」还是「一块滑板的照片」，@@T0@@而无需在这些类别上进行任何微调@@T1@@。本页在你的浏览器中运行真实的 CLIP-ViT-B/32，把你输入的任意标签与你的照片一同嵌入到共享空间中，并逐步展示每一次余弦相似度与 softmax 计算。",
+   "src": "In 2021, OpenAI's CLIP model did something no image classifier had\n          done before: it could tell you whether a photo was \"a photo of a\n          parrot\" or \"a photo of a skateboard\" <em>without ever being\n          fine-tuned on those classes</em>. This page runs the real\n          CLIP-ViT-B/32 in your browser, embeds whatever labels you type\n          into a shared space with your photo, and shows every cosine\n          similarity and softmax on the way.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~18 min@@T1@@\n          @@T2@@Deep Learning &middot; Vision-Language &middot; Real CLIP@@T3@@": {
+   "zh": "@@T0@@约 18 分钟@@T1@@\n          @@T2@@深度学习 &middot; 视觉-语言 &middot; 真实 CLIP@@T3@@",
+   "src": "<span>~18 min</span>\n          <span>Deep Learning &middot; Vision-Language &middot; Real CLIP</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "The zero-shot idea": {
+   "zh": "零样本的思想",
+   "src": "The zero-shot idea",
+   "tags": []
+  },
+  "A regular image classifier has a fixed output head: 1,000\n          ImageNet classes, 80 COCO classes, whatever. You cannot ask it\n          about \"a photo of a tarantula eating sushi\" because it doesn't\n          have that output unit.": {
+   "zh": "普通的图像分类器拥有固定的输出头：1,000 个 ImageNet 类别、80 个 COCO 类别，诸如此类。你无法向它询问「一只正在吃寿司的捕鸟蛛的照片」，因为它没有对应的输出单元。",
+   "src": "A regular image classifier has a fixed output head: 1,000\n          ImageNet classes, 80 COCO classes, whatever. You cannot ask it\n          about \"a photo of a tarantula eating sushi\" because it doesn't\n          have that output unit.",
+   "tags": []
+  },
+  "CLIP punts on output heads entirely. Instead, it trains two\n          encoders&mdash;one for images, one for text&mdash;so that\n          matching pairs end up close together in a shared 512-dim vector\n          space. At inference time, you encode the image once, encode any\n          set of candidate labels as text, and just pick whichever label\n          is closest in cosine similarity. The model has no idea which\n          labels you'll ask about; that's the zero-shot part.": {
+   "zh": "CLIP 完全绕开了输出头。它转而训练两个编码器——一个用于图像，一个用于文本——使得相匹配的配对在共享的 512 维向量空间中彼此靠近。在推理时，你把图像编码一次，把任意一组候选标签编码为文本，然后直接选取余弦相似度最接近的那个标签。模型完全不知道你会询问哪些标签；这正是「零样本」的含义所在。",
+   "src": "CLIP punts on output heads entirely. Instead, it trains two\n          encoders&mdash;one for images, one for text&mdash;so that\n          matching pairs end up close together in a shared 512-dim vector\n          space. At inference time, you encode the image once, encode any\n          set of candidate labels as text, and just pick whichever label\n          is closest in cosine similarity. The model has no idea which\n          labels you'll ask about; that's the zero-shot part.",
+   "tags": []
+  },
+  "OpenAI trained CLIP on 400 million image-text pairs scraped from\n          the web, with a simple contrastive loss: within a big batch,\n          the correct (image, caption) pair should have high similarity,\n          and every wrong pair should have low similarity. After training,\n          the embedding space is meaningful enough that @@T0@@any@@T1@@\n          caption can act as a class prototype.": {
+   "zh": "OpenAI 在从网络上抓取的 4 亿个图文对上训练 CLIP，使用的是一种简单的对比损失：在一个大批次内，正确的（图像，标题）配对应具有高相似度，而每一个错误配对应具有低相似度。训练完成后，嵌入空间已足够有意义，以至于@@T0@@任意@@T1@@一条标题都可以作为类别原型。",
+   "src": "OpenAI trained CLIP on 400 million image-text pairs scraped from\n          the web, with a simple contrastive loss: within a big batch,\n          the correct (image, caption) pair should have high similarity,\n          and every wrong pair should have low similarity. After training,\n          the embedding space is meaningful enough that <em>any</em>\n          caption can act as a class prototype.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Pick a photo\n          @@T0@@\n            @@T1@@@@T2@@@@T3@@Loading CLIP&hellip;@@T4@@\n          @@T5@@": {
+   "zh": "选择一张照片\n          @@T0@@\n            @@T1@@@@T2@@@@T3@@正在加载 CLIP&hellip;@@T4@@\n          @@T5@@",
+   "src": "Pick a photo\n          <span class=\"model-status is-loading\" id=\"model-status\">\n            <span class=\"dot\"></span><span id=\"model-status-text\">Loading CLIP&hellip;</span>\n          </span>",
+   "tags": [
+    "<span class=\"model-status is-loading\" id=\"model-status\">",
+    "<span class=\"dot\">",
+    "</span>",
+    "<span id=\"model-status-text\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "The model (~150&nbsp;MB) downloads once and caches in your\n          browser's IndexedDB. First load takes ~20-40&nbsp;s on a\n          typical connection.": {
+   "zh": "模型（约 150&nbsp;MB）下载一次后会缓存到浏览器的 IndexedDB 中。在典型网络连接下，首次加载约需 20-40&nbsp;秒。",
+   "src": "The model (~150&nbsp;MB) downloads once and caches in your\n          browser's IndexedDB. First load takes ~20-40&nbsp;s on a\n          typical connection.",
+   "tags": []
+  },
+  "@@T0@@Drop a photo here, or click to upload.@@T1@@\n            @@T2@@Runs locally. Any JPEG or PNG.@@T3@@": {
+   "zh": "@@T0@@将照片拖放到此处，或点击上传。@@T1@@\n            @@T2@@本地运行。支持任意 JPEG 或 PNG。@@T3@@",
+   "src": "<strong>Drop a photo here, or click to upload.</strong>\n            <small>Runs locally. Any JPEG or PNG.</small>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<small>",
+    "</small>"
+   ]
+  },
+  "Use webcam": {
+   "zh": "使用摄像头",
+   "src": "Use webcam",
+   "tags": []
+  },
+  "Six CC-licensed stock photos.": {
+   "zh": "六张 CC 授权的素材照片。",
+   "src": "Six CC-licensed stock photos.",
+   "tags": []
+  },
+  "Loading…": {
+   "zh": "加载中…",
+   "src": "Loading…",
+   "tags": []
+  },
+  "@@T0@@Model@@T1@@\n            @@T2@@CLIP-ViT-B/32@@T3@@": {
+   "zh": "@@T0@@模型@@T1@@\n            @@T2@@CLIP-ViT-B/32@@T3@@",
+   "src": "<span class=\"stat-label\">Model</span>\n            <span class=\"stat-value\" style=\"font-size: 0.92rem;\">CLIP-ViT-B/32</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" style=\"font-size: 0.92rem;\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Shared dim@@T1@@\n            @@T2@@512@@T3@@": {
+   "zh": "@@T0@@共享维度@@T1@@\n            @@T2@@512@@T3@@",
+   "src": "<span class=\"stat-label\">Shared dim</span>\n            <span class=\"stat-value\">512</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Inference time@@T1@@\n            @@T2@@—@@T3@@": {
+   "zh": "@@T0@@推理时间@@T1@@\n            @@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Inference time</span>\n            <span class=\"stat-value\" id=\"inference-ms\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"inference-ms\">",
+    "</span>"
+   ]
+  },
+  "Step 1": {
+   "zh": "步骤 1",
+   "src": "Step 1",
+   "tags": []
+  },
+  "Two encoders, one shared space": {
+   "zh": "两个编码器，一个共享空间",
+   "src": "Two encoders, one shared space",
+   "tags": []
+  },
+  "CLIP is not one network. It's two. The vision encoder is a\n          Vision Transformer (or ResNet, depending on the variant); the\n          text encoder is a small Transformer. Each maps its input to\n          a single 512-dim vector. That shared 512-dim space is where all\n          the magic happens.": {
+   "zh": "CLIP 并非单一网络，而是两个网络。视觉编码器是一个 Vision Transformer（或 ResNet，取决于具体变体）；文本编码器是一个小型 Transformer。二者各自把输入映射为单个 512 维向量。所有奇妙之处都发生在这个共享的 512 维空间中。",
+   "src": "CLIP is not one network. It's two. The vision encoder is a\n          Vision Transformer (or ResNet, depending on the variant); the\n          text encoder is a small Transformer. Each maps its input to\n          a single 512-dim vector. That shared 512-dim space is where all\n          the magic happens.",
+   "tags": []
+  },
+  "Both vectors are $\\ell_2$-normalised after the final projection,\n          so they live on the unit hypersphere. Distance between them is\n          measured by cosine similarity&mdash;equivalently, their dot\n          product&mdash;and it ranges from $-1$ (opposite) to $+1$\n          (identical).": {
+   "zh": "两个向量在最终投影后都经过 $\\ell_2$ 归一化，因此它们位于单位超球面上。二者之间的距离由余弦相似度度量——等价地，即它们的点积——取值范围从 $-1$（完全相反）到 $+1$（完全相同）。",
+   "src": "Both vectors are $\\ell_2$-normalised after the final projection,\n          so they live on the unit hypersphere. Distance between them is\n          measured by cosine similarity&mdash;equivalently, their dot\n          product&mdash;and it ranges from $-1$ (opposite) to $+1$\n          (identical).",
+   "tags": []
+  },
+  "Your image, through the vision encoder": {
+   "zh": "你的图像，经由视觉编码器",
+   "src": "Your image, through the vision encoder",
+   "tags": []
+  },
+  "The 512 numbers below are the real output of CLIP's vision\n          encoder on your current photo. If you swap photos, the whole\n          vector changes.": {
+   "zh": "下方的 512 个数值是 CLIP 视觉编码器对你当前照片的真实输出。如果你更换照片，整个向量都会随之改变。",
+   "src": "The 512 numbers below are the real output of CLIP's vision\n          encoder on your current photo. If you swap photos, the whole\n          vector changes.",
+   "tags": []
+  },
+  "Waiting for model&hellip;": {
+   "zh": "正在等待模型&hellip;",
+   "src": "Waiting for model&hellip;",
+   "tags": []
+  },
+  "Step 2": {
+   "zh": "步骤 2",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Your labels, through the text encoder": {
+   "zh": "你的标签，经由文本编码器",
+   "src": "Your labels, through the text encoder",
+   "tags": []
+  },
+  "Type whatever you want. CLIP will tokenize each label, push the\n          tokens through its text Transformer, and emit another 512-dim\n          vector. These become your @@T0@@class prototypes@@T1@@. Whichever\n          prototype is closest to your image in the shared space wins.": {
+   "zh": "输入任意内容。CLIP 会对每个标签进行分词，把词元送入其文本 Transformer，再输出另一个 512 维向量。这些向量即成为你的@@T0@@类别原型@@T1@@。在共享空间中与你的图像最接近的那个原型即胜出。",
+   "src": "Type whatever you want. CLIP will tokenize each label, push the\n          tokens through its text Transformer, and emit another 512-dim\n          vector. These become your <em>class prototypes</em>. Whichever\n          prototype is closest to your image in the shared space wins.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Prompt template": {
+   "zh": "提示模板",
+   "src": "Prompt template",
+   "tags": []
+  },
+  "CLIP was trained on captions, not bare class names. Wrapping\n          your label in a natural-sounding template like \"a photo of a\n          {label}\" typically gives a much better text vector than the\n          label alone. Swap templates and compare:": {
+   "zh": "CLIP 是在标题而非裸类别名称上训练的。把标签包裹进一个自然语调的模板（例如「a photo of a {label}」）通常能得到比单独使用标签好得多的文本向量。切换模板以作比较：",
+   "src": "CLIP was trained on captions, not bare class names. Wrapping\n          your label in a natural-sounding template like \"a photo of a\n          {label}\" typically gives a much better text vector than the\n          label alone. Swap templates and compare:",
+   "tags": []
+  },
+  "a photo of a {}": {
+   "zh": "一张 {} 的照片",
+   "src": "a photo of a {}",
+   "tags": []
+  },
+  "a picture of a {}": {
+   "zh": "一幅 {} 的图片",
+   "src": "a picture of a {}",
+   "tags": []
+  },
+  "an image of a {}": {
+   "zh": "一张 {} 的图像",
+   "src": "an image of a {}",
+   "tags": []
+  },
+  "{} (bare label)": {
+   "zh": "{}（裸标签）",
+   "src": "{} (bare label)",
+   "tags": []
+  },
+  "Edit your candidate labels": {
+   "zh": "编辑候选标签",
+   "src": "Edit your candidate labels",
+   "tags": []
+  },
+  "Each row is a separate candidate. The live similarity and the\n          softmax probability are shown on the right.": {
+   "zh": "每一行都是一个独立候选。右侧显示实时相似度与 softmax 概率。",
+   "src": "Each row is a separate candidate. The live similarity and the\n          softmax probability are shown on the right.",
+   "tags": []
+  },
+  "+ Add label": {
+   "zh": "+ 添加标签",
+   "src": "+ Add label",
+   "tags": []
+  },
+  "Reset to defaults": {
+   "zh": "重置为默认值",
+   "src": "Reset to defaults",
+   "tags": []
+  },
+  "First text prototype (for reference)": {
+   "zh": "第一个文本原型（供参考）",
+   "src": "First text prototype (for reference)",
+   "tags": []
+  },
+  "Waiting for labels&hellip;": {
+   "zh": "正在等待标签&hellip;",
+   "src": "Waiting for labels&hellip;",
+   "tags": []
+  },
+  "Step 3": {
+   "zh": "步骤 3",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Cosine similarity: the one operation that matters": {
+   "zh": "余弦相似度：唯一真正重要的运算",
+   "src": "Cosine similarity: the one operation that matters",
+   "tags": []
+  },
+  "Because both vectors are unit-norm, the dot product @@T0@@is@@T1@@\n          the cosine similarity:": {
+   "zh": "由于两个向量都是单位范数，点积@@T0@@就是@@T1@@余弦相似度：",
+   "src": "Because both vectors are unit-norm, the dot product <em>is</em>\n          the cosine similarity:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "One dot product per label. 512 multiplications and 511\n          additions, times the number of labels. That's the entire cost\n          of zero-shot classification in CLIP.": {
+   "zh": "每个标签一次点积。512 次乘法与 511 次加法，再乘以标签数量。这就是 CLIP 中零样本分类的全部开销。",
+   "src": "One dot product per label. 512 multiplications and 511\n          additions, times the number of labels. That's the entire cost\n          of zero-shot classification in CLIP.",
+   "tags": []
+  },
+  "Raw similarities (before softmax)": {
+   "zh": "原始相似度（softmax 之前）",
+   "src": "Raw similarities (before softmax)",
+   "tags": []
+  },
+  "@@T0@@Why unit-normalising matters.@@T1@@\n          The contrastive loss CLIP trained with rewards high dot product\n          for matching pairs and low for non-matching. Without\n          normalisation, the model could cheat by making all pairs'\n          similarities big in absolute terms. Normalising puts every\n          vector on the same scale; similarity is only about direction.": {
+   "zh": "@@T0@@单位归一化为何重要。@@T1@@\n          CLIP 训练所用的对比损失奖励匹配配对具有高点积，而非匹配配对的点积较低。若不做归一化，模型可以通过让所有配对的相似度在绝对值上都很大来「作弊」。归一化使每个向量处于同一尺度；相似度只关乎方向。",
+   "src": "<strong>Why unit-normalising matters.</strong>\n          The contrastive loss CLIP trained with rewards high dot product\n          for matching pairs and low for non-matching. Without\n          normalisation, the model could cheat by making all pairs'\n          similarities big in absolute terms. Normalising puts every\n          vector on the same scale; similarity is only about direction.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 4": {
+   "zh": "步骤 4",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Softmax and temperature": {
+   "zh": "softmax 与温度",
+   "src": "Softmax and temperature",
+   "tags": []
+  },
+  "To turn similarity scores into probabilities we apply a softmax.\n          CLIP scales the logits by a learned temperature\n          $\\tau \\approx 0.01$ (equivalently, scales by $1/\\tau \\approx 100$):": {
+   "zh": "为把相似度得分转换为概率，我们施加一个 softmax。CLIP 用一个学习得到的温度 $\\tau \\approx 0.01$ 对 logit 进行缩放（等价地，即乘以 $1/\\tau \\approx 100$）：",
+   "src": "To turn similarity scores into probabilities we apply a softmax.\n          CLIP scales the logits by a learned temperature\n          $\\tau \\approx 0.01$ (equivalently, scales by $1/\\tau \\approx 100$):",
+   "tags": []
+  },
+  "The scaling makes the softmax very sharp. A similarity\n          difference of just 0.05 can produce a 5&times; probability\n          gap. Slide the temperature below to see the effect: lower\n          $\\tau$ = sharper predictions; higher $\\tau$ = flatter.": {
+   "zh": "这种缩放使 softmax 变得非常尖锐。仅 0.05 的相似度差异就能产生 5&times; 的概率差距。拖动下方的温度滑块以观察效果：$\\tau$ 越低，预测越尖锐；$\\tau$ 越高，预测越平坦。",
+   "src": "The scaling makes the softmax very sharp. A similarity\n          difference of just 0.05 can produce a 5&times; probability\n          gap. Slide the temperature below to see the effect: lower\n          $\\tau$ = sharper predictions; higher $\\tau$ = flatter.",
+   "tags": []
+  },
+  "Softmax temperature @@T0@@&tau; = @@T1@@0.01@@T2@@@@T3@@": {
+   "zh": "softmax 温度 @@T0@@&tau; = @@T1@@0.01@@T2@@@@T3@@",
+   "src": "Softmax temperature <span>&tau; = <span id=\"tau-val\">0.01</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"tau-val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Scale factor @@T0@@1/&tau; = @@T1@@100@@T2@@@@T3@@": {
+   "zh": "缩放因子 @@T0@@1/&tau; = @@T1@@100@@T2@@@@T3@@",
+   "src": "Scale factor <span>1/&tau; = <span id=\"inv-tau-val\">100</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"inv-tau-val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "CLIP's pretrained temperature is ~0.01. Raise it to flatten\n              confidence, lower it to spike it.": {
+   "zh": "CLIP 预训练的温度约为 0.01。调高它会使置信度变得平坦，调低它则会使其变得陡峭。",
+   "src": "CLIP's pretrained temperature is ~0.01. Raise it to flatten\n              confidence, lower it to spike it.",
+   "tags": []
+  },
+  "Live predictions": {
+   "zh": "实时预测",
+   "src": "Live predictions",
+   "tags": []
+  },
+  "@@T0@@Top label@@T1@@\n            @@T2@@—@@T3@@": {
+   "zh": "@@T0@@最高标签@@T1@@\n            @@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Top label</span>\n            <span class=\"stat-value\" id=\"top-label\" style=\"font-size: 1.2rem;\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"top-label\" style=\"font-size: 1.2rem;\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Top probability@@T1@@\n            @@T2@@—@@T3@@": {
+   "zh": "@@T0@@最高概率@@T1@@\n            @@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Top probability</span>\n            <span class=\"stat-value\" id=\"top-prob\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"top-prob\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Entropy (nats)@@T1@@\n            @@T2@@—@@T3@@": {
+   "zh": "@@T0@@熵（nat）@@T1@@\n            @@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Entropy (nats)</span>\n            <span class=\"stat-value\" id=\"entropy\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"entropy\">",
+    "</span>"
+   ]
+  },
+  "Step 5": {
+   "zh": "步骤 5",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Why this works at all": {
+   "zh": "这一切为何能够奏效",
+   "src": "Why this works at all",
+   "tags": []
+  },
+  "A model that's never seen your labels nonetheless gets them\n          right most of the time. The reason is the @@T0@@scale and\n          diversity@@T1@@ of the contrastive pretraining data. CLIP saw\n          400 million (image, caption) pairs from the open web, which\n          means it saw:": {
+   "zh": "一个从未见过你所用标签的模型，却仍能在大多数情况下把它们判断正确。原因在于对比预训练数据的@@T0@@规模与多样性@@T1@@。CLIP 见过来自开放网络的 4 亿个（图像，标题）对，这意味着它见到过：",
+   "src": "A model that's never seen your labels nonetheless gets them\n          right most of the time. The reason is the <em>scale and\n          diversity</em> of the contrastive pretraining data. CLIP saw\n          400 million (image, caption) pairs from the open web, which\n          means it saw:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Dozens of ways to describe a cat (\"cat\", \"kitten\", \"kitty\",\n            \"tabby cat\", \"a photo of a cat on a rug\"…)": {
+   "zh": "描述一只猫的数十种说法（「cat」、「kitten」、「kitty」、「tabby cat」、「a photo of a cat on a rug」……）",
+   "src": "Dozens of ways to describe a cat (\"cat\", \"kitten\", \"kitty\",\n            \"tabby cat\", \"a photo of a cat on a rug\"…)",
+   "tags": []
+  },
+  "Thousands of different cats, from every angle and lighting.": {
+   "zh": "成千上万只不同的猫，涵盖各种角度与光照。",
+   "src": "Thousands of different cats, from every angle and lighting.",
+   "tags": []
+  },
+  "Negatives: every caption paired with many images that\n            @@T0@@aren't@@T1@@ the described one.": {
+   "zh": "负样本：每一条标题都与许多@@T0@@并非@@T1@@其所描述的图像相配对。",
+   "src": "Negatives: every caption paired with many images that\n            <em>aren't</em> the described one.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "By the end, the image of @@T0@@any@@T1@@ cat is close to the text\n          embedding of @@T2@@any@@T3@@ plausible caption about cats. The\n          pretraining buys you a surprisingly general image-to-language\n          similarity function that transfers to unseen label sets.": {
+   "zh": "最终，@@T0@@任意@@T1@@一张猫的图像都与@@T2@@任意@@T3@@一条关于猫的合理标题的文本嵌入相接近。这种预训练为你换来一个出奇通用的「图像到语言」相似度函数，它能迁移到未见过的标签集上。",
+   "src": "By the end, the image of <em>any</em> cat is close to the text\n          embedding of <em>any</em> plausible caption about cats. The\n          pretraining buys you a surprisingly general image-to-language\n          similarity function that transfers to unseen label sets.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Why the 512-dim head is enough": {
+   "zh": "为何 512 维的输出头已足够",
+   "src": "Why the 512-dim head is enough",
+   "tags": []
+  },
+  "dimensions in the shared space. That's plenty of room for\n            millions of distinct concepts because the embeddings don't\n            need to be orthogonal&mdash;they just need to @@T0@@cluster@@T1@@\n            by semantic similarity. @@T2@@cat@@T3@@, @@T4@@kitten@@T5@@,\n            and @@T6@@tabby@@T7@@ don't fight for axes; they pile on top\n            of each other.": {
+   "zh": "个维度构成共享空间。这足以容纳数百万个彼此不同的概念，因为嵌入并不需要彼此正交——它们只需按语义相似度@@T0@@聚簇@@T1@@即可。@@T2@@cat@@T3@@、@@T4@@kitten@@T5@@ 与 @@T6@@tabby@@T7@@ 并不争夺坐标轴；它们彼此堆叠在一起。",
+   "src": "dimensions in the shared space. That's plenty of room for\n            millions of distinct concepts because the embeddings don't\n            need to be orthogonal&mdash;they just need to <em>cluster</em>\n            by semantic similarity. <code>cat</code>, <code>kitten</code>,\n            and <code>tabby</code> don't fight for axes; they pile on top\n            of each other.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Step 6": {
+   "zh": "步骤 6",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Beyond classification": {
+   "zh": "超越分类",
+   "src": "Beyond classification",
+   "tags": []
+  },
+  "Zero-shot classification is the simplest use of CLIP. The same\n          embedding space powers:": {
+   "zh": "零样本分类是 CLIP 最简单的用途。同一个嵌入空间还支撑着：",
+   "src": "Zero-shot classification is the simplest use of CLIP. The same\n          embedding space powers:",
+   "tags": []
+  },
+  "Task": {
+   "zh": "任务",
+   "src": "Task",
+   "tags": []
+  },
+  "Trick": {
+   "zh": "技巧",
+   "src": "Trick",
+   "tags": []
+  },
+  "Example": {
+   "zh": "示例",
+   "src": "Example",
+   "tags": []
+  },
+  "@@T0@@Image retrieval@@T1@@": {
+   "zh": "@@T0@@图像检索@@T1@@",
+   "src": "<strong>Image retrieval</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Embed a text query; find images whose embeddings are closest.": {
+   "zh": "嵌入一个文本查询；找出嵌入最接近的图像。",
+   "src": "Embed a text query; find images whose embeddings are closest.",
+   "tags": []
+  },
+  "Search \"golden hour landscape\" across your photo library.": {
+   "zh": "在你的照片库中搜索「golden hour landscape」。",
+   "src": "Search \"golden hour landscape\" across your photo library.",
+   "tags": []
+  },
+  "@@T0@@Image → text retrieval@@T1@@": {
+   "zh": "@@T0@@图像 → 文本检索@@T1@@",
+   "src": "<strong>Image → text retrieval</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Embed an image; find captions whose embeddings are closest.": {
+   "zh": "嵌入一张图像；找出嵌入最接近的标题。",
+   "src": "Embed an image; find captions whose embeddings are closest.",
+   "tags": []
+  },
+  "Suggest alt-text for an accessibility pass.": {
+   "zh": "为无障碍检查建议替代文本。",
+   "src": "Suggest alt-text for an accessibility pass.",
+   "tags": []
+  },
+  "@@T0@@Guidance for diffusion@@T1@@": {
+   "zh": "@@T0@@扩散模型引导@@T1@@",
+   "src": "<strong>Guidance for diffusion</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Use CLIP similarity as a loss to nudge image generators toward a prompt.": {
+   "zh": "把 CLIP 相似度用作损失，使图像生成器朝提示词方向靠拢。",
+   "src": "Use CLIP similarity as a loss to nudge image generators toward a prompt.",
+   "tags": []
+  },
+  "Classifier-free guidance in Stable Diffusion.": {
+   "zh": "Stable Diffusion 中的无分类器引导。",
+   "src": "Classifier-free guidance in Stable Diffusion.",
+   "tags": []
+  },
+  "@@T0@@Open-vocabulary detection / segmentation@@T1@@": {
+   "zh": "@@T0@@开放词汇检测 / 分割@@T1@@",
+   "src": "<strong>Open-vocabulary detection / segmentation</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Replace the detector's class head with CLIP's text embeddings.": {
+   "zh": "用 CLIP 的文本嵌入替换检测器的类别头。",
+   "src": "Replace the detector's class head with CLIP's text embeddings.",
+   "tags": []
+  },
+  "OWL-ViT, CLIPSeg, X-Decoder.": {
+   "zh": "OWL-ViT、CLIPSeg、X-Decoder。",
+   "src": "OWL-ViT, CLIPSeg, X-Decoder.",
+   "tags": []
+  },
+  "@@T0@@OCR-free document understanding@@T1@@": {
+   "zh": "@@T0@@免 OCR 的文档理解@@T1@@",
+   "src": "<strong>OCR-free document understanding</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Embed receipts, slides, charts; search by semantic content.": {
+   "zh": "嵌入收据、幻灯片、图表；按语义内容检索。",
+   "src": "Embed receipts, slides, charts; search by semantic content.",
+   "tags": []
+  },
+  "Paper search, slide organization.": {
+   "zh": "论文检索、幻灯片整理。",
+   "src": "Paper search, slide organization.",
+   "tags": []
+  },
+  "Step 7": {
+   "zh": "步骤 7",
+   "src": "Step 7",
+   "tags": []
+  },
+  "Four places CLIP will fool you": {
+   "zh": "CLIP 会误导你的四个地方",
+   "src": "Four places CLIP will fool you",
+   "tags": []
+  },
+  "@@T0@@Myth@@T1@@": {
+   "zh": "@@T0@@误区@@T1@@",
+   "src": "<span class=\"misconception-icon\">Myth</span>",
+   "tags": [
+    "<span class=\"misconception-icon\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@\"CLIP understands what it classifies.\"@@T1@@@@T2@@\n              CLIP learns a similarity function, not a truth function. It's\n              happy to call a typed sign \"iPod\" if someone tapes that word\n              to an apple (@@T3@@typographic attack@@T4@@, Goh et al. 2021).\n              It doesn't reason; it matches.": {
+   "zh": "@@T0@@「CLIP 理解它所分类的东西。」@@T1@@@@T2@@\n              CLIP 学到的是一个相似度函数，而非真值函数。如果有人把「iPod」这个词贴在一个苹果上，它会毫不犹豫地把那张打印标牌称为「iPod」（@@T3@@排版攻击@@T4@@，Goh 等，2021）。它并不推理；它只做匹配。",
+   "src": "<strong>\"CLIP understands what it classifies.\"</strong><br />\n              CLIP learns a similarity function, not a truth function. It's\n              happy to call a typed sign \"iPod\" if someone tapes that word\n              to an apple (<em>typographic attack</em>, Goh et al. 2021).\n              It doesn't reason; it matches.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@\"Zero-shot means no training.\"@@T1@@@@T2@@\n              Someone spent 400 million pairs and a GPU cluster training\n              the encoders. What you get for free is @@T3@@generalization to\n              new labels@@T4@@, not a free lunch.": {
+   "zh": "@@T0@@「零样本意味着无需训练。」@@T1@@@@T2@@\n              有人花了 4 亿个配对以及一个 GPU 集群来训练这些编码器。你免费得到的是@@T3@@对新标签的泛化能力@@T4@@，而不是一顿免费的午餐。",
+   "src": "<strong>\"Zero-shot means no training.\"</strong><br />\n              Someone spent 400 million pairs and a GPU cluster training\n              the encoders. What you get for free is <em>generalization to\n              new labels</em>, not a free lunch.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@\"Adding more labels can only help.\"@@T1@@@@T2@@\n              Extra near-synonym labels split probability mass, hurting\n              any single label's score. Extra garbage labels pull the\n              softmax and act as noise. More is not always better; pick a\n              focused, well-separated label set.": {
+   "zh": "@@T0@@「多加标签只会更好。」@@T1@@@@T2@@\n              额外的近义标签会分散概率质量，损害任何单个标签的得分。额外的垃圾标签会拉扯 softmax，充当噪声。更多并不总是更好；应选择一个聚焦且彼此区分良好的标签集。",
+   "src": "<strong>\"Adding more labels can only help.\"</strong><br />\n              Extra near-synonym labels split probability mass, hurting\n              any single label's score. Extra garbage labels pull the\n              softmax and act as noise. More is not always better; pick a\n              focused, well-separated label set.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@\"CLIP is unbiased because it wasn't trained on labels.\"@@T1@@@@T2@@\n              It was trained on 400M captions scraped from the web. The\n              biases of the web&mdash;gendered professions, racial\n              stereotypes, cultural blind spots&mdash;are baked in. Many\n              papers have probed these; deploy with care.": {
+   "zh": "@@T0@@「CLIP 没有偏见，因为它不是在标签上训练的。」@@T1@@@@T2@@\n              它是在从网络上抓取的 4 亿条标题上训练的。网络本身的偏见——性别化的职业印象、种族刻板印象、文化盲点——都被烙印其中。许多论文已对此进行探查；部署时务必谨慎。",
+   "src": "<strong>\"CLIP is unbiased because it wasn't trained on labels.\"</strong><br />\n              It was trained on 400M captions scraped from the web. The\n              biases of the web&mdash;gendered professions, racial\n              stereotypes, cultural blind spots&mdash;are baked in. Many\n              papers have probed these; deploy with care.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          Zero-shot classification with CLIP is two matrix multiplies\n          and a softmax. The magic isn't the math; it's the 400 million\n          captioned images whose structure got distilled into the shared\n          embedding space. You've now done the full pipeline yourself on\n          your own photo with your own labels&mdash;on a model that\n          genuinely does not know in advance what you were going to ask.": {
+   "zh": "@@T0@@最终要点。@@T1@@\n          用 CLIP 做零样本分类不过是两次矩阵乘法加上一个 softmax。奇妙之处不在于数学；而在于 4 亿张带标题的图像，它们的结构被蒸馏进了共享嵌入空间。你如今已用自己的照片和自己的标签亲手走过了整条流水线——而所用模型事先确实并不知道你会问什么。",
+   "src": "<strong>Final takeaway.</strong>\n          Zero-shot classification with CLIP is two matrix multiplies\n          and a softmax. The magic isn't the math; it's the 400 million\n          captioned images whose structure got distilled into the shared\n          embedding space. You've now done the full pipeline yourself on\n          your own photo with your own labels&mdash;on a model that\n          genuinely does not know in advance what you were going to ask.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 8": {
+   "zh": "步骤 8",
+   "src": "Step 8",
+   "tags": []
+  },
+  "The contrastive training objective in detail": {
+   "zh": "对比训练目标详解",
+   "src": "The contrastive training objective in detail",
+   "tags": []
+  },
+  "CLIP minimises a symmetric InfoNCE loss across image and text:": {
+   "zh": "CLIP 在图像与文本之间最小化一个对称的 InfoNCE 损失：",
+   "src": "CLIP minimises a symmetric InfoNCE loss across image and text:",
+   "tags": []
+  },
+  "$z_i^I = \\mathrm{img\\_enc}(I_i) / \\|\\cdot\\|_2$ and $z_i^T = \\mathrm{text\\_enc}(T_i) / \\|\\cdot\\|_2$ are L2-normalised embeddings; $\\tau$ is a learned temperature (CLIP's was initialised to $\\log(1/0.07)$). For a batch of $N$ pairs, each $(I_i, T_i)$ is the positive while the other $N-1$ texts are negatives — and the symmetric version also treats the image as a \"label\" for the text.": {
+   "zh": "$z_i^I = \\mathrm{img\\_enc}(I_i) / \\|\\cdot\\|_2$ 与 $z_i^T = \\mathrm{text\\_enc}(T_i) / \\|\\cdot\\|_2$ 是经 L2 归一化的嵌入；$\\tau$ 是学习得到的温度（CLIP 中初始化为 $\\log(1/0.07)$）。对于一个含 $N$ 个配对的批次，每个 $(I_i, T_i)$ 都是正样本，而其余 $N-1$ 条文本为负样本——对称版本还会把图像视作文本的「标签」。",
+   "src": "$z_i^I = \\mathrm{img\\_enc}(I_i) / \\|\\cdot\\|_2$ and $z_i^T = \\mathrm{text\\_enc}(T_i) / \\|\\cdot\\|_2$ are L2-normalised embeddings; $\\tau$ is a learned temperature (CLIP's was initialised to $\\log(1/0.07)$). For a batch of $N$ pairs, each $(I_i, T_i)$ is the positive while the other $N-1$ texts are negatives — and the symmetric version also treats the image as a \"label\" for the text.",
+   "tags": []
+  },
+  "Two implementation details that mattered enormously in practice:": {
+   "zh": "两个在实践中极其重要的实现细节：",
+   "src": "Two implementation details that mattered enormously in practice:",
+   "tags": []
+  },
+  "@@T0@@Huge batch size.@@T1@@ CLIP trained at batch size 32,768. More negatives ⇒ harder contrastive task ⇒ better representations. Without this, the loss saturates fast.": {
+   "zh": "@@T0@@超大批次。@@T1@@ CLIP 以 32,768 的批次大小训练。负样本越多 ⇒ 对比任务越难 ⇒ 表征越好。没有这一点，损失会迅速饱和。",
+   "src": "<strong>Huge batch size.</strong> CLIP trained at batch size 32,768. More negatives ⇒ harder contrastive task ⇒ better representations. Without this, the loss saturates fast.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Image and text encoders are not symmetric.@@T1@@ The image side is a ViT or ResNet; the text side is a 12-layer Transformer. The projection heads (post-encoder linear layers) are what make the two embedding spaces actually align.": {
+   "zh": "@@T0@@图像与文本编码器并不对称。@@T1@@ 图像一侧是 ViT 或 ResNet；文本一侧是 12 层 Transformer。正是投影头（编码器之后的线性层）使这两个嵌入空间真正对齐。",
+   "src": "<strong>Image and text encoders are not symmetric.</strong> The image side is a ViT or ResNet; the text side is a 12-layer Transformer. The projection heads (post-encoder linear layers) are what make the two embedding spaces actually align.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 9": {
+   "zh": "步骤 9",
+   "src": "Step 9",
+   "tags": []
+  },
+  "The CLIP family — what came next": {
+   "zh": "CLIP 家族——后续发展",
+   "src": "The CLIP family — what came next",
+   "tags": []
+  },
+  "@@T0@@OpenCLIP (LAION, 2022).@@T1@@ Open weights and open data; matched CLIP performance with LAION-2B.": {
+   "zh": "@@T0@@OpenCLIP（LAION，2022）。@@T1@@ 开放权重与开放数据；用 LAION-2B 复现了 CLIP 的性能。",
+   "src": "<strong>OpenCLIP (LAION, 2022).</strong> Open weights and open data; matched CLIP performance with LAION-2B.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@SigLIP (Google, 2023).@@T1@@ Replaces the softmax cross-entropy with a sigmoid loss. Independent of batch size; better small-batch behaviour. SigLIP-2 (2024) extends with multilingual + dense heads.": {
+   "zh": "@@T0@@SigLIP（Google，2023）。@@T1@@ 用 sigmoid 损失替代 softmax 交叉熵。与批次大小无关；小批次表现更好。SigLIP-2（2024）进一步扩展到多语言与稠密头。",
+   "src": "<strong>SigLIP (Google, 2023).</strong> Replaces the softmax cross-entropy with a sigmoid loss. Independent of batch size; better small-batch behaviour. SigLIP-2 (2024) extends with multilingual + dense heads.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@EVA-CLIP, MetaCLIP, DFN-CLIP.@@T1@@ Scaling + data-curation variants. Larger encoders, better data filtering, ~2–5 points higher zero-shot ImageNet.": {
+   "zh": "@@T0@@EVA-CLIP、MetaCLIP、DFN-CLIP。@@T1@@ 规模扩展与数据筛选的变体。编码器更大、数据过滤更好，零样本 ImageNet 准确率高出约 2–5 个点。",
+   "src": "<strong>EVA-CLIP, MetaCLIP, DFN-CLIP.</strong> Scaling + data-curation variants. Larger encoders, better data filtering, ~2–5 points higher zero-shot ImageNet.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@CLIPA.@@T1@@ Cheap CLIP — train at smaller resolution / token count, then fine-tune at full res. Reduces training cost by ~4×.": {
+   "zh": "@@T0@@CLIPA。@@T1@@ 廉价 CLIP——先在较小分辨率 / 词元数下训练，再以全分辨率微调。训练成本降低约 4×。",
+   "src": "<strong>CLIPA.</strong> Cheap CLIP — train at smaller resolution / token count, then fine-tune at full res. Reduces training cost by ~4×.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@EVA-02, DINOv2, AIM.@@T1@@ Self-supervised backbones with no language alignment; often used @@T2@@in place of@@T3@@ CLIP's image encoder when language isn't needed downstream.": {
+   "zh": "@@T0@@EVA-02、DINOv2、AIM。@@T1@@ 不带语言对齐的自监督骨干网络；当下游不需要语言时，常@@T2@@用来替代@@T3@@ CLIP 的图像编码器。",
+   "src": "<strong>EVA-02, DINOv2, AIM.</strong> Self-supervised backbones with no language alignment; often used <em>in place of</em> CLIP's image encoder when language isn't needed downstream.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 10": {
+   "zh": "步骤 10",
+   "src": "Step 10",
+   "tags": []
+  },
+  "Prompt engineering for CLIP": {
+   "zh": "面向 CLIP 的提示工程",
+   "src": "Prompt engineering for CLIP",
+   "tags": []
+  },
+  "The classification accuracy of CLIP depends shockingly on prompt wording. \"cat\" gets one accuracy; \"a photo of a cat\" gets ~5 points higher; \"a photo of a cat, a type of pet\" gets higher again. The standard recipe (Radford et&nbsp;al., 2021):": {
+   "zh": "CLIP 的分类准确率对提示措辞的依赖程度令人震惊。「cat」得到一种准确率；「a photo of a cat」高出约 5 个点；「a photo of a cat, a type of pet」又更高。标准配方（Radford 等，2021）：",
+   "src": "The classification accuracy of CLIP depends shockingly on prompt wording. \"cat\" gets one accuracy; \"a photo of a cat\" gets ~5 points higher; \"a photo of a cat, a type of pet\" gets higher again. The standard recipe (Radford et&nbsp;al., 2021):",
+   "tags": []
+  },
+  "@@T0@@Prompt ensembling.@@T1@@ Average text embeddings across 80 prompt templates (\"a photo of a {}\", \"a blurry photo of a {}\", \"a low-resolution photo of a {}\", …). Bumps ImageNet zero-shot accuracy by ~2 points.": {
+   "zh": "@@T0@@提示集成。@@T1@@ 对 80 个提示模板（「a photo of a {}」「a blurry photo of a {}」「a low-resolution photo of a {}」……）的文本嵌入取平均。可将 ImageNet 零样本准确率提升约 2 个点。",
+   "src": "<strong>Prompt ensembling.</strong> Average text embeddings across 80 prompt templates (\"a photo of a {}\", \"a blurry photo of a {}\", \"a low-resolution photo of a {}\", …). Bumps ImageNet zero-shot accuracy by ~2 points.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Class-name normalisation.@@T1@@ Use the most common natural-language form (\"airplane\" not \"aeroplane\", \"ant\" not \"Formicidae\").": {
+   "zh": "@@T0@@类别名归一化。@@T1@@ 使用最常见的自然语言形式（用「airplane」而非「aeroplane」，用「ant」而非「Formicidae」）。",
+   "src": "<strong>Class-name normalisation.</strong> Use the most common natural-language form (\"airplane\" not \"aeroplane\", \"ant\" not \"Formicidae\").",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Context-aware prompts.@@T1@@ For medical / scientific domains, add a domain prefix (\"a photo of a tissue slide showing {}\").": {
+   "zh": "@@T0@@上下文感知提示。@@T1@@ 对于医学 / 科学领域，添加领域前缀（「a photo of a tissue slide showing {}」）。",
+   "src": "<strong>Context-aware prompts.</strong> For medical / scientific domains, add a domain prefix (\"a photo of a tissue slide showing {}\").",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Soft prompt tuning (CoOp, 2022).@@T1@@ Replace the text template with learnable embeddings, fit on a few labelled examples. Useful when the template choice is the dominant uncertainty.": {
+   "zh": "@@T0@@软提示微调（CoOp，2022）。@@T1@@ 用可学习的嵌入替换文本模板，在少量带标注样例上拟合。当模板选择是主要不确定性来源时尤为有用。",
+   "src": "<strong>Soft prompt tuning (CoOp, 2022).</strong> Replace the text template with learnable embeddings, fit on a few labelled examples. Useful when the template choice is the dominant uncertainty.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 11": {
+   "zh": "步骤 11",
+   "src": "Step 11",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "参考文献",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Radford et&nbsp;al. (2021)@@T1@@ — @@T2@@Learning Transferable Visual Models From Natural Language Supervision.@@T3@@ The CLIP paper.": {
+   "zh": "@@T0@@Radford 等（2021）@@T1@@ —— @@T2@@Learning Transferable Visual Models From Natural Language Supervision.@@T3@@ CLIP 原始论文。",
+   "src": "<strong>Radford et&nbsp;al. (2021)</strong> — <em>Learning Transferable Visual Models From Natural Language Supervision.</em> The CLIP paper.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Jia et&nbsp;al. (2021)@@T1@@ — @@T2@@ALIGN.@@T3@@ Concurrent work, 1.8B image-text pairs.": {
+   "zh": "@@T0@@Jia 等（2021）@@T1@@ —— @@T2@@ALIGN.@@T3@@ 同期工作，18 亿图文对。",
+   "src": "<strong>Jia et&nbsp;al. (2021)</strong> — <em>ALIGN.</em> Concurrent work, 1.8B image-text pairs.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Cherti et&nbsp;al. (2023)@@T1@@ — @@T2@@Reproducible Scaling Laws for Contrastive Language-Image Learning.@@T3@@ OpenCLIP at scale.": {
+   "zh": "@@T0@@Cherti 等（2023）@@T1@@ —— @@T2@@Reproducible Scaling Laws for Contrastive Language-Image Learning.@@T3@@ 大规模 OpenCLIP。",
+   "src": "<strong>Cherti et&nbsp;al. (2023)</strong> — <em>Reproducible Scaling Laws for Contrastive Language-Image Learning.</em> OpenCLIP at scale.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Zhai et&nbsp;al. (2023)@@T1@@ — @@T2@@SigLIP.@@T3@@": {
+   "zh": "@@T0@@Zhai 等（2023）@@T1@@ —— @@T2@@SigLIP.@@T3@@",
+   "src": "<strong>Zhai et&nbsp;al. (2023)</strong> — <em>SigLIP.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Zhou et&nbsp;al. (2022)@@T1@@ — @@T2@@CoOp.@@T3@@ Soft prompt tuning for CLIP.": {
+   "zh": "@@T0@@Zhou 等（2022）@@T1@@ —— @@T2@@CoOp.@@T3@@ 面向 CLIP 的软提示微调。",
+   "src": "<strong>Zhou et&nbsp;al. (2022)</strong> — <em>CoOp.</em> Soft prompt tuning for CLIP.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Goh et&nbsp;al. (2021)@@T1@@ — @@T2@@Multimodal Neurons in Artificial Neural Networks.@@T3@@ The typographic-attack paper.": {
+   "zh": "@@T0@@Goh 等（2021）@@T1@@ —— @@T2@@Multimodal Neurons in Artificial Neural Networks.@@T3@@ 排版攻击论文。",
+   "src": "<strong>Goh et&nbsp;al. (2021)</strong> — <em>Multimodal Neurons in Artificial Neural Networks.</em> The typographic-attack paper.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "CLIP 与零样本分类：从嵌入出发",
+  "tagline": "输入任意标签，观察真实 CLIP 模型给出的真实余弦相似度",
+  "summary": "一个真实的 OpenAI CLIP-ViT-B/32 经由 transformers.js 在你的浏览器中运行。上传一张照片，输入你想要的任意标签，观察模型把两侧都嵌入到共享的 512 维空间，计算真实的余弦相似度，并通过 softmax 转化为实时概率。全程无需微调。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "加载真实的 OpenAI CLIP-ViT-B/32（经由 transformers.js / ONNX），把你的照片与标签嵌入到共享的 512 维空间。",
+   "即时编辑标签；每一次余弦相似度与 softmax 概率都会立即重算。",
+   "切换提示模板（「a photo of a {}」「a picture of a {}」或裸标签），观察准确率随之变化。",
+   "拖动 softmax 温度滑块，看置信度如何崩塌或趋于平坦。"
+  ],
+  "tags": [
+   "CLIP",
+   "零样本",
+   "嵌入",
+   "Transformers.js",
+   "视觉-语言",
+   "交互式"
+  ]
+ },
+ "js": {
+  "a photo of a [[[0]]]": {
+   "zh": "a photo of a [[[0]]]",
+   "exprs": [
+    "${label}"
+   ],
+   "tags": [],
+   "src": "a photo of a ${label}"
+  },
+  "a picture of a [[[0]]]": {
+   "zh": "a picture of a [[[0]]]",
+   "exprs": [
+    "${label}"
+   ],
+   "tags": [],
+   "src": "a picture of a ${label}"
+  },
+  "an image of a [[[0]]]": {
+   "zh": "an image of a [[[0]]]",
+   "exprs": [
+    "${label}"
+   ],
+   "tags": [],
+   "src": "an image of a ${label}"
+  },
+  "Failed to load [[[0]]]": {
+   "zh": "加载失败：[[[0]]]",
+   "exprs": [
+    "${url}"
+   ],
+   "tags": [],
+   "src": "Failed to load ${url}"
+  },
+  "\"[[[0]]]\" loaded. CLIP's view of it is below.": {
+   "zh": "已加载「[[[0]]]」。CLIP 对它的「看法」如下所示。",
+   "exprs": [
+    "${s.label}"
+   ],
+   "tags": [],
+   "src": "\"${s.label}\" loaded. CLIP's view of it is below."
+  },
+  "Could not load \"[[[0]]]\". Drop a photo into the upload zone.": {
+   "zh": "无法加载「[[[0]]]」。请把照片拖入上传区域。",
+   "exprs": [
+    "${s.label}"
+   ],
+   "tags": [],
+   "src": "Could not load \"${s.label}\". Drop a photo into the upload zone."
+  },
+  "@@T0@@[[[0]]]-dim [[[1]]] embedding, ‖v‖ = [[[2]]] (unit-normalised)@@T1@@": {
+   "zh": "@@T0@@[[[0]]] 维 [[[1]]] 嵌入，‖v‖ = [[[2]]]（已单位归一化）@@T1@@",
+   "exprs": [
+    "${dim}",
+    "${kind}",
+    "${norm.toFixed(3)}"
+   ],
+   "tags": [
+    "<div style=\"font-family: var(--sans); font-size: 0.82rem; color: var(--muted); margin-bottom: 0.35rem;\">",
+    "</div>"
+   ],
+   "src": "<div style=\"font-family: var(--sans); font-size: 0.82rem; color: var(--muted); margin-bottom: 0.35rem;\">${dim}-dim ${kind} embedding, ‖v‖ = ${norm.toFixed(3)} (unit-normalised)</div>"
+  },
+  "Xenova/clip-vit-base-patch32": {
+   "zh": "Xenova/clip-vit-base-patch32",
+   "exprs": [],
+   "tags": [],
+   "src": "Xenova/clip-vit-base-patch32"
+  },
+  "Bike / urban": {
+   "zh": "自行车 / 城市",
+   "exprs": [],
+   "tags": [],
+   "src": "Bike / urban"
+  },
+  "Still life": {
+   "zh": "静物",
+   "exprs": [],
+   "tags": [],
+   "src": "Still life"
+  },
+  "Downloading processor & tokenizer\\u2026": {
+   "zh": "正在下载处理器与分词器\\u2026",
+   "exprs": [],
+   "tags": [],
+   "src": "Downloading processor & tokenizer\\u2026"
+  },
+  "Downloading vision encoder\\u2026": {
+   "zh": "正在下载视觉编码器\\u2026",
+   "exprs": [],
+   "tags": [],
+   "src": "Downloading vision encoder\\u2026"
+  },
+  "Downloading text encoder\\u2026": {
+   "zh": "正在下载文本编码器\\u2026",
+   "exprs": [],
+   "tags": [],
+   "src": "Downloading text encoder\\u2026"
+  },
+  "CLIP load failed:": {
+   "zh": "CLIP 加载失败：",
+   "exprs": [],
+   "tags": [],
+   "src": "CLIP load failed:"
+  },
+  "Model failed to load — check network": {
+   "zh": "模型加载失败——请检查网络",
+   "exprs": [],
+   "tags": [],
+   "src": "Model failed to load — check network"
+  },
+  "— trying next fallback": {
+   "zh": "——正在尝试下一个备选",
+   "exprs": [],
+   "tags": [],
+   "src": "— trying next fallback"
+  },
+  "All sample URLs failed": {
+   "zh": "所有示例 URL 均失败",
+   "exprs": [],
+   "tags": [],
+   "src": "All sample URLs failed"
+  },
+  "Vision inference failed:": {
+   "zh": "视觉推理失败：",
+   "exprs": [],
+   "tags": [],
+   "src": "Vision inference failed:"
+  },
+  "Text inference failed:": {
+   "zh": "文本推理失败：",
+   "exprs": [],
+   "tags": [],
+   "src": "Text inference failed:"
+  },
+  "Pick a sample or upload a photo": {
+   "zh": "请选择一个示例或上传一张照片",
+   "exprs": [],
+   "tags": [],
+   "src": "Pick a sample or upload a photo"
+  },
+  "Waiting for model\\u2026": {
+   "zh": "正在等待模型\\u2026",
+   "exprs": [],
+   "tags": [],
+   "src": "Waiting for model\\u2026"
+  },
+  "Waiting for image\\u2026": {
+   "zh": "正在等待图像\\u2026",
+   "exprs": [],
+   "tags": [],
+   "src": "Waiting for image\\u2026"
+  },
+  "Waiting for labels\\u2026": {
+   "zh": "正在等待标签\\u2026",
+   "exprs": [],
+   "tags": [],
+   "src": "Waiting for labels\\u2026"
+  },
+  "vector-cell vector-cell--pos": {
+   "zh": "vector-cell vector-cell--pos",
+   "exprs": [],
+   "tags": [],
+   "src": "vector-cell vector-cell--pos"
+  },
+  "vector-cell vector-cell--neg": {
+   "zh": "vector-cell vector-cell--neg",
+   "exprs": [],
+   "tags": [],
+   "src": "vector-cell vector-cell--neg"
+  },
+  "input[data-idx]": {
+   "zh": "input[data-idx]",
+   "exprs": [],
+   "tags": [],
+   "src": "input[data-idx]"
+  },
+  "Webcam access failed: ": {
+   "zh": "摄像头访问失败：",
+   "exprs": [],
+   "tags": [],
+   "src": "Webcam access failed: "
+  },
+  "new label": {
+   "zh": "新标签",
+   "exprs": [],
+   "tags": [],
+   "src": "new label"
+  }
+ }
+}

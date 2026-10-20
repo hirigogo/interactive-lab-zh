@@ -1,0 +1,300 @@
+{
+ "slug": "softmax-cross-entropy",
+ "units": {
+  "Softmax &amp; Cross-Entropy": {
+   "zh": "Softmax 与交叉熵",
+   "src": "Softmax &amp; Cross-Entropy",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Classification networks output raw scores. Softmax turns them into a\n      probability distribution; cross-entropy scores how surprised the model is by\n      the true answer; and &mdash; the beautiful part &mdash; the gradient that\n      trains the network turns out to be exactly @@T0@@predicted minus target@@T1@@,\n      $p - y$. Slide the logits below and watch all three move together.": {
+   "zh": "分类网络输出的是原始分数。Softmax 将其转化为概率分布；交叉熵衡量模型对真实答案的惊讶程度；而最美妙之处在于——训练网络的梯度恰好就是@@T0@@预测值减去目标值@@T1@@，即 $p - y$。拖动下方的 logit，观察这三者如何一同变化。",
+   "src": "Classification networks output raw scores. Softmax turns them into a\n      probability distribution; cross-entropy scores how surprised the model is by\n      the true answer; and &mdash; the beautiful part &mdash; the gradient that\n      trains the network turns out to be exactly <em>predicted minus target</em>,\n      $p - y$. Slide the logits below and watch all three move together.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~9 min@@T1@@\n      @@T2@@Deep Learning &middot; Loss Functions &middot; Classification@@T3@@": {
+   "zh": "@@T0@@约 9 分钟@@T1@@\n      @@T2@@深度学习 &middot; 损失函数 &middot; 分类@@T3@@",
+   "src": "<span>~9 min</span>\n      <span>Deep Learning &middot; Loss Functions &middot; Classification</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Three quantities, one picture": {
+   "zh": "三个量，一幅图",
+   "src": "Three quantities, one picture",
+   "tags": []
+  },
+  "For a $K$-class problem the network emits logits $z_1,\\dots,z_K$. Softmax with\n      temperature $T$ maps them to probabilities, cross-entropy reads off the loss for\n      a one-hot target $y$, and the gradient with respect to the logits is startlingly clean:": {
+   "zh": "对于一个 $K$ 类问题，网络输出 logit $z_1,\\dots,z_K$。带温度 $T$ 的 softmax 将其映射为概率，交叉熵对 one-hot 目标 $y$ 读出损失，而对 logit 的梯度则出人意料地简洁：",
+   "src": "For a $K$-class problem the network emits logits $z_1,\\dots,z_K$. Softmax with\n      temperature $T$ maps them to probabilities, cross-entropy reads off the loss for\n      a one-hot target $y$, and the gradient with respect to the logits is startlingly clean:",
+   "tags": []
+  },
+  "That last identity is why softmax + cross-entropy is the default pairing in\n      deep learning: no messy chain rule survives, just &ldquo;how wrong is each\n      class, signed.&rdquo; The widget below is built entirely around these three formulas.": {
+   "zh": "正是最后的这个恒等式，使 softmax + 交叉熵成为深度学习中的默认搭配：繁琐的链式法则尽数消去，只剩下「每个类错得有多离谱，带符号」。下方的组件完全围绕这三个公式构建。",
+   "src": "That last identity is why softmax + cross-entropy is the default pairing in\n      deep learning: no messy chain rule survives, just &ldquo;how wrong is each\n      class, signed.&rdquo; The widget below is built entirely around these three formulas.",
+   "tags": []
+  },
+  "The Lab": {
+   "zh": "实验区",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Logits in, loss and gradient out": {
+   "zh": "输入 logit，输出损失与梯度",
+   "src": "Logits in, loss and gradient out",
+   "tags": []
+  },
+  "Three classes. Set the logits, choose which class is actually correct, and\n      optionally sharpen or flatten with temperature. The left panel is the softmax\n      distribution (the true class outlined); the right panel is the gradient\n      $p - y$, the signed force each logit feels during backprop.": {
+   "zh": "三个类别。设定各 logit，选择哪一个类别才是真正正确的，并可选地通过温度加以锐化或平坦化。左侧面板是 softmax 分布（真实类别以轮廓标出）；右侧面板是梯度 $p - y$，即每个 logit 在反向传播中所受到的有符号作用力。",
+   "src": "Three classes. Set the logits, choose which class is actually correct, and\n      optionally sharpen or flatten with temperature. The left panel is the softmax\n      distribution (the true class outlined); the right panel is the gradient\n      $p - y$, the signed force each logit feels during backprop.",
+   "tags": []
+  },
+  "Correct &amp; confident": {
+   "zh": "正确且自信",
+   "src": "Correct &amp; confident",
+   "tags": []
+  },
+  "Correct &amp; unsure": {
+   "zh": "正确但不确定",
+   "src": "Correct &amp; unsure",
+   "tags": []
+  },
+  "Wrong &amp; unsure": {
+   "zh": "错误但不确定",
+   "src": "Wrong &amp; unsure",
+   "tags": []
+  },
+  "Wrong &amp; confident": {
+   "zh": "错误且自信",
+   "src": "Wrong &amp; confident",
+   "tags": []
+  },
+  "Logit @@T0@@$z_1$ = @@T1@@3.00@@T2@@@@T3@@": {
+   "zh": "Logit 值 @@T0@@$z_1$ = @@T1@@3.00@@T2@@@@T3@@",
+   "src": "Logit <span>$z_1$ = <span id=\"z0Val\">3.00</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"z0Val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Logit @@T0@@$z_2$ = @@T1@@0.50@@T2@@@@T3@@": {
+   "zh": "Logit 值 @@T0@@$z_2$ = @@T1@@0.50@@T2@@@@T3@@",
+   "src": "Logit <span>$z_2$ = <span id=\"z1Val\">0.50</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"z1Val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Logit @@T0@@$z_3$ = @@T1@@-1.00@@T2@@@@T3@@": {
+   "zh": "Logit 值 @@T0@@$z_3$ = @@T1@@-1.00@@T2@@@@T3@@",
+   "src": "Logit <span>$z_3$ = <span id=\"z2Val\">-1.00</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"z2Val\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "True class $y$": {
+   "zh": "真实类别 $y$",
+   "src": "True class $y$",
+   "tags": []
+  },
+  "Class 1": {
+   "zh": "类别 1",
+   "src": "Class 1",
+   "tags": []
+  },
+  "Class 2": {
+   "zh": "类别 2",
+   "src": "Class 2",
+   "tags": []
+  },
+  "Class 3": {
+   "zh": "类别 3",
+   "src": "Class 3",
+   "tags": []
+  },
+  "Temperature @@T0@@$T$ = @@T1@@1.00@@T2@@@@T3@@": {
+   "zh": "温度 @@T0@@$T$ = @@T1@@1.00@@T2@@@@T3@@",
+   "src": "Temperature <span>$T$ = <span id=\"tempVal\">1.00</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"tempVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Softmax probabilities $p_k$. The outlined bar is the true class; its height is $p_{\\text{true}}$.": {
+   "zh": "Softmax 概率 $p_k$。带轮廓的柱为真实类别；其高度即 $p_{\\text{true}}$。",
+   "src": "Softmax probabilities $p_k$. The outlined bar is the true class; its height is $p_{\\text{true}}$.",
+   "tags": []
+  },
+  "Gradient $p_k - y_k$. Bars above zero get pushed @@T0@@down@@T1@@; the bar below zero (true class) gets pushed @@T2@@up@@T3@@.": {
+   "zh": "梯度 $p_k - y_k$。高于零的柱被@@T0@@下压@@T1@@；低于零的柱（真实类别）被@@T2@@上推@@T3@@。",
+   "src": "Gradient $p_k - y_k$. Bars above zero get pushed <em>down</em>; the bar below zero (true class) gets pushed <em>up</em>.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Cross-entropy loss $\\;\\mathcal{L} = -\\log p_{\\text{true}}$@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@交叉熵损失 $\\;\\mathcal{L} = -\\log p_{\\text{true}}$@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Cross-entropy loss $\\;\\mathcal{L} = -\\log p_{\\text{true}}$</span>\n        <span class=\"stat-value\" id=\"lossVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"lossVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Probability of true class@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@真实类别的概率@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Probability of true class</span>\n        <span class=\"stat-value\" id=\"ptrueVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"ptrueVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Model's top pick@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@模型的首选类别@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Model's top pick</span>\n        <span class=\"stat-value\" id=\"predVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"predVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Gradient norm $\\lVert p-y\\rVert$@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@梯度范数 $\\lVert p-y\\rVert$@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Gradient norm $\\lVert p-y\\rVert$</span>\n        <span class=\"stat-value\" id=\"gnormVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"gnormVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Click through the four presets.@@T1@@ Watch the big loss number.\n      @@T2@@Correct &amp; confident@@T3@@ is nearly zero. @@T4@@Wrong &amp; confident@@T5@@\n      is huge &mdash; being sure and wrong is the single most expensive thing a\n      classifier can do, because $-\\log p_{\\text{true}} \\to \\infty$ as\n      $p_{\\text{true}} \\to 0$. The gradient bar on the true class also grows toward\n      $-1$: the strongest possible push to fix the mistake.": {
+   "zh": "@@T0@@依次点击四个预设。@@T1@@留意那个醒目的损失数值。@@T2@@正确且自信@@T3@@时它接近零。@@T4@@错误且自信@@T5@@时它极为巨大——又确信又出错是分类器所能做的最昂贵的一件事，因为当 $p_{\\text{true}} \\to 0$ 时 $-\\log p_{\\text{true}} \\to \\infty$。真实类别上的梯度柱也会向 $-1$ 增长：这是纠正错误所能施加的最强推力。",
+   "src": "<strong>Click through the four presets.</strong> Watch the big loss number.\n      <em>Correct &amp; confident</em> is nearly zero. <em>Wrong &amp; confident</em>\n      is huge &mdash; being sure and wrong is the single most expensive thing a\n      classifier can do, because $-\\log p_{\\text{true}} \\to \\infty$ as\n      $p_{\\text{true}} \\to 0$. The gradient bar on the true class also grows toward\n      $-1$: the strongest possible push to fix the mistake.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "收获",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Why the gradient is just $p - y$": {
+   "zh": "为何梯度恰好是 $p - y$",
+   "src": "Why the gradient is just $p - y$",
+   "tags": []
+  },
+  "Cross-entropy looks like it should have an ugly derivative &mdash; there is a\n      $\\log$, and a $\\sum$ inside the softmax. But the $\\log$ and the $\\exp$ cancel\n      almost perfectly. For the true class $y$:": {
+   "zh": "交叉熵看上去应当有一个丑陋的导数——其中有一个 $\\log$，而 softmax 内部还有一个 $\\sum$。但 $\\log$ 与 $\\exp$ 几乎完美地相互抵消。对真实类别 $y$：",
+   "src": "Cross-entropy looks like it should have an ugly derivative &mdash; there is a\n      $\\log$, and a $\\sum$ inside the softmax. But the $\\log$ and the $\\exp$ cancel\n      almost perfectly. For the true class $y$:",
+   "tags": []
+  },
+  "For a @@T0@@non-true@@T1@@ class, $y_k = 0$, so the gradient is $+p_k$ &mdash; push that logit @@T2@@down@@T3@@ in proportion to how much probability it wrongly claimed.": {
+   "zh": "对于@@T0@@非真实@@T1@@类别，$y_k = 0$，故梯度为 $+p_k$——按其错误占有的概率比例@@T2@@下压@@T3@@该 logit。",
+   "src": "For a <strong>non-true</strong> class, $y_k = 0$, so the gradient is $+p_k$ &mdash; push that logit <em>down</em> in proportion to how much probability it wrongly claimed.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "For the @@T0@@true@@T1@@ class, $y_k = 1$, so the gradient is $p_{\\text{true}} - 1 \\le 0$ &mdash; push that logit @@T2@@up@@T3@@, hardest when $p_{\\text{true}}$ is small.": {
+   "zh": "对于@@T0@@真实@@T1@@类别，$y_k = 1$，故梯度为 $p_{\\text{true}} - 1 \\le 0$——@@T2@@上推@@T3@@该 logit，且当 $p_{\\text{true}}$ 越小时推力越强。",
+   "src": "For the <strong>true</strong> class, $y_k = 1$, so the gradient is $p_{\\text{true}} - 1 \\le 0$ &mdash; push that logit <em>up</em>, hardest when $p_{\\text{true}}$ is small.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The gradients sum to zero: probability that leaves the wrong classes flows into the right one. Softmax conserves it.": {
+   "zh": "各梯度之和为零：从错误类别流出的概率流入正确类别。Softmax 使其守恒。",
+   "src": "The gradients sum to zero: probability that leaves the wrong classes flows into the right one. Softmax conserves it.",
+   "tags": []
+  },
+  "@@T0@@Practical note.@@T1@@ Because the gradient is $p - y$, frameworks fuse softmax and\n      cross-entropy into a single op (PyTorch's @@T2@@CrossEntropyLoss@@T3@@ takes raw logits, not\n      probabilities). Applying softmax yourself and then a separate cross-entropy double-counts and gives\n      wrong, unstable gradients. Feed logits; let the loss do the softmax.": {
+   "zh": "@@T0@@实用提示。@@T1@@由于梯度为 $p - y$，各框架将 softmax 与交叉熵融合为单个算子（PyTorch 的 @@T2@@CrossEntropyLoss@@T3@@ 接收原始 logit，而非概率）。若你自己先做 softmax 再接一个单独的交叉熵，便会重复计算，产生错误且不稳定的梯度。请直接输入 logit，让损失函数去完成 softmax。",
+   "src": "<strong>Practical note.</strong> Because the gradient is $p - y$, frameworks fuse softmax and\n      cross-entropy into a single op (PyTorch's <code>CrossEntropyLoss</code> takes raw logits, not\n      probabilities). Applying softmax yourself and then a separate cross-entropy double-counts and gives\n      wrong, unstable gradients. Feed logits; let the loss do the softmax.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 1: Why These Losses?": {
+   "zh": "ES 667 深度学习讲解系列之一 &middot; 第 1 讲：为何是这些损失？",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 1: Why These Losses?",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "Softmax 与交叉熵",
+  "tagline": "将 logit 转化为概率，读出损失，观察梯度如何变成 p 减去 y",
+  "summary": "拖动三个 logit，选择真实类别，再转动温度旋钮。观察 softmax 概率、作为一个醒目数值的交叉熵损失 -log(p_true)，以及作为带符号柱状图的反向传播梯度 p - y。四个预设——从自信且正确到自信却错误——使结论一目了然：损失对自信的错误惩罚最重，而纠正它们的梯度恰是预测值减去目标值。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "实时观察 softmax 将三个 logit 映射到概率单纯形上，真实类别高亮显示。",
+   "将交叉熵损失 -log(p_true) 作为一个醒目数值读出，切身感受它随真实类别概率下降而爆炸的速度。",
+   "看清损失对 logit 的梯度恰为 p - y，以带符号的上推 / 下压柱形绘制。",
+   "四个一键预设对比「正确且自信」与「自信却错误」的惨重代价。",
+   "温度旋钮可锐化或平坦化分布，使你能够将本页与蒸馏和校准联系起来。"
+  ],
+  "tags": [
+   "交叉熵",
+   "Softmax",
+   "分类",
+   "梯度",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

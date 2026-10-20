@@ -1,0 +1,245 @@
+{
+ "slug": "padding-stride",
+ "units": {
+  "Padding, Stride &amp; Output Size": {
+   "zh": "填充、步幅与输出尺寸",
+   "src": "Padding, Stride &amp; Output Size",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Two knobs decide how big a convolution's output is. @@T0@@Padding@@T1@@ adds a\n      border of zeros so edge pixels get a fair turn &mdash; and can hold the output\n      size fixed. @@T2@@Stride@@T3@@ makes the kernel jump instead of creep, shrinking\n      the output on purpose. Move the four sliders and one floor formula tells you the\n      output size before the kernel has taken a single step.": {
+   "zh": "有两个旋钮决定卷积输出的尺寸。@@T0@@填充@@T1@@ 添加一圈零作为边界，使边缘像素得到公平的机会 &mdash;&mdash; 并且可以让输出尺寸保持不变。@@T2@@步幅@@T3@@ 让卷积核跳跃而非爬行，从而有意地缩小输出。移动四个滑块，一条取整公式便能在卷积核迈出第一步之前告诉你输出尺寸。",
+   "src": "Two knobs decide how big a convolution's output is. <em>Padding</em> adds a\n      border of zeros so edge pixels get a fair turn &mdash; and can hold the output\n      size fixed. <em>Stride</em> makes the kernel jump instead of creep, shrinking\n      the output on purpose. Move the four sliders and one floor formula tells you the\n      output size before the kernel has taken a single step.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~7 min@@T1@@\n      @@T2@@Deep Learning &middot; CNNs &middot; Convolution Arithmetic@@T3@@": {
+   "zh": "@@T0@@约 7 分钟@@T1@@\n      @@T2@@深度学习 &middot; CNN &middot; 卷积算术@@T3@@",
+   "src": "<span>~7 min</span>\n      <span>Deep Learning &middot; CNNs &middot; Convolution Arithmetic</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "The Lab": {
+   "zh": "实验台",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Four sliders, one output size": {
+   "zh": "四个滑块，一个输出尺寸",
+   "src": "Four sliders, one output size",
+   "tags": []
+  },
+  "The grey grid is a $W\\times W$ input. Padding wraps it in a border of dashed\n      zero cells. A $K\\times K$ kernel then slides across the padded grid with stride\n      $S$, landing once per output cell. Step through the landings and watch the output\n      grid on the right grow to exactly the size the formula predicts.": {
+   "zh": "灰色网格是一个 $W\\times W$ 的输入。填充将其包裹在一圈虚线零单元组成的边界中。随后一个 $K\\times K$ 的卷积核以步幅 $S$ 在填充后的网格上滑动，每落一次对应一个输出单元。逐步走过每次落位，观察右侧的输出网格恰好增长到公式所预测的尺寸。",
+   "src": "The grey grid is a $W\\times W$ input. Padding wraps it in a border of dashed\n      zero cells. A $K\\times K$ kernel then slides across the padded grid with stride\n      $S$, landing once per output cell. Step through the landings and watch the output\n      grid on the right grow to exactly the size the formula predicts.",
+   "tags": []
+  },
+  "Input $W$ @@T0@@= @@T1@@6@@T2@@@@T3@@": {
+   "zh": "输入 $W$ @@T0@@= @@T1@@6@@T2@@@@T3@@",
+   "src": "Input $W$ <span>= <span id=\"wVal\">6</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"wVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Kernel $K$ @@T0@@= @@T1@@3@@T2@@@@T3@@": {
+   "zh": "卷积核 $K$ @@T0@@= @@T1@@3@@T2@@@@T3@@",
+   "src": "Kernel $K$ <span>= <span id=\"kVal\">3</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"kVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Padding $P$ @@T0@@= @@T1@@0@@T2@@@@T3@@": {
+   "zh": "填充 $P$ @@T0@@= @@T1@@0@@T2@@@@T3@@",
+   "src": "Padding $P$ <span>= <span id=\"pVal\">0</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"pVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Stride $S$ @@T0@@= @@T1@@1@@T2@@@@T3@@": {
+   "zh": "步幅 $S$ @@T0@@= @@T1@@1@@T2@@@@T3@@",
+   "src": "Stride $S$ <span>= <span id=\"sVal\">1</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"sVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Step &rarr;": {
+   "zh": "步进 &rarr;",
+   "src": "Step &rarr;",
+   "tags": []
+  },
+  "Play": {
+   "zh": "播放",
+   "src": "Play",
+   "tags": []
+  },
+  "Reset": {
+   "zh": "重置",
+   "src": "Reset",
+   "tags": []
+  },
+  "Make it \"same\"": {
+   "zh": "设为「same」",
+   "src": "Make it \"same\"",
+   "tags": []
+  },
+  "Make it \"valid\"": {
+   "zh": "设为「valid」",
+   "src": "Make it \"valid\"",
+   "tags": []
+  },
+  "Left: the input (solid) wrapped in a padded border of zeros (dashed). The kernel outline is the current window. Right: the output grid, filling in as the kernel lands.": {
+   "zh": "左侧：输入（实线）被一圈填充的零（虚线）包裹。卷积核轮廓即当前窗口。右侧：输出网格，随卷积核落位而逐渐填入。",
+   "src": "Left: the input (solid) wrapped in a padded border of zeros (dashed). The kernel outline is the current window. Right: the output grid, filling in as the kernel lands.",
+   "tags": []
+  },
+  "@@T0@@Output size@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@输出尺寸@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Output size</span>\n        <span class=\"stat-value\" id=\"outSizeVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"outSizeVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Padded input@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@填充后的输入@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Padded input</span>\n        <span class=\"stat-value\" id=\"paddedVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"paddedVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Padding regime@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@填充模式@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Padding regime</span>\n        <span class=\"stat-value\" id=\"regimeVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"regimeVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Try the two buttons.@@T1@@ \"Make it valid\" sets $P=0$: the output is\n      strictly smaller than the input because the kernel can never hang off the edge.\n      \"Make it same\" sets $P=\\tfrac{K-1}{2}$ with $S=1$: the padded border is exactly\n      wide enough that the output matches the input. Then bump the stride to $2$ and\n      watch the output halve, padding or not.": {
+   "zh": "@@T0@@试试这两个按钮。@@T1@@ 「设为 valid」令 $P=0$：由于卷积核绝不能悬出边界，输出严格小于输入。「设为 same」在 $S=1$ 时令 $P=\\tfrac{K-1}{2}$：这一填充边界恰好足够宽，使输出与输入相同。随后把步幅提到 $2$，无论是否填充，输出都会减半。",
+   "src": "<strong>Try the two buttons.</strong> \"Make it valid\" sets $P=0$: the output is\n      strictly smaller than the input because the kernel can never hang off the edge.\n      \"Make it same\" sets $P=\\tfrac{K-1}{2}$ with $S=1$: the padded border is exactly\n      wide enough that the output matches the input. Then bump the stride to $2$ and\n      watch the output halve, padding or not.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "收获",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Reading the formula": {
+   "zh": "解读这条公式",
+   "src": "Reading the formula",
+   "tags": []
+  },
+  "@@T0@@$W + 2P$@@T1@@ is the padded width &mdash; padding adds $P$ cells on @@T2@@each@@T3@@ side, hence the factor of two.": {
+   "zh": "@@T0@@$W + 2P$@@T1@@ 是填充后的宽度 &mdash;&mdash; 填充在 @@T2@@每@@T3@@ 一侧各加入 $P$ 个单元，因此有系数 2。",
+   "src": "<strong>$W + 2P$</strong> is the padded width &mdash; padding adds $P$ cells on <em>each</em> side, hence the factor of two.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@$-K$@@T1@@ accounts for the kernel needing $K$ cells under it before the far edge falls off the grid; $W+2P-K$ is the last valid starting column.": {
+   "zh": "@@T0@@$-K$@@T1@@ 源于卷积核在其远端边缘落到网格之外前需要占据 $K$ 个单元；$W+2P-K$ 是最后一个合法的起始列。",
+   "src": "<strong>$-K$</strong> accounts for the kernel needing $K$ cells under it before the far edge falls off the grid; $W+2P-K$ is the last valid starting column.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@$\\div S$ then $+1$@@T1@@ counts the landings: start at $0$, jump by $S$, and add one for the starting position itself.": {
+   "zh": "@@T0@@$\\div S$ 然后 $+1$@@T1@@ 统计落位次数：从 $0$ 开始，每次跳 $S$，再为起始位置本身加上一。",
+   "src": "<strong>$\\div S$ then $+1$</strong> counts the landings: start at $0$, jump by $S$, and add one for the starting position itself.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@The floor@@T1@@ means a stride that does not divide the space evenly simply drops the leftover cells at the edge &mdash; the kernel never half-hangs off.": {
+   "zh": "@@T0@@取整（floor）@@T1@@ 意味着不能整除空间的步幅只会丢弃边缘处剩余的单元 &mdash;&mdash; 卷积核绝不会悬空一半。",
+   "src": "<strong>The floor</strong> means a stride that does not divide the space evenly simply drops the leftover cells at the edge &mdash; the kernel never half-hangs off.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@\"Same\" padding, precisely.@@T1@@ With stride $1$, output equals input when\n      $2P = K-1$, i.e. $P=\\tfrac{K-1}{2}$. That is why odd kernel sizes ($3,5,7$) are the norm:\n      only then is $\\tfrac{K-1}{2}$ a whole number and the padding is symmetric. This is the\n      trick that lets deep CNNs stack dozens of $3\\times3$ layers without the feature map\n      collapsing to nothing.": {
+   "zh": "@@T0@@精确地说，「same」填充。@@T1@@ 在步幅为 $1$ 时，当 $2P = K-1$，即 $P=\\tfrac{K-1}{2}$ 时，输出等于输入。这正是奇数卷积核尺寸（$3,5,7$）成为惯例的原因：只有此时 $\\tfrac{K-1}{2}$ 才是整数，填充也才是对称的。正是这一技巧让深度 CNN 能够堆叠数十个 $3\\times3$ 层而不使特征图坍缩殆尽。",
+   "src": "<strong>\"Same\" padding, precisely.</strong> With stride $1$, output equals input when\n      $2P = K-1$, i.e. $P=\\tfrac{K-1}{2}$. That is why odd kernel sizes ($3,5,7$) are the norm:\n      only then is $\\tfrac{K-1}{2}$ a whole number and the padding is symmetric. This is the\n      trick that lets deep CNNs stack dozens of $3\\times3$ layers without the feature map\n      collapsing to nothing.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 8: Convolutional Neural Networks": {
+   "zh": "ES 667 深度学习讲解系列的一部分 &middot; 第 8 讲：卷积神经网络",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 8: Convolutional Neural Networks",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "填充、步幅与输出尺寸",
+  "tagline": "移动四个滑块，看一条取整公式如何精确预测卷积的输出尺寸",
+  "summary": "一个输入网格被一圈虚线填充零所包裹，一个卷积核以选定的步幅在其上滑动。输入尺寸 W、卷积核 K、填充 P 与步幅 S 的滑块驱动这段动画，输出网格每落位一次就增长一格，直到达到 floor((W+2P-K)/S)+1 所预测的尺寸。一键按钮可切换到 same 填充（输出等于输入）与 valid 填充（P=0），并有一个实时标签标明当前模式，让这套几何不再是需要死记的东西。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "观察填充的零单元被绘成围绕真实输入的一圈独特的虚线边界。",
+   "步进或播放卷积核扫过每一个合法位置，观察输出网格逐步填入。",
+   "当你移动四个滑块中的任意一个时，直接从 floor((W+2P-K)/S)+1 读出输出尺寸。",
+   "一键将填充切换为 same（输出等于输入）或 valid（P=0），并配有实时的模式标签。",
+   "把步幅提到 2，观察输出减半，让「用步幅做下采样」变得具体。"
+  ],
+  "tags": [
+   "卷积",
+   "填充",
+   "步幅",
+   "CNN",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

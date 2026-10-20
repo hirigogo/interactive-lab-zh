@@ -1,0 +1,554 @@
+{
+ "slug": "bayes-opt",
+ "units": {
+  "Bayesian Optimization, Step by Step": {
+   "zh": "贝叶斯优化，循序渐进",
+   "src": "Bayesian Optimization, Step by Step",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "A live 1-D Gaussian-process surrogate plus an acquisition\n          function decides where to evaluate a hidden expensive\n          function next. Click to acquire, watch the band shrink, and\n          race four acquisition strategies on a convergence plot.": {
+   "zh": "一个实时的 一维高斯过程代理模型加上一个采集\n          函数，共同决定接下来在何处评估一个隐藏的昂贵\n          函数。点击以采集，观察置信带收窄，并在收敛图上\n          让四种采集策略同场竞速。",
+   "src": "A live 1-D Gaussian-process surrogate plus an acquisition\n          function decides where to evaluate a hidden expensive\n          function next. Click to acquire, watch the band shrink, and\n          race four acquisition strategies on a convergence plot.",
+   "tags": []
+  },
+  "@@T0@@~20 min@@T1@@\n          @@T2@@Probability &middot; Optimisation &middot; Experimental Design@@T3@@": {
+   "zh": "@@T0@@约 20 分钟@@T1@@\n          @@T2@@概率 &middot; 优化 &middot; 实验设计@@T3@@",
+   "src": "<span>~20 min</span>\n          <span>Probability &middot; Optimisation &middot; Experimental Design</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "The expensive-function problem": {
+   "zh": "昂贵函数问题",
+   "src": "The expensive-function problem",
+   "tags": []
+  },
+  "Tuning hyperparameters of a model that takes 8 hours to\n          train. Picking the next concentration in a wet-lab\n          experiment. Choosing where to deploy the next air-quality\n          sensor. The function $f$ you're optimising is expensive,\n          black-box, and possibly noisy. Random search burns a lot of\n          calls; grid search burns even more. You want every\n          evaluation to @@T0@@tell you the most@@T1@@.": {
+   "zh": "为一个需要 8 小时训练的模型调超参数。在湿实验室\n          实验中选取下一个浓度。决定下一个空气质量\n          传感器部署在何处。你正在优化的函数 $f$ 是昂贵的、\n          黑箱的，而且可能带噪声。随机搜索会消耗大量\n          调用；网格搜索消耗更多。你希望每一次\n          评估都能@@T0@@告诉你最多信息@@T1@@。",
+   "src": "Tuning hyperparameters of a model that takes 8 hours to\n          train. Picking the next concentration in a wet-lab\n          experiment. Choosing where to deploy the next air-quality\n          sensor. The function $f$ you're optimising is expensive,\n          black-box, and possibly noisy. Random search burns a lot of\n          calls; grid search burns even more. You want every\n          evaluation to <em>tell you the most</em>.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@The slogan.@@T1@@\n          Fit a cheap surrogate to your observations; use it to\n          predict @@T2@@with uncertainty@@T3@@; query the next point\n          where the predicted-improvement is largest. Repeat.": {
+   "zh": "@@T0@@一句口号。@@T1@@\n          用一个廉价的代理模型拟合你的观测；用它\n          @@T2@@带不确定性@@T3@@地进行预测；在预测改进量\n          最大之处查询下一个点。如此重复。",
+   "src": "<strong>The slogan.</strong>\n          Fit a cheap surrogate to your observations; use it to\n          predict <em>with uncertainty</em>; query the next point\n          where the predicted-improvement is largest. Repeat.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "The two ingredients": {
+   "zh": "两种基本成分",
+   "src": "The two ingredients",
+   "tags": []
+  },
+  "@@T0@@Surrogate.@@T1@@ A Gaussian process gives, at\n            every point $x$, a posterior mean $\\mu(x)$ and standard\n            deviation $\\sigma(x)$. Where $\\sigma$ is large, we don't\n            yet know $f$. Where $\\sigma$ is small, the surrogate is\n            confident. This is the same posterior story as the\n            @@T2@@\n            Bayesian linear regression in the Bayes posterior\n            playground@@T3@@, with an RBF kernel instead of an explicit\n            feature basis.": {
+   "zh": "@@T0@@代理模型。@@T1@@ 高斯过程在\n            每个点 $x$ 处给出后验均值 $\\mu(x)$ 与标准\n            差 $\\sigma(x)$。在 $\\sigma$ 大之处，我们\n            尚不了解 $f$。在 $\\sigma$ 小之处，代理模型\n            较为自信。这与\n            @@T2@@\n            贝叶斯后验游乐场中的贝叶斯线性回归@@T3@@是同样的后验叙事，\n            只是用 RBF 核取代了显式的\n            特征基。",
+   "src": "<strong>Surrogate.</strong> A Gaussian process gives, at\n            every point $x$, a posterior mean $\\mu(x)$ and standard\n            deviation $\\sigma(x)$. Where $\\sigma$ is large, we don't\n            yet know $f$. Where $\\sigma$ is small, the surrogate is\n            confident. This is the same posterior story as the\n            <a href=\"../bayesian-posterior/index.html#step-6\">\n            Bayesian linear regression in the Bayes posterior\n            playground</a>, with an RBF kernel instead of an explicit\n            feature basis.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<a href=\"../bayesian-posterior/index.html#step-6\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@Acquisition function.@@T1@@ A scalar score\n            $a(x)$ on top of $(\\mu, \\sigma)$ that says \"how worth\n            evaluating is this $x$ next?\". Different acquisition\n            functions trade exploration vs exploitation differently.": {
+   "zh": "@@T0@@采集函数。@@T1@@ 一个建立在\n            $(\\mu, \\sigma)$ 之上的标量得分 $a(x)$，它说明「接下来\n            评估这个 $x$ 有多值得？」。不同的采集\n            函数在探索与利用之间有着不同的权衡。",
+   "src": "<strong>Acquisition function.</strong> A scalar score\n            $a(x)$ on top of $(\\mu, \\sigma)$ that says \"how worth\n            evaluating is this $x$ next?\". Different acquisition\n            functions trade exploration vs exploitation differently.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Where $\\Phi$ and $\\phi$ are the standard normal CDF and PDF,\n          and $z = (\\mu(x) - f^* - \\xi) / \\sigma(x)$ for the current\n          best $f^*$. UCB picks the upper-confidence bound; PI picks\n          the probability of any improvement; EI picks the\n          expected improvement (often the default).": {
+   "zh": "其中 $\\Phi$ 与 $\\phi$ 分别是标准正态分布的累积分布函数与概率密度函数，\n          对当前最优的 $f^*$，$z = (\\mu(x) - f^* - \\xi) / \\sigma(x)$。\n          UCB 取置信上界；PI 取\n          出现任何改进的概率；EI 取\n          期望改进（通常是默认选择）。",
+   "src": "Where $\\Phi$ and $\\phi$ are the standard normal CDF and PDF,\n          and $z = (\\mu(x) - f^* - \\xi) / \\sigma(x)$ for the current\n          best $f^*$. UCB picks the upper-confidence bound; PI picks\n          the probability of any improvement; EI picks the\n          expected improvement (often the default).",
+   "tags": []
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Run it": {
+   "zh": "运行它",
+   "src": "Run it",
+   "tags": []
+  },
+  "A hidden function (you'll see the true curve only after\n          acquiring points). Press @@T0@@Acquire next@@T1@@ to evaluate\n          $f$ at $\\arg\\max a(x)$. The GP mean and 2σ band update;\n          the acquisition function below reshapes; the convergence\n          plot keeps score across all four acquisition strategies on\n          the same hidden function.": {
+   "zh": "一个隐藏函数（只有在采集了若干点之后你才会看到真实曲线）。按\n          @@T0@@采集下一个@@T1@@ 以在 $\\arg\\max a(x)$ 处评估\n          $f$。高斯过程的均值与 2σ 置信带随之更新；\n          下方的采集函数重新塑形；收敛图\n          在同一个隐藏函数上为全部四种采集策略记录得分。",
+   "src": "A hidden function (you'll see the true curve only after\n          acquiring points). Press <em>Acquire next</em> to evaluate\n          $f$ at $\\arg\\max a(x)$. The GP mean and 2σ band update;\n          the acquisition function below reshapes; the convergence\n          plot keeps score across all four acquisition strategies on\n          the same hidden function.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Acquire next": {
+   "zh": "采集下一个",
+   "src": "Acquire next",
+   "tags": []
+  },
+  "Acquire 5": {
+   "zh": "采集 5 个",
+   "src": "Acquire 5",
+   "tags": []
+  },
+  "Reset": {
+   "zh": "重置",
+   "src": "Reset",
+   "tags": []
+  },
+  "active acquisition": {
+   "zh": "当前采集函数",
+   "src": "active acquisition",
+   "tags": []
+  },
+  "EI (expected improvement)": {
+   "zh": "EI（期望改进）",
+   "src": "EI (expected improvement)",
+   "tags": []
+  },
+  "UCB (upper-confidence bound)": {
+   "zh": "UCB（置信上界）",
+   "src": "UCB (upper-confidence bound)",
+   "tags": []
+  },
+  "PI (probability of improvement)": {
+   "zh": "PI（改进概率）",
+   "src": "PI (probability of improvement)",
+   "tags": []
+  },
+  "Thompson sampling": {
+   "zh": "Thompson 采样",
+   "src": "Thompson sampling",
+   "tags": []
+  },
+  "hidden function": {
+   "zh": "隐藏函数",
+   "src": "hidden function",
+   "tags": []
+  },
+  "smooth (sine + bump)": {
+   "zh": "光滑（正弦 + 凸起）",
+   "src": "smooth (sine + bump)",
+   "tags": []
+  },
+  "bimodal (two peaks)": {
+   "zh": "双峰（两个峰）",
+   "src": "bimodal (two peaks)",
+   "tags": []
+  },
+  "non-smooth (sawtooth)": {
+   "zh": "非光滑（锯齿）",
+   "src": "non-smooth (sawtooth)",
+   "tags": []
+  },
+  "@@T0@@queries = @@T1@@3@@T2@@@@T3@@\n          @@T4@@best-so-far = @@T5@@—@@T6@@@@T7@@": {
+   "zh": "@@T0@@查询次数 = @@T1@@3@@T2@@@@T3@@\n          @@T4@@目前最优 = @@T5@@—@@T6@@@@T7@@",
+   "src": "<span class=\"train-stat\">queries = <strong id=\"bo-n\">3</strong></span>\n          <span class=\"train-stat\">best-so-far = <strong id=\"bo-best\">—</strong></span>",
+   "tags": [
+    "<span class=\"train-stat\">",
+    "<strong id=\"bo-n\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"bo-best\">",
+    "</strong>",
+    "</span>"
+   ]
+  },
+  "GP surrogate (μ ± 2σ) over hidden f": {
+   "zh": "隐藏函数 f 上的高斯过程代理（μ ± 2σ）",
+   "src": "GP surrogate (μ ± 2σ) over hidden f",
+   "tags": []
+  },
+  "Acquisition function a(x)": {
+   "zh": "采集函数 a(x)",
+   "src": "Acquisition function a(x)",
+   "tags": []
+  },
+  "Best-so-far convergence (4 strategies)": {
+   "zh": "目前最优的收敛（4 种策略）",
+   "src": "Best-so-far convergence (4 strategies)",
+   "tags": []
+  },
+  "@@T0@@What to watch for.@@T1@@\n          Early on, EI and UCB explore widely (the band is fat\n          everywhere). After ~5 acquisitions they zoom into the best\n          neighbourhood. PI gets stuck more often (it finds a\n          near-optimum and stops exploring). Thompson sampling is a\n          surprisingly strong baseline that's almost trivial to\n          implement: draw a sample from the posterior and pick its\n          arg-max.": {
+   "zh": "@@T0@@应当留意什么。@@T1@@\n          起初，EI 与 UCB 广泛探索（置信带处处都很宽）。\n          约 5 次采集之后，它们便聚焦到最优\n          邻域。PI 更常陷入停滞（它找到\n          近似最优便停止探索）。Thompson 采样是一个\n          出奇强大的基线，而且实现起来几乎不费吹灰之力：从后验中\n          抽取一个样本并取它的 arg-max。",
+   "src": "<strong>What to watch for.</strong>\n          Early on, EI and UCB explore widely (the band is fat\n          everywhere). After ~5 acquisitions they zoom into the best\n          neighbourhood. PI gets stuck more often (it finds a\n          near-optimum and stops exploring). Thompson sampling is a\n          surprisingly strong baseline that's almost trivial to\n          implement: draw a sample from the posterior and pick its\n          arg-max.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Why Bayesian optimisation, not grid search": {
+   "zh": "为何用贝叶斯优化而非网格搜索",
+   "src": "Why Bayesian optimisation, not grid search",
+   "tags": []
+  },
+  "@@T0@@Sample efficiency.@@T1@@ BO finds the optimum\n            of typical hyperparameter tasks in 20-50 evaluations\n            where grid search needs 200-1000. The breakeven point in\n            cost is around evaluation cost &gt; 30 seconds.": {
+   "zh": "@@T0@@样本效率。@@T1@@ 对典型的超参数任务，BO 在\n            20-50 次评估内即可找到最优解，\n            而网格搜索需要 200-1000 次。成本上的\n            平衡点大约在单次评估成本 &gt; 30 秒之处。",
+   "src": "<strong>Sample efficiency.</strong> BO finds the optimum\n            of typical hyperparameter tasks in 20-50 evaluations\n            where grid search needs 200-1000. The breakeven point in\n            cost is around evaluation cost &gt; 30 seconds.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Honest uncertainty.@@T1@@ You get not just\n            the optimum, but a posterior over @@T2@@all@@T3@@ values of\n            $f$. Useful when you want to know \"would 5% better at\n            another point also be acceptable?\".": {
+   "zh": "@@T0@@诚实的不确定性。@@T1@@ 你不仅得到\n            最优解，还得到 $f$ @@T2@@全部@@T3@@ 取值的后验。\n            当你想知道「在另一点上改进 5% 是否也可接受？」时，\n            这一点很有用。",
+   "src": "<strong>Honest uncertainty.</strong> You get not just\n            the optimum, but a posterior over <em>all</em> values of\n            $f$. Useful when you want to know \"would 5% better at\n            another point also be acceptable?\".",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Constraints come for free.@@T1@@ If\n            evaluations have a constraint that some are infeasible,\n            you can use a separate GP to model the constraint\n            probability and multiply the acquisition by it.": {
+   "zh": "@@T0@@约束可以顺带处理。@@T1@@ 若\n            评估存在某些不可行点的约束，\n            你可以用另一个高斯过程来建模约束\n            概率，并将采集函数乘以它。",
+   "src": "<strong>Constraints come for free.</strong> If\n            evaluations have a constraint that some are infeasible,\n            you can use a separate GP to model the constraint\n            probability and multiply the acquisition by it.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Multi-fidelity extensions.@@T1@@ When you\n            have cheap-but-noisy and expensive-but-accurate\n            evaluations (e.g., short vs full training run), BO can\n            mix them automatically.": {
+   "zh": "@@T0@@多保真度扩展。@@T1@@ 当你\n            既有廉价但带噪的评估，又有昂贵但准确的\n            评估时（例如短时训练与完整训练），BO 可以\n            自动混合二者。",
+   "src": "<strong>Multi-fidelity extensions.</strong> When you\n            have cheap-but-noisy and expensive-but-accurate\n            evaluations (e.g., short vs full training run), BO can\n            mix them automatically.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "The traps in real BO": {
+   "zh": "真实 BO 中的陷阱",
+   "src": "The traps in real BO",
+   "tags": []
+  },
+  "@@T0@@Kernel choice matters.@@T1@@ RBF is smooth;\n            Matérn is rougher; periodic captures cycles. Pick a\n            kernel that matches your function's actual structure\n            or BO will burn evaluations on artefacts of the wrong\n            kernel.": {
+   "zh": "@@T0@@核函数的选择很重要。@@T1@@ RBF 是光滑的；\n            Matérn 更粗糙；周期核能刻画循环。选择一个\n            与你函数实际结构相符的\n            核，否则 BO 会把评估浪费在错误\n            核所引入的假象上。",
+   "src": "<strong>Kernel choice matters.</strong> RBF is smooth;\n            Matérn is rougher; periodic captures cycles. Pick a\n            kernel that matches your function's actual structure\n            or BO will burn evaluations on artefacts of the wrong\n            kernel.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@High dimensions hurt.@@T1@@ Pure GP-BO\n            becomes unreliable above ~20 dimensions. TuRBO,\n            BoTorch, and embedding-based BO push the ceiling, but\n            it's still hard.": {
+   "zh": "@@T0@@高维会造成困难。@@T1@@ 纯高斯过程 BO\n            在约 20 维以上便变得不可靠。TuRBO、\n            BoTorch 以及基于嵌入的 BO 提高了这一上限，但\n            仍然困难。",
+   "src": "<strong>High dimensions hurt.</strong> Pure GP-BO\n            becomes unreliable above ~20 dimensions. TuRBO,\n            BoTorch, and embedding-based BO push the ceiling, but\n            it's still hard.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Categorical hyperparameters.@@T1@@ Need a\n            kernel over categorical / integer dimensions; SMAC and\n            tree-structured Parzen estimators handle this better\n            than vanilla GPs.": {
+   "zh": "@@T0@@类别型超参数。@@T1@@ 需要\n            一个定义在类别 / 整数维度上的核；SMAC 与\n            树结构 Parzen 估计器在这方面比朴素高斯过程\n            处理得更好。",
+   "src": "<strong>Categorical hyperparameters.</strong> Need a\n            kernel over categorical / integer dimensions; SMAC and\n            tree-structured Parzen estimators handle this better\n            than vanilla GPs.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Noise modelling.@@T1@@ Stochastic objectives\n            (training loss with random init) need a noise term in\n            the GP. Otherwise the surrogate over-fits to a noisy\n            point and BO chases it.": {
+   "zh": "@@T0@@噪声建模。@@T1@@ 随机目标\n            （带随机初始化的训练损失）需要在高斯过程中\n            加入噪声项。否则代理模型会过拟合到一个带噪\n            点，而 BO 会一路追逐它。",
+   "src": "<strong>Noise modelling.</strong> Stochastic objectives\n            (training loss with random init) need a noise term in\n            the GP. Otherwise the surrogate over-fits to a noisy\n            point and BO chases it.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Acquisition-function maximisation.@@T1@@\n            Inside BO you maximise $a(x)$. If $a$ is non-convex\n            (it usually is), use multi-start optimisation; otherwise\n            you'll land in a local optimum of the acquisition.": {
+   "zh": "@@T0@@采集函数的最大化。@@T1@@\n            在 BO 内部你要最大化 $a(x)$。若 $a$ 非凸\n            （通常如此），应使用多起点优化；否则\n            你会落入采集函数的一个局部最优。",
+   "src": "<strong>Acquisition-function maximisation.</strong>\n            Inside BO you maximise $a(x)$. If $a$ is non-convex\n            (it usually is), use multi-start optimisation; otherwise\n            you'll land in a local optimum of the acquisition.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Where Bayesian optimisation is the right tool": {
+   "zh": "贝叶斯优化适得其所的场合",
+   "src": "Where Bayesian optimisation is the right tool",
+   "tags": []
+  },
+  "@@T0@@Hyperparameter tuning of expensive models.@@T1@@\n            Anything that takes &gt; 30 minutes to train per config.\n            Use BoTorch / Ax / Optuna's TPE.": {
+   "zh": "@@T0@@昂贵模型的超参数调优。@@T1@@\n            任何每套配置训练耗时 &gt; 30 分钟的情形。\n            使用 BoTorch / Ax / Optuna 的 TPE。",
+   "src": "<strong>Hyperparameter tuning of expensive models.</strong>\n            Anything that takes &gt; 30 minutes to train per config.\n            Use BoTorch / Ax / Optuna's TPE.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Sensor / experiment placement under uncertainty.@@T1@@\n            Maximise expected reduction in posterior variance over a\n            field model.": {
+   "zh": "@@T0@@不确定性下的传感器 / 实验布点。@@T1@@\n            在一个场模型上最大化后验方差的\n            期望缩减量。",
+   "src": "<strong>Sensor / experiment placement under uncertainty.</strong>\n            Maximise expected reduction in posterior variance over a\n            field model.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Wet-lab / hardware experimental design.@@T1@@\n            Each experiment is a real-time evaluation. BO chooses\n            the next concentration / temperature / dose.": {
+   "zh": "@@T0@@湿实验室 / 硬件实验设计。@@T1@@\n            每个实验都是一次实时评估。BO 选择\n            下一个浓度 / 温度 / 剂量。",
+   "src": "<strong>Wet-lab / hardware experimental design.</strong>\n            Each experiment is a real-time evaluation. BO chooses\n            the next concentration / temperature / dose.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Molecule and materials discovery.@@T1@@ BO over a learned latent space of chemistry / crystals. The 2024 frontier — BOLT, ChemBO, AlphaFold-Design pipelines all use a BO loop on top of a learned surrogate.": {
+   "zh": "@@T0@@分子与材料发现。@@T1@@ 在化学 / 晶体的学习潜空间上做 BO。这是 2024 年的前沿&mdash;BOLT、ChemBO、AlphaFold-Design 等流程都在一个学习到的代理模型之上使用 BO 循环。",
+   "src": "<strong>Molecule and materials discovery.</strong> BO over a learned latent space of chemistry / crystals. The 2024 frontier — BOLT, ChemBO, AlphaFold-Design pipelines all use a BO loop on top of a learned surrogate.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Active learning on a budget.@@T1@@ Pick the\n            next batch of points that maximises expected information\n            gain &mdash; the BO-active-learning hybrid called BALD or\n            BOSS.": {
+   "zh": "@@T0@@有限预算下的主动学习。@@T1@@ 选取\n            下一批最大化期望信息增益的点\n            &mdash;即名为 BALD 或 BOSS 的 BO 与主动学习混合方法。",
+   "src": "<strong>Active learning on a budget.</strong> Pick the\n            next batch of points that maximises expected information\n            gain &mdash; the BO-active-learning hybrid called BALD or\n            BOSS.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          Bayesian optimisation is the go-to whenever a single\n          evaluation is expensive enough to make you think twice. It\n          asks a simple question every step &mdash; \"what's the most\n          informative thing I could try next?\" &mdash; and answers it\n          using the same posterior machinery from the Bayesian\n          playground article.": {
+   "zh": "@@T0@@最终要点。@@T1@@\n          只要单次评估昂贵到让你三思，贝叶斯优化便是首选。\n          它每一步都问一个简单的问题 &mdash;「我接下来能尝试的\n          最有信息量的选项是什么？」&mdash; 并用\n          贝叶斯游乐场那篇文章中相同的后验工具来回答它。",
+   "src": "<strong>Final takeaway.</strong>\n          Bayesian optimisation is the go-to whenever a single\n          evaluation is expensive enough to make you think twice. It\n          asks a simple question every step &mdash; \"what's the most\n          informative thing I could try next?\" &mdash; and answers it\n          using the same posterior machinery from the Bayesian\n          playground article.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Acquisition function deep dive": {
+   "zh": "采集函数深入剖析",
+   "src": "Acquisition function deep dive",
+   "tags": []
+  },
+  "The four most-used acquisitions, with their closed forms and trade-offs:": {
+   "zh": "四种最常用的采集函数，及其闭式解与权衡：",
+   "src": "The four most-used acquisitions, with their closed forms and trade-offs:",
+   "tags": []
+  },
+  "@@T0@@Expected Improvement (EI).@@T1@@ Closed-form (above), no hyperparameters, balanced exploration. The default when the surrogate is a GP; greedy-exploit early in the run, more exploratory once the best point has plateaued.": {
+   "zh": "@@T0@@期望改进（EI）。@@T1@@ 有闭式解（见上），无超参数，探索较为均衡。当代理模型是高斯过程时为默认选择；在运行早期偏向利用，一旦最优点进入平台期便更具探索性。",
+   "src": "<strong>Expected Improvement (EI).</strong> Closed-form (above), no hyperparameters, balanced exploration. The default when the surrogate is a GP; greedy-exploit early in the run, more exploratory once the best point has plateaued.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Upper Confidence Bound (UCB).@@T1@@ $\\mu(x) + \\beta \\sigma(x)$. One knob ($\\beta$) controls exploitation vs exploration. Provably has $O(\\sqrt{T \\gamma_T})$ regret (Srinivas et&nbsp;al., 2010). Use when you want deterministic, knob-tunable behaviour.": {
+   "zh": "@@T0@@置信上界（UCB）。@@T1@@ $\\mu(x) + \\beta \\sigma(x)$。一个旋钮（$\\beta$）控制利用与探索的权衡。可证明其遗憾上界为 $O(\\sqrt{T \\gamma_T})$（Srinivas 等人，2010）。当你需要确定性、可通过旋钮调节的行为时使用它。",
+   "src": "<strong>Upper Confidence Bound (UCB).</strong> $\\mu(x) + \\beta \\sigma(x)$. One knob ($\\beta$) controls exploitation vs exploration. Provably has $O(\\sqrt{T \\gamma_T})$ regret (Srinivas et&nbsp;al., 2010). Use when you want deterministic, knob-tunable behaviour.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Probability of Improvement (PI).@@T1@@ $\\Pr(f(x) &gt; f^* + \\xi)$. Easy to compute but greedy; tends to under-explore. Mostly historical interest.": {
+   "zh": "@@T0@@改进概率（PI）。@@T1@@ $\\Pr(f(x) &gt; f^* + \\xi)$。易于计算但贪心；往往探索不足。多半只有历史意义。",
+   "src": "<strong>Probability of Improvement (PI).</strong> $\\Pr(f(x) &gt; f^* + \\xi)$. Easy to compute but greedy; tends to under-explore. Mostly historical interest.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Thompson Sampling.@@T1@@ Draw $f \\sim p(f|D)$ once, optimise it, evaluate. Naturally parallelisable (each parallel worker draws its own sample). Strong in batched / asynchronous settings.": {
+   "zh": "@@T0@@Thompson 采样。@@T1@@ 抽取一次 $f \\sim p(f|D)$，对它做优化，然后评估。天然可并行（每个并行工作进程各自抽取样本）。在批量 / 异步场景中表现强劲。",
+   "src": "<strong>Thompson Sampling.</strong> Draw $f \\sim p(f|D)$ once, optimise it, evaluate. Naturally parallelisable (each parallel worker draws its own sample). Strong in batched / asynchronous settings.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Knowledge Gradient.@@T1@@ Expected one-step lookahead value of the posterior. Expensive but optimal for the one-step Bayesian objective; the modern frontier in BoTorch.": {
+   "zh": "@@T0@@知识梯度。@@T1@@ 后验的一步前瞻期望价值。代价高昂，但对一步贝叶斯目标是最优的；这是 BoTorch 中的现代前沿。",
+   "src": "<strong>Knowledge Gradient.</strong> Expected one-step lookahead value of the posterior. Expensive but optimal for the one-step Bayesian objective; the modern frontier in BoTorch.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 7": {
+   "zh": "第 7 步",
+   "src": "Step 7",
+   "tags": []
+  },
+  "Batch and async BO": {
+   "zh": "批量与异步 BO",
+   "src": "Batch and async BO",
+   "tags": []
+  },
+  "Real BO loops rarely evaluate one point at a time — you have $B$ parallel workers (GPUs, lab benches, simulator instances). Batch BO picks $B$ points per round.": {
+   "zh": "真实的 BO 循环很少一次只评估一个点&mdash;你有 $B$ 个并行工作进程（GPU、实验台、模拟器实例）。批量 BO 每轮选取 $B$ 个点。",
+   "src": "Real BO loops rarely evaluate one point at a time — you have $B$ parallel workers (GPUs, lab benches, simulator instances). Batch BO picks $B$ points per round.",
+   "tags": []
+  },
+  "@@T0@@q-Expected Improvement (qEI).@@T1@@ Joint EI over $B$ points; intractable in closed form; computed by Monte Carlo via sampling from the GP posterior (Wilson et&nbsp;al., 2018). Default in BoTorch.": {
+   "zh": "@@T0@@q-期望改进（qEI）。@@T1@@ 在 $B$ 个点上的联合 EI；闭式解不可行；通过从高斯过程后验抽样、以蒙特卡洛方法计算（Wilson 等人，2018）。这是 BoTorch 中的默认选择。",
+   "src": "<strong>q-Expected Improvement (qEI).</strong> Joint EI over $B$ points; intractable in closed form; computed by Monte Carlo via sampling from the GP posterior (Wilson et&nbsp;al., 2018). Default in BoTorch.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Hallucinated batches (Kriging Believer).@@T1@@ Pick the first point greedily; pretend you observed $\\mu(x)$; refit; pick the next; repeat. Cheap but suboptimal.": {
+   "zh": "@@T0@@幻觉批量（Kriging Believer）。@@T1@@ 贪心地选取第一个点；假装你观测到了 $\\mu(x)$；重新拟合；再选下一个；如此重复。代价低但非最优。",
+   "src": "<strong>Hallucinated batches (Kriging Believer).</strong> Pick the first point greedily; pretend you observed $\\mu(x)$; refit; pick the next; repeat. Cheap but suboptimal.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Thompson sampling.@@T1@@ Each parallel worker draws its own sample. Trivially parallelisable; provably good regret.": {
+   "zh": "@@T0@@Thompson 采样。@@T1@@ 每个并行工作进程抽取自己的样本。可轻易并行化；遗憾上界有理论保证。",
+   "src": "<strong>Thompson sampling.</strong> Each parallel worker draws its own sample. Trivially parallelisable; provably good regret.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Asynchronous BO.@@T1@@ When workers return at different times, you can't pause; instead, condition on pending points (their posterior mean is your best guess of their unknown outcome).": {
+   "zh": "@@T0@@异步 BO。@@T1@@ 当工作进程在不同时刻返回时，你无法暂停；取而代之的是以在途点为条件（它们的后验均值便是对其未知结果的最佳猜测）。",
+   "src": "<strong>Asynchronous BO.</strong> When workers return at different times, you can't pause; instead, condition on pending points (their posterior mean is your best guess of their unknown outcome).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 8": {
+   "zh": "第 8 步",
+   "src": "Step 8",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "阅读清单",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Shahriari, Swersky, Wang, Adams, de Freitas (2016)@@T1@@ &mdash; @@T2@@Taking the Human out of the Loop: A Review of Bayesian Optimization.@@T3@@ Standard survey.": {
+   "zh": "@@T0@@Shahriari, Swersky, Wang, Adams, de Freitas (2016)@@T1@@ &mdash; @@T2@@Taking the Human out of the Loop: A Review of Bayesian Optimization.@@T3@@ 标准综述。",
+   "src": "<strong>Shahriari, Swersky, Wang, Adams, de Freitas (2016)</strong> &mdash; <em>Taking the Human out of the Loop: A Review of Bayesian Optimization.</em> Standard survey.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Srinivas, Krause, Kakade, Seeger (2010)@@T1@@ &mdash; @@T2@@Gaussian Process Optimization in the Bandit Setting.@@T3@@ The UCB-regret paper.": {
+   "zh": "@@T0@@Srinivas, Krause, Kakade, Seeger (2010)@@T1@@ &mdash; @@T2@@Gaussian Process Optimization in the Bandit Setting.@@T3@@ 关于 UCB 遗憾界的那篇论文。",
+   "src": "<strong>Srinivas, Krause, Kakade, Seeger (2010)</strong> &mdash; <em>Gaussian Process Optimization in the Bandit Setting.</em> The UCB-regret paper.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Eriksson et&nbsp;al. (2019)@@T1@@ &mdash; @@T2@@TuRBO: Scalable Global Optimization via Local Bayesian Optimization.@@T3@@ The high-dimensional-BO trust-region trick.": {
+   "zh": "@@T0@@Eriksson 等人 (2019)@@T1@@ &mdash; @@T2@@TuRBO: Scalable Global Optimization via Local Bayesian Optimization.@@T3@@ 高维 BO 的置信域技巧。",
+   "src": "<strong>Eriksson et&nbsp;al. (2019)</strong> &mdash; <em>TuRBO: Scalable Global Optimization via Local Bayesian Optimization.</em> The high-dimensional-BO trust-region trick.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Garnett (2023)@@T1@@ &mdash; @@T2@@Bayesian Optimization@@T3@@ textbook. Free draft online; the definitive modern reference.": {
+   "zh": "@@T0@@Garnett (2023)@@T1@@ &mdash; @@T2@@Bayesian Optimization@@T3@@ 教科书。草稿可在线免费获取；是权威的现代参考。",
+   "src": "<strong>Garnett (2023)</strong> &mdash; <em>Bayesian Optimization</em> textbook. Free draft online; the definitive modern reference.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@BoTorch / Ax@@T1@@ — the standard modern libraries. Optuna's TPE for cheap categorical search.": {
+   "zh": "@@T0@@BoTorch / Ax@@T1@@ — 标准的现代程序库。Optuna 的 TPE 适用于廉价的类别型搜索。",
+   "src": "<strong>BoTorch / Ax</strong> — the standard modern libraries. Optuna's TPE for cheap categorical search.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "贝叶斯优化，循序渐进",
+  "tagline": "在 10 次评估内优化一个昂贵的黑箱函数 —— 并观察代理模型如何更新",
+  "summary": "一个 一维高斯过程代理模型加上一个采集函数（EI / UCB / PI / Thompson）共同寻找一个隐藏昂贵函数的最优解。点击以添加观测，观察高斯过程均值与不确定性带收窄，并理解为何 BO 是超参数调优、传感器布点以及任何每次评估都耗费真实时间的实验的正确工具。",
+  "difficulty": "中级",
+  "collection": "概率与统计推断",
+  "highlights": [
+   "实时的一维高斯过程代理，含均值 + 2σ 置信带；点击「采集下一个」，观察它在所选点处收窄。",
+   "切换采集函数：EI 与 UCB 与 PI 与 Thompson 采样 —— 看哪一个侧重探索、哪一个侧重利用。",
+   "切换隐藏的真实函数（正弦、双阱、锯齿），观察 BO 是成功还是吃力。",
+   "收敛图在同一个隐藏函数上追踪四种采集函数各自的目前最优值。"
+  ],
+  "tags": [
+   "贝叶斯优化",
+   "高斯过程",
+   "采集函数",
+   "超参数",
+   "交互式"
+  ]
+ },
+ "js": {
+  "best so far": {
+   "zh": "目前最优",
+   "exprs": [],
+   "tags": [],
+   "src": "best so far"
+  }
+ }
+}

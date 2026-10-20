@@ -1,0 +1,277 @@
+{
+ "slug": "augmentation-mixup",
+ "units": {
+  "Augmentation &amp; Mixup": {
+   "zh": "数据增强与 Mixup",
+   "src": "Augmentation &amp; Mixup",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Twenty-four points is not much of a training set, and a classifier will draw a\n      nervous, jagged boundary through the empty space between them. Two cheap tricks\n      manufacture more data from what you already have: @@T0@@augmentation@@T1@@\n      scatters plausible neighbors @@T2@@around@@T3@@ each point, and @@T4@@mixup@@T5@@\n      places soft-labeled points @@T6@@along the lines between@@T7@@ points. Toggle each\n      one and watch the boundary relax into a wide, confident margin.": {
+   "zh": "二十四个点算不上充裕的训练集，分类器会在它们之间的空白处画出一条紧张而参差不齐的边界。有两种廉价的技巧可以从现有数据中制造更多数据：@@T0@@数据增强@@T1@@在每个点@@T2@@周围@@T3@@散布貌似合理的邻居点，@@T4@@mixup@@T5@@则沿点@@T6@@之间的连线上@@T7@@放置软标签点。分别开启这两者，观察边界如何松弛为一条宽阔而自信的间隔带。",
+   "src": "Twenty-four points is not much of a training set, and a classifier will draw a\n      nervous, jagged boundary through the empty space between them. Two cheap tricks\n      manufacture more data from what you already have: <strong>augmentation</strong>\n      scatters plausible neighbors <em>around</em> each point, and <strong>mixup</strong>\n      places soft-labeled points <em>along the lines between</em> points. Toggle each\n      one and watch the boundary relax into a wide, confident margin.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~9 min@@T1@@\n      @@T2@@Deep Learning &middot; Generalization &middot; Regularization@@T3@@": {
+   "zh": "@@T0@@约 9 分钟@@T1@@\n      @@T2@@深度学习 &middot; 泛化 &middot; 正则化@@T3@@",
+   "src": "<span>~9 min</span>\n      <span>Deep Learning &middot; Generalization &middot; Regularization</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Two ways to invent training data": {
+   "zh": "两种凭空制造训练数据的方式",
+   "src": "Two ways to invent training data",
+   "tags": []
+  },
+  "A model only ever sees the training points you give it; everywhere else it\n      guesses. Both augmentation and mixup attack that emptiness by synthesizing new\n      labeled examples &mdash; but they fill different geometry.": {
+   "zh": "模型只能看到你提供给它的训练点；在其他任何地方，它都只能靠猜测。数据增强与 mixup 都通过合成新的带标签样本来应对这种空白 &mdash; 但它们填充的是不同的几何结构。",
+   "src": "A model only ever sees the training points you give it; everywhere else it\n      guesses. Both augmentation and mixup attack that emptiness by synthesizing new\n      labeled examples &mdash; but they fill different geometry.",
+   "tags": []
+  },
+  "@@T0@@Data augmentation@@T1@@ applies label-preserving perturbations &mdash; a jitter, small rotation, or rescale &mdash; to each example. A cat photo shifted two pixels is still a cat, so we get a fresh point $\\tilde{x} = x_i + \\varepsilon$ carrying the @@T2@@same hard label@@T3@@. This inflates a little cloud @@T4@@around@@T5@@ every training point.": {
+   "zh": "@@T0@@数据增强@@T1@@对每个样本施加保持标签不变的扰动 &mdash; 抖动、小幅旋转或缩放。一张猫的照片平移两个像素后仍然是猫，于是我们得到一个携带@@T2@@相同硬标签@@T3@@的新点 $\\tilde{x} = x_i + \\varepsilon$。这就在每个训练点@@T4@@周围@@T5@@鼓起一小片点云。",
+   "src": "<strong>Data augmentation</strong> applies label-preserving perturbations &mdash; a jitter, small rotation, or rescale &mdash; to each example. A cat photo shifted two pixels is still a cat, so we get a fresh point $\\tilde{x} = x_i + \\varepsilon$ carrying the <em>same hard label</em>. This inflates a little cloud <em>around</em> every training point.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Mixup@@T1@@ blends two examples and their labels linearly:": {
+   "zh": "@@T0@@Mixup@@T1@@ 将两个样本及其标签线性混合：",
+   "src": "<strong>Mixup</strong> blends two examples and their labels linearly:",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "A point halfway between a blue example and an orange one is labeled &ldquo;half\n      blue, half orange.&rdquo; Instead of clouds around points, mixup lays down a\n      @@T0@@continuum of soft-labeled points along the segments between@@T1@@ examples,\n      teaching the model to change its prediction @@T2@@linearly and gently@@T3@@ as you\n      move from one class to the other.": {
+   "zh": "位于一个蓝色样本与一个橙色样本正中间的点，其标签为「一半蓝、一半橙」。mixup 不像前一方法那样在点周围铺开点云，而是沿样本@@T0@@之间的线段铺设一条软标签点的连续谱@@T1@@，从而教模型在从一个类别过渡到另一个类别时@@T2@@线性而平缓地@@T3@@改变其预测。",
+   "src": "A point halfway between a blue example and an orange one is labeled &ldquo;half\n      blue, half orange.&rdquo; Instead of clouds around points, mixup lays down a\n      <em>continuum of soft-labeled points along the segments between</em> examples,\n      teaching the model to change its prediction <em>linearly and gently</em> as you\n      move from one class to the other.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Lab": {
+   "zh": "实验部分",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Fill in the manifold": {
+   "zh": "填满数据流形",
+   "src": "Fill in the manifold",
+   "tags": []
+  },
+  "Two classes, twelve points each, and a soft nearest-neighbor classifier whose\n      decision landscape is painted underneath: blue where it predicts class&nbsp;A,\n      orange for class&nbsp;B, and pale where it is unsure &mdash; that pale ribbon is\n      the @@T0@@margin@@T1@@. Turn on augmentation and mixup and watch the synthesized\n      points (small dots) reshape that landscape.": {
+   "zh": "两个类别，各十二个点，下方绘制的是一个软最近邻分类器的决策景观：蓝色表示预测为类别 A，橙色表示类别 B，浅色表示不确定 &mdash; 那条浅色带就是@@T0@@间隔@@T1@@。开启数据增强与 mixup，观察合成出的点（小圆点）如何重塑这一景观。",
+   "src": "Two classes, twelve points each, and a soft nearest-neighbor classifier whose\n      decision landscape is painted underneath: blue where it predicts class&nbsp;A,\n      orange for class&nbsp;B, and pale where it is unsure &mdash; that pale ribbon is\n      the <em>margin</em>. Turn on augmentation and mixup and watch the synthesized\n      points (small dots) reshape that landscape.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Augmentation: off": {
+   "zh": "数据增强：关",
+   "src": "Augmentation: off",
+   "tags": []
+  },
+  "Mixup: off": {
+   "zh": "Mixup：关",
+   "src": "Mixup: off",
+   "tags": []
+  },
+  "Augmentation strength @@T0@@$\\sigma$ = @@T1@@0.25@@T2@@@@T3@@": {
+   "zh": "增强强度 @@T0@@$\\sigma$ = @@T1@@0.25@@T2@@@@T3@@",
+   "src": "Augmentation strength <span>$\\sigma$ = <span id=\"augVal\">0.25</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"augVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Mixup blend @@T0@@$\\lambda$ = @@T1@@0.50@@T2@@@@T3@@": {
+   "zh": "Mixup 混合系数 @@T0@@$\\lambda$ = @@T1@@0.50@@T2@@@@T3@@",
+   "src": "Mixup blend <span>$\\lambda$ = <span id=\"lamVal\">0.50</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"lamVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Decision landscape of the classifier. Big dots are the 24 real examples; small\n        dots are synthesized examples. The dashed line is the highlighted mixup pair,\n        and the ringed dot on it is $\\tilde{x} = \\lambda x_i + (1-\\lambda)x_j$ colored by\n        its soft label &mdash; drag $\\lambda$ to slide it between the two classes.": {
+   "zh": "分类器的决策景观。大圆点是 24 个真实样本；小圆点是合成样本。虚线为被高亮的 mixup 点对，其上的带环圆点为 $\\tilde{x} = \\lambda x_i + (1-\\lambda)x_j$，颜色由其软标签决定 &mdash; 拖动 $\\lambda$ 即可让它在两个类别之间滑动。",
+   "src": "Decision landscape of the classifier. Big dots are the 24 real examples; small\n        dots are synthesized examples. The dashed line is the highlighted mixup pair,\n        and the ringed dot on it is $\\tilde{x} = \\lambda x_i + (1-\\lambda)x_j$ colored by\n        its soft label &mdash; drag $\\lambda$ to slide it between the two classes.",
+   "tags": []
+  },
+  "The highlighted mixup point's soft label as $\\lambda$ sweeps the segment: a linear blend from all&ndash;B to all&ndash;A.": {
+   "zh": "当 $\\lambda$ 沿该线段扫过时，被高亮的 mixup 点的软标签：从完全为 B 到完全为 A 的线性混合。",
+   "src": "The highlighted mixup point's soft label as $\\lambda$ sweeps the segment: a linear blend from all&ndash;B to all&ndash;A.",
+   "tags": []
+  },
+  "@@T0@@Effective examples@@T1@@\n        @@T2@@24@@T3@@": {
+   "zh": "@@T0@@有效样本数@@T1@@\n        @@T2@@24@@T3@@",
+   "src": "<span class=\"stat-label\">Effective examples</span>\n        <span class=\"stat-value\" id=\"nStat\">24</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"nStat\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Margin band (% area)@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@间隔带（面积占比 %）@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Margin band (% area)</span>\n        <span class=\"stat-value\" id=\"marginStat\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"marginStat\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Boundary length@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@边界长度@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Boundary length</span>\n        <span class=\"stat-value\" id=\"lenStat\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"lenStat\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Start with both off.@@T1@@ Note the boundary buckles toward isolated\n      points and the pale margin is thin and uneven. Turn on @@T2@@Augmentation@@T3@@:\n      each point sprouts a cloud, the support thickens, and the boundary\n      straightens (its length drops). Now add @@T4@@Mixup@@T5@@: soft-labeled\n      points bridge the gap and the pale margin band @@T6@@widens@@T7@@ &mdash; the\n      classifier is forced to transition gradually, which is exactly a larger margin.": {
+   "zh": "@@T0@@先让二者都关闭。@@T1@@ 注意边界向孤立的点弯折，浅色间隔既窄又不均匀。开启@@T2@@数据增强@@T3@@：\n      每个点都长出点云，支撑变厚，边界变直（其长度下降）。接着加入@@T4@@Mixup@@T5@@：软标签点弥合了空隙，浅色间隔带@@T6@@变宽@@T7@@ &mdash; 分类器被迫逐渐过渡，而这正是更大的间隔。",
+   "src": "<strong>Start with both off.</strong> Note the boundary buckles toward isolated\n      points and the pale margin is thin and uneven. Turn on <strong>Augmentation</strong>:\n      each point sprouts a cloud, the support thickens, and the boundary\n      straightens (its length drops). Now add <strong>Mixup</strong>: soft-labeled\n      points bridge the gap and the pale margin band <em>widens</em> &mdash; the\n      classifier is forced to transition gradually, which is exactly a larger margin.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "收获",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Same goal, different geometry": {
+   "zh": "同一目标，不同几何",
+   "src": "Same goal, different geometry",
+   "tags": []
+  },
+  "Both methods are @@T0@@data-space@@T1@@ regularizers: they don't touch the loss or\n      the weights, they enlarge the region of input space the model is held accountable\n      for. But they enlarge it differently, and that difference is the whole lesson.": {
+   "zh": "两种方法都是@@T0@@数据空间@@T1@@上的正则化手段：它们不触及损失函数或权重，而是扩大模型需要负责的输入空间区域。但它们扩大区域的方式不同，而这一差异正是全部要点所在。",
+   "src": "Both methods are <em>data-space</em> regularizers: they don't touch the loss or\n      the weights, they enlarge the region of input space the model is held accountable\n      for. But they enlarge it differently, and that difference is the whole lesson.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Augmentation grows balls around points.@@T1@@ It encodes an invariance you already believe (&ldquo;a small jitter doesn't change the class&rdquo;), so it thickens each class's support and kills the model's freedom to overfit to a single pixel-perfect example.": {
+   "zh": "@@T0@@数据增强在点周围长出球状区域。@@T1@@ 它把你本就相信的一种不变性（「小幅抖动不改变类别」）编码进去，从而加厚每个类别的支撑，并剥夺模型过拟合到某个像素级完美样本的自由。",
+   "src": "<strong>Augmentation grows balls around points.</strong> It encodes an invariance you already believe (&ldquo;a small jitter doesn't change the class&rdquo;), so it thickens each class's support and kills the model's freedom to overfit to a single pixel-perfect example.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Mixup grows segments between points.@@T1@@ By demanding $f\\big(\\lambda x_i + (1-\\lambda)x_j\\big) \\approx \\lambda y_i + (1-\\lambda)y_j$, it forces the prediction to vary @@T2@@linearly@@T3@@ between examples. That linear ramp is a wide, calibrated margin &mdash; and it discourages the wildly overconfident extrapolation plain training loves.": {
+   "zh": "@@T0@@Mixup 在点之间长出线段。@@T1@@ 通过要求 $f\\big(\\lambda x_i + (1-\\lambda)x_j\\big) \\approx \\lambda y_i + (1-\\lambda)y_j$，它迫使预测在样本之间@@T2@@线性@@T3@@变化。这种线性斜坡构成一个宽阔且经过校准的间隔 &mdash; 并且抑制了普通训练所偏爱的那种极度过度自信的外推。",
+   "src": "<strong>Mixup grows segments between points.</strong> By demanding $f\\big(\\lambda x_i + (1-\\lambda)x_j\\big) \\approx \\lambda y_i + (1-\\lambda)y_j$, it forces the prediction to vary <em>linearly</em> between examples. That linear ramp is a wide, calibrated margin &mdash; and it discourages the wildly overconfident extrapolation plain training loves.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Both shrink the gap@@T1@@ between what the model saw and what it will be tested on &mdash; the same generalization goal as weight decay or dropout, reached by editing the @@T2@@data@@T3@@ instead of the @@T4@@model@@T5@@.": {
+   "zh": "@@T0@@二者都缩小@@T1@@模型所见与将要被测试之间的差距 &mdash; 与权重衰减或 dropout 具有相同的泛化目标，只是通过修改@@T2@@数据@@T3@@而非@@T4@@模型@@T5@@来达成。",
+   "src": "<strong>Both shrink the gap</strong> between what the model saw and what it will be tested on &mdash; the same generalization goal as weight decay or dropout, reached by editing the <em>data</em> instead of the <em>model</em>.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@In practice.@@T1@@ Augmentation is domain-specific and nearly free lunch:\n      flips, crops, color jitter for images; time-warps for audio; token dropout for text.\n      Mixup is domain-agnostic &mdash; a few lines that blend a batch with a shuffled copy\n      of itself &mdash; and it doubles as a calibration and label-noise-robustness trick.\n      Stack them.": {
+   "zh": "@@T0@@在实践中。@@T1@@ 数据增强与领域强相关，且几乎是免费的午餐：\n      图像用翻转、裁剪、色彩抖动；音频用时间扭曲；文本用词元丢弃。\n      Mixup 则与领域无关 &mdash; 只需几行代码将一批数据与其自身的打乱副本混合 &mdash; 并且还兼具校准与抗标签噪声的作用。二者叠加使用效果更佳。",
+   "src": "<strong>In practice.</strong> Augmentation is domain-specific and nearly free lunch:\n      flips, crops, color jitter for images; time-warps for audio; token dropout for text.\n      Mixup is domain-agnostic &mdash; a few lines that blend a batch with a shuffled copy\n      of itself &mdash; and it doubles as a calibration and label-noise-robustness trick.\n      Stack them.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 7: Generalization &amp; Regularization": {
+   "zh": "ES 667 深度学习讲解系列的一部分 &middot; 第七讲：泛化与正则化",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 7: Generalization &amp; Regularization",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "数据增强与 Mixup",
+  "tagline": "两种凭空制造训练数据的廉价方式：在每个点周围散布邻居，或沿点之间的连线放置软标签点",
+  "summary": "一个二维二分类数据集每类仅有十二个点，给出的是一条紧张而参差不齐的决策边界。开启数据增强，观察每个样本如何长出由抖动副本构成的点云，从而加厚支撑并使边界变直。开启 mixup，观察凸组合 x = lambda*xi + (1-lambda)*xj 沿样本之间的线段携带软标签，从而拓宽浅色的间隔带。拖动 lambda 滑块，可使一个被高亮的混合点在 A 类样本与 B 类样本之间滑动，颜色由其插值得到的软标签决定。二者都在填充数据流形，并把边界推向更大的间隔。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "开启数据增强，观察每个点长出由抖动副本构成的点云，从而加厚类别支撑并使边界变直。",
+   "开启 mixup，观察带软标签的凸组合如何沿直线段弥合类别之间的空隙。",
+   "拖动 lambda 滑块，使被高亮的混合点 x = lambda*xi + (1-lambda)*xj 在两个类别之间滑动，颜色由其插值得到的软标签决定。",
+   "观察实时决策景观，当 mixup 迫使预测在样本之间线性变化时，浅色间隔带随之变宽。",
+   "实时读取三项指标：有效样本数、间隔带面积，以及量化平滑程度的决策边界长度。"
+  ],
+  "tags": [
+   "数据增强",
+   "Mixup",
+   "正则化",
+   "泛化",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

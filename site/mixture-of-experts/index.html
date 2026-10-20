@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>专家混合模型实战</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>专家混合模型实战</h1>
+        <p class="abstract">
+          四个线性专家与一个 softmax 门控网络，在你的浏览器中于一个分段二维回归任务上联合训练。观察门控如何将输入平面划分为四个区域、各专家如何在其区域内专精化，以及负载均衡辅助损失如何唤醒「死亡」专家。可在软混合与 top-1 硬路由之间切换。
+        </p>
+        <div class="byline">
+          <span>约 18 分钟</span>
+          <span>深度学习 &middot; 稀疏模型 &middot; 路由</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>为何采用 MoE</h2>
+        <p>
+          单一稠密网络必须为每个输入学习同一个函数。随着模型增大，参数更多意味着每次前向传播的计算量也更大 &mdash; 容量的代价与容量本身呈线性增长。
+        </p>
+        <p>
+          专家混合模型将二者解耦。你拥有 $E$ 个专家网络和一个小型<strong>门控网络</strong>。对于每个输入，门控选取一个或两个专家，只有被选中的专家参与计算。一个模型的参数量可以是同等稠密模型的 8 倍，而计算量却约为 1 倍 &mdash; 前提是路由足够稀疏。
+        </p>
+        <div class="callout callout--key">
+          <strong>一句话概括。</strong> MoE 为参数付出的代价在内存，而非浮点运算量。截至 2026 年，所有前沿规模的模型（GPT-OSS、Mixtral、DeepSeek-V3、Llama-MoE）在某种意义上都属于 MoE。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>一行概括模型</h2>
+        <div class="math-block" id="math-moe"></div>
+        <p>
+          每个专家 $f_e$ 是一个函数（此处采用线性形式：$f_e(x) = w_e^\top x + b_e$）。门控 $g(x) \in \Delta^E$ 是对 $E$ 个 logit 的 softmax。模型输出为加权混合；梯度同时流入各专家（在被用到之处）与门控（后者获得推动其走向更优路由的信号）。
+        </p>
+        <p>
+          硬 top-1 路由以 $\hat e = \arg\max g_e(x)$ 取代软混合 &mdash; 每个输入仅有一个专家参与计算。我们采用直通式梯度，使门控仍然能够学习。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>实时训练</h2>
+        <p>
+          玩具任务：将一个二维平面划分为四个象限，每个象限对应一个不同的线性真值函数。单个线性模型无法拟合；而四个线性专家加一个门控则可以。
+        </p>
+        <div class="train-controls">
+          <button class="action-btn" id="moe-toggle">开始训练</button>
+          <button class="action-btn action-btn--ghost" id="moe-reset">重新初始化</button>
+          <label>路由
+            <select id="moe-路由">
+              <option value="soft" selected>软混合</option>
+              <option value="top1">top-1 硬路由</option>
+            </select>
+          </label>
+          <label class="toggle-pair"><input type="checkbox" id="moe-balance" checked> 负载均衡损失</label>
+          <label>均衡系数 λ &nbsp;<span id="moe-lambda-val">0.10</span> <input type="range" id="moe-lambda" min="0" max="0.5" step="0.01" value="0.1"></label>
+          <span class="train-stat">步数 <strong id="moe-step">0</strong></span>
+          <span class="train-stat">MSE <strong id="moe-loss">—</strong></span>
+        </div>
+        <div class="moe-grid">
+          <div class="moe-panel">
+            <div class="panel-label">门控区域（每个专家一种颜色）</div>
+            <canvas id="moe-gate" width="380" height="380"></canvas>
+          </div>
+          <div class="moe-panel">
+            <div class="panel-label">各专家的预测误差</div>
+            <canvas id="moe-error" width="380" height="380"></canvas>
+          </div>
+          <div class="moe-panel">
+            <div class="panel-label">损失曲线 + 专家利用率</div>
+            <canvas id="moe-loss-canvas" width="380" height="380"></canvas>
+          </div>
+        </div>
+        <div class="callout callout--think">
+          <strong>值得关注之处。</strong>
+          在<em>软混合</em>且无均衡损失时，门控有时会坍塌到单一专家（<em>死亡专家</em>问题）。开启<strong>负载均衡</strong>后，均衡项会惩罚不均衡的利用；四路划分通常在约 150 步内出现。切换到<em>top-1</em>即为 Switch-Transformer 式的路由 &mdash; 此时出现的不是平滑的 softmax 混合，而是类似 Voronoi 的区域边界。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>辅助负载均衡损失</h2>
+        <p>
+          若不加以干预，门控完全有理由坍塌：最容易落入的局部极小值就是「总是选择专家 1」。辅助损失则推动门控趋向均匀利用：
+        </p>
+        <div class="math-block" id="math-aux"></div>
+        <p>
+          $f_e$ 是被路由至专家 $e$ 的词元比例，$P_e$ 是该批次上专家 $e$ 的平均门控概率。当二者都均匀（$1/E$）时该乘积取最小。Switch Transformer 一文提出了这一确切形式，现代所有 MoE 均采用之。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>什么能规模化、什么会造成损害、生产部署是什么样的</h2>
+        <ul class="explanation-list">
+          <li><strong>Switch Transformer（Fedus 等，2021）。</strong>
+            每个词元使用一个专家（top-1）。在质量不变的前提下展示了 4 倍加速。</li>
+          <li><strong>Mixtral 8×7B（Mistral，2023）。</strong> 在 8 个专家间做 top-2 路由；仅 top-2 门控对应的专家参与计算；有效参数量约 47B，每个词元激活约 13B。</li>
+          <li><strong>DeepSeek-MoE（2024）。</strong> 众多小专家（256 个以上），路由粒度更细。通过门控上各专家的偏置实现无辅助损失的均衡。</li>
+          <li><strong>常见陷阱。</strong> 训练早期路由不稳定；若辅助损失过小或缺失，专家会坍塌；在规模较大时，ALL-to-ALL 通信会主导训练时间；「专家容量」溢出需要丢弃词元或重新路由。</li>
+          <li><strong>MoE <em>不能</em>为你省下的东西。</strong>
+            推理内存：每个专家的权重仍须驻留于 GPU/TPU 内存中。MoE 省的是浮点运算量，费的是内存。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>MoE 在 LLM 之外的用武之地</h2>
+        <ul class="explanation-list">
+          <li><strong>多任务与多领域模型。</strong>
+            每个任务领域一个专家；由门控学习路由。当多种传感器模态或任务类型共享同一骨干网络时尤为有用。</li>
+          <li><strong>结合 MoE 的时间序列。</strong>
+            针对不同时间模式（活动识别、睡眠、心率）使用不同专家。门控由此成为一个软性的状态分类器。</li>
+          <li><strong>多模态模型。</strong>
+            图像、文本与音频各有其专家模块；门控按模态路由（通常为硬 top-1）。</li>
+          <li><strong>视觉中的条件计算。</strong>
+            在卫星或医学图像中，针对不同的尺度 / 区域使用不同专家。</li>
+        </ul>
+        <div class="callout callout--think">
+          <strong>最终结论。</strong>
+          MoE 是让模型在单位参数上获得更多「知识」的最廉价方式。只要路由足够稀疏且均衡机制到位，你就能在不增加浮点运算量的情况下获得容量。一旦拥有它，稠密式扩展就显得浪费。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>专家并行 — 系统层面的故事</h2>
+        <p>
+          当单个专家参数量超过约 1B 时，你无法把所有专家放入一块 GPU。标准的分片模式如下（Lepikhin 等，2020）：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>专家并行。</strong> 将不同专家放置于不同设备上。每台设备持有专家的一个子集。</li>
+          <li><strong>全对全分发。</strong> 对每一批词元，将其发送到承载其被选专家的设备；在本地运行该专家；再将输出送回。每层需要两次全对全集合通信。</li>
+          <li><strong>专家容量。</strong> 每个专家在每批次中拥有固定的槽位数（例如 $1.25 \times \text{tokens}/E$）。溢出的词元会被<em>丢弃</em>（输出为零）或被<em>重新路由</em>到次选专家。容量因子是速度（容量低、丢弃多）与质量（容量高、计算多）之间的一个旋钮。</li>
+          <li><strong>流水线并行 + 张量并行。</strong> 在标准三维并行之上叠加专家并行。每台设备运行某一阶段的专家，并以分片形式存放。</li>
+        </ul>
+        <p>
+          正是全对全通信使得 MoE 训练系统如此困难。相关框架有：GShard、Tutel、Megablocks、DeepSpeed-MoE。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-7">
+        <div class="step-badge">第 7 步</div>
+        <h2>前沿 MoE 对比</h2>
+        <div class="examples-table-wrap" style="overflow-x:auto;">
+          <table class="examples-table">
+            <thead><tr><th>模型</th><th>总参数量</th><th>每词元激活量</th><th>专家数</th><th>Top-k 取值</th><th>关键技巧</th></tr></thead>
+            <tbody>
+              <tr><td>Switch Transformer（2021）</td><td>up to 1.6T</td><td>~1/E</td><td>up to 2048</td><td>1</td><td>辅助负载均衡损失；专家容量</td></tr>
+              <tr><td>GLaM（2021）</td><td>1.2T</td><td>97B</td><td>64</td><td>2</td><td>通过辅助损失实现路由均衡；训练时采用稀疏性</td></tr>
+              <tr><td>Mixtral 8×7B（2023）</td><td>47B</td><td>13B</td><td>8</td><td>2</td><td>开放权重；性能优于 Llama-2 70B</td></tr>
+              <tr><td>DeepSeek-V3（2024）</td><td>671B</td><td>37B</td><td>256 + 1 个共享专家</td><td>8</td><td>通过各专家偏置实现无辅助损失的均衡</td></tr>
+              <tr><td>Mixtral 8×22B（2024）</td><td>141B</td><td>39B</td><td>8</td><td>2</td><td>相同架构，专家规模扩大</td></tr>
+              <tr><td>Qwen2-MoE A14B（2024）</td><td>57B</td><td>14B</td><td>64 + 4 个共享专家</td><td>4</td><td>共享专家始终激活</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-8">
+        <div class="step-badge">第 8 步</div>
+        <h2>阅读清单</h2>
+        <ul class="explanation-list">
+          <li><strong>Jacobs, Jordan, Nowlan, Hinton (1991)</strong> — <em>Adaptive Mixtures of Local Experts。</em> MoE 的开山之作。</li>
+          <li><strong>Shazeer 等 (2017)</strong> — <em>Outrageously Large Neural Networks。</em> Top-k 取值 门控，将 MoE 引入 Transformer。</li>
+          <li><strong>Lepikhin 等 (2020)</strong> — <em>GShard。</em> 专家并行的系统论文。</li>
+          <li><strong>Fedus, Zoph, Shazeer (2021)</strong> — <em>Switch Transformer。</em></li>
+          <li><strong>Du 等 (2022)</strong> — <em>GLaM。</em></li>
+          <li><strong>DeepSeek-AI (2024)</strong> — <em>DeepSeek-V3 Technical Report。</em> 无辅助损失的 MoE。</li>
+          <li><strong>Mistral AI (2024)</strong> — <em>Mixtral of Experts。</em></li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,362 @@
+{
+ "slug": "convolution-visualizer",
+ "units": {
+  "Convolution Visualizer": {
+   "zh": "卷积可视化器",
+   "src": "Convolution Visualizer",
+   "tags": []
+  },
+  "Watch a kernel slide across an image, one dot product at a time": {
+   "zh": "观察卷积核在图像上滑动，一次一个点积",
+   "src": "Watch a kernel slide across an image, one dot product at a time",
+   "tags": []
+  },
+  "@@T0@@Input:@@T1@@": {
+   "zh": "@@T0@@输入：@@T1@@",
+   "src": "<span class=\"scenario-label\">Input:</span>",
+   "tags": [
+    "<span class=\"scenario-label\">",
+    "</span>"
+   ]
+  },
+  "Vertical Bar": {
+   "zh": "竖直条",
+   "src": "Vertical Bar",
+   "tags": []
+  },
+  "Horizontal Bar": {
+   "zh": "水平条",
+   "src": "Horizontal Bar",
+   "tags": []
+  },
+  "Cross": {
+   "zh": "十字",
+   "src": "Cross",
+   "tags": []
+  },
+  "Corner": {
+   "zh": "角落",
+   "src": "Corner",
+   "tags": []
+  },
+  "Flat (no edges)": {
+   "zh": "平坦（无边缘）",
+   "src": "Flat (no edges)",
+   "tags": []
+  },
+  "Edge (H)": {
+   "zh": "边缘（水平）",
+   "src": "Edge (H)",
+   "tags": []
+  },
+  "Edge (V)": {
+   "zh": "边缘（竖直）",
+   "src": "Edge (V)",
+   "tags": []
+  },
+  "Sharpen": {
+   "zh": "锐化",
+   "src": "Sharpen",
+   "tags": []
+  },
+  "Blur": {
+   "zh": "模糊",
+   "src": "Blur",
+   "tags": []
+  },
+  "Custom": {
+   "zh": "自定义",
+   "src": "Custom",
+   "tags": []
+  },
+  "@@T0@@Try this:@@T1@@ Pair the @@T2@@Horizontal Bar@@T3@@ input with the @@T4@@Edge (H)@@T5@@ kernel\n    and step through — the largest response appears @@T6@@at@@T7@@ the bar's edge, with zeros on flat regions.\n    Then switch to the @@T8@@Vertical Bar@@T9@@ input and watch @@T10@@Edge (H)@@T11@@ stay silent — it cannot see vertical edges.": {
+   "zh": "@@T0@@试试这个：@@T1@@ 将@@T2@@水平条@@T3@@输入与@@T4@@边缘（水平）@@T5@@卷积核配对，\n    逐步推进 &mdash;&mdash; 最强的响应出现在条的@@T6@@边缘处@@T7@@，而在平坦区域为零。\n    随后切换到@@T8@@竖直条@@T9@@输入，观察@@T10@@边缘（水平）@@T11@@毫无反应 &mdash;&mdash; 它看不见竖直边缘。",
+   "src": "<strong>Try this:</strong> Pair the <em>Horizontal Bar</em> input with the <em>Edge (H)</em> kernel\n    and step through — the largest response appears <em>at</em> the bar's edge, with zeros on flat regions.\n    Then switch to the <em>Vertical Bar</em> input and watch <em>Edge (H)</em> stay silent — it cannot see vertical edges.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Apply": {
+   "zh": "应用",
+   "src": "Apply",
+   "tags": []
+  },
+  "Input (8x8)": {
+   "zh": "输入（8x8）",
+   "src": "Input (8x8)",
+   "tags": []
+  },
+  "Click a cell to edit its value": {
+   "zh": "点击某个单元格以编辑其数值",
+   "src": "Click a cell to edit its value",
+   "tags": []
+  },
+  "Kernel (3x3)": {
+   "zh": "卷积核（3x3）",
+   "src": "Kernel (3x3)",
+   "tags": []
+  },
+  "Element-wise Products": {
+   "zh": "逐元素乘积",
+   "src": "Element-wise Products",
+   "tags": []
+  },
+  "Output (6x6)": {
+   "zh": "输出（6x6）",
+   "src": "Output (6x6)",
+   "tags": []
+  },
+  "Step": {
+   "zh": "步进",
+   "src": "Step",
+   "tags": []
+  },
+  "Play": {
+   "zh": "播放",
+   "src": "Play",
+   "tags": []
+  },
+  "Reset": {
+   "zh": "重置",
+   "src": "Reset",
+   "tags": []
+  },
+  "Padding": {
+   "zh": "填充",
+   "src": "Padding",
+   "tags": []
+  },
+  "Stride": {
+   "zh": "步长",
+   "src": "Stride",
+   "tags": []
+  },
+  "Speed": {
+   "zh": "速度",
+   "src": "Speed",
+   "tags": []
+  },
+  "Slow": {
+   "zh": "慢",
+   "src": "Slow",
+   "tags": []
+  },
+  "Normal": {
+   "zh": "正常",
+   "src": "Normal",
+   "tags": []
+  },
+  "Fast": {
+   "zh": "快",
+   "src": "Fast",
+   "tags": []
+  },
+  "Dot product at current position:": {
+   "zh": "当前位置处的点积：",
+   "src": "Dot product at current position:",
+   "tags": []
+  },
+  "Press @@T0@@Step@@T1@@ or @@T2@@Play@@T3@@ to begin.": {
+   "zh": "按 @@T0@@步进@@T1@@ 或 @@T2@@播放@@T3@@ 开始。",
+   "src": "Press <strong>Step</strong> or <strong>Play</strong> to begin.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Output dimension formula": {
+   "zh": "输出维度公式",
+   "src": "Output dimension formula",
+   "tags": []
+  },
+  "Three things students get wrong about convolution": {
+   "zh": "学生对卷积的三个常见误解",
+   "src": "Three things students get wrong about convolution",
+   "tags": []
+  },
+  "\"Isn't this just matrix multiplication?\"": {
+   "zh": "「这不就是矩阵乘法吗？」",
+   "src": "\"Isn't this just matrix multiplication?\"",
+   "tags": []
+  },
+  "Not quite. Matrix multiplication combines every row with every column.\n        Convolution is @@T0@@local@@T1@@: an element-wise product between\n        the kernel and a small input patch, summed to one scalar. The kernel\n        then @@T2@@slides@@T3@@ to the next patch. This locality\n        (parameters shared across positions) is what gives CNNs translation\n        equivariance and dramatically fewer parameters than a dense layer.": {
+   "zh": "并不尽然。矩阵乘法将每一行与每一列两两组合。卷积则是@@T0@@局部的@@T1@@：将卷积核与一小块输入区域逐元素相乘，再求和得到一个标量。随后卷积核@@T2@@滑动@@T3@@到下一块区域。这种局部性（参数在各位置间共享）正是 CNN 具有平移等变性、且参数远少于全连接层的原因。",
+   "src": "Not quite. Matrix multiplication combines every row with every column.\n        Convolution is <strong>local</strong>: an element-wise product between\n        the kernel and a small input patch, summed to one scalar. The kernel\n        then <strong>slides</strong> to the next patch. This locality\n        (parameters shared across positions) is what gives CNNs translation\n        equivariance and dramatically fewer parameters than a dense layer.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "\"The output is always smaller than the input.\"": {
+   "zh": "「输出总是比输入小。」",
+   "src": "\"The output is always smaller than the input.\"",
+   "tags": []
+  },
+  "Only with @@T0@@zero padding@@T1@@. Crank the padding slider to\n        @@T2@@P = 1@@T3@@ with kernel size @@T4@@K = 3@@T5@@ and the output is\n        the @@T6@@same@@T7@@ spatial size as the input — \"same\" padding. Modern\n        deep CNNs use same padding almost everywhere so the network depth\n        isn't capped by the input resolution.": {
+   "zh": "只有在@@T0@@零填充@@T1@@的情况下才如此。将填充滑块调到\n        @@T2@@P = 1@@T3@@、卷积核尺寸 @@T4@@K = 3@@T5@@ 时，输出的空间尺寸与输入@@T6@@相同@@T7@@ &mdash;&mdash; 即「same」填充。现代深度 CNN 几乎处处使用 same 填充，从而不会因输入分辨率而限制网络深度。",
+   "src": "Only with <em>zero padding</em>. Crank the padding slider to\n        <code>P = 1</code> with kernel size <code>K = 3</code> and the output is\n        the <em>same</em> spatial size as the input — \"same\" padding. Modern\n        deep CNNs use same padding almost everywhere so the network depth\n        isn't capped by the input resolution.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "\"Convolution and cross-correlation are the same thing.\"": {
+   "zh": "「卷积与互相关是一回事。」",
+   "src": "\"Convolution and cross-correlation are the same thing.\"",
+   "tags": []
+  },
+  "Mathematically they aren't — true convolution flips the kernel.\n        In deep learning we almost always implement @@T0@@cross-correlation@@T1@@\n        and call it convolution; the network learns the kernels anyway, so the\n        flip doesn't matter. The signal-processing literature is stricter\n        about the distinction.": {
+   "zh": "从数学上讲二者并不相同 &mdash;&mdash; 真正的卷积会翻转卷积核。\n        在深度学习中，我们几乎总是实现@@T0@@互相关@@T1@@，却称之为卷积；反正网络会自行学习卷积核，因此翻转与否无关紧要。信号处理文献对这一区分则严格得多。",
+   "src": "Mathematically they aren't — true convolution flips the kernel.\n        In deep learning we almost always implement <em>cross-correlation</em>\n        and call it convolution; the network learns the kernels anyway, so the\n        flip doesn't matter. The signal-processing literature is stricter\n        about the distinction.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Where this fits in the CNN story": {
+   "zh": "这在 CNN 的整体脉络中的位置",
+   "src": "Where this fits in the CNN story",
+   "tags": []
+  },
+  "@@T0@@The kernels you see here are hand-designed@@T1@@ — Edge (H/V),\n      Sharpen, Blur are classics from image processing. In a CNN the network\n      @@T2@@learns@@T3@@ the kernel values from data. The first conv layer typically\n      ends up learning Gabor-like edge detectors that look uncannily similar to\n      the ones you're playing with. Visualising the learned filters of AlexNet's\n      first layer is one of the most-reproduced figures in deep learning for\n      exactly this reason.": {
+   "zh": "@@T0@@你在此看到的卷积核是手工设计的@@T1@@ &mdash;&mdash; 边缘（水平/竖直）、\n      锐化、模糊都是图像处理中的经典核。而在 CNN 中，网络从数据里\n      @@T2@@学习@@T3@@ 卷积核的取值。第一个卷积层通常最终会学到类似 Gabor 的边缘检测器，其外观与你正在把玩的这些核惊人地相似。可视化 AlexNet 第一层学到的滤波器之所以成为深度学习中被复现最多的图之一，原因正在于此。",
+   "src": "<strong>The kernels you see here are hand-designed</strong> — Edge (H/V),\n      Sharpen, Blur are classics from image processing. In a CNN the network\n      <em>learns</em> the kernel values from data. The first conv layer typically\n      ends up learning Gabor-like edge detectors that look uncannily similar to\n      the ones you're playing with. Visualising the learned filters of AlexNet's\n      first layer is one of the most-reproduced figures in deep learning for\n      exactly this reason.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Stride controls downsampling.@@T1@@ Stride 2 halves the spatial\n      dimension at each step — the classic alternative to max-pooling. ResNet-50\n      uses stride-2 convolutions at the start of each stage instead of pooling.\n      Try stride 2 above and watch the output shrink by exactly that factor.": {
+   "zh": "@@T0@@步长控制下采样。@@T1@@ 步长为 2 时，每一步都将空间维度减半 &mdash;&mdash; 这是最大池化的经典替代方案。ResNet-50 在每个阶段的起始处使用步长为 2 的卷积，而非池化。\n      在上方试试步长 2，观察输出恰好按该倍数缩小。",
+   "src": "<strong>Stride controls downsampling.</strong> Stride 2 halves the spatial\n      dimension at each step — the classic alternative to max-pooling. ResNet-50\n      uses stride-2 convolutions at the start of each stage instead of pooling.\n      Try stride 2 above and watch the output shrink by exactly that factor.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Receptive field grows with depth.@@T1@@ One 3×3 conv sees a 3×3\n      patch. Two stacked 3×3 convs see a 5×5 patch. @@T2@@k@@T3@@ stacked 3×3\n      convs see a @@T4@@(2k+1)×(2k+1)@@T5@@ patch with the same parameter count\n      per layer. This is why VGG was a step change — replacing one 7×7 with\n      three 3×3s gave the same receptive field at fewer parameters and more\n      non-linearities. See the\n      @@T6@@receptive-field article@@T7@@\n      for a live demo.": {
+   "zh": "@@T0@@感受野随深度增长。@@T1@@ 一个 3×3 卷积看到 3×3 的区域。两个堆叠的 3×3 卷积看到 5×5 的区域。@@T2@@k@@T3@@ 个堆叠的 3×3 卷积看到 @@T4@@(2k+1)×(2k+1)@@T5@@ 的区域，而每层参数数量不变。这正是 VGG 带来阶梯式跃升的原因 &mdash;&mdash; 用一个 7×7 替换为三个 3×3，在相同感受野下参数更少、非线性更多。实时演示参见\n      @@T6@@感受野一文@@T7@@。",
+   "src": "<strong>Receptive field grows with depth.</strong> One 3×3 conv sees a 3×3\n      patch. Two stacked 3×3 convs see a 5×5 patch. <code>k</code> stacked 3×3\n      convs see a <code>(2k+1)×(2k+1)</code> patch with the same parameter count\n      per layer. This is why VGG was a step change — replacing one 7×7 with\n      three 3×3s gave the same receptive field at fewer parameters and more\n      non-linearities. See the\n      <a href=\"../receptive-field-grower/\" style=\"color:var(--accent);font-weight:600\">receptive-field article</a>\n      for a live demo.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<a href=\"../receptive-field-grower/\" style=\"color:var(--accent);font-weight:600\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@Sliding-window cost.@@T1@@ A K×K conv on a W×W feature map at\n      stride 1 does @@T2@@W² · K² · C_in · C_out@@T3@@ multiply-adds. For\n      ResNet-50 on 224×224 input the first conv layer alone is ~118M MACs —\n      this is why ImageNet training was a GPU watershed moment.": {
+   "zh": "@@T0@@滑动窗口的开销。@@T1@@ 在 W×W 特征图上以步长 1 做 K×K 卷积，需要\n      @@T2@@W² · K² · C_in · C_out@@T3@@ 次乘加运算。对 224×224 输入上的 ResNet-50 而言，仅第一个卷积层就有约 1.18 亿次 MAC &mdash;&mdash;\n      这正是 ImageNet 训练成为 GPU 分水岭的原因。",
+   "src": "<strong>Sliding-window cost.</strong> A K×K conv on a W×W feature map at\n      stride 1 does <code>W² · K² · C_in · C_out</code> multiply-adds. For\n      ResNet-50 on 224×224 input the first conv layer alone is ~118M MACs —\n      this is why ImageNet training was a GPU watershed moment.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Reading list": {
+   "zh": "参考文献",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@LeCun et&nbsp;al., 1998@@T1@@ — @@T2@@Gradient-based learning applied to document recognition.@@T3@@ The original LeNet paper; still the cleanest introduction to learned convolutions.": {
+   "zh": "@@T0@@LeCun 等，1998@@T1@@ &mdash;&mdash; @@T2@@Gradient-based learning applied to document recognition.@@T3@@ 原始的 LeNet 论文；至今仍是关于学习式卷积最清晰的入门材料。",
+   "src": "<strong>LeCun et&nbsp;al., 1998</strong> — <em>Gradient-based learning applied to document recognition.</em> The original LeNet paper; still the cleanest introduction to learned convolutions.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Krizhevsky, Sutskever, Hinton, 2012@@T1@@ — @@T2@@ImageNet Classification with Deep CNNs.@@T3@@ AlexNet; first-layer kernel visualisations are the canonical reference.": {
+   "zh": "@@T0@@Krizhevsky、Sutskever、Hinton，2012@@T1@@ &mdash;&mdash; @@T2@@ImageNet Classification with Deep CNNs.@@T3@@ 即 AlexNet；其第一层卷积核的可视化是经典参照。",
+   "src": "<strong>Krizhevsky, Sutskever, Hinton, 2012</strong> — <em>ImageNet Classification with Deep CNNs.</em> AlexNet; first-layer kernel visualisations are the canonical reference.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Simonyan &amp; Zisserman, 2014@@T1@@ — @@T2@@Very Deep CNNs (VGG).@@T3@@ The 3×3-stacked argument for receptive field at low parameter cost.": {
+   "zh": "@@T0@@Simonyan 与 Zisserman，2014@@T1@@ &mdash;&mdash; @@T2@@Very Deep CNNs (VGG).@@T3@@ 以低参数成本堆叠 3×3 以扩大感受野的论证。",
+   "src": "<strong>Simonyan &amp; Zisserman, 2014</strong> — <em>Very Deep CNNs (VGG).</em> The 3×3-stacked argument for receptive field at low parameter cost.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@He et&nbsp;al., 2015@@T1@@ — @@T2@@Deep Residual Learning.@@T3@@ Same-padding everywhere; stride-2 convs replace pooling.": {
+   "zh": "@@T0@@He 等，2015@@T1@@ &mdash;&mdash; @@T2@@Deep Residual Learning.@@T3@@ 处处使用 same 填充；以步长为 2 的卷积替代池化。",
+   "src": "<strong>He et&nbsp;al., 2015</strong> — <em>Deep Residual Learning.</em> Same-padding everywhere; stride-2 convs replace pooling.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Dumoulin &amp; Visin, 2016@@T1@@ — @@T2@@A guide to convolution arithmetic for deep learning.@@T3@@ The reference for output-size formulas, transposed convolutions, dilated convolutions.": {
+   "zh": "@@T0@@Dumoulin 与 Visin，2016@@T1@@ &mdash;&mdash; @@T2@@A guide to convolution arithmetic for deep learning.@@T3@@ 关于输出尺寸公式、转置卷积、空洞卷积的参考。",
+   "src": "<strong>Dumoulin &amp; Visin, 2016</strong> — <em>A guide to convolution arithmetic for deep learning.</em> The reference for output-size formulas, transposed convolutions, dilated convolutions.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "卷积，逐步演示",
+  "tagline": "观察卷积核在图像上滑动，一次一个点积",
+  "summary": "选择一个 3×3 卷积核 &mdash;&mdash; 边缘检测、锐化、模糊，或你自己设计的 &mdash;&mdash; 然后逐个位置地推进一次卷积。观察被高亮的输入区域、卷积核内部的逐元素乘积，以及逐步构建出的输出特征图。可实时调整填充与步长。这正是每一个 CNN 的运作机理，毫无保留地呈现。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "五个预设卷积核 &mdash;&mdash; 水平边缘、竖直边缘、锐化、模糊，以及一个完全可编辑的自定义 3×3。",
+   "步进 / 播放 / 重置控件让你可以一次走一个点积，或实时观看卷积核扫过整幅图像。",
+   "中间面板展示当前位置处精确的输入 × 卷积核乘积 &mdash;&mdash; 是卷积的算术本身，而非抽象概念。",
+   "填充滑块（0–2）与步长选择器（1–2）&mdash;&mdash; 调整时实时观察输出网格改变尺寸。",
+   "以 KaTeX 实时渲染输出维度公式并代入真实数值：O = ⌊(W − K + 2P)/S⌋ + 1。"
+  ],
+  "tags": [
+   "卷积",
+   "CNN",
+   "计算机视觉",
+   "深度学习",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

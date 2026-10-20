@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>图像分割：使用真实的语义分割模型</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>图像分割：使用真实的语义分割模型</h1>
+        <p class="abstract">
+          分类为整幅图像打标签，检测为边界框打标签，而分割则为<em>每一个像素</em>打标签。本页在你提供的任意照片上运行一个真实的预训练 <strong>DeepLab&nbsp;v3+</strong> 分割器，随后让你亲手绘制掩码，观察平均 IoU 与像素准确率如何逐步逼近模型的输出。
+        </p>
+        <div class="byline">
+          <span>约 15 分钟</span>
+          <span>计算机视觉 &middot; TensorFlow.js &middot; 真实模型</span>
+        </div>
+      </header>
+
+      <!-- ─── 前言 ─── -->
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>在浏览器中运行的真实分割器</h2>
+        <p>
+          下方模型是 <a href="https://arxiv.org/abs/1802.02611" target="_blank" rel="noopener noreferrer">DeepLab&nbsp;v3+</a>（MobileNetV2 骨干网络），在 <a href="https://www.tensorflow.org/datasets/catalog/voc" target="_blank" rel="noopener noreferrer">Pascal VOC</a> 基准的 21 个类别上训练（背景 + 20 个前景类：人、猫、狗、自行车、汽车、椅子、沙发、电视……）。TensorFlow.js 会将其下载一次（约 10&nbsp;MB），随后每次推理都在你的 GPU 上本地执行。
+        </p>
+        <p>
+          需要记住的三种分割形式：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>语义分割</strong>：逐像素类别。两个人会合并为一个「人」的色块。</li>
+          <li><strong>实例分割</strong>：逐像素的类别<em>与</em>实例 ID。两个人得到两个掩码。</li>
+          <li><strong>全景分割</strong>：二者的并集——「可数物」（countable things）获得实例 ID，「背景质料」（stuff，如天空、道路）只获得类别。DeepLab 执行语义分割；Mask R-CNN / Mask2Former 处理其余两种。</li>
+        </ul>
+
+        <h3>
+          选择一张照片
+          <span class="model-status is-loading" id="model-status">
+            <span class="dot"></span><span id="model-status-text">正在加载分割器&hellip;</span>
+          </span>
+        </h3>
+        <div class="photo-picker">
+          <label class="upload-zone" id="upload-zone" for="photo-input">
+            <strong>将照片拖放到此处，或点击上传。</strong>
+            <small>本地运行。Pascal VOC 类别效果最佳。</small>
+            <div class="brush-toolbar" style="margin:0.4rem 0 0;">
+              <button class="action-btn action-btn--small" id="webcam-btn" type="button">使用摄像头</button>
+            </div>
+            <input type="file" id="photo-input" accept="image/*" />
+          </label>
+          <div>
+            <div class="sample-grid" id="sample-grid"></div>
+            <p style="font-family: var(--sans); color: var(--muted); font-size: 0.8rem; margin: 0.5rem 0 0;">
+              六张包含 Pascal VOC 类别的 CC 授权素材照片。
+            </p>
+          </div>
+        </div>
+
+        <div class="interactive-figure">
+          <div class="image-stage-wrap">
+            <canvas id="preludeCanvas" class="seg-canvas"></canvas>
+          </div>
+          <figcaption id="prelude-caption">
+            加载中&hellip; 一旦模型与照片就绪，分割叠加层就会在此处显示。
+          </figcaption>
+        </div>
+
+        <div class="stat-strip">
+          <div class="stat-pill">
+            <span class="stat-label">模型</span>
+            <span class="stat-value" style="font-size: 0.92rem;">DeepLab v3+</span>
+          </div>
+          <div class="stat-pill stat-pill--pred">
+            <span class="stat-label">发现的类别</span>
+            <span class="stat-value" id="classes-found">—</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-label">推理时间</span>
+            <span class="stat-value" id="inference-ms">—</span>
+          </div>
+        </div>
+
+        <h3>本图像中检测到的类别</h3>
+        <div id="palette-row" style="margin-top:0.5rem;"></div>
+      </section>
+
+      <!-- ─── 步骤 1 ─── -->
+      <section class="step-section" id="step-1">
+        <div class="step-badge">步骤 1</div>
+        <h2>分割是一个从像素到标签的函数</h2>
+        <div class="math-block" id="math-function"></div>
+        <p>
+          模型的输出是一个 $W \times H \times C$ 的类别 logit 张量——每个像素对每个类别各有一个 logit。在每个像素上取 argmax，就能把它压缩成一张每个像素对应一个整数的标签图。下方是以颜色叠加层渲染的模型原始标签图。每个像素恰好只有一种颜色，因为每个像素恰好只有一个胜出类别。
+        </p>
+
+        <div class="interactive-figure">
+          <div class="image-stage-wrap">
+            <canvas id="modelCanvas" class="seg-canvas"></canvas>
+          </div>
+          <figcaption>
+            在原图像与模型的语义掩码之间切换。
+          </figcaption>
+        </div>
+
+        <div class="button-row">
+          <button class="toggle-btn is-active" data-view="image">原图</button>
+          <button class="toggle-btn" data-view="overlay">原图 + 掩码</button>
+          <button class="toggle-btn" data-view="mask">仅掩码</button>
+        </div>
+
+        <div class="control-row">
+          <div class="control-block">
+            <label>掩码不透明度 <span><span id="alpha-val">0.55</span></span></label>
+            <input type="range" id="alpha-slider" min="0" max="1" step="0.05" value="0.55" />
+          </div>
+          <div class="control-block">
+            <label>悬停像素 <span id="hover-info">—</span></label>
+            <p style="font-family:var(--sans); color:var(--muted); font-size:0.85rem; margin:0.4rem 0 0;">
+              将鼠标移到图像上，查看模型为该确切像素分配了哪个类别。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── 步骤 2 ─── -->
+      <section class="step-section" id="step-2">
+        <div class="step-badge">步骤 2</div>
+        <h2>亲手绘制掩码并实时评分</h2>
+        <p>
+          左侧画布是原图（以淡色叠加模型掩码作为参考）。右侧画布是空白的掩码。选择一个类别、涂抹，然后观察每一笔之后平均 IoU、像素准确率与逐类 IoU 的更新——以真实模型输出作为真值。
+        </p>
+
+        <div class="split-grid">
+          <div class="interactive-figure">
+            <div class="image-stage-wrap">
+              <canvas id="referenceCanvas" class="seg-canvas"></canvas>
+            </div>
+            <figcaption>带模型掩码的图（参考）。</figcaption>
+          </div>
+          <div class="interactive-figure">
+            <div class="image-stage-wrap">
+              <canvas id="paintCanvas" class="seg-canvas"></canvas>
+            </div>
+            <figcaption>你的掩码（在此涂抹）。</figcaption>
+          </div>
+        </div>
+
+        <div class="brush-toolbar" id="paint-toolbar"></div>
+        <div class="brush-toolbar">
+          <div class="control-block" style="padding: 0.5rem 1rem; margin:0;">
+            <label style="margin:0;">画笔大小 <span><span id="brush-size-val">14</span> 像素</span></label>
+            <input type="range" id="brush-size" min="2" max="60" step="1" value="14" />
+          </div>
+          <button class="action-btn action-btn--ghost action-btn--small" id="btn-clear-mask">清空我的掩码</button>
+          <button class="action-btn action-btn--ghost action-btn--small" id="btn-show-gt">用模型输出填充</button>
+        </div>
+
+        <div class="math-block" id="math-metrics"></div>
+
+        <div class="stat-strip">
+          <div class="stat-pill stat-pill--big">
+            <span class="stat-label">像素准确率</span>
+            <span class="stat-value" id="pixel-acc">—</span>
+          </div>
+          <div class="stat-pill stat-pill--pred stat-pill--big">
+            <span class="stat-label">平均 IoU</span>
+            <span class="stat-value" id="mean-iou">—</span>
+          </div>
+          <div class="stat-pill stat-pill--big">
+            <span class="stat-label">已涂抹像素</span>
+            <span class="stat-value" id="pix-painted">0</span>
+          </div>
+        </div>
+
+        <h3>逐类 IoU</h3>
+        <div id="per-class-iou" class="examples-table-wrap"></div>
+      </section>
+
+      <!-- ─── 步骤 3 ─── -->
+      <section class="step-section" id="step-3">
+        <div class="step-badge">步骤 3</div>
+        <h2>区域生长：神经网络之前的基线方法</h2>
+        <p>
+          在 CNN 出现之前，分割从一颗种子像素出发，在邻域颜色保持相似时向外生长。其规则只需四行代码：在 4-邻接邻域上做 BFS；若某像素与种子（或该区域的滑动均值）的 RGB 距离在阈值 $\tau$ 之内，就将其纳入。
+        </p>
+        <p>
+          把它的输出与神经网络在同一张照片上的输出作比较。
+        </p>
+
+        <div class="control-row">
+          <div class="control-block">
+            <label>颜色阈值 <span>&tau; = <span id="tau-val">30</span></span></label>
+            <input type="range" id="tau-slider" min="1" max="150" step="1" value="30" />
+          </div>
+          <div class="control-block">
+            <label>对照 <span id="rg-mode-label">种子像素颜色</span></label>
+            <div class="button-row" style="margin:0.4rem 0 0;">
+              <button class="toggle-btn is-active" id="mode-seed">种子像素</button>
+              <button class="toggle-btn" id="mode-running">滑动均值</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="interactive-figure">
+          <div class="image-stage-wrap">
+            <canvas id="rgCanvas" class="seg-canvas"></canvas>
+          </div>
+          <figcaption>点击任意像素以放置种子。橙色 = 被纳入该区域。</figcaption>
+        </div>
+
+        <div class="stat-strip">
+          <div class="stat-pill"><span class="stat-label">种子颜色</span><span class="stat-value" id="seed-color">—</span></div>
+          <div class="stat-pill stat-pill--pred stat-pill--big"><span class="stat-label">区域像素数</span><span class="stat-value" id="region-size">0</span></div>
+          <div class="stat-pill stat-pill--big"><span class="stat-label">与模型的 IoU</span><span class="stat-value" id="rg-iou">—</span></div>
+        </div>
+
+        <div class="callout callout--think">
+          <strong>神经网络之前的弱点。</strong>
+          在天空上放置一颗种子，缓慢调高 $\tau$。当 $\tau$ 较低时，你得到一块干净的天空掩码。当 $\tau$ 较高时，一旦建筑物的颜色足够相近，区域就会渗漏进去。这正是核心问题所在：「颜色相同」只是「物体相同」的一个脆弱代理。神经网络学会了在颜色无关紧要时忽略它（阴影下的草与阳光下的草依旧都是草），而在颜色确实重要时才予以关注。
+        </div>
+      </section>
+
+      <!-- ─── 步骤 4 ─── -->
+      <section class="step-section" id="step-4">
+        <div class="step-badge">步骤 4</div>
+        <h2>优于区域生长的各类架构</h2>
+        <div class="examples-table-wrap">
+          <table class="examples-table">
+            <thead>
+              <tr><th>类别</th><th>关键做法</th><th>代表模型</th><th>优势</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>编码器-解码器</strong></td>
+                <td>CNN 先下采样得到粗糙特征，再上采样；跳跃连接把精细细节重新粘合回来。</td>
+                <td>FCN、U-Net、SegNet</td>
+                <td>得到干净的医学影像掩码；模型小、速度快、可解释。</td>
+              </tr>
+              <tr>
+                <td><strong>空洞卷积 / 多尺度（本页所用）</strong></td>
+                <td>保持高分辨率；通过空洞卷积 + 空洞空间金字塔池化扩大感受野。</td>
+                <td>DeepLab v1–v3+、PSPNet</td>
+                <td>在无分辨率损失的前提下获得大感受野；在自然图像上表现优异。</td>
+              </tr>
+              <tr>
+                <td><strong>掩码预测 / Transformer</strong></td>
+                <td>解码器查询直接输出（类别，二值掩码）对——无需逐像素 argmax。</td>
+                <td>Mask R-CNN、MaskFormer、Mask2Former、SAM</td>
+                <td>原生支持实例分割与全景分割；代表了当前最优水平。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout--warn">
+          <strong>为何分辨率与感受野是一对真实的矛盾。</strong>
+          要把某个像素判定为 <em>汽车</em>，模型需要来自周围众多像素的上下文（大感受野、深层特征）。要把该像素<em>恰好定位在汽车边缘</em>上，模型又需要完整的输入分辨率。上述每一种架构都是一种特定的折衷方案：跳跃连接、空洞卷积、掩码查询。DeepLab（本页所用）采用的是空洞卷积 + 空洞空间金字塔池化。
+        </div>
+      </section>
+
+      <!-- ─── 步骤 5 ─── -->
+      <section class="step-section" id="step-5">
+        <div class="step-badge">步骤 5</div>
+        <h2>为何仅用交叉熵会失效</h2>
+        <p>
+          逐像素交叉熵是最直观的损失，但在大多数真实图像中，80% 的像素都是背景。一个始终预测「背景」的模型能拿到 80% 的准确率，却毫无用处。有三种损失可修正这种不平衡：
+        </p>
+        <div class="math-block" id="math-losses"></div>
+        <ul class="explanation-list">
+          <li><strong>Dice 损失</strong>（Milletari 等，2016）：最大化软 Dice 系数。分子与分母同步缩小，因此模型在稀有类别上仍能获得信号。</li>
+          <li><strong>IoU / Lovász</strong>：直接优化你真正关心的指标。Lovász 使之可微。</li>
+          <li><strong>Focal</strong>（Lin 等，2017）：对交叉熵重新赋权，使容易的像素贡献更少。这主要是一种检测技巧，但也被广泛借用到分割任务中。</li>
+        </ul>
+      </section>
+
+      <!-- ─── 步骤 6 ─── -->
+      <section class="step-section" id="step-6">
+        <div class="step-badge">步骤 6</div>
+        <h2>那个大数字</h2>
+        <p>
+          一次分割预测就是逐像素的一次判定。规模至关重要：即便是一张很小的照片，也有数十万个像素。
+        </p>
+        <div class="reveal-card">
+          <h3>本照片的逐像素预测数量</h3>
+          <div class="reveal-number" id="num-pixels">—</div>
+          <p>
+            每一个像素都必须得到一个类别。一个 99% 准确率的模型仍会在数千个像素上出错——这通常表现为锯齿状的边界以及被漏掉的细长结构。
+          </p>
+        </div>
+      </section>
+
+      <!-- ─── 步骤 7 ─── -->
+      <section class="step-section" id="step-7">
+        <div class="step-badge">步骤 7</div>
+        <h2>仍然容易让人栽跟头的四件事</h2>
+        <div class="misconception-grid">
+          <div class="misconception-card">
+            <span class="misconception-icon">误区</span>
+            <p><strong>「像素准确率就能说明模型是否优秀。」</strong><br />
+              在一张以天空为主的照片上，那个总是预测背景的平凡模型反而获胜。务必在报告像素准确率的同时报告平均 IoU。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">误区</span>
+            <p><strong>「掩码只要覆盖得更多就更安全。」</strong><br />
+              一个覆盖了真值同时又多出部分的掩码，其 IoU = 真值 / 掩码，会随掩码增大而缩小。紧致者胜出；漫溢扩张者受到惩罚。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">误区</span>
+            <p><strong>「分割不过是做更多的分类而已。」</strong><br />
+              逐像素 argmax 会产生闪烁的、孤立的错误像素。真实架构会注入<em>结构性</em>先验：跳跃连接、空洞上下文、CRF、解码器查询。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">误区</span>
+            <p><strong>「IoU 0.9 看上去完美无缺。」</strong><br />
+              它仍可能漏掉一根横贯图像的 10 像素电话线——也许那正是你的自动驾驶系统所需的那一个像素。定性的失败案例复核不是可选项。</p>
+          </div>
+        </div>
+
+        <div class="callout callout--think" style="margin-top: 2rem;">
+          <strong>最终要点。</strong>
+          分割器是一个从像素到标签的函数。你如今已亲眼看到真实的 DeepLab 在你的照片上实时完成这一过程，亲手绘制了一个与之竞争的掩码，对照模型为其评分，并看到神经网络之前的区域生长方法以那些恰恰催生了现代架构的方式成功与失败。所有更新的方法（Mask R-CNN、SAM、SegFormer）都是同一任务，只是网络更大、解码器更聪明。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-8">
+        <div class="step-badge">步骤 8</div>
+        <h2>三种分割形式</h2>
+        <ul class="explanation-list">
+          <li><strong>语义分割。</strong> 每个像素获得一个<em>类别</em>。相邻的两辆车会成为一个「汽车」色块。这是本文重点讨论的标准任务。数据集：ADE20K、Cityscapes（19 类）、PASCAL VOC。</li>
+          <li><strong>实例分割。</strong> 每个像素获得一个类别<em>以及</em>一个实例 ID。两辆车分别成为 car-1 与 car-2。Mask R-CNN 是经典做法：先检测边界框，再在每个框内进行分割。数据集：COCO、LVIS。</li>
+          <li><strong>全景分割。</strong> 将二者结合起来——「可数物」（如汽车、人）获得实例 ID；「背景质料」（不可数，如天空、道路）只获得类别。COCO-Panoptic 与 Cityscapes-Panoptic 数据集在 2018 年前后围绕这一范式统一了整个领域。</li>
+        </ul>
+        <p>
+          2021 年以来的趋势是把三者统一到单一 Transformer-解码器架构之下：Mask2Former、Mask DINO、OneFormer。一个模型、一套权重，完成全部三种任务。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-9">
+        <div class="step-badge">步骤 9</div>
+        <h2>SAM —— 分割领域的基础模型</h2>
+        <p>
+          Segment Anything（Kirillov 等，2023；SAM-2，2024）之于分割，正如 GPT-3 之于文本：在一个十亿掩码上预训练一个巨型模型，随后让它根据提示（点、框或文本）分割任意对象。架构：ViT 图像编码器 + 小型提示编码器 + 轻量掩码解码器。输出：零样本、高质量掩码，且延迟达到交互级。
+        </p>
+        <ul class="explanation-list">
+          <li><strong>优势。</strong> 对新奇对象具备零样本能力；可交互（点击一个点即可得到掩码）；到 2024 年已可用于生产环境。</li>
+          <li><strong>不足。</strong> 没有类别标签（SAM 只做分割，不做分类）；小物体上的细粒度边界仍不完美；若需要语义标签，还需在其上叠加一个独立的分类器。</li>
+          <li><strong>SAM-2（2024）。</strong> 增加视频支持——借助记忆在帧间传播掩码。</li>
+        </ul>
+        <p>
+          正确的心智模型是：SAM 是高召回率的「找出每一个物体」工具；你把它与分类器（CLIP、Grounding-DINO）组合，即可构成「找出类别 X 的每一个物体」的流水线。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-10">
+        <div class="step-badge">步骤 10</div>
+        <h2>分割的损失函数</h2>
+        <ul class="explanation-list">
+          <li><strong>逐像素交叉熵。</strong> 默认选择。速度快、易于理解，在各类别大致均衡时表现良好。</li>
+          <li><strong>加权交叉熵。</strong> 对稀有类别重新赋权。对于病灶可能仅占 1% 像素的医学分割尤为重要。</li>
+          <li><strong>Dice 损失。</strong> $1 - 2|A \cap B| / (|A| + |B|)$。直接优化重叠程度；对类别不平衡极为有效。大多数医学分割论文使用 Dice 或 Dice + CE。</li>
+          <li><strong>Focal 损失。</strong> 降低容易样例的权重（$(1-p_t)^\gamma$ 因子）。当大量容易的负样本主导梯度时很有帮助。</li>
+          <li><strong>边界损失。</strong> 对类别边界附近的错误施加更重的惩罚——促使边缘锐利而准确。</li>
+          <li><strong>交叉熵 + Dice 组合。</strong> 大多数实用配方把二者混合使用。CE 提供稳定梯度，Dice 负责重叠优化。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-11">
+        <div class="step-badge">步骤 11</div>
+        <h2>参考文献</h2>
+        <ul class="explanation-list">
+          <li><strong>Long、Shelhamer、Darrell（2015）</strong> —— <em>Fully Convolutional Networks for Semantic Segmentation.</em> 奠定该领域的论文。</li>
+          <li><strong>Ronneberger、Fischer、Brox（2015）</strong> —— <em>U-Net.</em> 参见专门的 <a href="../unet/index.html">U-Net 文章</a>。</li>
+          <li><strong>Chen 等（2017）</strong> —— <em>DeepLab.</em> 用空洞／膨胀卷积获得高分辨率特征。</li>
+          <li><strong>He 等（2017）</strong> —— <em>Mask R-CNN.</em> 实例分割的黄金标准。</li>
+          <li><strong>Cheng、Schwing、Kirillov（2022）</strong> —— <em>Mask2Former.</em> 统一化的 Transformer 架构。</li>
+          <li><strong>Kirillov 等（2023）</strong> —— <em>Segment Anything.</em></li>
+          <li><strong>Ravi 等（2024）</strong> —— <em>SAM 2.</em> 视频扩展。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/deeplab@0.2.1/dist/deeplab.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

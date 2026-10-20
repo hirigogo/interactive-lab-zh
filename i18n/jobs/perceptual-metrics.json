@@ -1,0 +1,970 @@
+{
+ "slug": "perceptual-metrics",
+ "units": {
+  "Perceptual Quality, Pixel by Pixel": {
+   "zh": "逐像素审视感知质量",
+   "src": "Perceptual Quality, Pixel by Pixel",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "PSNR has been the workhorse of image-quality measurement for\n          forty years. SSIM, MS-SSIM, and LPIPS exist because it lies.\n          Distort a reference image in five ways live, watch the\n          metrics disagree, and see the classic \"same PSNR, very\n          different perceived quality\" trap. Then FID and KID for\n          generative models.": {
+   "zh": "四十年来，PSNR 一直是图像质量测量领域的主力工具。SSIM、MS-SSIM 与 LPIPS 之所以存在，正是因为 PSNR 会说谎。实时用五种方式扭曲参考图像，观察各指标如何产生分歧，并看到经典的“PSNR 相同、主观质量迥异”陷阱。随后是面向生成模型的 FID 与 KID。",
+   "src": "PSNR has been the workhorse of image-quality measurement for\n          forty years. SSIM, MS-SSIM, and LPIPS exist because it lies.\n          Distort a reference image in five ways live, watch the\n          metrics disagree, and see the classic \"same PSNR, very\n          different perceived quality\" trap. Then FID and KID for\n          generative models.",
+   "tags": []
+  },
+  "@@T0@@~18 min@@T1@@\n          @@T2@@Computer vision &middot; Evaluation &middot; Image quality@@T3@@": {
+   "zh": "@@T0@@约 18 分钟@@T1@@\n          @@T2@@计算机视觉 &middot; 评估 &middot; 图像质量@@T3@@",
+   "src": "<span>~18 min</span>\n          <span>Computer vision &middot; Evaluation &middot; Image quality</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Why \"MSE was fine, actually\" stopped being true": {
+   "zh": "为何“MSE 其实一直挺好”不再成立",
+   "src": "Why \"MSE was fine, actually\" stopped being true",
+   "tags": []
+  },
+  "For most of image processing's history, two images were\n          compared by mean squared error (MSE) or its log-scaled\n          cousin PSNR. Compress a photograph; measure the MSE; report\n          a number; ship. The procedure has the virtue of being\n          differentiable, cheap, and uncontroversial.": {
+   "zh": "在图像处理史的绝大部分时间里，比较两幅图像依靠的是均方误差（MSE）或其取对数后的表亲 PSNR。压缩一张照片；测出 MSE；报出一个数；发布。这套流程的优点在于可微、廉价且无可争议。",
+   "src": "For most of image processing's history, two images were\n          compared by mean squared error (MSE) or its log-scaled\n          cousin PSNR. Compress a photograph; measure the MSE; report\n          a number; ship. The procedure has the virtue of being\n          differentiable, cheap, and uncontroversial.",
+   "tags": []
+  },
+  "It also has one catastrophic problem: the human visual\n          system does not perceive error pixel-by-pixel. A\n          constant brightness offset of 5/255 across an image is\n          essentially invisible — yet contributes the same MSE as\n          changing every tenth pixel by 50/255, which is glaringly\n          obvious. Same MSE, two visual planets apart.": {
+   "zh": "它也有一个灾难性的问题：人类视觉系统并非逐像素地感知误差。整幅图像上 5/255 的恒定亮度偏移基本上不可见——但它贡献的 MSE 与把每第十个像素改变 50/255 相当，而后者醒目得刺眼。MSE 相同，视觉上却如隔星球。",
+   "src": "It also has one catastrophic problem: the human visual\n          system does not perceive error pixel-by-pixel. A\n          constant brightness offset of 5/255 across an image is\n          essentially invisible — yet contributes the same MSE as\n          changing every tenth pixel by 50/255, which is glaringly\n          obvious. Same MSE, two visual planets apart.",
+   "tags": []
+  },
+  "The reaction was a sequence of metrics that try to encode\n          increasingly accurate models of what humans actually see:\n          local structure (SSIM), multi-scale structure (MS-SSIM),\n          mid-level perceptual features (LPIPS), and — for generative\n          models where there is no reference — distribution-level\n          metrics (FID, KID).": {
+   "zh": "对此的回应是一系列指标，它们试图编码对人类真实所见越来越精确的模型：局部结构（SSIM）、多尺度结构（MS-SSIM）、中层感知特征（LPIPS），以及——对于没有参考图像的生成模型——分布级指标（FID、KID）。",
+   "src": "The reaction was a sequence of metrics that try to encode\n          increasingly accurate models of what humans actually see:\n          local structure (SSIM), multi-scale structure (MS-SSIM),\n          mid-level perceptual features (LPIPS), and — for generative\n          models where there is no reference — distribution-level\n          metrics (FID, KID).",
+   "tags": []
+  },
+  "@@T0@@The single most useful intuition.@@T1@@\n          PSNR cares about energy. SSIM cares about correlated\n          structure. LPIPS cares about high-level perceptual content\n          (edges, textures, parts). FID cares whether two image\n          @@T2@@sets@@T3@@ were drawn from the same distribution. They\n          are not interchangeable, and the literature is littered\n          with papers whose claims dissolve when you switch metric.": {
+   "zh": "@@T0@@最有用的一条直觉。@@T1@@\n          PSNR 关心能量。SSIM 关心相关的结构。LPIPS 关心高层感知内容（边缘、纹理、部件）。FID 关心两个图像@@T2@@集合@@T3@@是否来自同一分布。它们不可互换，文献中充斥着在换用指标后其结论便土崩瓦解的论文。",
+   "src": "<strong>The single most useful intuition.</strong>\n          PSNR cares about energy. SSIM cares about correlated\n          structure. LPIPS cares about high-level perceptual content\n          (edges, textures, parts). FID cares whether two image\n          <em>sets</em> were drawn from the same distribution. They\n          are not interchangeable, and the literature is littered\n          with papers whose claims dissolve when you switch metric.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "PSNR — MSE in decibels": {
+   "zh": "PSNR——以分贝表示的 MSE",
+   "src": "PSNR — MSE in decibels",
+   "tags": []
+  },
+  "Given a reference image $x$ and a distorted copy $y$, with\n          each pixel in $[0, L]$ (typically $L = 255$ or $L = 1$):": {
+   "zh": "给定参考图像 $x$ 与其失真副本 $y$，每个像素取值于 $[0, L]$（通常 $L = 255$ 或 $L = 1$）：",
+   "src": "Given a reference image $x$ and a distorted copy $y$, with\n          each pixel in $[0, L]$ (typically $L = 255$ or $L = 1$):",
+   "tags": []
+  },
+  "PSNR is just the negative log of MSE, normalised by the\n          dynamic range. The decibel scale compresses several orders\n          of magnitude into a single number you can compare across\n          codecs. As a back-of-envelope:": {
+   "zh": "PSNR 不过是 MSE 的负对数，并以动态范围归一化。分贝尺度把若干数量级压缩成单个数字，便于在不同编解码器之间比较。作为粗略的经验法则：",
+   "src": "PSNR is just the negative log of MSE, normalised by the\n          dynamic range. The decibel scale compresses several orders\n          of magnitude into a single number you can compare across\n          codecs. As a back-of-envelope:",
+   "tags": []
+  },
+  "$&gt; 40$ dB — visually identical for most content.": {
+   "zh": "$&gt; 40$ dB——对大多数内容而言视觉上完全一致。",
+   "src": "$&gt; 40$ dB — visually identical for most content.",
+   "tags": []
+  },
+  "$30$–$40$ dB — small artefacts, often acceptable.": {
+   "zh": "$30$–$40$ dB——轻微伪影，通常可以接受。",
+   "src": "$30$–$40$ dB — small artefacts, often acceptable.",
+   "tags": []
+  },
+  "$20$–$30$ dB — visible degradation.": {
+   "zh": "$20$–$30$ dB——可见的退化。",
+   "src": "$20$–$30$ dB — visible degradation.",
+   "tags": []
+  },
+  "$&lt; 20$ dB — heavily distorted.": {
+   "zh": "$&lt; 20$ dB——严重失真。",
+   "src": "$&lt; 20$ dB — heavily distorted.",
+   "tags": []
+  },
+  "These thresholds are @@T0@@indicative@@T1@@, not perceptual\n          law. The same 30 dB image can look pristine if the error is\n          uniform brightness, and like garbage if it is salt-and-pepper\n          noise. The interactive cards below make this concrete.": {
+   "zh": "这些阈值只是@@T0@@参考性的@@T1@@，并非感知定律。同样是 30 dB 的图像，若误差是均匀亮度，可能看起来毫无瑕疵；若是椒盐噪声，则糟糕透顶。下面的交互卡片让这一点变得具体。",
+   "src": "These thresholds are <em>indicative</em>, not perceptual\n          law. The same 30 dB image can look pristine if the error is\n          uniform brightness, and like garbage if it is salt-and-pepper\n          noise. The interactive cards below make this concrete.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "PSNR's three honest virtues: it is convex in $y$, it admits\n          a closed-form gradient, and it is what your codec\n          publication will be compared on. Its three honest sins:\n          uniform per-pixel weighting, blindness to spatial\n          structure, and blindness to anything the human visual\n          system actually exploits.": {
+   "zh": "PSNR 的三个坦荡优点：它对 $y$ 是凸的，具有闭式梯度，而且它是你编解码器论文将被比较的基准。它的三项坦荡罪过：对每个像素均匀加权、对空间结构视而不见，以及对人类视觉系统实际利用的一切视而不见。",
+   "src": "PSNR's three honest virtues: it is convex in $y$, it admits\n          a closed-form gradient, and it is what your codec\n          publication will be compared on. Its three honest sins:\n          uniform per-pixel weighting, blindness to spatial\n          structure, and blindness to anything the human visual\n          system actually exploits.",
+   "tags": []
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "SSIM — luminance, contrast, structure": {
+   "zh": "SSIM——亮度、对比度、结构",
+   "src": "SSIM — luminance, contrast, structure",
+   "tags": []
+  },
+  "Wang et&nbsp;al. (2004) made a small, brilliant observation:\n          perceived similarity can be decomposed into three local\n          comparisons — does brightness match, does contrast match,\n          does the @@T0@@pattern@@T1@@ match? Run each on a small sliding\n          window, multiply, average.": {
+   "zh": "Wang 等人（2004）提出了一个简短而精彩的观点：感知相似度可以分解为三项局部比较——亮度是否匹配、对比度是否匹配、@@T0@@图案@@T1@@是否匹配？在一个小滑动窗口上分别计算，再相乘、求平均。",
+   "src": "Wang et&nbsp;al. (2004) made a small, brilliant observation:\n          perceived similarity can be decomposed into three local\n          comparisons — does brightness match, does contrast match,\n          does the <em>pattern</em> match? Run each on a small sliding\n          window, multiply, average.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "On a window with local means $\\mu_x, \\mu_y$, local\n          variances $\\sigma_x^2, \\sigma_y^2$, and local covariance\n          $\\sigma_{xy}$, define": {
+   "zh": "在具有局部均值 $\\mu_x, \\mu_y$、局部方差 $\\sigma_x^2, \\sigma_y^2$ 与局部协方差 $\\sigma_{xy}$ 的窗口上，定义",
+   "src": "On a window with local means $\\mu_x, \\mu_y$, local\n          variances $\\sigma_x^2, \\sigma_y^2$, and local covariance\n          $\\sigma_{xy}$, define",
+   "tags": []
+  },
+  "The product $l \\cdot c \\cdot s$ collapses to the iconic\n          single-line SSIM formula": {
+   "zh": "乘积 $l \\cdot c \\cdot s$ 可化简为那个标志性的单行 SSIM 公式",
+   "src": "The product $l \\cdot c \\cdot s$ collapses to the iconic\n          single-line SSIM formula",
+   "tags": []
+  },
+  "with stabilisers $C_1 = (0.01 L)^2$, $C_2 = (0.03 L)^2$.\n          Average over all windows to get the image-level SSIM.\n          Range: $[-1, 1]$; identical images give $1$.": {
+   "zh": "其中稳定项 $C_1 = (0.01 L)^2$，$C_2 = (0.03 L)^2$。对所有窗口取平均即得图像级 SSIM。取值范围为 $[-1, 1]$；完全相同的图像给出 $1$。",
+   "src": "with stabilisers $C_1 = (0.01 L)^2$, $C_2 = (0.03 L)^2$.\n          Average over all windows to get the image-level SSIM.\n          Range: $[-1, 1]$; identical images give $1$.",
+   "tags": []
+  },
+  "What this buys you:": {
+   "zh": "这带来了什么：",
+   "src": "What this buys you:",
+   "tags": []
+  },
+  "@@T0@@Luminance-invariant under shifts.@@T1@@ If\n            you add a constant to every pixel, $\\mu_x$ and $\\mu_y$\n            both shift; $l$ stays near 1. PSNR collapses.": {
+   "zh": "@@T0@@在平移下对亮度不变。@@T1@@ 若给每个像素加上一个常数，$\\mu_x$ 与 $\\mu_y$ 都会平移；$l$ 仍接近 1。而 PSNR 会崩塌。",
+   "src": "<strong>Luminance-invariant under shifts.</strong> If\n            you add a constant to every pixel, $\\mu_x$ and $\\mu_y$\n            both shift; $l$ stays near 1. PSNR collapses.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Contrast-invariant under scaling.@@T1@@ If\n            you multiply by a constant, $c$ stays near 1.": {
+   "zh": "@@T0@@在缩放下对对比度不变。@@T1@@ 若乘以一个常数，$c$ 仍接近 1。",
+   "src": "<strong>Contrast-invariant under scaling.</strong> If\n            you multiply by a constant, $c$ stays near 1.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Structure is normalised cross-correlation.@@T1@@\n            The $s$ term is exactly $\\sigma_{xy} / (\\sigma_x \\sigma_y)$\n            — Pearson correlation in a window. This is the part that\n            actually responds to @@T2@@where the edges and textures sit@@T3@@.": {
+   "zh": "@@T0@@结构项即归一化互相关。@@T1@@\n            $s$ 项正是 $\\sigma_{xy} / (\\sigma_x \\sigma_y)$——即窗口内的 Pearson 相关系数。正是这一项真正对@@T2@@边缘与纹理所在之处@@T3@@作出响应。",
+   "src": "<strong>Structure is normalised cross-correlation.</strong>\n            The $s$ term is exactly $\\sigma_{xy} / (\\sigma_x \\sigma_y)$\n            — Pearson correlation in a window. This is the part that\n            actually responds to <em>where the edges and textures sit</em>.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Why a window matters.@@T1@@\n          Compute the three terms on the whole image and you'd get\n          a global summary that washes out local patterns. SSIM is\n          essentially a Pearson-correlation filter that operates at\n          the scale of an 8&times;8 or 11&times;11 patch — the scale\n          at which human vision aggregates structure.": {
+   "zh": "@@T0@@为何窗口至关重要。@@T1@@\n          若在整幅图像上计算这三项，你会得到一个把局部图案冲刷掉的全局概览。SSIM 本质上是一个在 8&times;8 或 11&times;11 图块尺度上运作的 Pearson 相关滤波器——而这也正是人类视觉聚合结构的尺度。",
+   "src": "<strong>Why a window matters.</strong>\n          Compute the three terms on the whole image and you'd get\n          a global summary that washes out local patterns. SSIM is\n          essentially a Pearson-correlation filter that operates at\n          the scale of an 8&times;8 or 11&times;11 patch — the scale\n          at which human vision aggregates structure.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "MS-SSIM — and why one window isn't enough": {
+   "zh": "MS-SSIM——以及为何单个窗口还不够",
+   "src": "MS-SSIM — and why one window isn't enough",
+   "tags": []
+  },
+  "A single 11&times;11 window has a single spatial frequency\n          band of sensitivity. But human vision is multi-scale: an\n          identical SSIM at 8&times;8 can correspond to two\n          perceptually different images if one preserves coarse\n          structure and the other preserves fine. Multi-Scale SSIM\n          (Wang et&nbsp;al., 2003) computes SSIM at $M$ downsampled\n          levels and combines them as a weighted product:": {
+   "zh": "单个 11&times;11 窗口只对应单一空间频率的敏感带。但人类视觉是多尺度的：在 8&times;8 尺度上相同的 SSIM 可能对应两幅感知上不同的图像——只要一幅保留了粗结构而另一幅保留了细结构。多尺度 SSIM（Wang 等人，2003）在 $M$ 个下采样层级上计算 SSIM，并以加权乘积合并：",
+   "src": "A single 11&times;11 window has a single spatial frequency\n          band of sensitivity. But human vision is multi-scale: an\n          identical SSIM at 8&times;8 can correspond to two\n          perceptually different images if one preserves coarse\n          structure and the other preserves fine. Multi-Scale SSIM\n          (Wang et&nbsp;al., 2003) computes SSIM at $M$ downsampled\n          levels and combines them as a weighted product:",
+   "tags": []
+  },
+  "The weights $\\alpha, \\beta_j, \\gamma_j$ were fitted on\n          human-rated distortions. The headline benefit: MS-SSIM\n          tracks subjective quality better than single-scale SSIM\n          for blurring and compression, and it became the standard\n          for image-compression evaluation.": {
+   "zh": "权重 $\\alpha, \\beta_j, \\gamma_j$ 是在人工评分的失真样本上拟合得到的。其首要优势在于：对于模糊与压缩，MS-SSIM 追踪主观质量的效果优于单尺度 SSIM，并成为图像压缩评估的标准。",
+   "src": "The weights $\\alpha, \\beta_j, \\gamma_j$ were fitted on\n          human-rated distortions. The headline benefit: MS-SSIM\n          tracks subjective quality better than single-scale SSIM\n          for blurring and compression, and it became the standard\n          for image-compression evaluation.",
+   "tags": []
+  },
+  "Once you see this, you start asking the bigger question:\n          if multi-scale structure is the right thing to compare, why\n          define structure by hand? Could we let a network learn it?": {
+   "zh": "一旦看清这一点，你就会提出更大的问题：如果多尺度结构才是该比较的对象，为何要手工定义结构？能不能让网络来学习它？",
+   "src": "Once you see this, you start asking the bigger question:\n          if multi-scale structure is the right thing to compare, why\n          define structure by hand? Could we let a network learn it?",
+   "tags": []
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "LPIPS — distance in a learned feature space": {
+   "zh": "LPIPS——在学得的特征空间中的距离",
+   "src": "LPIPS — distance in a learned feature space",
+   "tags": []
+  },
+  "LPIPS (Zhang et&nbsp;al., 2018, \"The Unreasonable\n          Effectiveness of Deep Features as a Perceptual Metric\")\n          replaces hand-crafted structure with the activations of a\n          pretrained image classifier. Run both images through, say,\n          AlexNet or VGG-16; extract feature maps $\\phi^{(\\ell)}(x)$\n          and $\\phi^{(\\ell)}(y)$ at several layers; compute a\n          per-channel learnt weighting and take the L2 distance.": {
+   "zh": "LPIPS（Zhang 等人，2018，论文题为《The Unreasonable Effectiveness of Deep Features as a Perceptual Metric》）用预训练图像分类器的激活取代手工设计的结构。把两幅图像分别送入比如 AlexNet 或 VGG-16；在若干层提取特征图 $\\phi^{(\\ell)}(x)$ 与 $\\phi^{(\\ell)}(y)$；计算逐通道的学得权重，再取 L2 距离。",
+   "src": "LPIPS (Zhang et&nbsp;al., 2018, \"The Unreasonable\n          Effectiveness of Deep Features as a Perceptual Metric\")\n          replaces hand-crafted structure with the activations of a\n          pretrained image classifier. Run both images through, say,\n          AlexNet or VGG-16; extract feature maps $\\phi^{(\\ell)}(x)$\n          and $\\phi^{(\\ell)}(y)$ at several layers; compute a\n          per-channel learnt weighting and take the L2 distance.",
+   "tags": []
+  },
+  "The weights $w_\\ell$ are trained on the BAPPS dataset:\n          human raters were given two distorted versions of the same\n          reference and asked which looked more like the original.\n          LPIPS is the linear combination of per-layer feature\n          distances that best agrees with those 2AFC choices.": {
+   "zh": "权重 $w_\\ell$ 在 BAPPS 数据集上训练得到：人类评分者会看到同一参考图像的两个失真版本，并被问及哪一个看起来更像原图。LPIPS 就是与这些 2AFC 选择最一致的各层特征距离的线性组合。",
+   "src": "The weights $w_\\ell$ are trained on the BAPPS dataset:\n          human raters were given two distorted versions of the same\n          reference and asked which looked more like the original.\n          LPIPS is the linear combination of per-layer feature\n          distances that best agrees with those 2AFC choices.",
+   "tags": []
+  },
+  "Three things this gets you that SSIM does not:": {
+   "zh": "它能做到而 SSIM 做不到的三件事：",
+   "src": "Three things this gets you that SSIM does not:",
+   "tags": []
+  },
+  "@@T0@@Texture invariance.@@T1@@ Two patches of the\n            same grass texture have small LPIPS even when they have\n            zero pixel overlap — the deep features encode\n            @@T2@@what@@T3@@ the texture is, not where each blade is.": {
+   "zh": "@@T0@@纹理不变性。@@T1@@ 同一片草地纹理的两个图块即使像素完全不重叠，其 LPIPS 也很小——深层特征编码的是纹理@@T2@@是什么@@T3@@，而非每一根草叶位于何处。",
+   "src": "<strong>Texture invariance.</strong> Two patches of the\n            same grass texture have small LPIPS even when they have\n            zero pixel overlap — the deep features encode\n            <em>what</em> the texture is, not where each blade is.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Robustness to small geometric shifts.@@T1@@\n            CNN feature maps pool spatially, so a one-pixel shift\n            barely moves LPIPS. SSIM and PSNR both spike.": {
+   "zh": "@@T0@@对小幅几何平移的鲁棒性。@@T1@@\n            CNN 特征图在空间上做了池化，因此一个像素的平移几乎不改变 LPIPS。而 SSIM 与 PSNR 都会陡然跳变。",
+   "src": "<strong>Robustness to small geometric shifts.</strong>\n            CNN feature maps pool spatially, so a one-pixel shift\n            barely moves LPIPS. SSIM and PSNR both spike.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Sensitivity to semantic content.@@T1@@ A\n            cat with a wrong-coloured eye is \"close to a cat\" in\n            feature space; in pixel space it's whatever the eye\n            patch's MSE happens to be.": {
+   "zh": "@@T0@@对语义内容的敏感性。@@T1@@ 一只眼睛颜色错误的猫在特征空间中仍“接近一只猫”；在像素空间中，它的距离则完全取决于眼睛图块的 MSE 恰好是多少。",
+   "src": "<strong>Sensitivity to semantic content.</strong> A\n            cat with a wrong-coloured eye is \"close to a cat\" in\n            feature space; in pixel space it's whatever the eye\n            patch's MSE happens to be.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@What LPIPS is not.@@T1@@\n          It is not a ground-truth perception model — it is a regression\n          fit to a particular dataset of 2AFC judgments. It inherits\n          the backbone's biases (ImageNet's texture-heavy worldview),\n          and an image can be made to look bad to humans while keeping\n          LPIPS small (adversarial perceptual attacks). Reporting\n          LPIPS alongside PSNR + SSIM is more informative than any one\n          of them alone.": {
+   "zh": "@@T0@@LPIPS 不是什么。@@T1@@\n          它并非一个真值的感知模型——而是对某个特定 2AFC 判断数据集的回归拟合。它继承了骨干网络的偏置（ImageNet 偏重纹理的世界观），并且可以使某幅图像在人看来很糟糕却保持很小的 LPIPS（对抗性感知攻击）。把 LPIPS 与 PSNR + SSIM 一并报告，比单独报告其中任何一个都更有信息量。",
+   "src": "<strong>What LPIPS is not.</strong>\n          It is not a ground-truth perception model — it is a regression\n          fit to a particular dataset of 2AFC judgments. It inherits\n          the backbone's biases (ImageNet's texture-heavy worldview),\n          and an image can be made to look bad to humans while keeping\n          LPIPS small (adversarial perceptual attacks). Reporting\n          LPIPS alongside PSNR + SSIM is more informative than any one\n          of them alone.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Live: distort a reference, watch the metrics": {
+   "zh": "实时演示：扭曲参考图像，观察各指标",
+   "src": "Live: distort a reference, watch the metrics",
+   "tags": []
+  },
+  "A small synthetic test image — gradient sky, a circle, a\n          checkered patch, and a striped band. The left panel is the\n          unmodified reference. The right panel is the same image\n          after the distortion you choose. Watch how each metric\n          responds.": {
+   "zh": "一幅小的合成测试图像——渐变天空、一个圆、一块方格图块，以及一条条纹带。左面板是未经修改的参考图像。右面板是施加你所选失真后的同一图像。观察各指标如何响应。",
+   "src": "A small synthetic test image — gradient sky, a circle, a\n          checkered patch, and a striped band. The left panel is the\n          unmodified reference. The right panel is the same image\n          after the distortion you choose. Watch how each metric\n          responds.",
+   "tags": []
+  },
+  "The \"Perceptual proxy\" column is a hand-rolled stand-in for\n          LPIPS: a multi-scale gradient-feature L2 distance. It is\n          not LPIPS — a real LPIPS needs a pretrained CNN — but it\n          captures the same spirit (distance in a feature space that\n          weights edges and textures over flat regions).": {
+   "zh": "“感知代理”这一列是对 LPIPS 的手工替代：多尺度梯度特征的 L2 距离。它并不是 LPIPS——真正的 LPIPS 需要预训练 CNN——但它抓住了同样的精神（在一种相对于平坦区域更重视边缘与纹理的特征空间中度量距离）。",
+   "src": "The \"Perceptual proxy\" column is a hand-rolled stand-in for\n          LPIPS: a multi-scale gradient-feature L2 distance. It is\n          not LPIPS — a real LPIPS needs a pretrained CNN — but it\n          captures the same spirit (distance in a feature space that\n          weights edges and textures over flat regions).",
+   "tags": []
+  },
+  "distortion": {
+   "zh": "失真",
+   "src": "distortion",
+   "tags": []
+  },
+  "Gaussian noise": {
+   "zh": "高斯噪声",
+   "src": "Gaussian noise",
+   "tags": []
+  },
+  "Gaussian blur": {
+   "zh": "高斯模糊",
+   "src": "Gaussian blur",
+   "tags": []
+  },
+  "Brightness shift": {
+   "zh": "亮度偏移",
+   "src": "Brightness shift",
+   "tags": []
+  },
+  "Contrast scaling": {
+   "zh": "对比度缩放",
+   "src": "Contrast scaling",
+   "tags": []
+  },
+  "JPEG-like block": {
+   "zh": "类 JPEG 块效应",
+   "src": "JPEG-like block",
+   "tags": []
+  },
+  "@@T0@@noise std σ@@T1@@": {
+   "zh": "@@T0@@噪声标准差 σ@@T1@@",
+   "src": "<span class=\"ctrl-label\" id=\"pm-ctrl-label\">noise std σ</span>",
+   "tags": [
+    "<span class=\"ctrl-label\" id=\"pm-ctrl-label\">",
+    "</span>"
+   ]
+  },
+  "reference": {
+   "zh": "参考图像",
+   "src": "reference",
+   "tags": []
+  },
+  "64 &times; 64, grayscale, [0, 1]": {
+   "zh": "64 &times; 64，灰度，[0, 1]",
+   "src": "64 &times; 64, grayscale, [0, 1]",
+   "tags": []
+  },
+  "distorted": {
+   "zh": "失真图像",
+   "src": "distorted",
+   "tags": []
+  },
+  "noise σ = 0.10": {
+   "zh": "噪声 σ = 0.10",
+   "src": "noise σ = 0.10",
+   "tags": []
+  },
+  "@@T0@@MSE@@T1@@\n            @@T2@@—@@T3@@\n            @@T4@@lower is better@@T5@@": {
+   "zh": "@@T0@@MSE@@T1@@\n            @@T2@@—@@T3@@\n            @@T4@@越低越好@@T5@@",
+   "src": "<span class=\"m-label\">MSE</span>\n            <span class=\"m-value\" id=\"pm-mse\">—</span>\n            <span class=\"m-hint\">lower is better</span>",
+   "tags": [
+    "<span class=\"m-label\">",
+    "</span>",
+    "<span class=\"m-value\" id=\"pm-mse\">",
+    "</span>",
+    "<span class=\"m-hint\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@PSNR@@T1@@\n            @@T2@@—@@T3@@\n            @@T4@@dB, higher is better@@T5@@": {
+   "zh": "@@T0@@PSNR@@T1@@\n            @@T2@@—@@T3@@\n            @@T4@@dB，越高越好@@T5@@",
+   "src": "<span class=\"m-label\">PSNR</span>\n            <span class=\"m-value\" id=\"pm-psnr\">—</span>\n            <span class=\"m-hint\">dB, higher is better</span>",
+   "tags": [
+    "<span class=\"m-label\">",
+    "</span>",
+    "<span class=\"m-value\" id=\"pm-psnr\">",
+    "</span>",
+    "<span class=\"m-hint\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@SSIM@@T1@@\n            @@T2@@—@@T3@@\n            @@T4@@[0, 1], higher is better@@T5@@": {
+   "zh": "@@T0@@SSIM@@T1@@\n            @@T2@@—@@T3@@\n            @@T4@@[0, 1]，越高越好@@T5@@",
+   "src": "<span class=\"m-label\">SSIM</span>\n            <span class=\"m-value\" id=\"pm-ssim\">—</span>\n            <span class=\"m-hint\">[0, 1], higher is better</span>",
+   "tags": [
+    "<span class=\"m-label\">",
+    "</span>",
+    "<span class=\"m-value\" id=\"pm-ssim\">",
+    "</span>",
+    "<span class=\"m-hint\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Perceptual proxy@@T1@@\n            @@T2@@—@@T3@@\n            @@T4@@LPIPS-style; lower is better@@T5@@": {
+   "zh": "@@T0@@感知代理@@T1@@\n            @@T2@@—@@T3@@\n            @@T4@@LPIPS 风格；越低越好@@T5@@",
+   "src": "<span class=\"m-label\">Perceptual proxy</span>\n            <span class=\"m-value\" id=\"pm-lpips\">—</span>\n            <span class=\"m-hint\">LPIPS-style; lower is better</span>",
+   "tags": [
+    "<span class=\"m-label\">",
+    "</span>",
+    "<span class=\"m-value\" id=\"pm-lpips\">",
+    "</span>",
+    "<span class=\"m-hint\">",
+    "</span>"
+   ]
+  },
+  "Things worth trying:": {
+   "zh": "值得一试的操作：",
+   "src": "Things worth trying:",
+   "tags": []
+  },
+  "Crank @@T0@@brightness shift@@T1@@ to a value that\n            destroys PSNR — and watch SSIM barely move.": {
+   "zh": "把@@T0@@亮度偏移@@T1@@调到一个会摧毁 PSNR 的值——观察 SSIM 几乎纹丝不动。",
+   "src": "Crank <em>brightness shift</em> to a value that\n            destroys PSNR — and watch SSIM barely move.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Add a small @@T0@@blur@@T1@@. SSIM and the perceptual\n            proxy drop hard; PSNR drops less than you'd expect.": {
+   "zh": "加入少量@@T0@@模糊@@T1@@。SSIM 与感知代理大幅下降；PSNR 的下降则比你预期的要小。",
+   "src": "Add a small <em>blur</em>. SSIM and the perceptual\n            proxy drop hard; PSNR drops less than you'd expect.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Heavy @@T0@@JPEG block@@T1@@ at strength ≈ 60 produces\n            unmistakeable 8&times;8 boxiness; the perceptual proxy\n            spikes far more than PSNR.": {
+   "zh": "强度约为 60 的严重@@T0@@JPEG 块效应@@T1@@会产生 unmistakable 的 8&times;8 方块感；感知代理的激增远超 PSNR。",
+   "src": "Heavy <em>JPEG block</em> at strength ≈ 60 produces\n            unmistakeable 8&times;8 boxiness; the perceptual proxy\n            spikes far more than PSNR.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Compare @@T0@@noise σ = 0.08@@T1@@ with @@T2@@blur σ = 0.8@@T3@@.\n            Both can land near 25 dB but feel very different.": {
+   "zh": "把 @@T0@@噪声 σ = 0.08@@T1@@ 与 @@T2@@模糊 σ = 0.8@@T3@@ 对比。两者都可能落在 25 dB 附近，但观感截然不同。",
+   "src": "Compare <em>noise σ = 0.08</em> with <em>blur σ = 0.8</em>.\n            Both can land near 25 dB but feel very different.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "The classic trap: same PSNR, different quality": {
+   "zh": "经典陷阱：PSNR 相同，质量不同",
+   "src": "The classic trap: same PSNR, different quality",
+   "tags": []
+  },
+  "This is the figure that launched a thousand SSIM citations\n          (essentially Wang &amp; Bovik's original 2002 demo). Below\n          are five distorted versions of the same reference, each\n          with their distortion strength tuned so that PSNR is\n          approximately equal — yet they look obviously different,\n          and SSIM and the perceptual proxy reflect that.": {
+   "zh": "这就是催生了上千次 SSIM 引用的那张图（实质上是 Wang 与 Bovik 于 2002 年的原始演示）。下面是同一参考图像的五种失真版本，各自的失真强度都经过调校，使 PSNR 大致相等——但它们看起来明显不同，而 SSIM 与感知代理也反映了这一点。",
+   "src": "This is the figure that launched a thousand SSIM citations\n          (essentially Wang &amp; Bovik's original 2002 demo). Below\n          are five distorted versions of the same reference, each\n          with their distortion strength tuned so that PSNR is\n          approximately equal — yet they look obviously different,\n          and SSIM and the perceptual proxy reflect that.",
+   "tags": []
+  },
+  "brightness shift": {
+   "zh": "亮度偏移",
+   "src": "brightness shift",
+   "tags": []
+  },
+  "contrast scale": {
+   "zh": "对比度缩放",
+   "src": "contrast scale",
+   "tags": []
+  },
+  "JPEG block": {
+   "zh": "JPEG 块效应",
+   "src": "JPEG block",
+   "tags": []
+  },
+  "The brightness-shift card has the same MSE as the others —\n          but to the eye it is almost indistinguishable from the\n          reference, and SSIM reflects that. The block-quantised card\n          looks the worst; its SSIM and perceptual proxy are the\n          worst by a margin. PSNR cannot tell them apart.": {
+   "zh": "亮度偏移那张卡片的 MSE 与其他卡片相同——但在肉眼看来它与参考图像几乎无法区分，SSIM 也反映了这一点。块量化那张卡片看起来最差；其 SSIM 与感知代理都以明显差距垫底。PSNR 却无法将它们区分开。",
+   "src": "The brightness-shift card has the same MSE as the others —\n          but to the eye it is almost indistinguishable from the\n          reference, and SSIM reflects that. The block-quantised card\n          looks the worst; its SSIM and perceptual proxy are the\n          worst by a margin. PSNR cannot tell them apart.",
+   "tags": []
+  },
+  "@@T0@@The lesson.@@T1@@\n          When a paper reports only PSNR, distrust the comparison.\n          When a paper reports PSNR + SSIM + LPIPS together, you\n          can begin to triangulate. When they all agree, you have\n          a real result; when they disagree, the disagreement is the\n          finding.": {
+   "zh": "@@T0@@教训。@@T1@@\n          当一篇论文只报告 PSNR 时，对其比较结果保持怀疑。当一篇论文同时报告 PSNR + SSIM + LPIPS 时，你便可以开始三角定位。当它们全部一致，说明这是一个真实的结果；当它们彼此矛盾，这一矛盾本身就是发现。",
+   "src": "<strong>The lesson.</strong>\n          When a paper reports only PSNR, distrust the comparison.\n          When a paper reports PSNR + SSIM + LPIPS together, you\n          can begin to triangulate. When they all agree, you have\n          a real result; when they disagree, the disagreement is the\n          finding.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 7": {
+   "zh": "第 7 步",
+   "src": "Step 7",
+   "tags": []
+  },
+  "When there is no reference: FID, KID, IS": {
+   "zh": "当没有参考图像时：FID、KID、IS",
+   "src": "When there is no reference: FID, KID, IS",
+   "tags": []
+  },
+  "PSNR, SSIM and LPIPS are @@T0@@full-reference@@T1@@ metrics —\n          they need a clean ground-truth image. For generative\n          models (GANs, diffusion, VAEs) there is no reference for an\n          individual sample; what we want is \"did this model produce\n          samples that @@T2@@collectively@@T3@@ match the data\n          distribution?\". For that we go to distributional metrics.": {
+   "zh": "PSNR、SSIM 与 LPIPS 都是@@T0@@全参考@@T1@@指标——它们需要一幅干净的真值图像。对于生成模型（GAN、扩散模型、VAE），单个样本并没有参考图像；我们想知道的是“这个模型产生的样本@@T2@@总体上@@T3@@是否匹配数据分布？”为此我们需要分布级指标。",
+   "src": "PSNR, SSIM and LPIPS are <em>full-reference</em> metrics —\n          they need a clean ground-truth image. For generative\n          models (GANs, diffusion, VAEs) there is no reference for an\n          individual sample; what we want is \"did this model produce\n          samples that <em>collectively</em> match the data\n          distribution?\". For that we go to distributional metrics.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Inception Score (IS).@@T1@@ Salimans\n            et&nbsp;al., 2016. Push samples through Inception-v3,\n            get class probabilities $p(y \\mid x)$. Reward \"confident\n            classifications\" and \"diverse marginal\" via a KL term.\n            @@T2@@Problem@@T3@@: it ignores the real data distribution\n            entirely.": {
+   "zh": "@@T0@@Inception Score（IS）。@@T1@@ Salimans 等人，2016。把样本送入 Inception-v3，得到类别概率 $p(y \\mid x)$。通过一个 KL 项奖励“有信心的分类”与“多样的边缘分布”。@@T2@@问题@@T3@@：它完全忽略了真实数据分布。",
+   "src": "<strong>Inception Score (IS).</strong> Salimans\n            et&nbsp;al., 2016. Push samples through Inception-v3,\n            get class probabilities $p(y \\mid x)$. Reward \"confident\n            classifications\" and \"diverse marginal\" via a KL term.\n            <em>Problem</em>: it ignores the real data distribution\n            entirely.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@FID (Fréchet Inception Distance).@@T1@@\n            Heusel et&nbsp;al., 2017. Take Inception-v3\n            pool-3 features for $N$ real samples and $N$ generated\n            samples. Fit a Gaussian to each. Compute the\n            Fréchet distance between them:\n            $\\|\\mu_r - \\mu_g\\|^2 + \\mathrm{Tr}(\\Sigma_r + \\Sigma_g - 2(\\Sigma_r \\Sigma_g)^{1/2})$.\n            Lower is better; identical distributions give 0.": {
+   "zh": "@@T0@@FID（Fréchet Inception Distance）。@@T1@@\n            Heusel 等人，2017。取 $N$ 个真实样本与 $N$ 个生成样本的 Inception-v3 pool-3 特征。各拟合一个高斯分布。计算二者之间的 Fréchet 距离：$\\|\\mu_r - \\mu_g\\|^2 + \\mathrm{Tr}(\\Sigma_r + \\Sigma_g - 2(\\Sigma_r \\Sigma_g)^{1/2})$。越低越好；分布完全相同时为 0。",
+   "src": "<strong>FID (Fréchet Inception Distance).</strong>\n            Heusel et&nbsp;al., 2017. Take Inception-v3\n            pool-3 features for $N$ real samples and $N$ generated\n            samples. Fit a Gaussian to each. Compute the\n            Fréchet distance between them:\n            $\\|\\mu_r - \\mu_g\\|^2 + \\mathrm{Tr}(\\Sigma_r + \\Sigma_g - 2(\\Sigma_r \\Sigma_g)^{1/2})$.\n            Lower is better; identical distributions give 0.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@KID (Kernel Inception Distance).@@T1@@\n            Bińkowski et&nbsp;al., 2018. Replace the Gaussian\n            assumption with the unbiased MMD using a polynomial\n            kernel on Inception features. Less biased on small\n            sample sizes (FID is biased and the bias is dataset-size\n            dependent; KID has a tractable unbiased estimator).": {
+   "zh": "@@T0@@KID（Kernel Inception Distance）。@@T1@@\n            Bińkowski 等人，2018。用 Inception 特征上多项式核的无偏 MMD 取代高斯假设。在小样本量下偏差更小（FID 有偏，且偏差依赖于数据集规模；而 KID 具有可处理的无偏估计量）。",
+   "src": "<strong>KID (Kernel Inception Distance).</strong>\n            Bińkowski et&nbsp;al., 2018. Replace the Gaussian\n            assumption with the unbiased MMD using a polynomial\n            kernel on Inception features. Less biased on small\n            sample sizes (FID is biased and the bias is dataset-size\n            dependent; KID has a tractable unbiased estimator).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Precision and Recall.@@T1@@ Sajjadi et&nbsp;al.,\n            2018; Kynkäänniemi et&nbsp;al., 2019. Decompose\n            distribution match into \"do generated samples lie in the\n            data manifold\" (precision) and \"does the data manifold\n            get covered\" (recall). Diagnoses mode collapse that FID\n            can hide.": {
+   "zh": "@@T0@@精确率与召回率。@@T1@@ Sajjadi 等人，2018；Kynkäänniemi 等人，2019。把分布匹配分解为“生成样本是否落在数据流形上”（精确率）与“数据流形是否被覆盖”（召回率）。它能诊断出 FID 可能掩盖的模式坍塌。",
+   "src": "<strong>Precision and Recall.</strong> Sajjadi et&nbsp;al.,\n            2018; Kynkäänniemi et&nbsp;al., 2019. Decompose\n            distribution match into \"do generated samples lie in the\n            data manifold\" (precision) and \"does the data manifold\n            get covered\" (recall). Diagnoses mode collapse that FID\n            can hide.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@FID quirks worth knowing.@@T1@@\n          FID is biased downward as $N$ shrinks — always report it at\n          a fixed sample size (typically 50k). FID is sensitive to\n          image resolution and preprocessing; \"FID = 8.4\" without\n          knowing the reference set and pipeline is uninterpretable.\n          Different Inception checkpoints give different numbers.\n          Always cite the FID computation library used.": {
+   "zh": "@@T0@@值得了解的 FID 怪癖。@@T1@@\n          随着 $N$ 减小，FID 会向下偏置——务必在固定的样本量（通常为 5 万）下报告它。FID 对图像分辨率与预处理很敏感；不知道参考集与处理流程的“FID = 8.4”是无法解释的。不同的 Inception 检查点会给出不同的数值。务必注明所使用的 FID 计算库。",
+   "src": "<strong>FID quirks worth knowing.</strong>\n          FID is biased downward as $N$ shrinks — always report it at\n          a fixed sample size (typically 50k). FID is sensitive to\n          image resolution and preprocessing; \"FID = 8.4\" without\n          knowing the reference set and pipeline is uninterpretable.\n          Different Inception checkpoints give different numbers.\n          Always cite the FID computation library used.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 8": {
+   "zh": "第 8 步",
+   "src": "Step 8",
+   "tags": []
+  },
+  "When to use what": {
+   "zh": "何时使用何种指标",
+   "src": "When to use what",
+   "tags": []
+  },
+  "Task": {
+   "zh": "任务",
+   "src": "Task",
+   "tags": []
+  },
+  "Use": {
+   "zh": "使用",
+   "src": "Use",
+   "tags": []
+  },
+  "Why": {
+   "zh": "原因",
+   "src": "Why",
+   "tags": []
+  },
+  "Lossless / near-lossless compression": {
+   "zh": "无损 / 近无损压缩",
+   "src": "Lossless / near-lossless compression",
+   "tags": []
+  },
+  "@@T0@@PSNR@@T1@@": {
+   "zh": "@@T0@@PSNR@@T1@@（峰值信噪比）",
+   "src": "<code>PSNR</code>",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Differences are sub-perceptual; energy is the right\n                summary, and PSNR is what your competitors will report.": {
+   "zh": "差异低于感知阈值；能量是正确的概括方式，而且 PSNR 正是你的竞争者会报告的指标。",
+   "src": "Differences are sub-perceptual; energy is the right\n                summary, and PSNR is what your competitors will report.",
+   "tags": []
+  },
+  "Lossy compression, super-resolution": {
+   "zh": "有损压缩、超分辨率",
+   "src": "Lossy compression, super-resolution",
+   "tags": []
+  },
+  "@@T0@@PSNR + SSIM + LPIPS@@T1@@": {
+   "zh": "@@T0@@PSNR + SSIM + LPIPS 三者并用@@T1@@",
+   "src": "<code>PSNR + SSIM + LPIPS</code>",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "SSIM catches structural damage; LPIPS catches\n                texture &amp; mid-level perceptual changes; PSNR\n                anchors the energy.": {
+   "zh": "SSIM 捕捉结构性损伤；LPIPS 捕捉纹理与中层感知变化；PSNR 锚定能量。",
+   "src": "SSIM catches structural damage; LPIPS catches\n                texture &amp; mid-level perceptual changes; PSNR\n                anchors the energy.",
+   "tags": []
+  },
+  "Denoising / deblurring": {
+   "zh": "去噪 / 去模糊",
+   "src": "Denoising / deblurring",
+   "tags": []
+  },
+  "@@T0@@PSNR + SSIM@@T1@@": {
+   "zh": "@@T0@@PSNR + SSIM@@T1@@ 组合",
+   "src": "<code>PSNR + SSIM</code>",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Distortions are local; structural-similarity is\n                the metric the denoising literature converged on.": {
+   "zh": "失真具有局部性；结构相似度是去噪文献最终收敛采用的指标。",
+   "src": "Distortions are local; structural-similarity is\n                the metric the denoising literature converged on.",
+   "tags": []
+  },
+  "GAN / diffusion samples (unconditional)": {
+   "zh": "GAN / 扩散样本（无条件）",
+   "src": "GAN / diffusion samples (unconditional)",
+   "tags": []
+  },
+  "@@T0@@FID + KID + Precision/Recall@@T1@@": {
+   "zh": "@@T0@@FID + KID + 精确率/召回率@@T1@@",
+   "src": "<code>FID + KID + Precision/Recall</code>",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "No reference image; you need distribution-level\n                metrics. FID alone is not enough — it hides mode\n                collapse.": {
+   "zh": "没有参考图像；需要分布级指标。仅凭 FID 并不足够——它会掩盖模式坍塌。",
+   "src": "No reference image; you need distribution-level\n                metrics. FID alone is not enough — it hides mode\n                collapse.",
+   "tags": []
+  },
+  "Conditional generation (img2img, edit)": {
+   "zh": "条件生成（图像到图像、编辑）",
+   "src": "Conditional generation (img2img, edit)",
+   "tags": []
+  },
+  "@@T0@@LPIPS + FID + a CLIP score@@T1@@": {
+   "zh": "@@T0@@LPIPS + FID + CLIP 分数@@T1@@",
+   "src": "<code>LPIPS + FID + a CLIP score</code>",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "LPIPS measures fidelity to the input; FID measures\n                realism; a CLIP score measures alignment with the\n                target caption / class.": {
+   "zh": "LPIPS 度量对输入的保真度；FID 度量真实感；CLIP 分数度量与目标描述 / 类别的对齐程度。",
+   "src": "LPIPS measures fidelity to the input; FID measures\n                realism; a CLIP score measures alignment with the\n                target caption / class.",
+   "tags": []
+  },
+  "Thermal / scientific imaging": {
+   "zh": "热成像 / 科学成像",
+   "src": "Thermal / scientific imaging",
+   "tags": []
+  },
+  "@@T0@@RMSE on physical units + SSIM@@T1@@": {
+   "zh": "@@T0@@物理单位上的 RMSE + SSIM@@T1@@",
+   "src": "<code>RMSE on physical units + SSIM</code>",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Pixel values are calibrated measurements\n                (temperature, depth); physical accuracy matters more\n                than perceived prettiness, but SSIM still catches\n                structural artefacts in reconstruction.": {
+   "zh": "像素值是有标定的测量量（温度、深度）；物理准确性比观感上的好看更为重要，但 SSIM 仍能捕捉重建中的结构性伪影。",
+   "src": "Pixel values are calibrated measurements\n                (temperature, depth); physical accuracy matters more\n                than perceived prettiness, but SSIM still catches\n                structural artefacts in reconstruction.",
+   "tags": []
+  },
+  "Diffusion training loss": {
+   "zh": "扩散模型训练损失",
+   "src": "Diffusion training loss",
+   "tags": []
+  },
+  "@@T0@@noise-MSE (the actual loss)@@T1@@": {
+   "zh": "@@T0@@噪声 MSE（即实际的损失）@@T1@@",
+   "src": "<code>noise-MSE (the actual loss)</code>",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Don't try to use SSIM/LPIPS as a training signal\n                during diffusion training — they are non-convex, and\n                MSE on the noise has the right variational\n                properties.": {
+   "zh": "不要在扩散训练期间把 SSIM/LPIPS 当作训练信号——它们非凸，而对噪声的 MSE 具有正确的变分性质。",
+   "src": "Don't try to use SSIM/LPIPS as a training signal\n                during diffusion training — they are non-convex, and\n                MSE on the noise has the right variational\n                properties.",
+   "tags": []
+  },
+  "Step 9": {
+   "zh": "第 9 步",
+   "src": "Step 9",
+   "tags": []
+  },
+  "Sharp edges and lab-aligned notes": {
+   "zh": "尖锐细节与实验室相关的说明",
+   "src": "Sharp edges and lab-aligned notes",
+   "tags": []
+  },
+  "@@T0@@SSIM on dynamic-range mismatched data is meaningless.@@T1@@\n            If your reference is [0, 1] float and your prediction is\n            $[0, 255]$ uint8, SSIM will silently rescale and you'll\n            get junk numbers. Always normalise both inputs to the\n            same range, and pass the dynamic-range $L$ explicitly.": {
+   "zh": "@@T0@@在动态范围不匹配的数据上计算 SSIM 毫无意义。@@T1@@\n            若参考图像是 [0, 1] 浮点而预测是 $[0, 255]$ uint8，SSIM 会静默地重新缩放，你会得到一堆垃圾数值。务必把两个输入归一化到相同范围，并显式传入动态范围 $L$。",
+   "src": "<strong>SSIM on dynamic-range mismatched data is meaningless.</strong>\n            If your reference is [0, 1] float and your prediction is\n            $[0, 255]$ uint8, SSIM will silently rescale and you'll\n            get junk numbers. Always normalise both inputs to the\n            same range, and pass the dynamic-range $L$ explicitly.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@LPIPS on grayscale needs a backbone choice.@@T1@@\n            VGG-16 and AlexNet both expect 3-channel inputs.\n            Standard practice: replicate the gray channel three\n            times. For thermal, this means LPIPS is reading\n            ImageNet-shaped features into a thermal image, which is\n            not what the metric was validated on. Treat LPIPS-on-thermal\n            as @@T2@@indicative@@T3@@, never authoritative.": {
+   "zh": "@@T0@@在灰度图上使用 LPIPS 需要选择骨干网络。@@T1@@\n            VGG-16 与 AlexNet 都期望 3 通道输入。标准做法是把灰度通道复制三次。对于热成像，这意味着 LPIPS 是在把 ImageNet 形状的特征读入一幅热图像，而这并非该指标经过验证的场景。应把热成像上的 LPIPS 视为@@T2@@参考性的@@T3@@，而非权威。",
+   "src": "<strong>LPIPS on grayscale needs a backbone choice.</strong>\n            VGG-16 and AlexNet both expect 3-channel inputs.\n            Standard practice: replicate the gray channel three\n            times. For thermal, this means LPIPS is reading\n            ImageNet-shaped features into a thermal image, which is\n            not what the metric was validated on. Treat LPIPS-on-thermal\n            as <em>indicative</em>, never authoritative.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@SSIM with sliding window can be expensive.@@T1@@\n            For very large images use the integral-image trick\n            (compute moments via summed-area tables) — $O(\\text{pixels})$\n            instead of $O(\\text{pixels} \\cdot \\text{window}^2)$.": {
+   "zh": "@@T0@@滑动窗口的 SSIM 可能开销很大。@@T1@@\n            对于非常大的图像，使用积分图技巧（通过求和面积表计算矩）——复杂度为 $O(\\text{pixels})$，而非 $O(\\text{pixels} \\cdot \\text{window}^2)$。",
+   "src": "<strong>SSIM with sliding window can be expensive.</strong>\n            For very large images use the integral-image trick\n            (compute moments via summed-area tables) — $O(\\text{pixels})$\n            instead of $O(\\text{pixels} \\cdot \\text{window}^2)$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@FID needs ≥ 10k samples.@@T1@@ Below 10k it's\n            dominated by the small-sample bias term. KID is a\n            better choice in the few-thousand regime.": {
+   "zh": "@@T0@@FID 需要至少 1 万个样本。@@T1@@ 低于 1 万时，它会被小样本偏差项主导。在数千量级下，KID 是更好的选择。",
+   "src": "<strong>FID needs ≥ 10k samples.</strong> Below 10k it's\n            dominated by the small-sample bias term. KID is a\n            better choice in the few-thousand regime.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Beware metric optimisation.@@T1@@ If you\n            train a model with LPIPS as the loss, the model will\n            learn to game the VGG features that LPIPS reads. The\n            resulting samples can be very low LPIPS and quite ugly.\n            This is the perceptual analogue of Goodhart's law and\n            shows up routinely in super-resolution work — for\n            super-resolution, GAN-based losses combined with LPIPS\n            generally beat pure-LPIPS optimisation.": {
+   "zh": "@@T0@@当心对指标的优化。@@T1@@ 如果你以 LPIPS 作为损失来训练模型，模型会学会钻 LPIPS 所读取的 VGG 特征的孔子。所得样本可能 LPIPS 极低却相当难看。这是 Goodhart 定律在感知层面的类比，在超分辨率工作中屡见不鲜——对于超分辨率，结合 LPIPS 的 GAN 损失通常胜过纯粹以 LPIPS 进行的优化。",
+   "src": "<strong>Beware metric optimisation.</strong> If you\n            train a model with LPIPS as the loss, the model will\n            learn to game the VGG features that LPIPS reads. The\n            resulting samples can be very low LPIPS and quite ugly.\n            This is the perceptual analogue of Goodhart's law and\n            shows up routinely in super-resolution work — for\n            super-resolution, GAN-based losses combined with LPIPS\n            generally beat pure-LPIPS optimisation.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@For our lab@@T1@@ (thermal / VLM /\n            super-resolution work): report PSNR + SSIM (with $L = 1$\n            on normalised inputs) as the workhorses, LPIPS as a\n            secondary signal, and FID only when comparing\n            distributions of generated thermal frames. The \"same\n            PSNR, different SSIM\" gallery above is the trap to keep\n            in mind when ApneaEye / JoulesEye reconstructions are\n            evaluated against ground-truth thermal frames.": {
+   "zh": "@@T0@@对本实验室而言@@T1@@（热成像 / VLM / 超分辨率工作）：以 PSNR + SSIM（在归一化输入上取 $L = 1$）作为主力指标，LPIPS 作为次要信号，仅在比较生成热成像帧的分布时才使用 FID。当以真值热成像帧评估 ApneaEye / JoulesEye 的重建结果时，上文那组“PSNR 相同、SSIM 不同”的画廊正是需要牢记的陷阱。",
+   "src": "<strong>For our lab</strong> (thermal / VLM /\n            super-resolution work): report PSNR + SSIM (with $L = 1$\n            on normalised inputs) as the workhorses, LPIPS as a\n            secondary signal, and FID only when comparing\n            distributions of generated thermal frames. The \"same\n            PSNR, different SSIM\" gallery above is the trap to keep\n            in mind when ApneaEye / JoulesEye reconstructions are\n            evaluated against ground-truth thermal frames.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 10": {
+   "zh": "第 10 步",
+   "src": "Step 10",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "阅读清单",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Wang, Bovik, Sheikh, Simoncelli (2004)@@T1@@ &mdash;\n            @@T2@@Image Quality Assessment: From Error Visibility to\n            Structural Similarity.@@T3@@ The SSIM paper. Every\n            paragraph still earns its keep.": {
+   "zh": "@@T0@@Wang, Bovik, Sheikh, Simoncelli (2004)@@T1@@ &mdash;\n            @@T2@@Image Quality Assessment: From Error Visibility to Structural Similarity.@@T3@@ 也就是 SSIM 论文。每一段至今都物有所值。",
+   "src": "<strong>Wang, Bovik, Sheikh, Simoncelli (2004)</strong> &mdash;\n            <em>Image Quality Assessment: From Error Visibility to\n            Structural Similarity.</em> The SSIM paper. Every\n            paragraph still earns its keep.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Wang, Simoncelli, Bovik (2003)@@T1@@ &mdash;\n            @@T2@@Multi-scale Structural Similarity for Image Quality\n            Assessment.@@T3@@ MS-SSIM weights and method.": {
+   "zh": "@@T0@@Wang, Simoncelli, Bovik (2003)@@T1@@ &mdash;\n            @@T2@@Multi-scale Structural Similarity for Image Quality Assessment.@@T3@@ MS-SSIM 的权重与方法。",
+   "src": "<strong>Wang, Simoncelli, Bovik (2003)</strong> &mdash;\n            <em>Multi-scale Structural Similarity for Image Quality\n            Assessment.</em> MS-SSIM weights and method.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Zhang, Isola, Efros, Shechtman, Wang (2018)@@T1@@ &mdash;\n            @@T2@@The Unreasonable Effectiveness of Deep Features as a\n            Perceptual Metric.@@T3@@ The LPIPS paper, plus the\n            BAPPS dataset.": {
+   "zh": "@@T0@@Zhang, Isola, Efros, Shechtman, Wang (2018)@@T1@@ &mdash;\n            @@T2@@The Unreasonable Effectiveness of Deep Features as a Perceptual Metric.@@T3@@ 也就是 LPIPS 论文，以及 BAPPS 数据集。",
+   "src": "<strong>Zhang, Isola, Efros, Shechtman, Wang (2018)</strong> &mdash;\n            <em>The Unreasonable Effectiveness of Deep Features as a\n            Perceptual Metric.</em> The LPIPS paper, plus the\n            BAPPS dataset.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Heusel, Ramsauer, Unterthiner, Nessler, Hochreiter (2017)@@T1@@\n            &mdash; @@T2@@GANs Trained by a Two Time-Scale Update Rule\n            Converge to a Local Nash Equilibrium.@@T3@@ Introduces FID.": {
+   "zh": "@@T0@@Heusel, Ramsauer, Unterthiner, Nessler, Hochreiter (2017)@@T1@@\n            &mdash; @@T2@@GANs Trained by a Two Time-Scale Update Rule Converge to a Local Nash Equilibrium.@@T3@@ 提出了 FID。",
+   "src": "<strong>Heusel, Ramsauer, Unterthiner, Nessler, Hochreiter (2017)</strong>\n            &mdash; <em>GANs Trained by a Two Time-Scale Update Rule\n            Converge to a Local Nash Equilibrium.</em> Introduces FID.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Bińkowski, Sutherland, Arbel, Gretton (2018)@@T1@@\n            &mdash; @@T2@@Demystifying MMD GANs.@@T3@@ Introduces KID.": {
+   "zh": "@@T0@@Bińkowski, Sutherland, Arbel, Gretton (2018)@@T1@@\n            &mdash; @@T2@@Demystifying MMD GANs.@@T3@@ 提出了 KID。",
+   "src": "<strong>Bińkowski, Sutherland, Arbel, Gretton (2018)</strong>\n            &mdash; <em>Demystifying MMD GANs.</em> Introduces KID.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Kynkäänniemi, Karras, Laine, Lehtinen, Aila (2019)@@T1@@\n            &mdash; @@T2@@Improved Precision and Recall Metric for\n            Assessing Generative Models.@@T3@@": {
+   "zh": "@@T0@@Kynkäänniemi, Karras, Laine, Lehtinen, Aila (2019)@@T1@@\n            &mdash; @@T2@@Improved Precision and Recall Metric for Assessing Generative Models.@@T3@@",
+   "src": "<strong>Kynkäänniemi, Karras, Laine, Lehtinen, Aila (2019)</strong>\n            &mdash; <em>Improved Precision and Recall Metric for\n            Assessing Generative Models.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Mantiuk et&nbsp;al. (2011)@@T1@@ &mdash;\n            @@T2@@HDR-VDP-2.@@T3@@ A more sophisticated, HDR-aware\n            perceptual metric — useful when SSIM/LPIPS feel too\n            blunt.": {
+   "zh": "@@T0@@Mantiuk 等人 (2011)@@T1@@ &mdash;\n            @@T2@@HDR-VDP-2.@@T3@@ 一个更精密、感知 HDR 的指标——当觉得 SSIM/LPIPS 过于粗钝时很有用。",
+   "src": "<strong>Mantiuk et&nbsp;al. (2011)</strong> &mdash;\n            <em>HDR-VDP-2.</em> A more sophisticated, HDR-aware\n            perceptual metric — useful when SSIM/LPIPS feel too\n            blunt.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Sara, Akter, Uddin (2019)@@T1@@ &mdash;\n            @@T2@@Image Quality Assessment through FSIM, SSIM, MSE and\n            PSNR — a Comparative Study.@@T3@@ Good overview when you\n            want a single survey to point students at.": {
+   "zh": "@@T0@@Sara, Akter, Uddin (2019)@@T1@@ &mdash;\n            @@T2@@Image Quality Assessment through FSIM, SSIM, MSE and PSNR — a Comparative Study.@@T3@@ 想给学生推荐一篇综述时的良好概览。",
+   "src": "<strong>Sara, Akter, Uddin (2019)</strong> &mdash;\n            <em>Image Quality Assessment through FSIM, SSIM, MSE and\n            PSNR — a Comparative Study.</em> Good overview when you\n            want a single survey to point students at.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "逐像素审视感知质量",
+  "tagline": "PSNR、SSIM、MS-SSIM、LPIPS——同样的图像，四个数字，往往相互矛盾",
+  "summary": "几十年来，像素 MSE 一直是图像质量测量的主力工具；SSIM、MS-SSIM 与 LPIPS 之所以存在，正是因为 MSE 会说谎。实时用五种方式扭曲参考图像，观察各指标产生分歧，并看到经典的“PSNR 相同、质量迥异”陷阱并排呈现。另附面向生成模型的 FID 与 KID。",
+  "difficulty": "中级",
+  "collection": "计算机视觉",
+  "highlights": [
+   "实时失真演练场：噪声、模糊、对比度、亮度、JPEG 块效应——观察 PSNR、SSIM 与感知代理如何分道扬镳。",
+   "经典的“PSNR 相等、质量不同”画廊：五种失真被校准到相同的分贝值，再由 SSIM 与特征距离代理排序。",
+   "为何 SSIM 可分解为亮度 · 对比度 · 结构——以及 MS-SSIM 为何要引入尺度。",
+   "LPIPS 在做什么（深层特征距离）、FID 与 KID 度量的是什么（分布距离），以及各自适用何时。",
+   "与实验室对齐：面向热成像/RGB 增强、扩散样本评估与超分辨率流水线的图像质量指标。"
+  ],
+  "tags": [
+   "LPIPS",
+   "SSIM",
+   "PSNR",
+   "FID",
+   "图像质量",
+   "交互式"
+  ]
+ },
+ "js": {
+  "pm-card-[[[0]]]": {
+   "zh": "",
+   "exprs": [
+    "${it.id}"
+   ],
+   "tags": [],
+   "src": "pm-card-${it.id}"
+  },
+  "pm-stats-[[[0]]]": {
+   "zh": "",
+   "exprs": [
+    "${it.id}"
+   ],
+   "tags": [],
+   "src": "pm-stats-${it.id}"
+  },
+  "@@T0@@PSNR @@T1@@[[[0]]] dB@@T2@@@@T3@@\n         @@T4@@SSIM @@T5@@[[[1]]]@@T6@@@@T7@@\n         @@T8@@perc @@T9@@[[[2]]]@@T10@@@@T11@@": {
+   "zh": "@@T0@@PSNR @@T1@@[[[0]]] dB@@T2@@@@T3@@\n         @@T4@@SSIM @@T5@@[[[1]]]@@T6@@@@T7@@\n         @@T8@@感知 @@T9@@[[[2]]]@@T10@@@@T11@@",
+   "exprs": [
+    "${fmt(p, 1)}",
+    "${fmt(s, 3)}",
+    "${fmt(lp, 3)}"
+   ],
+   "tags": [
+    "<span>",
+    "<strong>",
+    "</strong>",
+    "</span>",
+    "<span>",
+    "<strong>",
+    "</strong>",
+    "</span>",
+    "<span>",
+    "<strong>",
+    "</strong>",
+    "</span>"
+   ],
+   "src": "<span>PSNR <strong>${fmt(p, 1)} dB</strong></span>\n         <span>SSIM <strong>${fmt(s, 3)}</strong></span>\n         <span>perc <strong>${fmt(lp, 3)}</strong></span>"
+  },
+  "noise std σ": {
+   "zh": "噪声标准差 σ",
+   "exprs": [],
+   "tags": [],
+   "src": "noise std σ"
+  },
+  "brightness shift δ": {
+   "zh": "亮度偏移 δ",
+   "exprs": [],
+   "tags": [],
+   "src": "brightness shift δ"
+  },
+  "contrast factor α": {
+   "zh": "对比度因子 α",
+   "exprs": [],
+   "tags": [],
+   "src": "contrast factor α"
+  },
+  "brightness shift": {
+   "zh": "亮度偏移",
+   "exprs": [],
+   "tags": [],
+   "src": "brightness shift"
+  },
+  "contrast scale": {
+   "zh": "对比度缩放",
+   "exprs": [],
+   "tags": [],
+   "src": "contrast scale"
+  },
+  "Gaussian noise": {
+   "zh": "高斯噪声",
+   "exprs": [],
+   "tags": [],
+   "src": "Gaussian noise"
+  },
+  "Gaussian blur": {
+   "zh": "高斯模糊",
+   "exprs": [],
+   "tags": [],
+   "src": "Gaussian blur"
+  },
+  "JPEG block": {
+   "zh": "JPEG 块效应",
+   "exprs": [],
+   "tags": [],
+   "src": "JPEG block"
+  },
+  "<strong>identity</strong>": {
+   "zh": "<strong>恒等</strong>",
+   "exprs": [],
+   "tags": [],
+   "src": "<strong>identity</strong>"
+  }
+ }
+}

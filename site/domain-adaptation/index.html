@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>视觉中的域偏移：深入剖析</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>视觉中的域偏移：深入剖析</h1>
+        <p class="abstract">
+          一次完整的视觉导向之旅：一份你实际会遇到的偏移分类法，十种端到端详加演练的技术（BN 统计量、CORAL、MMD、DANN、AdaBN、MixStyle、TENT、无源域自适应、FrePolad 风格归一化、提示微调式域自适应），一棵用于选择的决策树，以及一个保持直觉可靠的实时二维演示。
+        </p>
+        <div class="byline">
+          <span>约 30 分钟</span>
+          <span>分布偏移 &middot; 视觉 &middot; 自适应</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>差距从何而来</h2>
+        <p>
+          测试集上的准确率为 92%。生产环境中的准确率却是 67%。为什么？在每一篇论文里，这都称为「域偏移」或「分布偏移」，但这些说法掩盖了六个截然不同的问题。你必须先弄清自己面对的是哪一种，才可能修复它。
+        </p>
+        <div class="examples-table-wrap">
+          <table class="examples-table">
+            <thead><tr><th>类型</th><th>$p_{\text{src}}$ vs $p_{\text{tgt}}$</th><th>视觉示例</th><th>症状</th></tr></thead>
+            <tbody>
+              <tr><td><strong>协变量偏移</strong></td><td>$p(x)$ 不同；$p(y\mid x)$ 相同</td><td>同一批窑炉，不同的传感器 / 季节 / 光照</td><td>预测器在其触发之处仍然正确，但很少触发</td></tr>
+              <tr><td><strong>标签偏移</strong></td><td>$p(y)$ 不同</td><td>目标域中稀有类的数量多出 10 倍</td><td>混淆矩阵向新的多数类倾斜</td></tr>
+              <tr><td><strong>概念漂移</strong></td><td>$p(y\mid x)$ 随时间变化</td><td>政策变更后「火灾」的定义被扩展</td><td>即使准确率相同，校准也会悄然失效</td></tr>
+              <tr><td><strong>子群体偏移</strong></td><td>$p(\text{group})$ 不同</td><td>在单一相机上训练；却部署于众多相机</td><td>最差群体准确率崩塌</td></tr>
+              <tr><td><strong>开集偏移</strong></td><td>测试时出现新类别</td><td>出现新的土地利用类型</td><td>对从未见过的类别给出自信却错误的预测</td></tr>
+              <tr><td><strong>对抗偏移</strong></td><td>对 $x$ 的定向扰动</td><td>贴纸、传感器干扰、天气攻击</td><td>灾难性的、逐点式的</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout callout--key">
+          <strong>要旨。</strong>正确的工具取决于偏移的类型、你能以多大程度获取目标数据（无 / 无标签 / 少样本 / 完全标注），以及你的训练预算。接下来两节将把各种技术对应到上述每一种组合。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>二维试验场（实时）</h2>
+        <p>
+          让目标域相对于源域发生漂移；观察仅在源域上训练的分类器在目标域上崩塌。勾选 CORAL 进行特征对齐；观察大部分差距被弥合。能量热力图与 OOD ROC 展示你能以多高的置信度标记出真正的 OOD 点。
+        </p>
+        <div class="train-controls">
+          <label>漂移 &nbsp;<span id="da-drift-val">1.5</span> <input type="range" id="da-drift" min="0" max="3" step="0.1" value="1.5"></label>
+          <label class="toggle-pair"><input type="checkbox" id="da-coral"> 应用 CORAL 对齐</label>
+          <button class="action-btn action-btn--ghost" id="da-resample">重新采样</button>
+          <span class="train-stat">源域准确率 <strong id="da-src-acc">—</strong></span>
+          <span class="train-stat">目标域准确率 <strong id="da-tgt-acc">—</strong></span>
+          <span class="train-stat">OOD AUC <strong id="da-auc">—</strong></span>
+        </div>
+        <div class="da-grid">
+          <div class="da-panel">
+            <div class="panel-label">源域（●）+ 目标域（×）+ 分类器</div>
+            <canvas id="da-board" width="380" height="380"></canvas>
+          </div>
+          <div class="da-panel">
+            <div class="panel-label">能量分数（越浅越 OOD）</div>
+            <canvas id="da-energy" width="380" height="380"></canvas>
+          </div>
+          <div class="da-panel">
+            <div class="panel-label">OOD ROC（目标域 vs 远端噪声）</div>
+            <canvas id="da-roc" width="380" height="380"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>十种视觉专用的自适应技术，逐一详述</h2>
+        <p>
+          以下是对文献中常见技术的实用总结，以及如何在视觉流程中真正使用每一种。顺序：由廉价到昂贵。
+        </p>
+
+        <h3>2.1 BatchNorm 统计量自适应（AdaBN）</h3>
+        <p>
+          书中最廉价的修复手段。取你已训练的模型；用数百张无标签的目标域图像重新计算每个 BatchNorm 层的滑动均值 / 方差；冻结仿射参数 $\gamma, \beta$。30 秒即可完成，无需反向传播。当偏移主要处于低层（光照、传感器噪声）时，往往能弥合 30-60% 的差距。
+        </p>
+        <div class="math-block" id="math-adabn"></div>
+        <p>
+          <em>注意事项。</em>若偏移是语义层面的（新物体、新类别），它无济于事。对纯 LayerNorm / GroupNorm 模型也无济于事——这些模型没有可重新拟合的滑动统计量。对 ViT 而言，其对应做法是「在一批留出的目标域数据上重新校准 LayerNorm 的仿射参数」。
+        </p>
+
+        <h3>2.2 CORAL——二阶矩匹配</h3>
+        <p>
+          用 $C_S^{-1/2}$ 对源域特征白化，再用 $C_T^{1/2}$ 重新着色，在匹配后的源域数据上训练头部。上方的实时演示正是如此。对于表格数据与特征层面的对齐而言是强基线；在原始像素上效果较弱。
+        </p>
+        <div class="math-block" id="math-coral"></div>
+
+        <h3>2.3 MMD——核最大均值差异</h3>
+        <p>
+          增加一个损失项，将源域特征的核均值推向目标域特征的核均值。在 DAN（Long 等，2015）与 DDC 中以 MK-MMD 惩罚项实现。当你想对齐超出二阶统计量的分布时颇为有用。
+        </p>
+        <div class="math-block" id="math-mmd"></div>
+
+        <h3>2.4 DANN——域对抗训练</h3>
+        <p>
+          增加一个小型<em>域分类器</em>头部，试图区分源域与目标域。通过梯度反转训练特征提取器来<em>欺骗</em>它（Ganin 与 Lempitsky，2015）。特征变得域不变，而下游任务头部依然有效。此后每一种对抗式域自适应方法（CDAN、MDD、ADDA）都是对 DANN 的细化。
+        </p>
+        <div class="math-block" id="math-dann"></div>
+        <p>
+          <em>实现提示。</em>梯度反转层在前向传播中就是恒等映射，在反向传播中则是符号翻转的乘子 $-\lambda$。在训练过程中将 $\lambda$ 从 0 调度到 1；否则对抗信号在早期过强，会破坏任务头部。
+        </p>
+
+        <h3>2.5 MixStyle——增广域的风格混合</h3>
+        <p>
+          在网络内部，混合来自不同（或随机）源域的两个样本的逐通道均值与标准差（Zhou 等，2021）。这是一种模拟未见风格的廉价数据增广。对跨相机与跨光照偏移颇为有效。
+        </p>
+        <div class="math-block" id="math-mixstyle"></div>
+
+        <h3>2.6 IRM 与 group-DRO——稳健 ERM</h3>
+        <p>
+          当你有多个已标注的源域时，不变风险最小化（Arjovsky 等，2019）与群组分布稳健优化（Sagawa 等，2020）训练模型在最差环境而非平均意义上表现良好。当测试域「未见但相关」时颇为有用。
+        </p>
+
+        <h3>2.7 测试时自适应——TENT 与 SHOT</h3>
+        <p>
+          在部署时进行自适应，且无需源域数据。TENT（Wang 等，2021）通过最小化测试批次上的预测熵来更新 BatchNorm 的仿射参数。SHOT（Liang 等，2020）更进一步：无源域自适应，你只需交付在源域上训练的模型，然后在目标域上以自训练伪标签来适配特征。二者都适用于小型流式批次；若批次类别不平衡或包含过多 OOD，二者都可能<em>失效</em>——熵最小化会坍缩到单一类别。
+        </p>
+        <div class="math-block" id="math-tent"></div>
+
+        <h3>2.8 伪标签与自训练</h3>
+        <p>
+          半监督域自适应的主力方法。用源域模型在置信度高的目标域样本上生成标签，再在（源域已标注 ∪ 目标域伪标签）上重新训练模型。如此迭代。与一致性正则化（FixMatch、MixMatch）结合可获得更强的效果。
+        </p>
+
+        <h3>2.9 大型骨干网络上的提示 / 适配器 / LoRA 式域自适应</h3>
+        <p>
+          对于大型预训练骨干网络（CLIP、DINOv2、SAM），一个极小的域特定提示或 LoRA 适配器往往能以完整域自适应训练所需参数的零头弥合差距。Visual Prompt Tuning、CoOp / CoCoOp、AdapterHub。当源域数据属于隐私或不可获取时尤为有吸引力。
+        </p>
+
+        <h3>2.10 基于扩散的域转换</h3>
+        <p>
+          当源域与目标域在<em>视觉上</em>存在差异时（仿真到真实、雨天 → 晴天、季节变化），训练一个条件扩散模型，在推理之前将目标域图像转换为带有源域风格的图像（或反之）。CycleGAN 是 GAN 时代版本；如今 ControlNet / IP-Adapter / SDXL-Turbo 转换构成了实用的技术栈。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>决策树——30 秒内选出技术</h2>
+        <ol class="explanation-list">
+          <li><strong>问题 1：你有已标注的目标域数据吗？</strong>若<em>有任何</em>已标注的目标域数据 → 在目标域上微调头部 + LoRA；你不需要域自适应。结束。</li>
+          <li><strong>问题 2：仅有未标注的目标域数据，能重新训练吗？</strong>先试 AdaBN（无需代价）。若模型使用 BatchNorm 且偏移属于光照 / 传感器 / 天气类型，这往往能弥合大部分差距。若不够，则在特征上加入 CORAL 或 MMD。若仍不够，则训练 DANN。</li>
+          <li><strong>问题 3：训练时没有目标域数据，仅在测试时才有？</strong>测试时自适应：BN 模型用 TENT；无源域用 SHOT；否则依赖稳健训练的骨干网络（DINOv2 特征 + 小型头部）。</li>
+          <li><strong>问题 4：有多个已标注的源域，但没有目标域？</strong>域泛化：IRM / group-DRO / MixStyle 增广。或者在所有源域上预训练并依赖正则化。</li>
+          <li><strong>问题 5：视觉差距巨大（仿真 → 真实、白天 → 夜晚）？</strong>基于扩散的域转换；或激进的风格增广；或二者兼施。</li>
+          <li><strong>问题 6：隐私限制 / 无法访问源域？</strong>无源域自适应（SHOT、AdaContrast）；只交付模型，并在目标域上以伪标签 + 熵最小化进行自适应。</li>
+        </ol>
+        <div class="callout callout--key">
+          <strong>2026 年视觉领域的默认配方。</strong>(1) DINOv2 骨干网络。(2) 在源域上训练线性 / LoRA 头部。(3) 若架构中含 BN 则用 AdaBN（ViT 通常不含）。(4) 测试时用 TENT。(5) 用<a href="../conformal/index.html">保形预测</a>包裹预测以获得有保证的覆盖率。这套组合能处理你会遇到的大部分偏移；只有当骨干网络很小或差距巨大时，才诉诸 DANN / CORAL / MMD。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>OOD 检测——知道何时不该预测</h2>
+        <p>
+          当源域与目标域有重叠时，自适应能弥合差距。真正分布外的输入则需要一个独立的检测器以及一条拒绝预测的路径。有五种值得了解的检测器：
+        </p>
+        <div class="math-block" id="math-energy"></div>
+        <ul class="explanation-list">
+          <li><strong>最大 softmax 概率（MSP）。</strong>最廉价，在大规模场景下出人意料地难以超越。对 $\max_c p(c\mid x)$ 设阈值。</li>
+          <li><strong>能量分数</strong>（见上）。相较 MSP 有严格提升；计算量相同。2024 年以来的默认选择。</li>
+          <li><strong>倒数第二层特征上的马氏距离。</strong>在训练特征上为每个类别拟合一个高斯分布；以最小类马氏距离为新的输入打分。当骨干网络给出的簇较为干净时效果良好。</li>
+          <li><strong>ViM、KNN-OOD。</strong>以虚拟 logit 或 k-NN 距离与倒数第二层的特征库进行匹配。在大型视觉基准（OpenOOD）上表现强劲。</li>
+          <li><strong>离群样本暴露。</strong>在训练期间加入一个极小的、由「明显 OOD」图像构成的数据集，并以均匀分布作为目标；模型便学会在分布外保持不确定。廉价而可靠。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>实例演练——面向目标检测器的仿真到真实迁移</h2>
+        <p>
+          针对一种常见视觉域自适应设置的具体流程：在仿真中训练目标检测器，部署到真实照片上。这是机器人 / 自动驾驶 / 农业科技中的标准配方。
+        </p>
+        <ol class="explanation-list">
+          <li><strong>在真实照片上预训练骨干网络（无需代价）。</strong>DINOv2 或带 CLIP 风格的骨干网络。不要在仿真数据上从零训练——你会把仿真的观感烙进模型。</li>
+          <li><strong>在仿真数据上训练检测器（已标注）。</strong>标准的 DETR / RT-DETR / YOLOv10 头部；前 5 个 epoch 冻结骨干网络以避免破坏特征。</li>
+          <li><strong>加入激进的风格增广。</strong>在特征空间使用 MixStyle + 色彩抖动 + 对仿真器输出施加 RandAugment。仿真器的天气多样性也有帮助。</li>
+          <li><strong>域转换前置步骤（可选）。</strong>训练期间对每个批次运行仿真到真实的 CycleGAN / ControlNet 转换。可大幅缩小视觉差距，代价是每批次计算量增加。</li>
+          <li><strong>真实数据微调（若有任何已标注的真实数据）。</strong>即便只有 100 张已标注的真实图像 + 现有的 10 万张仿真图像，以低 10 倍的学习率端到端微调，也能大幅胜过仅用仿真数据。</li>
+          <li><strong>测试时自适应。</strong>在检测头部上使用 TENT + 一个小型的自伪标签 EMA 循环。</li>
+          <li><strong>OOD 门控。</strong>一个能量分数阈值：若图像块的能量低于阈值则不输出边界框。始终包裹已部署的检测器。</li>
+          <li><strong>保形校准。</strong>对检测器的置信度做保形化，使「0.85」真正意味着 85% 的精确率；参见<a href="../conformal/index.html">保形预测</a>一文。</li>
+        </ol>
+      </section>
+
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>实例演练——多站点医疗 / 卫星场景中的偏移</h2>
+        <p>
+          当「域」是<em>站点</em>（医院、传感器站点、卫星过境）时，问题在于域泛化，而非单目标域自适应。配方如下：
+        </p>
+        <ol class="explanation-list">
+          <li><strong>留一站点交叉验证。</strong>务必如此。随机划分会因站点而泄漏，并将泛化能力高估 10-30 个百分点。</li>
+          <li><strong>训练期间按站点分层采样。</strong>每个站点等权，而非每张图像等权。可防止任何单一站点主导梯度。</li>
+          <li><strong>Group-DRO 损失。</strong>针对最差站点的损失进行优化。平均准确率略有下降，最坏情况则取胜。</li>
+          <li><strong>仅在训练时而非测试时引入站点条件。</strong>训练期间将站点编码为嵌入并输入骨干网络；<em>测试时</em>将其丢弃，依靠泛化。有助于将站点效应与类别效应解耦。</li>
+          <li><strong>按站点建立层次贝叶斯模型。</strong>参见<a href="../bayesian-posterior/index.html#step-pool">部分池化一节</a>；每个站点有自己的后验，并被拉向全局先验。当每站点数据量较小时尤为相关。</li>
+          <li><strong>按站点建立 OOD 检测器。</strong>训练一个 OOD 检测器，标记出与任何已见站点都不相似的输入。</li>
+        </ol>
+      </section>
+
+      <section class="step-section" id="step-7">
+        <div class="step-badge">第 7 步</div>
+        <h2>陷阱与误区</h2>
+        <ul class="explanation-list">
+          <li><strong>「BatchNorm 在 eval 模式下对目标域没问题。」</strong>并非如此。eval 模式将滑动均值 / 方差锁定为源域的取值；TENT / AdaBN 之所以存在，恰恰是因为这样做会损失精度。</li>
+          <li><strong>「DANN 已收敛」但准确率很差。</strong>对抗式域自适应可能找到这样的解：域不变特征同时也是类别不变的。务必以目标域准确率评估，而非对抗损失。</li>
+          <li><strong>开发期间随机预览目标域。</strong>在模型选择时偷看目标域很诱人；这会使你的超参数选择偏向测试集。当你没有目标域标签时，应使用<em>无监督</em>的选择标准（例如目标域上的自置信度）。</li>
+          <li><strong>「我的模型加上增广后反而更差。」</strong>风格增广与天气增广只对它们所模拟的偏移有帮助。若你的偏移是传感器波段重排或频谱层面的，RGB 增广便无能为力。</li>
+          <li><strong>OOD 检测器选错了分数。</strong>在多数基准上 Energy &gt; MSP &gt; 马氏距离，但 OpenOOD 表明正确的选择取决于骨干网络与偏移类型。三者都测一测；在合成的 OOD 集上按 AUROC 择优。</li>
+          <li><strong>仿真过拟合。</strong>仅在仿真数据上训练的检测器学会的是识别仿真器的渲染器。真实世界部署便会失败。域随机化或仿真到真实转换不可妥协。</li>
+          <li><strong>频谱 / 多模态偏移。</strong>当目标域是多光谱时，在 RGB 上做 CORAL 无济于事。应改为在<a href="../eo-foundation-models/index.html">对地观测基础模型</a>上预训练，并在特征层面进行自适应。</li>
+        </ul>
+        <div class="callout callout--think">
+          <strong>最终结论。</strong>视觉中域偏移的难点很少在于选择损失函数——而在于诊断你面对的是<em>哪一种</em>偏移，并据此匹配相应技术。第 3 步中的决策树，加上第 6 步中诚实的留一站点评估，将为你省下一年的调试时间。
+        </div>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

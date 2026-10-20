@@ -1,0 +1,652 @@
+{
+ "slug": "softmax-temperature",
+ "units": {
+  "Softmax & Temperature": {
+   "zh": "Softmax 与温度",
+   "src": "Softmax & Temperature",
+   "tags": []
+  },
+  "@@T0@@← Explainer Library@@T1@@": {
+   "zh": "@@T0@@← 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\">← Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Softmax &amp; Temperature": {
+   "zh": "Softmax &amp; 温度",
+   "src": "Softmax &amp; Temperature",
+   "tags": []
+  },
+  "The softmax function turns raw scores into probabilities. The temperature\n      knob $T$ controls how peaky or flat that distribution is&mdash;and is the\n      same dial that powers creativity in LLMs and knowledge in distillation.\n      This page lets you build the intuition with live formulas, live samples,\n      and live entropy.": {
+   "zh": "softmax 函数将原始分数转化为概率。温度旋钮 $T$ 控制该分布的尖锐或平坦程度 &mdash;&mdash; 它与驱动大语言模型创造力以及蒸馏中知识传递的是同一个旋钮。本页通过实时公式、实时采样与实时熵，帮你建立起直觉。",
+   "src": "The softmax function turns raw scores into probabilities. The temperature\n      knob $T$ controls how peaky or flat that distribution is&mdash;and is the\n      same dial that powers creativity in LLMs and knowledge in distillation.\n      This page lets you build the intuition with live formulas, live samples,\n      and live entropy.",
+   "tags": []
+  },
+  "@@T0@@~12 min@@T1@@\n      @@T2@@Deep Learning &middot; Loss Functions &middot; Sampling@@T3@@": {
+   "zh": "@@T0@@约 12 分钟@@T1@@\n      @@T2@@深度学习 &middot; 损失函数 &middot; 采样@@T3@@",
+   "src": "<span>~12 min</span>\n      <span>Deep Learning &middot; Loss Functions &middot; Sampling</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Why softmax exists": {
+   "zh": "softmax 为何存在",
+   "src": "Why softmax exists",
+   "tags": []
+  },
+  "Your network's last layer outputs @@T0@@logits@@T1@@: raw real-valued scores\n      $z_1, z_2, \\ldots, z_K$ for $K$ classes. They can be negative, larger than\n      one, anything. But to do classification or sample from the model, you need\n      a @@T2@@probability distribution@@T3@@: numbers in $[0,1]$ that sum to one.": {
+   "zh": "你网络的最后一层输出 @@T0@@logit@@T1@@：$K$ 个类别上的原始实值分数 $z_1, z_2, \\ldots, z_K$。它们可以为负，可以大于 1，可以是任何值。但要进行分类或从模型中采样，你需要一个 @@T2@@概率分布@@T3@@：即和为 1 的、位于 $[0,1]$ 中的数。",
+   "src": "Your network's last layer outputs <em>logits</em>: raw real-valued scores\n      $z_1, z_2, \\ldots, z_K$ for $K$ classes. They can be negative, larger than\n      one, anything. But to do classification or sample from the model, you need\n      a <em>probability distribution</em>: numbers in $[0,1]$ that sum to one.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "You could just normalize: $p_k = z_k / \\sum_j z_j$. But that fails if any\n      $z_k$ is negative. You could shift then normalize. But why pick that\n      particular shift? Softmax is the principled answer: it arises naturally\n      from the maximum likelihood framework, and it has a beautiful gradient.": {
+   "zh": "你大可直接归一化：$p_k = z_k / \\sum_j z_j$。但只要有任何一个 $z_k$ 为负，这就会失败。你也可以先平移再归一化。但为何偏偏选那个平移量？softmax 才是更有原理依据的答案：它自然地由最大似然框架导出，并且具有一个漂亮的梯度。",
+   "src": "You could just normalize: $p_k = z_k / \\sum_j z_j$. But that fails if any\n      $z_k$ is negative. You could shift then normalize. But why pick that\n      particular shift? Softmax is the principled answer: it arises naturally\n      from the maximum likelihood framework, and it has a beautiful gradient.",
+   "tags": []
+  },
+  "Exponentiating guarantees positivity. Dividing by the sum guarantees they\n      add to one. The \"temperature\" version, which we'll meet in Step 2, scales\n      the logits before exponentiating&mdash;and with it comes one of the most\n      useful knobs in modern deep learning.": {
+   "zh": "取指数保证了正值。除以总和保证了它们加起来为 1。我们将在第 2 步遇到的「温度」版本，在取指数之前对 logit 进行缩放 &mdash;&mdash; 随之而来的是现代深度学习中最有用的旋钮之一。",
+   "src": "Exponentiating guarantees positivity. Dividing by the sum guarantees they\n      add to one. The \"temperature\" version, which we'll meet in Step 2, scales\n      the logits before exponentiating&mdash;and with it comes one of the most\n      useful knobs in modern deep learning.",
+   "tags": []
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "From logits to probabilities": {
+   "zh": "从 logit 到概率",
+   "src": "From logits to probabilities",
+   "tags": []
+  },
+  "Edit the five logit values below. The bar chart on the right shows the\n      resulting softmax probabilities at temperature $T = 1$. Notice how the\n      @@T0@@relative order@@T1@@ is preserved: the largest logit becomes the\n      largest probability. Notice also how exponentiation amplifies\n      differences&mdash;a logit gap of 2 becomes a probability ratio of $e^2 \\approx 7.4$.": {
+   "zh": "编辑下面这五个 logit 值。右侧的柱状图显示在温度 $T = 1$ 下由此得到的 softmax 概率。注意 @@T0@@相对次序@@T1@@ 如何被保留：最大的 logit 成为最大的概率。还要注意取指数如何放大了差异 &mdash;&mdash; 一个为 2 的 logit 差距会变成 $e^2 \\approx 7.4$ 的概率比。",
+   "src": "Edit the five logit values below. The bar chart on the right shows the\n      resulting softmax probabilities at temperature $T = 1$. Notice how the\n      <em>relative order</em> is preserved: the largest logit becomes the\n      largest probability. Notice also how exponentiation amplifies\n      differences&mdash;a logit gap of 2 becomes a probability ratio of $e^2 \\approx 7.4$.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Generic scores": {
+   "zh": "通用分数",
+   "src": "Generic scores",
+   "tags": []
+  },
+  "LLM next-token · \"the sky is...\"": {
+   "zh": "LLM 下一词元 ·「the sky is...」",
+   "src": "LLM next-token · \"the sky is...\"",
+   "tags": []
+  },
+  "Image · ambiguous (cat / fox / dog)": {
+   "zh": "图像 · 歧义（猫 / 狐狸 / 狗）",
+   "src": "Image · ambiguous (cat / fox / dog)",
+   "tags": []
+  },
+  "Image · confident (one class)": {
+   "zh": "图像 · 自信（一个类别）",
+   "src": "Image · confident (one class)",
+   "tags": []
+  },
+  "Bars show softmax probabilities $p_k$ at $T = 1$. Numbers above each bar are the probability values.": {
+   "zh": "柱形显示在 $T = 1$ 下的 softmax 概率 $p_k$。每个柱上方的数字是概率值。",
+   "src": "Bars show softmax probabilities $p_k$ at $T = 1$. Numbers above each bar are the probability values.",
+   "tags": []
+  },
+  "@@T0@@Try this.@@T1@@\n      Set all five logits to the same value (e.g. $z_k = 0$ for all $k$). What happens?\n      You get a uniform distribution&mdash;softmax has no preference when scores are tied.\n      Now make $z_1$ huge (say $10$). The probability mass collapses onto class 1.\n      That's the \"soft argmax\" behavior the function is named for.": {
+   "zh": "@@T0@@动手试试。@@T1@@\n      将五个 logit 都设为相同的值（例如对所有 $k$ 令 $z_k = 0$）。会发生什么？你得到一个均匀分布 &mdash;&mdash; 当分数相等时 softmax 没有偏好。现在把 $z_1$ 设得很大（比如 $10$）。概率质量会坍缩到类别 1 上。这就是该函数得名的「软 argmax」行为。",
+   "src": "<strong>Try this.</strong>\n      Set all five logits to the same value (e.g. $z_k = 0$ for all $k$). What happens?\n      You get a uniform distribution&mdash;softmax has no preference when scores are tied.\n      Now make $z_1$ huge (say $10$). The probability mass collapses onto class 1.\n      That's the \"soft argmax\" behavior the function is named for.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "The temperature dial": {
+   "zh": "温度旋钮",
+   "src": "The temperature dial",
+   "tags": []
+  },
+  "Now we add a knob. Divide every logit by a positive number $T$ before\n      taking softmax:": {
+   "zh": "现在我们加入一个旋钮。在取 softmax 之前，将每个 logit 除以一个正数 $T$：",
+   "src": "Now we add a knob. Divide every logit by a positive number $T$ before\n      taking softmax:",
+   "tags": []
+  },
+  "@@T0@@$T \\to 0$:@@T1@@ the largest logit dominates. Distribution becomes one-hot (argmax).": {
+   "zh": "@@T0@@$T \\to 0$：@@T1@@ 最大的 logit 占主导。分布变为独热（argmax）。",
+   "src": "<strong>$T \\to 0$:</strong> the largest logit dominates. Distribution becomes one-hot (argmax).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@$T = 1$:@@T1@@ standard softmax.": {
+   "zh": "@@T0@@$T = 1$：@@T1@@ 标准 softmax。",
+   "src": "<strong>$T = 1$:</strong> standard softmax.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@$T \\to \\infty$:@@T1@@ all logits become $\\approx 0$. Distribution becomes uniform.": {
+   "zh": "@@T0@@$T \\to \\infty$：@@T1@@ 所有 logit 都变为 $\\approx 0$。分布变为均匀分布。",
+   "src": "<strong>$T \\to \\infty$:</strong> all logits become $\\approx 0$. Distribution becomes uniform.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "So $T$ smoothly interpolates between &ldquo;always pick the best&rdquo; and\n      &ldquo;pick uniformly at random&rdquo;. Slide the temperature below and watch\n      the distribution shift in real time.": {
+   "zh": "因此 $T$ 在「总是挑选最好的」与「均匀随机地挑选」之间平滑地插值。滑动下面的温度，实时观察分布的变化。",
+   "src": "So $T$ smoothly interpolates between &ldquo;always pick the best&rdquo; and\n      &ldquo;pick uniformly at random&rdquo;. Slide the temperature below and watch\n      the distribution shift in real time.",
+   "tags": []
+  },
+  "Temperature @@T0@@$T$ = @@T1@@1.00@@T2@@@@T3@@": {
+   "zh": "温度 @@T0@@$T$ = @@T1@@1.00@@T2@@@@T3@@",
+   "src": "Temperature <span>$T$ = <span id=\"step4TempVal\">1.00</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"step4TempVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Same logits as Step 1, now scaled by $1/T$. Drag the slider to see the distribution morph from peaky to uniform.": {
+   "zh": "与第 1 步相同的 logit，现在按 $1/T$ 缩放。拖动滑块，观察分布如何从尖锐变为均匀。",
+   "src": "Same logits as Step 1, now scaled by $1/T$. Drag the slider to see the distribution morph from peaky to uniform.",
+   "tags": []
+  },
+  "@@T0@@Entropy $H = -\\sum p \\log p$@@T1@@\n        @@T2@@—@@T3@@": {
+   "zh": "@@T0@@熵 $H = -\\sum p \\log p$@@T1@@\n        @@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Entropy $H = -\\sum p \\log p$</span>\n        <span class=\"stat-value\" id=\"entropyVal\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"entropyVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Max possible (uniform)@@T1@@\n        @@T2@@—@@T3@@": {
+   "zh": "@@T0@@可能的最大值（均匀）@@T1@@\n        @@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Max possible (uniform)</span>\n        <span class=\"stat-value\" id=\"maxEntropyVal\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"maxEntropyVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Confidence (top prob)@@T1@@\n        @@T2@@—@@T3@@": {
+   "zh": "@@T0@@置信度（最高概率）@@T1@@\n        @@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Confidence (top prob)</span>\n        <span class=\"stat-value\" id=\"topProbVal\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"topProbVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Connection to entropy.@@T1@@\n      As $T$ grows, the distribution flattens and its entropy $H$ rises toward\n      $\\log K$ (the entropy of uniform). As $T \\to 0$, $H \\to 0$. Temperature is\n      literally a knob on the entropy of the output distribution.": {
+   "zh": "@@T0@@与熵的联系。@@T1@@\n      随着 $T$ 增大，分布变得平坦，其熵 $H$ 上升趋向 $\\log K$（均匀分布的熵）。当 $T \\to 0$ 时，$H \\to 0$。温度实际上就是输出分布之熵上的一个旋钮。",
+   "src": "<strong>Connection to entropy.</strong>\n      As $T$ grows, the distribution flattens and its entropy $H$ rises toward\n      $\\log K$ (the entropy of uniform). As $T \\to 0$, $H \\to 0$. Temperature is\n      literally a knob on the entropy of the output distribution.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Sampling: turning probabilities into picks": {
+   "zh": "采样：把概率转化为抽取",
+   "src": "Sampling: turning probabilities into picks",
+   "tags": []
+  },
+  "A probability distribution is just a recipe for randomness. To\n      @@T0@@sample@@T1@@ from softmax, you draw a uniform random number $u \\in [0,1]$\n      and walk along the cumulative probabilities until you exceed $u$.": {
+   "zh": "一个概率分布不过是一份产生随机性的配方。要从 softmax 中 @@T0@@采样@@T1@@，你抽取一个均匀随机数 $u \\in [0,1]$，然后沿累积概率前进，直到超过 $u$。",
+   "src": "A probability distribution is just a recipe for randomness. To\n      <em>sample</em> from softmax, you draw a uniform random number $u \\in [0,1]$\n      and walk along the cumulative probabilities until you exceed $u$.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Click @@T0@@Draw one sample@@T1@@ below. A vertical orange line drops\n      onto the cumulative bar at position $u$, and the class it lands in is the\n      pick. Try it a few times. Now slide the temperature high&mdash;you'll see\n      every class sometimes get picked. Slide it low&mdash;always the same class.": {
+   "zh": "点击下面的 @@T0@@抽取一个样本@@T1@@。一条橙色竖线在位置 $u$ 处落到累积条上，它落入的类别即为抽中结果。试几次。现在把温度调高 &mdash;&mdash; 你会看到每个类别有时都会被抽中。把它调低 &mdash;&mdash; 总是同一个类别。",
+   "src": "Click <strong>Draw one sample</strong> below. A vertical orange line drops\n      onto the cumulative bar at position $u$, and the class it lands in is the\n      pick. Try it a few times. Now slide the temperature high&mdash;you'll see\n      every class sometimes get picked. Slide it low&mdash;always the same class.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Draw one sample": {
+   "zh": "抽取一个样本",
+   "src": "Draw one sample",
+   "tags": []
+  },
+  "Clear": {
+   "zh": "清除",
+   "src": "Clear",
+   "tags": []
+  },
+  "Top bar: cumulative probabilities by class (each colored segment has width $p_k$). Orange marker: the random $u$ value. Beneath: a tally of recent draws.": {
+   "zh": "顶部横条：各类别的累积概率（每个彩色分段的宽度为 $p_k$）。橙色标记：随机数 $u$ 的值。下方：最近若干次抽取的计数。",
+   "src": "Top bar: cumulative probabilities by class (each colored segment has width $p_k$). Orange marker: the random $u$ value. Beneath: a tally of recent draws.",
+   "tags": []
+  },
+  "@@T0@@Why this matters.@@T1@@\n      When an LLM &ldquo;writes the next word&rdquo;, this is exactly what's\n      happening: the model outputs logits over the vocabulary, softmax converts\n      them to probabilities, and the next token is sampled. Low $T$ &rarr; safe,\n      repetitive text. High $T$ &rarr; creative but sometimes incoherent. You\n      have just controlled the dial that ChatGPT exposes as &ldquo;temperature&rdquo;.": {
+   "zh": "@@T0@@为何这很重要。@@T1@@\n      当一个 LLM「写出下一个词」时，发生的正是这件事：模型输出词表上的 logit，softmax 将其转化为概率，然后采样出下一个词元。低 $T$ &rarr; 稳妥、重复的文本。高 $T$ &rarr; 有创意但有时不连贯。你刚刚操控的正是 ChatGPT 作为「temperature」暴露出来的那个旋钮。",
+   "src": "<strong>Why this matters.</strong>\n      When an LLM &ldquo;writes the next word&rdquo;, this is exactly what's\n      happening: the model outputs logits over the vocabulary, softmax converts\n      them to probabilities, and the next token is sampled. Low $T$ &rarr; safe,\n      repetitive text. High $T$ &rarr; creative but sometimes incoherent. You\n      have just controlled the dial that ChatGPT exposes as &ldquo;temperature&rdquo;.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Sampling at scale: the law of large numbers": {
+   "zh": "大规模采样：大数定律",
+   "src": "Sampling at scale: the law of large numbers",
+   "tags": []
+  },
+  "One sample is random. A thousand samples should look like the underlying\n      distribution. Click @@T0@@Draw 1000@@T1@@ and watch the empirical\n      histogram (filled) converge onto the true softmax probabilities (outline).": {
+   "zh": "单个样本是随机的。一千个样本应当看起来像其背后的分布。点击 @@T0@@抽取 1000 个@@T1@@，观察经验直方图（实心）收敛到真实的 softmax 概率（轮廓）。",
+   "src": "One sample is random. A thousand samples should look like the underlying\n      distribution. Click <strong>Draw 1000</strong> and watch the empirical\n      histogram (filled) converge onto the true softmax probabilities (outline).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "This is the cleanest sanity check that softmax actually computes a valid\n      probability distribution&mdash;the long-run frequencies match.": {
+   "zh": "这是最简洁的合理性检验，说明 softmax 确实计算出了一个合法的概率分布 &mdash;&mdash; 长期频率相符。",
+   "src": "This is the cleanest sanity check that softmax actually computes a valid\n      probability distribution&mdash;the long-run frequencies match.",
+   "tags": []
+  },
+  "Sample count @@T0@@@@T1@@1000@@T2@@@@T3@@": {
+   "zh": "样本数量 @@T0@@@@T1@@1000@@T2@@@@T3@@",
+   "src": "Sample count <span><span id=\"sampleCountVal\">1000</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"sampleCountVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Draw @@T0@@1000@@T1@@": {
+   "zh": "抽取 @@T0@@1000@@T1@@",
+   "src": "Draw <span id=\"btn-draw-many-n\">1000</span>",
+   "tags": [
+    "<span id=\"btn-draw-many-n\">",
+    "</span>"
+   ]
+  },
+  "Clear histogram": {
+   "zh": "清除直方图",
+   "src": "Clear histogram",
+   "tags": []
+  },
+  "Filled bars: empirical frequencies from your samples. Outlined bars: the exact softmax probabilities. As $N$ grows, they converge.": {
+   "zh": "实心柱：来自你样本的经验频率。轮廓柱：精确的 softmax 概率。随着 $N$ 增大，二者收敛。",
+   "src": "Filled bars: empirical frequencies from your samples. Outlined bars: the exact softmax probabilities. As $N$ grows, they converge.",
+   "tags": []
+  },
+  "@@T0@@Total samples drawn@@T1@@\n        @@T2@@0@@T3@@": {
+   "zh": "@@T0@@已抽取样本总数@@T1@@\n        @@T2@@0@@T3@@",
+   "src": "<span class=\"stat-label\">Total samples drawn</span>\n        <span class=\"stat-value\" id=\"totalSamplesVal\">0</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"totalSamplesVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Max abs error@@T1@@\n        @@T2@@—@@T3@@": {
+   "zh": "@@T0@@最大绝对误差@@T1@@\n        @@T2@@—@@T3@@",
+   "src": "<span class=\"stat-label\">Max abs error</span>\n        <span class=\"stat-value\" id=\"maxErrorVal\">—</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"maxErrorVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Try this.@@T1@@\n      Draw 100 samples, then 1,000, then 10,000 (use the slider). The filled\n      bars should snap closer to the outlines each time. The error shrinks like\n      $1/\\sqrt{N}$&mdash;classic Monte Carlo convergence.": {
+   "zh": "@@T0@@动手试试。@@T1@@\n      先抽取 100 个样本，再抽 1,000 个，然后抽 10,000 个（使用滑块）。实心柱每次都应更贴近轮廓。误差以 $1/\\sqrt{N}$ 的速率缩小 &mdash;&mdash; 经典的蒙特卡洛收敛。",
+   "src": "<strong>Try this.</strong>\n      Draw 100 samples, then 1,000, then 10,000 (use the slider). The filled\n      bars should snap closer to the outlines each time. The error shrinks like\n      $1/\\sqrt{N}$&mdash;classic Monte Carlo convergence.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Where temperature shows up in practice": {
+   "zh": "温度在实践中的出现场合",
+   "src": "Where temperature shows up in practice",
+   "tags": []
+  },
+  "Setting": {
+   "zh": "场景",
+   "src": "Setting",
+   "tags": []
+  },
+  "What $T$ does": {
+   "zh": "$T$ 的作用",
+   "src": "What $T$ does",
+   "tags": []
+  },
+  "Typical value": {
+   "zh": "典型取值",
+   "src": "Typical value",
+   "tags": []
+  },
+  "LLM text generation": {
+   "zh": "LLM 文本生成",
+   "src": "LLM text generation",
+   "tags": []
+  },
+  "Controls creativity vs. coherence of generated tokens": {
+   "zh": "控制生成词元的创造力与连贯性之间的权衡",
+   "src": "Controls creativity vs. coherence of generated tokens",
+   "tags": []
+  },
+  "0.7 &ndash; 1.0 (creative), 0.0 &ndash; 0.3 (deterministic)": {
+   "zh": "0.7 &ndash; 1.0（有创意），0.0 &ndash; 0.3（确定性）",
+   "src": "0.7 &ndash; 1.0 (creative), 0.0 &ndash; 0.3 (deterministic)",
+   "tags": []
+  },
+  "Knowledge distillation": {
+   "zh": "知识蒸馏",
+   "src": "Knowledge distillation",
+   "tags": []
+  },
+  "Higher $T$ exposes the &ldquo;dark knowledge&rdquo; in the teacher's soft logits": {
+   "zh": "较高的 $T$ 揭示教师模型软 logit 中的「暗知识」",
+   "src": "Higher $T$ exposes the &ldquo;dark knowledge&rdquo; in the teacher's soft logits",
+   "tags": []
+  },
+  "$T \\approx 4$ (Hinton et al. 2015)": {
+   "zh": "$T \\approx 4$（Hinton 等，2015）",
+   "src": "$T \\approx 4$ (Hinton et al. 2015)",
+   "tags": []
+  },
+  "Diffusion classifier-free guidance": {
+   "zh": "扩散模型的无分类器引导",
+   "src": "Diffusion classifier-free guidance",
+   "tags": []
+  },
+  "Plays a similar role: trades fidelity for diversity": {
+   "zh": "扮演类似的角色：以保真度换取多样性",
+   "src": "Plays a similar role: trades fidelity for diversity",
+   "tags": []
+  },
+  "guidance scale $w \\approx 3-7$": {
+   "zh": "引导尺度 $w \\approx 3-7$",
+   "src": "guidance scale $w \\approx 3-7$",
+   "tags": []
+  },
+  "Reinforcement learning (Boltzmann exploration)": {
+   "zh": "强化学习（玻尔兹曼探索）",
+   "src": "Reinforcement learning (Boltzmann exploration)",
+   "tags": []
+  },
+  "Selects actions: high $T$ explores, low $T$ exploits": {
+   "zh": "选择动作：高 $T$ 探索，低 $T$ 利用",
+   "src": "Selects actions: high $T$ explores, low $T$ exploits",
+   "tags": []
+  },
+  "annealed from high to low": {
+   "zh": "从高到低退火",
+   "src": "annealed from high to low",
+   "tags": []
+  },
+  "Calibration": {
+   "zh": "校准",
+   "src": "Calibration",
+   "tags": []
+  },
+  "A single learned $T$ rescales overconfident model outputs": {
+   "zh": "单个学得的 $T$ 对过度自信的模型输出进行重新缩放",
+   "src": "A single learned $T$ rescales overconfident model outputs",
+   "tags": []
+  },
+  "$T &gt; 1$ usually (temperature scaling)": {
+   "zh": "通常 $T &gt; 1$（温度缩放）",
+   "src": "$T &gt; 1$ usually (temperature scaling)",
+   "tags": []
+  },
+  "The same one-line formula&mdash;divide logits by $T$ before\n      softmax&mdash;runs through all of these. Once you understand the bar chart\n      above, you understand all of them.": {
+   "zh": "同一条一行的公式 &mdash;&mdash; 在 softmax 之前将 logit 除以 $T$ &mdash;&mdash; 贯穿于上述所有场景。一旦你理解了上面的柱状图，你就理解了它们全部。",
+   "src": "The same one-line formula&mdash;divide logits by $T$ before\n      softmax&mdash;runs through all of these. Once you understand the bar chart\n      above, you understand all of them.",
+   "tags": []
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Three things people get wrong about softmax": {
+   "zh": "人们对 softmax 常犯的三个错误",
+   "src": "Three things people get wrong about softmax",
+   "tags": []
+  },
+  "@@T0@@Myth@@T1@@": {
+   "zh": "@@T0@@误区@@T1@@",
+   "src": "<span class=\"misconception-icon\">Myth</span>",
+   "tags": [
+    "<span class=\"misconception-icon\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@&ldquo;Softmax outputs are calibrated probabilities.&rdquo;@@T1@@@@T2@@\n          They sum to one, so they look like probabilities. But modern deep\n          networks are typically @@T3@@overconfident@@T4@@&mdash;the largest softmax\n          value is much higher than the model's true accuracy on those examples.\n          Calibration (like learned temperature scaling) fixes this.": {
+   "zh": "@@T0@@「softmax 的输出就是校准良好的概率。」@@T1@@@@T2@@\n          它们之和为 1，所以看起来像概率。但现代深度网络通常 @@T3@@过度自信@@T4@@ &mdash;&mdash; 最大的 softmax 值远高于模型在这些样本上的真实准确率。校准（如学得的温度缩放）可以修正这一点。",
+   "src": "<strong>&ldquo;Softmax outputs are calibrated probabilities.&rdquo;</strong><br>\n          They sum to one, so they look like probabilities. But modern deep\n          networks are typically <em>overconfident</em>&mdash;the largest softmax\n          value is much higher than the model's true accuracy on those examples.\n          Calibration (like learned temperature scaling) fixes this.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@&ldquo;You should apply softmax then cross-entropy loss.&rdquo;@@T1@@@@T2@@\n          You should not. PyTorch's @@T3@@CrossEntropyLoss@@T4@@ applies softmax\n          internally, and computing it twice gives wrong gradients. Pass raw\n          logits.": {
+   "zh": "@@T0@@「你应该先应用 softmax，再用交叉熵损失。」@@T1@@@@T2@@\n          并非如此。PyTorch 的 @@T3@@CrossEntropyLoss@@T4@@ 会在内部施加 softmax，计算两次会得到错误的梯度。请直接传入原始 logit。",
+   "src": "<strong>&ldquo;You should apply softmax then cross-entropy loss.&rdquo;</strong><br>\n          You should not. PyTorch's <code>CrossEntropyLoss</code> applies softmax\n          internally, and computing it twice gives wrong gradients. Pass raw\n          logits.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@&ldquo;Lower temperature is always more accurate.&rdquo;@@T1@@@@T2@@\n          For greedy decoding ($T=0$), yes&mdash;but for evaluation across\n          a distribution, calibrated probabilities ($T \\approx 1$) give better\n          uncertainty estimates and better downstream pipeline behavior.": {
+   "zh": "@@T0@@「温度越低总是越准确。」@@T1@@@@T2@@\n          对于贪心解码（$T=0$），确实如此 &mdash;&mdash; 但若要在整个分布上评估，校准良好的概率（$T \\approx 1$）能给出更好的不确定性估计，以及更好的下游流水线行为。",
+   "src": "<strong>&ldquo;Lower temperature is always more accurate.&rdquo;</strong><br>\n          For greedy decoding ($T=0$), yes&mdash;but for evaluation across\n          a distribution, calibrated probabilities ($T \\approx 1$) give better\n          uncertainty estimates and better downstream pipeline behavior.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n      Softmax is the canonical way to turn unbounded scores into a probability\n      distribution. The temperature parameter $T$ smoothly trades determinism\n      for diversity by reshaping the entropy of that distribution. You now know\n      what the slider in every LLM API is actually doing.": {
+   "zh": "@@T0@@最终总结。@@T1@@\n      softmax 是将无界分数转化为概率分布的典范方式。温度参数 $T$ 通过重塑该分布的熵，在确定性于多样性之间平滑权衡。你现在知道了每个 LLM API 里的那个滑块究竟在做什么。",
+   "src": "<strong>Final takeaway.</strong>\n      Softmax is the canonical way to turn unbounded scores into a probability\n      distribution. The temperature parameter $T$ smoothly trades determinism\n      for diversity by reshaping the entropy of that distribution. You now know\n      what the slider in every LLM API is actually doing.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Bonus": {
+   "zh": "附赠",
+   "src": "Bonus",
+   "tags": []
+  },
+  "Numerical stability — the &minus;max trick": {
+   "zh": "数值稳定性 —— 减去最大值的技巧",
+   "src": "Numerical stability — the &minus;max trick",
+   "tags": []
+  },
+  "The naive softmax $e^{z_i} / \\sum e^{z_j}$ overflows for $z_i \\gtrsim 700$ (float64) and $\\gtrsim 88$ (float32). Every production implementation subtracts the max logit before exponentiating:": {
+   "zh": "朴素的 softmax $e^{z_i} / \\sum e^{z_j}$ 在 $z_i \\gtrsim 700$（float64）和 $\\gtrsim 88$（float32）时会溢出。每一个生产级实现都会在取指数之前减去最大的 logit：",
+   "src": "The naive softmax $e^{z_i} / \\sum e^{z_j}$ overflows for $z_i \\gtrsim 700$ (float64) and $\\gtrsim 88$ (float32). Every production implementation subtracts the max logit before exponentiating:",
+   "tags": []
+  },
+  "softmax(z)@@T0@@i@@T1@@ = exp(z@@T2@@i@@T3@@ &minus; max(z)) / Σ@@T4@@j@@T5@@ exp(z@@T6@@j@@T7@@ &minus; max(z))": {
+   "zh": "",
+   "src": "softmax(z)<sub>i</sub> = exp(z<sub>i</sub> &minus; max(z)) / Σ<sub>j</sub> exp(z<sub>j</sub> &minus; max(z))",
+   "tags": [
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "The mathematical result is identical (the constant cancels), but the largest exponent is now exactly 0, so the sum is between 1 and $n$ and never overflows. Inside torch.softmax / numpy.softmax this is done for you; if you're writing softmax from scratch (e.g. a custom CUDA kernel), this is the first thing you need.": {
+   "zh": "数学结果完全相同（常数被抵消），但现在最大的指数恰好为 0，因此总和介于 1 与 $n$ 之间，永不溢出。在 torch.softmax / numpy.softmax 内部已经为你做好了这件事；如果你要从头编写 softmax（例如一个自定义 CUDA 核），这是你需要做的第一件事。",
+   "src": "The mathematical result is identical (the constant cancels), but the largest exponent is now exactly 0, so the sum is between 1 and $n$ and never overflows. Inside torch.softmax / numpy.softmax this is done for you; if you're writing softmax from scratch (e.g. a custom CUDA kernel), this is the first thing you need.",
+   "tags": []
+  },
+  "The same trick gives @@T0@@logsumexp(z) = max(z) + log Σ exp(z &minus; max(z))@@T1@@, the building block of stable cross-entropy and log-probability computations.": {
+   "zh": "同样的技巧给出 @@T0@@logsumexp(z) = max(z) + log Σ exp(z &minus; max(z))@@T1@@，它是稳定的交叉熵与对数概率计算的基本构件。",
+   "src": "The same trick gives <code>logsumexp(z) = max(z) + log Σ exp(z &minus; max(z))</code>, the building block of stable cross-entropy and log-probability computations.",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Softmax alternatives — sparsemax, entmax, Gumbel": {
+   "zh": "softmax 的替代方案 —— sparsemax、entmax、Gumbel",
+   "src": "Softmax alternatives — sparsemax, entmax, Gumbel",
+   "tags": []
+  },
+  "@@T0@@Sparsemax@@T1@@ (Martins &amp; Astudillo, 2016). Projects logits onto the simplex — produces a sparse probability vector with some exact zeros. Useful in attention heads where you want hard, interpretable choices.": {
+   "zh": "@@T0@@Sparsemax@@T1@@（Martins &amp; Astudillo，2016）。将 logit 投影到单纯形上 —— 产生一个含若干精确零值的稀疏概率向量。在你需要硬性且可解释的选择的注意力头中很有用。",
+   "src": "<strong>Sparsemax</strong> (Martins &amp; Astudillo, 2016). Projects logits onto the simplex — produces a sparse probability vector with some exact zeros. Useful in attention heads where you want hard, interpretable choices.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Entmax-α@@T1@@ (Peters et&nbsp;al., 2019). Interpolates softmax ($\\alpha = 1$) and sparsemax ($\\alpha = 2$). One-parameter family.": {
+   "zh": "@@T0@@Entmax-α@@T1@@（Peters 等，2019）。在 softmax（$\\alpha = 1$）与 sparsemax（$\\alpha = 2$）之间插值。是一个单参数族。",
+   "src": "<strong>Entmax-α</strong> (Peters et&nbsp;al., 2019). Interpolates softmax ($\\alpha = 1$) and sparsemax ($\\alpha = 2$). One-parameter family.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Gumbel-softmax@@T1@@ (Jang et&nbsp;al., 2017; Maddison et&nbsp;al., 2017). Add Gumbel noise to logits, then softmax with low temperature — produces near-one-hot samples that are @@T2@@differentiable@@T3@@. The standard reparameterisation trick for discrete latent variables.": {
+   "zh": "@@T0@@Gumbel-softmax@@T1@@（Jang 等，2017；Maddison 等，2017）。向 logit 加入 Gumbel 噪声，再以低温度做 softmax —— 产生近似独热的、且 @@T2@@可微@@T3@@ 的样本。是离散隐变量的标准重参数化技巧。",
+   "src": "<strong>Gumbel-softmax</strong> (Jang et&nbsp;al., 2017; Maddison et&nbsp;al., 2017). Add Gumbel noise to logits, then softmax with low temperature — produces near-one-hot samples that are <em>differentiable</em>. The standard reparameterisation trick for discrete latent variables.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Top-k / nucleus (top-p) sampling.@@T1@@ Restrict softmax support to the top-$k$ tokens (or smallest set summing to $p$) before sampling. Standard in modern LLM text generation.": {
+   "zh": "@@T0@@Top-k / 核采样（top-p）。@@T1@@ 在采样前将 softmax 的支撑集限制在前 $k$ 个词元（或和为 $p$ 的最小集合）。是现代 LLM 文本生成中的标准做法。",
+   "src": "<strong>Top-k / nucleus (top-p) sampling.</strong> Restrict softmax support to the top-$k$ tokens (or smallest set summing to $p$) before sampling. Standard in modern LLM text generation.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Reading": {
+   "zh": "延伸阅读",
+   "src": "Reading",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "阅读清单",
+   "src": "Reading list",
+   "tags": []
+  },
+  "Bridle (1990) — first usage of \"softmax\" for neural-net output normalisation.": {
+   "zh": "Bridle（1990）—— 首次将「softmax」用于神经网络输出归一化。",
+   "src": "Bridle (1990) — first usage of \"softmax\" for neural-net output normalisation.",
+   "tags": []
+  },
+  "Hinton, Vinyals, Dean (2015) — Knowledge Distillation, popularised the temperature parameter.": {
+   "zh": "Hinton, Vinyals, Dean（2015）—— 知识蒸馏，使温度参数广为流行。",
+   "src": "Hinton, Vinyals, Dean (2015) — Knowledge Distillation, popularised the temperature parameter.",
+   "tags": []
+  },
+  "Holtzman et&nbsp;al. (2020) — @@T0@@The Curious Case of Neural Text Degeneration.@@T1@@ Nucleus sampling.": {
+   "zh": "Holtzman 等（2020）—— @@T0@@The Curious Case of Neural Text Degeneration。@@T1@@ 核采样。",
+   "src": "Holtzman et&nbsp;al. (2020) — <em>The Curious Case of Neural Text Degeneration.</em> Nucleus sampling.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Jang, Gu, Poole (2017) — Gumbel-Softmax.": {
+   "zh": "Jang, Gu, Poole（2017）—— Gumbel-Softmax。",
+   "src": "Jang, Gu, Poole (2017) — Gumbel-Softmax.",
+   "tags": []
+  },
+  "Martins &amp; Astudillo (2016) — sparsemax.": {
+   "zh": "Martins &amp; Astudillo（2016）—— sparsemax。",
+   "src": "Martins &amp; Astudillo (2016) — sparsemax.",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "Softmax 与温度",
+  "tagline": "温度如何重塑一个概率分布 —— 以及如何从中采样",
+  "summary": "实时编辑 logit，观察 softmax 如何将它们转化为概率。将温度旋钮从 0.05 滑到 5，看一个尖锐的分布如何变为均匀分布。一次抽取一个样本，或一次抽取 10,000 个 —— 这正是驱动 ChatGPT 创造力、知识蒸馏与校准的那个旋钮。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "从可编辑的 logit 入手，观察 softmax 在放大差异的同时如何保持次序。",
+   "拖动温度滑块，观察分布如何从 argmax 变为均匀，并配有实时的熵读数。",
+   "逐个抽取样本，看随机数 u 落在累积条上的位置 —— 这正是 LLM 挑选下一个词元的机制。",
+   "运行 10,000 个样本，观察经验直方图收敛到真实的 softmax 概率（实时的蒙特卡洛收敛）。",
+   "温度在现实中出现的五个场景：LLM 生成、蒸馏、扩散引导、强化学习探索与校准。"
+  ],
+  "tags": [
+   "Softmax",
+   "采样",
+   "温度",
+   "深度学习",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

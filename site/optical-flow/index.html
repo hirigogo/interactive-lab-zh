@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>逐帧解析光流</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>逐帧解析光流</h1>
+        <p class="abstract">
+          光流是一个二维速度场，它对视频帧中的每个像素给出其在下一帧中的运动去向。本页在浏览器中、对真实视频运行一个真实的 Lucas-Kanade 求解器和一个真实的块匹配稠密光流估计器。逐帧步进一段体育视频，观察向量如何由亮度恒定方程推导而出。
+        </p>
+        <div class="byline">
+          <span>约 16 分钟</span>
+          <span>计算机视觉 &middot; 视频 &middot; 经典计算机视觉</span>
+        </div>
+      </header>
+
+      <!-- ─── 前言 ─── -->
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>运动是一个二维向量场</h2>
+        <p>
+          播放一段视频若干帧，每个像素都有一段故事：静止的背景像素不动，网球的位移极大，跑步者的手臂与腿相对其躯干运动方式各异。把两个连续帧之间所有逐像素位移汇总起来，便得到一个<strong>流场</strong>。其中每一格都是一个以像素/帧为单位的二维向量 $(u, v)$。仅此而已 &mdash; 这就是光流。
+        </p>
+        <p>
+          从历史上看，运动估计驱动了每一种视频编解码器（MPEG、H.264、AV1）背后的压缩、摄像机中的跟踪以及现代智能手机上的慢动作功能。当代的 SLAM、三维重建与视频扩散模型依然依赖它。
+        </p>
+
+        <h3>选择片段</h3>
+        <div class="video-picker">
+          <label class="upload-zone" id="upload-zone" for="video-input">
+            <strong>将视频拖放到此处，或点击上传。</strong>
+            <small>
+              MP4 / WebM 效果最佳。一段简短的体育或动作片段最为理想。
+              播放与光流计算均在本地运行 &mdash; 不会上传任何内容。
+            </small>
+            <input type="file" id="video-input" accept="video/*" />
+          </label>
+          <div>
+            <div class="sample-grid" id="sample-grid"></div>
+            <p style="font-family: var(--sans); color: var(--muted); font-size: 0.8rem; margin: 0.5rem 0 0;">
+              四段公有领域 / CC 授权的示例片段。
+            </p>
+          </div>
+        </div>
+
+        <div class="interactive-figure">
+          <video id="video" crossorigin="anonymous" playsinline muted preload="auto" style="width: 100%; max-width: 720px; display: none;"></video>
+          <div class="image-stage-wrap">
+            <canvas id="preludeCanvas" class="video-canvas" width="640" height="360"></canvas>
+          </div>
+          <figcaption id="prelude-caption">选择一段示例，或拖入你自己的视频。</figcaption>
+          <div class="player-controls" id="player-controls">
+            <button class="action-btn action-btn--primary" id="btn-play">播放</button>
+            <button class="action-btn action-btn--ghost" id="btn-step-back">&larr; 步进</button>
+            <button class="action-btn action-btn--ghost" id="btn-step-fwd">步进 &rarr;</button>
+            <button class="action-btn action-btn--ghost action-btn--small" id="btn-reset">重置</button>
+            <span class="player-status" id="player-status">第 0 / 0 帧</span>
+          </div>
+        </div>
+
+        <div class="stat-strip">
+          <div class="stat-pill"><span class="stat-label">视频尺寸</span><span class="stat-value" id="vid-size">—</span></div>
+          <div class="stat-pill stat-pill--accent"><span class="stat-label">帧率</span><span class="stat-value" id="vid-fps">—</span></div>
+          <div class="stat-pill stat-pill--warm"><span class="stat-label">光流计算</span><span class="stat-value" id="flow-ms">—</span></div>
+        </div>
+      </section>
+
+      <!-- ─── 第 1 步 ─── -->
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>两帧图像，一个问题</h2>
+        <p>
+          每一种光流算法都始于相同的设定：当前帧 $I_t$ 与前一帧 $I_{t-1}$。对帧 $t$ 中位于 $(x, y)$ 处的每个像素，我们追问：<em>该像素在帧 $t-1$ 中位于何处</em>？记其答案为 $(x - u, y - v)$。数对 $(u, v)$ 便是 $(x, y)$ 处的光流。
+        </p>
+        <p>
+          逐帧步进该片段并查看下方的前后对比。静止部分看起来几乎完全相同；运动部分则出现重影或重复。这正是光流算法所利用的信号。
+        </p>
+
+        <div class="split-grid">
+          <div class="interactive-figure">
+            <canvas id="prevCanvas" class="video-canvas" width="320" height="180"></canvas>
+            <figcaption>前一帧 $I_{t-1}$</figcaption>
+          </div>
+          <div class="interactive-figure">
+            <canvas id="currCanvas" class="video-canvas" width="320" height="180"></canvas>
+            <figcaption>当前帧 $I_t$</figcaption>
+          </div>
+        </div>
+
+        <h3>差分图像 $I_t - I_{t-1}$</h3>
+        <p>
+          将帧 $t$ 与帧 $t-1$ 逐像素相减。静止像素相互抵消而呈灰色；运动像素则留下明亮的残差，勾勒出运动轨迹。
+        </p>
+        <div class="interactive-figure">
+          <canvas id="diffCanvas" class="video-canvas" width="640" height="360"></canvas>
+          <figcaption>帧间差分 —— 明亮表示像素发生变化，灰色表示静止。</figcaption>
+        </div>
+      </section>
+
+      <!-- ─── 第 2 步 ─── -->
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>亮度恒定性假设</h2>
+        <p>
+          （几乎）每一种经典光流方法的基础都是一个极为简单的论断：
+        </p>
+        <div class="math-block" id="math-bc"></div>
+        <p>
+          像素在 $(x, y, t)$ 处的亮度等于其在 $(x + u, y + v, t + 1)$ 处的亮度。这就是亮度恒定性假设。在 $(x, y, t)$ 处作一阶泰勒展开，即得<strong>光流约束方程</strong>：
+        </p>
+        <div class="math-block" id="math-ofce"></div>
+        <p>
+          其中 $I_x$、$I_y$、$I_t$ 为图像的空间导数与时间导数。这是<em>一个含两个未知量</em>（$u, v$）的方程。这就是<strong>孔径问题</strong>：在局部，你只能测出垂直于灰度梯度方向的运动。
+        </p>
+        <div class="callout callout--warn">
+          <strong>当该假设失效时。</strong>
+          剧烈的光照变化、曝光闪烁、阴影、镜面高光、遮挡（某像素确实没有前驱）、超出泰勒展开半径的大位移 &mdash; 这些都会破坏亮度恒定性。现代网络（RAFT、FlowFormer）将其作为软先验，而非硬约束。
+        </div>
+      </section>
+
+      <!-- ─── 第 3 步 ─── -->
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>Lucas-Kanade：补足缺失的那个方程</h2>
+        <p>
+          Lucas 与 Kanade（1981）通过假设光流<em>局部恒定</em> 来绕过孔径问题：$(x, y)$ 附近一个小窗口 $W$ 内的每个像素共享相同的 $(u, v)$。这将单个像素处的一条光流约束方程转化为邻近像素上众多约束方程构成的超定方程组，可用最小二乘求解：
+        </p>
+        <div class="math-block" id="math-lk"></div>
+        <p>
+          该 $2 \times 2$ 矩阵 $\sum \nabla I\, \nabla I^\top$ 即经典的<strong>结构张量</strong>。其特征值告诉你该窗口的光流是否可靠：两个大特征值 = 角点（良态，解唯一）；只有一个大特征值 = 边缘（孔径问题）；特征值为零 = 无纹理区域（光流无从谈起）。
+        </p>
+
+        <h3>真实的 Lucas-Kanade，实时运行</h3>
+        <p>
+          下面，我们用一个简化的 Shi-Tomasi 评分（结构张量的最小特征值）在当前帧中挑选最强的角点，在每个角点处求解 Lucas-Kanade，并绘制光流向量。全部计算都在浏览器中完成：空间梯度用 Sobel 算子，时间梯度用帧间差分，每个角点处作窗口局部最小二乘。
+        </p>
+
+        <div class="control-row control-row--three">
+          <div class="control-block">
+            <label>窗口大小 <span><span id="win-val">15</span> 像素</span></label>
+            <input type="range" id="win-slider" min="5" max="31" step="2" value="15" />
+          </div>
+          <div class="control-block">
+            <label>最大特征点数 <span><span id="nfeat-val">60</span></span></label>
+            <input type="range" id="nfeat-slider" min="10" max="200" step="5" value="60" />
+          </div>
+          <div class="control-block">
+            <label>最低角点质量 <span><span id="quality-val">0.02</span></span></label>
+            <input type="range" id="quality-slider" min="0.001" max="0.2" step="0.001" value="0.02" />
+          </div>
+        </div>
+
+        <div class="interactive-figure">
+          <canvas id="lkCanvas" class="video-canvas" width="640" height="360"></canvas>
+          <figcaption>
+            <span style="color: #2c6fb7; font-weight: 700">蓝色圆点</span> = 被跟踪的角点。
+            <span style="color: #d9622b; font-weight: 700">橙色箭头</span> = 估计光流（放大 4×）。
+          </figcaption>
+        </div>
+
+        <div class="stat-strip">
+          <div class="stat-pill"><span class="stat-label">找到的角点</span><span class="stat-value" id="lk-count">0</span></div>
+          <div class="stat-pill stat-pill--accent stat-pill--big"><span class="stat-label">平均 |flow|</span><span class="stat-value" id="lk-mean">—</span></div>
+          <div class="stat-pill stat-pill--warm"><span class="stat-label">最大 |flow|</span><span class="stat-value" id="lk-max">—</span></div>
+        </div>
+      </section>
+
+      <!-- ─── 第 4 步 ─── -->
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>稠密光流：每个像素一个向量</h2>
+        <p>
+          在少量角点上做稀疏 LK 对跟踪而言很好，却使图像的大部分区域无从解释。稠密方法（Horn-Schunck 1981、Farnebäck 2003、RAFT 2020）产生<em>每个像素一个向量</em> 的结果。此处我们采用一种简单做法：在图像上按规则网格铺开位置并逐点运行 LK，从而得到足够稠密、可用于可视化的流场。
+        </p>
+        <p>
+          标准可视化方式将每个光流向量映射为一种 HSV 颜色：<strong>色相 = 方向</strong>，<strong>饱和度 = 1</strong>，<strong>明度 = 幅值</strong>（截断）。向右运动为红色，向上为绿色，向左为青色，向下为品红。静止像素为黑色。
+        </p>
+
+        <div class="control-row">
+          <div class="control-block">
+            <label>网格间距 <span><span id="grid-val">8</span> 像素</span></label>
+            <input type="range" id="grid-slider" min="4" max="20" step="1" value="8" />
+          </div>
+          <div class="control-block">
+            <label>幅值阈值 <span><span id="mag-val">0.5</span> 像素</span></label>
+            <input type="range" id="mag-slider" min="0" max="5" step="0.1" value="0.5" />
+          </div>
+        </div>
+
+        <div class="interactive-figure">
+          <canvas id="denseCanvas" class="video-canvas" width="640" height="360"></canvas>
+          <figcaption>
+            稠密光流 HSV 热力图（叠加在当前帧上）。拖动阈值滑块以滤除噪声。
+          </figcaption>
+          <div style="display: flex; gap: 1.5rem; justify-content: center; margin-top: 1rem; align-items: center;">
+            <div class="color-wheel"></div>
+            <div style="font-family: var(--sans); font-size: 0.9rem; color: var(--muted); max-width: 24ch;">
+              色轮：色相表示运动方向（红色 = 向右，绿色 = 向上，青色 = 向左，品红 = 向下）。
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout--think">
+          <strong>观察要点。</strong>
+          在摇镜镜头中，整幅图像朝同一方向运动，热力图呈现为单一颜色（例如相机向右摇时全为红色）。在包含运动球或运动员的体育片段中，背景变暗（光流极小，截断为黑色），而快速物体则明亮凸显。这就是光流免费充当运动分割器的表现。
+        </div>
+      </section>
+
+      <!-- ─── 第 5 步 ─── -->
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>经典方法为何在大运动下失效</h2>
+        <p>
+          围绕当前像素所作的泰勒展开仅对小位移 &mdash; 通常 1-2 个像素 &mdash; 才准确。对缓动目标的 60 fps 视频而言这不成问题。但在投出棒球的 24 fps 视频中，球每帧移动数十个像素，LK 的泰勒展开便失效了。
+        </p>
+        <p>
+          经典的补救办法是<strong>金字塔 Lucas-Kanade</strong>：将图像降采样为高斯金字塔，在粗糙层级（此处以像素计的运动很小）估计光流，用该粗糙估计对下一层级的帧作仿射对齐，再逐步细化。在同一片段上按 4&times; 降采样运行，便能重新跟踪到球。
+        </p>
+
+        <div class="examples-table-wrap">
+          <table class="examples-table">
+            <thead>
+              <tr><th>方法族</th><th>核心思想</th><th>优势</th><th>不足</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Lucas-Kanade（本页）</strong></td>
+                <td>在亮度恒定性下作局部窗口最小二乘。</td>
+                <td>快速、可解释、无需训练。</td>
+                <td>仅适用于小运动，存在孔径问题，依赖亮度。</td>
+              </tr>
+              <tr>
+                <td><strong>金字塔 LK</strong></td>
+                <td>在粗糙尺度上做 LK，再迭代细化。</td>
+                <td>可处理大运动，实时性良好。</td>
+                <td>仍依赖亮度；不处理遮挡。</td>
+              </tr>
+              <tr>
+                <td><strong>Horn-Schunck（全局变分法）</strong></td>
+                <td>全局能量：亮度恒定性 + 平滑先验。</td>
+                <td>输出稠密，流场平滑。</td>
+                <td>过度平滑运动边界；速度较慢。</td>
+              </tr>
+              <tr>
+                <td><strong>Farnebäck（局部多项式法）</strong></td>
+                <td>对图像拟合局部多项式；求解仿射位移。</td>
+                <td>亚像素精度，稠密输出，在 CPU 上实时。</td>
+                <td>仍依赖局部仿射假设；需调校超参数。</td>
+              </tr>
+              <tr>
+                <td><strong>深度光流（FlowNet、PWC、RAFT）</strong></td>
+                <td>在特征金字塔上学习匹配，用 GRU 迭代细化。</td>
+                <td>达到最先进水平；可处理遮挡与光照变化。</td>
+                <td>需要 GPU；训练昂贵；可能产生幻觉。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ─── 第 6 步 ─── -->
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>那个大数字</h2>
+        <p>
+          按定义光流即为稠密。每个像素、每一帧、两个数。对于一秒 30 fps 的 720p 视频，这便意味着：
+        </p>
+        <div class="reveal-card">
+          <h3>一秒 720p @ 30 fps 视频中的光流向量数</h3>
+          <div class="reveal-number">55,296,000</div>
+          <p>
+            1280 × 720 像素 × 30 帧 × 2 个分量 = 5530&nbsp;万个数值。正因如此，你会用到的每一种光流算法都被设计为在逐像素层面足够快 &mdash; 经典方法只做一次矩阵向量求解，神经方法只做一次 GPU 扫描。
+          </p>
+        </div>
+      </section>
+
+      <!-- ─── 第 7 步 ─── -->
+      <section class="step-section" id="step-7">
+        <div class="step-badge">第 7 步</div>
+        <h2>光流让人栽跟头的四种方式</h2>
+        <div class="misconception-grid">
+          <div class="misconception-card">
+            <span class="misconception-icon">误区</span>
+            <p><strong>“光流 = 三维运动。”</strong><br />
+              光流是图像平面内的二维位移。相机变焦会产生很大的光流，却没有任何物体在运动；相机旋转所产生的光流看起来像平移。要恢复三维信息，需借助立体视觉、深度传感器或运动恢复结构。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">误区</span>
+            <p><strong>“对现代相机而言亮度恒定性成立。”</strong><br />
+              自动曝光、自动白平衡、HDR 合成与卷帘快门都会经常破坏该假设。以 50/60 Hz 闪烁的荧光灯是经典的陷阱。实际的流水线会作光度校正，或学会忽略这些效应。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">误区</span>
+            <p><strong>“在遮挡处光流仍有良好定义。”</strong><br />
+              首次出现（新近解除遮挡）或消失（新近被遮挡）的像素并无有意义的前驱或后继。经典方法在这些位置产生的结果毫无意义；现代方法则在预测光流的同时显式预测遮挡掩码。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">误区</span>
+            <p><strong>“像素越多光流越好。”</strong><br />
+              无纹理的墙面空间梯度为零，这意味着结构张量奇异，无论喂入多少像素 LK 都会失败。光流质量取决于图像内容，而非分辨率。</p>
+          </div>
+        </div>
+
+        <div class="callout callout--think" style="margin-top: 2rem;">
+          <strong>最终要点。</strong>
+          光流是计算机视觉中最古老的运动基本要素，建立于每个像素一个方程以及一个假设（亮度恒定性）之上。你已看到该方程在大运动下失效，看到 Lucas-Kanade 在角点处对其求解，也看到稠密流场如何点亮真实片段中的运动部分。每一种现代跟踪 / 稳定 / 视频编解码 / SLAM 流水线，仍从这同一个以像素为单位的追问出发：你来自何处？
+        </div>
+      </section>
+
+      <section class="step-section" id="step-8">
+        <div class="step-badge">第 8 步</div>
+        <h2>从 Lucas-Kanade 到 RAFT —— 近代沿革</h2>
+        <ul class="explanation-list">
+          <li><strong>Lucas-Kanade（1981）。</strong> 局部、稀疏、快速。每个角点求解一个 2×2 方程组。</li>
+          <li><strong>Horn-Schunck（1981）。</strong> 通过全局平滑正则化获得稠密光流。能量最小化；迭代数值求解。</li>
+          <li><strong>由粗到细的变分方法（1990s–2000s）。</strong> 构建图像金字塔；在最粗层级估计光流；作仿射对齐；在下一更细层级细化。这是处理大运动的经典方案。</li>
+          <li><strong>FlowNet（2015）。</strong> 首个端到端深度光流估计器。采用 U-Net 风格架构，在合成数据 FlyingChairs 上训练。</li>
+          <li><strong>PWC-Net（2018）。</strong> 将深度特征与经典的金字塔对齐和代价体构建相结合。多年保持最优；体积约为 FlowNet2 的 1/25。</li>
+          <li><strong>RAFT（2020）。</strong> 循环全对场变换。计算全对特征相关性的完整四维代价体，再由循环 GRU 迭代细化光流。至今仍是反复被引用并作为对比的最强基线。</li>
+          <li><strong>FlowFormer / GMA / unimatch（2022 年起）。</strong> 基于 Transformer 的光流，在代价体上使用注意力机制。相对 RAFT 的提升有限，而代价更高。</li>
+          <li><strong>SEA-RAFT（2024）。</strong> 以拉普拉斯混合损失增强鲁棒性的 RAFT；目前在 Sintel 与 KITTI 基准上处于最优水平。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-9">
+        <div class="step-badge">第 9 步</div>
+        <h2>代价体 —— 现代光流的核心</h2>
+        <p>
+          代价体是一个四维张量 $C(i, j, u, v)$，它给出帧 1 中像素 $(i, j)$ 处的特征与帧 2 中像素 $(i + u, j + v)$ 处的特征匹配程度的评分。对尺寸为 $H \times W$ 的图像以及 $r$ 个像素的搜索范围，代价体具有 $H \cdot W \cdot (2r+1)^2$ 个条目。
+        </p>
+        <div class="math-block" id="math-cost-vol"></div>
+        <p>
+          现代光流网络（PWC、RAFT、GMFlow）计算该代价体，再在其上运行小型神经解码器以提取光流。代价体<em>正是</em> 显式化的亮度恒定 / 光度相似性 —— 只不过是在特征空间中，因而能够容忍像素空间亮度恒定性所无法容忍的光照变化。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-10">
+        <div class="step-badge">第 10 步</div>
+        <h2>推荐阅读</h2>
+        <ul class="explanation-list">
+          <li><strong>Horn &amp; Schunck（1981）</strong> — <em>Determining Optical Flow.</em></li>
+          <li><strong>Lucas &amp; Kanade（1981）</strong> — <em>An Iterative Image Registration Technique with an Application to Stereo Vision.</em></li>
+          <li><strong>Dosovitskiy 等（2015）</strong> — <em>FlowNet.</em> 首个端到端深度光流。</li>
+          <li><strong>Sun 等（2018）</strong> — <em>PWC-Net.</em></li>
+          <li><strong>Teed &amp; Deng（2020）</strong> — <em>RAFT.</em></li>
+          <li><strong>Wang 等（2024）</strong> — <em>SEA-RAFT.</em> 当前最先进的方案。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

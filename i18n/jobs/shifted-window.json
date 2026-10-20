@@ -1,0 +1,265 @@
+{
+ "slug": "shifted-window",
+ "units": {
+  "Shifted Windows (Swin)": {
+   "zh": "移位窗口（Swin）",
+   "src": "Shifted Windows (Swin)",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Full self-attention compares every patch to every other patch &mdash; cost grows\n      with the @@T0@@square@@T1@@ of the number of patches. Swin instead attends only\n      @@T2@@within small windows@@T3@@, which is cheap and linear. The trick that keeps it\n      from being blind across window seams: on alternate layers, @@T4@@shift@@T5@@ the window\n      grid by half a window so patches that were on opposite sides of a boundary now sit\n      together. Click a patch to see exactly who it can talk to.": {
+   "zh": "完全自注意力会将每个 patch 与其余每个 patch 两两比较 &mdash;&mdash; 开销随 patch 数量的@@T0@@平方@@T1@@增长。Swin 则仅在\n      @@T2@@小窗口内部@@T3@@做注意力，成本低廉且呈线性。使它不会在窗口接缝处失明的诀窍是：在相间的层上，将窗口网格@@T4@@移位@@T5@@半个窗口，\n      从而使原本位于边界两侧的 patch 现在并置在一起。点击任意 patch，即可看清它究竟能与谁「交谈」。",
+   "src": "Full self-attention compares every patch to every other patch &mdash; cost grows\n      with the <em>square</em> of the number of patches. Swin instead attends only\n      <em>within small windows</em>, which is cheap and linear. The trick that keeps it\n      from being blind across window seams: on alternate layers, <em>shift</em> the window\n      grid by half a window so patches that were on opposite sides of a boundary now sit\n      together. Click a patch to see exactly who it can talk to.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~8 min@@T1@@\n      @@T2@@Deep Learning &middot; Vision Transformers &middot; Attention@@T3@@": {
+   "zh": "@@T0@@约 8 分钟@@T1@@\n      @@T2@@深度学习 &middot; 视觉 Transformer &middot; 注意力机制@@T3@@",
+   "src": "<span>~8 min</span>\n      <span>Deep Learning &middot; Vision Transformers &middot; Attention</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Why not just attend to everything?": {
+   "zh": "为何不干脆对所有位置都做注意力？",
+   "src": "Why not just attend to everything?",
+   "tags": []
+  },
+  "A vision transformer chops an image into a grid of $N \\times N$ patches, giving\n      $N^2$ tokens. Global self-attention forms every pair, so its cost scales as\n      $(N^2)^2 = N^4$ &mdash; quadratic in the number of tokens. Double the resolution\n      and the attention bill goes up sixteen-fold. That does not survive high-resolution\n      images.": {
+   "zh": "视觉 Transformer 将图像切成 $N \\times N$ 的 patch 网格，得到 $N^2$ 个词元。全局自注意力要构成所有两两配对，因此其开销按\n      $(N^2)^2 = N^4$ 增长 &mdash;&mdash; 相对于词元数呈二次增长。分辨率翻倍，注意力开销便上升十六倍。这在\n      高分辨率图像上难以为继。",
+   "src": "A vision transformer chops an image into a grid of $N \\times N$ patches, giving\n      $N^2$ tokens. Global self-attention forms every pair, so its cost scales as\n      $(N^2)^2 = N^4$ &mdash; quadratic in the number of tokens. Double the resolution\n      and the attention bill goes up sixteen-fold. That does not survive high-resolution\n      images.",
+   "tags": []
+  },
+  "Swin's fix is to restrict attention to non-overlapping @@T0@@windows@@T1@@ of\n      $M \\times M$ patches. Each window does full attention @@T2@@inside itself@@T3@@ and\n      ignores everything outside. With a fixed window size $M$, the total cost is": {
+   "zh": "Swin 的对策是把注意力限制在互不重叠的 $M \\times M$ patch @@T0@@窗口@@T1@@之内。每个窗口只在其@@T2@@自身内部@@T3@@做完全注意力，\n      忽略窗口之外的一切。在窗口尺寸 $M$ 固定时，总开销为",
+   "src": "Swin's fix is to restrict attention to non-overlapping <strong>windows</strong> of\n      $M \\times M$ patches. Each window does full attention <em>inside itself</em> and\n      ignores everything outside. With a fixed window size $M$, the total cost is",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "which is @@T0@@linear@@T1@@ in the number of tokens $N^2$. The catch is obvious: a patch\n      can never attend to anything outside its window. Information cannot cross a seam.\n      The next section shows the cure.": {
+   "zh": "这相对于词元数 $N^2$ 是@@T0@@线性@@T1@@的。代价显而易见：patch 永远无法关注其窗口之外的任何内容，信息无法跨越接缝。下一节将给出补救办法。",
+   "src": "which is <em>linear</em> in the number of tokens $N^2$. The catch is obvious: a patch\n      can never attend to anything outside its window. Information cannot cross a seam.\n      The next section shows the cure.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Lab": {
+   "zh": "实验环节",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Windows, and the shift that stitches them": {
+   "zh": "窗口，以及缝合它们的移位",
+   "src": "Windows, and the shift that stitches them",
+   "tags": []
+  },
+  "Below is a grid of image patches partitioned into attention windows (drawn with bold\n      seams). @@T0@@Click any patch@@T1@@ to select it: the patches it can attend to\n      &mdash; exactly its own window &mdash; light up, and everything else dims. Now flip the\n      @@T2@@Shift@@T3@@ switch. The whole window grid slides by half a window, so your\n      selected patch lands in a new window with new neighbours. Stack an unshifted layer and a\n      shifted layer and, over two layers, a patch reaches across boundaries in every direction.": {
+   "zh": "下图为划分为若干注意力窗口的 patch 网格（以粗线标出接缝）。@@T0@@点击任意 patch@@T1@@ 将其选中：它所能关注的 patch\n      &mdash;&mdash; 恰好是其所在窗口 &mdash;&mdash; 会亮起，其余则变暗。现在拨动 @@T2@@Shift@@T3@@ 开关。整个窗口网格平移半个窗口，\n      于是所选 patch 落入一个拥有新邻居的新窗口。将未移位层与移位层叠加起来，经过两层之后，一个 patch 便能向各个方向跨越边界。",
+   "src": "Below is a grid of image patches partitioned into attention windows (drawn with bold\n      seams). <strong>Click any patch</strong> to select it: the patches it can attend to\n      &mdash; exactly its own window &mdash; light up, and everything else dims. Now flip the\n      <strong>Shift</strong> switch. The whole window grid slides by half a window, so your\n      selected patch lands in a new window with new neighbours. Stack an unshifted layer and a\n      shifted layer and, over two layers, a patch reaches across boundaries in every direction.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Layer&nbsp;L &middot; no shift": {
+   "zh": "第&nbsp;L 层 &middot; 未移位",
+   "src": "Layer&nbsp;L &middot; no shift",
+   "tags": []
+  },
+  "Layer&nbsp;L+1 &middot; shifted": {
+   "zh": "第&nbsp;L+1 层 &middot; 已移位",
+   "src": "Layer&nbsp;L+1 &middot; shifted",
+   "tags": []
+  },
+  "Grid size @@T0@@$N$ = @@T1@@8@@T2@@@@T3@@": {
+   "zh": "网格尺寸 @@T0@@$N$ = @@T1@@8@@T2@@@@T3@@",
+   "src": "Grid size <span>$N$ = <span id=\"gridVal\">8</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"gridVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Window size @@T0@@$M$ = @@T1@@4@@T2@@@@T3@@": {
+   "zh": "窗口尺寸 @@T0@@$M$ = @@T1@@4@@T2@@@@T3@@",
+   "src": "Window size <span>$M$ = <span id=\"winVal\">4</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"winVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Each cell is an image patch. Bold lines are window seams; attention stays inside a\n        window. The selected patch is ringed; its window (the patches it attends to) is\n        highlighted. Toggle @@T0@@Shift@@T1@@ and watch that set jump across the old seam.": {
+   "zh": "每个单元格是一个图像 patch。粗线为窗口接缝；注意力始终停留在窗口内部。所选 patch 带有圆环标记；它所在的窗口（即它能关注的 patch）\n        被高亮显示。切换 @@T0@@Shift@@T1@@，观察该集合如何跃过旧的接缝。",
+   "src": "Each cell is an image patch. Bold lines are window seams; attention stays inside a\n        window. The selected patch is ringed; its window (the patches it attends to) is\n        highlighted. Toggle <em>Shift</em> and watch that set jump across the old seam.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Patches this one attends to@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@此 patch 所关注的 patch 数@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Patches this one attends to</span>\n        <span class=\"stat-value\" id=\"attendVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"attendVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Windows this layer@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@本层的窗口数@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Windows this layer</span>\n        <span class=\"stat-value\" id=\"nwinVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"nwinVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Full-attention pairs $N^4$@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@完全注意力配对数 $N^4$@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Full-attention pairs $N^4$</span>\n        <span class=\"stat-value\" id=\"fullVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"fullVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Windowed pairs $\\sum |w|^2$@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@窗口注意力配对数 $\\sum |w|^2$@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Windowed pairs $\\sum |w|^2$</span>\n        <span class=\"stat-value\" id=\"winpairVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"winpairVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Push the sliders.@@T1@@ As $N$ grows, the orange &ldquo;full-attention pairs&rdquo;\n      number explodes like $N^4$ while the green &ldquo;windowed pairs&rdquo; number crawls up like\n      $N^2 M^2$. That gap is the entire reason window attention exists: it buys you\n      high-resolution transformers that would otherwise be unaffordable.": {
+   "zh": "@@T0@@推动滑块。@@T1@@ 随着 $N$ 增大，橙色「完全注意力配对数」如 $N^4$ 般爆炸式增长，\n      而绿色「窗口注意力配对数」则如 $N^2 M^2$ 般缓慢攀升。这一差距正是窗口注意力存在的全部理由：它让你能够负担得起\n      原本无法承受的高分辨率 Transformer。",
+   "src": "<strong>Push the sliders.</strong> As $N$ grows, the orange &ldquo;full-attention pairs&rdquo;\n      number explodes like $N^4$ while the green &ldquo;windowed pairs&rdquo; number crawls up like\n      $N^2 M^2$. That gap is the entire reason window attention exists: it buys you\n      high-resolution transformers that would otherwise be unaffordable.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "收益",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Shift, then shift back: growing the receptive field": {
+   "zh": "先移位，再移回：感受野的增长",
+   "src": "Shift, then shift back: growing the receptive field",
+   "tags": []
+  },
+  "A single window layer is myopic &mdash; a patch sees only its $M \\times M$ neighbourhood.\n      But Swin alternates: layer $L$ uses the plain partition, layer $L{+}1$ uses the shifted\n      one (displaced by $\\lfloor M/2 \\rfloor$). A patch near a seam attends to one group in\n      layer $L$, then a @@T0@@different, overlapping@@T1@@ group in layer $L{+}1$. Composed, the two\n      layers let information flow across the boundary in every direction &mdash; without ever\n      forming a single global attention matrix.": {
+   "zh": "单一窗口层视野狭窄 &mdash;&mdash; 一个 patch 只能看见其 $M \\times M$ 的邻域。但 Swin 交替进行：第 $L$ 层使用普通划分，\n      第 $L{+}1$ 层使用移位后的划分（位移 $\\lfloor M/2 \\rfloor$）。靠近接缝的 patch 在第 $L$ 层关注一组 patch，\n      随后在第 $L{+}1$ 层关注@@T0@@另一组不同且与之重叠的@@T1@@ patch。两层复合之后，信息便能向各个方向跨越边界流动 &mdash;&mdash;\n      而无需构成任何单一的全局注意力矩阵。",
+   "src": "A single window layer is myopic &mdash; a patch sees only its $M \\times M$ neighbourhood.\n      But Swin alternates: layer $L$ uses the plain partition, layer $L{+}1$ uses the shifted\n      one (displaced by $\\lfloor M/2 \\rfloor$). A patch near a seam attends to one group in\n      layer $L$, then a <em>different, overlapping</em> group in layer $L{+}1$. Composed, the two\n      layers let information flow across the boundary in every direction &mdash; without ever\n      forming a single global attention matrix.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Cheap.@@T1@@ Every layer stays $O(N^2 M^2)$: linear in tokens, never $N^4$.": {
+   "zh": "@@T0@@低成本。@@T1@@ 每一层都保持 $O(N^2 M^2)$：相对于词元数呈线性，绝不会达到 $N^4$。",
+   "src": "<strong>Cheap.</strong> Every layer stays $O(N^2 M^2)$: linear in tokens, never $N^4$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Connected.@@T1@@ Alternating shifted / unshifted windows knit the seams, so the effective receptive field grows layer by layer until it spans the whole image.": {
+   "zh": "@@T0@@连通。@@T1@@ 移位窗口与未移位窗口交替出现，把接缝缝合起来，于是有效感受野逐层增长，直至覆盖整幅图像。",
+   "src": "<strong>Connected.</strong> Alternating shifted / unshifted windows knit the seams, so the effective receptive field grows layer by layer until it spans the whole image.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Hierarchical.@@T1@@ Swin also merges patches between stages, shrinking the grid and enlarging what each token summarises &mdash; the pyramid that makes it a drop-in backbone for detection and segmentation.": {
+   "zh": "@@T0@@层次化。@@T1@@ Swin 还在各阶段之间合并 patch，使网格缩小、每个词元所概括的范围扩大 &mdash;&mdash; 正是这种金字塔结构，使它能够直接充当检测与分割任务的主干网络。",
+   "src": "<strong>Hierarchical.</strong> Swin also merges patches between stages, shrinking the grid and enlarging what each token summarises &mdash; the pyramid that makes it a drop-in backbone for detection and segmentation.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@The real implementation.@@T1@@ Rather than build ragged windows at the edges,\n      Swin performs a @@T2@@cyclic shift@@T3@@ of the whole feature map, runs ordinary equal-sized\n      window attention, and uses an attention @@T4@@mask@@T5@@ so that patches wrapped around from the\n      opposite edge do not actually attend to each other. The picture above draws the honest\n      partition; the trick is just an efficient way to realise the same neighbour sets on a GPU.": {
+   "zh": "@@T0@@真实实现。@@T1@@ Swin 并不在边缘处构建参差不齐的窗口，而是对整个特征图做一次@@T2@@循环移位@@T3@@，\n      运行普通的等尺寸窗口注意力，并使用一个注意力@@T4@@掩码@@T5@@，使从对侧边缘绕回的那些 patch 实际上不会相互关注。上图绘制的是如实呈现的划分；\n      而这一技巧不过是让同一批邻居集合在 GPU 上高效实现的方式。",
+   "src": "<strong>The real implementation.</strong> Rather than build ragged windows at the edges,\n      Swin performs a <em>cyclic shift</em> of the whole feature map, runs ordinary equal-sized\n      window attention, and uses an attention <em>mask</em> so that patches wrapped around from the\n      opposite edge do not actually attend to each other. The picture above draws the honest\n      partition; the trick is just an efficient way to realise the same neighbour sets on a GPU.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 19: Vision Transformers &amp; Swin": {
+   "zh": "ES 667 深度学习讲解系列之一 &middot; 第 19 讲：视觉 Transformer 与 Swin",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 19: Vision Transformers &amp; Swin",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "移位窗口（Swin）",
+  "tagline": "窗口注意力是线性的，而非二次的 &mdash;&mdash; 而相间的层做移位可缝合接缝",
+  "summary": "就图像 patch 数量而言，全局自注意力的开销为 N^4，这在高分辨率下难以为继。Swin 将注意力限制在小的 M×M 窗口内（开销为 N^2 M^2，相对于词元数呈线性），并在相间的层上将窗口网格移位半个窗口，使信息得以跨越接缝。点击任意 patch 即可看清它究竟能关注哪些 patch，拨动移位开关可观察该邻域跃过边界，拖动滑块则可感受 N^4 与 N^2 M^2 之间的成本差距如何拉开。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "点击任意 patch 即可点亮它的注意力窗口 &mdash;&mdash; 即它所能「交谈」的确切 patch 集合。",
+   "拨动移位开关，观察靠近接缝的 patch 如何落入拥有新邻居的新窗口。",
+   "看清窗口注意力为何是 O(N^2 M^2)（相对于词元数呈线性），而完全注意力是 O(N^4)。",
+   "拖动网格尺寸与窗口尺寸滑块，观察完全注意力配对数在窗口配对数旁爆炸式增长。",
+   "理解移位层与未移位层交替如何在没有全局注意力矩阵的情况下将感受野扩展到整幅图像。"
+  ],
+  "tags": [
+   "视觉 Transformer",
+   "Swin",
+   "注意力机制",
+   "效率",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

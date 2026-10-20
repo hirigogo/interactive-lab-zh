@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>微型文本扩散模型</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css?v=2" />
+  </head>
+  <body>
+    <div class="progress-bar" aria-hidden="true"><div class="progress-bar__fill" id="progressFill"></div></div>
+
+    <article class="article">
+      <header class="hero">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <div class="hero__grid">
+          <div class="hero__copy">
+            <p class="kicker">交互式讲解</p>
+            <h1>微型文本扩散模型</h1>
+            <p class="abstract">
+              语言模型通常一次只预测一个词元，从左到右。扩散模型则另辟蹊径：从噪声出发，对整个序列一次性进行迭代精修。
+            </p>
+            <p class="abstract abstract--secondary">
+              本页在你的浏览器中，用印度人名训练一个字符级的离散扩散模型，并让你观察它如何从纯掩码去噪为可读文本。
+            </p>
+            <div class="hero__meta">
+              <span>约 15 分钟</span>
+              <span>深度学习 &middot; 扩散模型 &middot; 生成模型</span>
+            </div>
+            <div class="hero__actions">
+              <a class="primary-link" href="#idea">从核心思想开始</a>
+              <a class="ghost-link" href="#training">跳至训练部分</a>
+            </div>
+          </div>
+
+          <aside class="hero-card">
+            <p class="hero-card__eyebrow">一句话版本</p>
+            <div class="hero-card__formula" data-katex-display>
+              \[
+                x_t = \text{mask}(x_0,\; t), \qquad
+                \hat{x}_0 = f_\theta(x_t,\; t)
+              \]
+            </div>
+            <p class="hero-card__copy">
+              通过 <strong>随机掩蔽</strong> 字符来破坏一个干净的序列。训练模型去 <strong>预测原始序列</strong>。生成时，从全部为掩码的状态出发，<strong>逐步揭示</strong>。
+            </p>
+            <div class="hero-notes">
+              <div>
+                <span class="note-label">自回归</span>
+                <strong>一次预测一个词元，从左到右</strong>
+              </div>
+              <div>
+                <span class="note-label">扩散</span>
+                <strong>一次性预测全部词元，经多步精修</strong>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </header>
+
+      
+
+      <!-- ─── Section I ─── -->
+
+      <section id="idea" data-nav="Idea">
+        <h2><span class="num">I.</span> 并非一次一个词元</h2>
+        <p>
+          你见过的大多数语言模型都是自回归的。它们在给定之前全部内容的条件下预测下一个词元。GPT、LLaMA、Claude &mdash;&mdash; 全都是从左到右、一次一个词元。这非常有效，但并非生成序列的唯一方式。
+        </p>
+
+        <div class="compare-grid">
+          <article class="compare-card">
+            <p class="eyebrow">自回归</p>
+            <h3>根据左侧上下文预测每个词元</h3>
+            <div class="math-block" data-katex-display>
+              \[
+                p(x_1, \dots, x_L) = \prod_{i=1}^{L} p(x_i \mid x_1, \dots, x_{i-1})
+              \]
+            </div>
+            <p>
+              生成是串行的：先采样位置 1，再在给定 1 的条件下采样位置 2，然后在给定 1&ndash;2 的条件下采样位置 3，依此类推。模型从不向右看。每一步都要等待前一步完成。
+            </p>
+          </article>
+
+          <article class="compare-card compare-card--highlight">
+            <p class="eyebrow">离散扩散</p>
+            <h3>破坏整个序列，再学习将其还原</h3>
+            <div class="math-block" data-katex-display>
+              \[
+                \hat{x}_0 = f_\theta\!\bigl(\text{mask}(x_0,\; t),\; t\bigr)
+              \]
+            </div>
+            <p>
+              模型一次预测 <em>全部</em> 位置。生成时它从纯噪声（全部为掩码）出发，逐步填入字符。各位置的揭示顺序可以任意 &mdash;&mdash; 不必从左到右。
+            </p>
+          </article>
+        </div>
+
+        <p>
+          下面以名字 <strong>rahul</strong> 为例，逐步展示这两种方法在实际中的样子。
+        </p>
+
+        <div class="step-compare">
+          <div class="step-panel">
+            <p class="eyebrow">自回归：从左到右</p>
+            <div class="step-sequence">
+              <div class="step-row">
+                <span class="step-num">1</span>
+                <div class="char-row">
+                  <div class="char-cell char-cell--reveal">r</div>
+                  <div class="char-cell char-cell--empty">&middot;</div>
+                  <div class="char-cell char-cell--empty">&middot;</div>
+                  <div class="char-cell char-cell--empty">&middot;</div>
+                  <div class="char-cell char-cell--empty">&middot;</div>
+                </div>
+                <span class="step-desc">采样 p(x<sub>1</sub>)</span>
+              </div>
+              <div class="step-row">
+                <span class="step-num">2</span>
+                <div class="char-row">
+                  <div class="char-cell char-cell--char">r</div>
+                  <div class="char-cell char-cell--reveal">a</div>
+                  <div class="char-cell char-cell--empty">&middot;</div>
+                  <div class="char-cell char-cell--empty">&middot;</div>
+                  <div class="char-cell char-cell--empty">&middot;</div>
+                </div>
+                <span class="step-desc">采样 p(x<sub>2</sub> | r)</span>
+              </div>
+              <div class="step-row">
+                <span class="step-num">3</span>
+                <div class="char-row">
+                  <div class="char-cell char-cell--char">r</div>
+                  <div class="char-cell char-cell--char">a</div>
+                  <div class="char-cell char-cell--reveal">h</div>
+                  <div class="char-cell char-cell--empty">&middot;</div>
+                  <div class="char-cell char-cell--empty">&middot;</div>
+                </div>
+                <span class="step-desc">采样 p(x<sub>3</sub> | r, a)</span>
+              </div>
+              <div class="step-row">
+                <span class="step-num">4</span>
+                <div class="char-row">
+                  <div class="char-cell char-cell--char">r</div>
+                  <div class="char-cell char-cell--char">a</div>
+                  <div class="char-cell char-cell--char">h</div>
+                  <div class="char-cell char-cell--reveal">u</div>
+                  <div class="char-cell char-cell--empty">&middot;</div>
+                </div>
+                <span class="step-desc">采样 p(x<sub>4</sub> | r, a, h)</span>
+              </div>
+              <div class="step-row">
+                <span class="step-num">5</span>
+                <div class="char-row">
+                  <div class="char-cell char-cell--char">r</div>
+                  <div class="char-cell char-cell--char">a</div>
+                  <div class="char-cell char-cell--char">h</div>
+                  <div class="char-cell char-cell--char">u</div>
+                  <div class="char-cell char-cell--reveal">l</div>
+                </div>
+                <span class="step-desc">采样 p(x<sub>5</sub> | r, a, h, u)</span>
+              </div>
+            </div>
+            <p class="step-caption">
+              五个串行步骤。每一步都必须等待前一步完成。模型永远看不到游标右侧的字符。
+            </p>
+          </div>
+
+          <div class="step-panel">
+            <p class="eyebrow">离散扩散：并行去噪</p>
+            <div class="step-sequence">
+              <div class="step-row">
+                <span class="step-num">&nbsp;</span>
+                <div class="char-row">
+                  <div class="char-cell char-cell--mask">?</div>
+                  <div class="char-cell char-cell--mask">?</div>
+                  <div class="char-cell char-cell--mask">?</div>
+                  <div class="char-cell char-cell--mask">?</div>
+                  <div class="char-cell char-cell--mask">?</div>
+                </div>
+                <span class="step-desc">起始：全部掩蔽（t = 1）</span>
+              </div>
+              <div class="step-row">
+                <span class="step-num">1</span>
+                <div class="char-row">
+                  <div class="char-cell char-cell--mask">?</div>
+                  <div class="char-cell char-cell--mask">?</div>
+                  <div class="char-cell char-cell--reveal">h</div>
+                  <div class="char-cell char-cell--mask">?</div>
+                  <div class="char-cell char-cell--mask">?</div>
+                </div>
+                <span class="step-desc">揭示一个（t = 0.7）</span>
+              </div>
+              <div class="step-row">
+                <span class="step-num">2</span>
+                <div class="char-row">
+                  <div class="char-cell char-cell--mask">?</div>
+                  <div class="char-cell char-cell--reveal">a</div>
+                  <div class="char-cell char-cell--char">h</div>
+                  <div class="char-cell char-cell--reveal">u</div>
+                  <div class="char-cell char-cell--mask">?</div>
+                </div>
+                <span class="step-desc">再揭示两个（t = 0.4）</span>
+              </div>
+              <div class="step-row">
+                <span class="step-num">3</span>
+                <div class="char-row">
+                  <div class="char-cell char-cell--reveal">r</div>
+                  <div class="char-cell char-cell--char">a</div>
+                  <div class="char-cell char-cell--char">h</div>
+                  <div class="char-cell char-cell--char">u</div>
+                  <div class="char-cell char-cell--reveal">l</div>
+                </div>
+                <span class="step-desc">最终清洁一遍（t = 0）</span>
+              </div>
+            </div>
+            <p class="step-caption">
+              三个并行步骤。模型一次预测全部位置。字符可以任意顺序出现 &mdash;&mdash; 中间的可以先于开头的出现。
+            </p>
+          </div>
+        </div>
+
+        <div class="aside">
+          <strong>为何这很重要。</strong>
+          面向文本的离散扩散是一个活跃的研究领域（MDLM、SEDD、UDLM）。其核心思想简单到足以放进一个浏览器演示中。本页构建了最小的可用版本：一个作用于定长字符序列的掩码扩散模型。我们将用 40 个印度人名训练它，并观察它学会生成新名字。
+        </div>
+      </section>
+
+      <!-- ─── Section II ─── -->
+
+      <section id="corruption" data-nav="破坏ion">
+        <h2><span class="num">II.</span> 破坏过程如何消解一个名字</h2>
+        <p>
+          前向破坏过程极其简单。给定一个像 <code>priya</code> 这样的干净名字，将其填充到固定长度，并以概率 <code>t</code> 独立地将每个字符替换为掩码词元 <code>?</code>。当 <code>t&thinsp;=&thinsp;0</code> 时名字保持不变。当 <code>t&thinsp;=&thinsp;1</code> 时每个字符都被掩蔽，所有信息都被破坏。
+        </p>
+
+        <div class="math-block" data-katex-display>
+          \[
+            x_t[i] =
+            \begin{cases}
+              \texttt{?} & \text{with probability } t \\
+              x_0[i] & \text{otherwise}
+            \end{cases}
+          \]
+        </div>
+
+        <p>
+          这是图像扩散中加入高斯噪声的离散类比物。我们不模糊像素值，而是擦除字符。噪声水平 <code>t</code> 与扩散时间步扮演相同的角色：它控制模型可以依据的信息量。
+        </p>
+
+        <figure class="interactive-figure">
+          <div class="figure-controls">
+            <label class="slider-label">
+              <span>噪声水平 <code>t</code></span>
+              <input id="corruptionSlider" type="range" min="0" max="100" step="1" value="45" />
+              <span id="corruptionSliderValue">0.45</span>
+            </label>
+          </div>
+          <div class="corruption-shell">
+            <div class="corruption-grid" id="corruptionGrid"></div>
+            <aside class="schedule-panel">
+              <p class="eyebrow">掩蔽日程</p>
+              <canvas id="scheduleCanvas" width="260" height="170"></canvas>
+              <div class="schedule-readout">
+                <div class="schedule-stat">
+                  <span class="schedule-stat-label">已掩蔽</span>
+                  <strong id="fracMaskedVal" style="color: var(--coral)">45%</strong>
+                </div>
+                <div class="schedule-stat">
+                  <span class="schedule-stat-label">保留</span>
+                  <strong id="fracKeptVal" style="color: var(--blue)">55%</strong>
+                </div>
+              </div>
+              <div class="schedule-bar" aria-hidden="true">
+                <div class="schedule-bar__masked" id="scheduleBarMasked"></div>
+              </div>
+            </aside>
+          </div>
+          <figcaption>
+            滑动噪声水平，观察字符如何消解为掩码。每个名字使用固定的随机顺序，因此拖动时揭示过程是平滑的。右侧的小图是 <strong>日程曲线</strong>：被掩蔽词元所占比例随 <code>t</code> 线性上升，而模型所保留的信息则逐渐减少。注意像 <strong>dev</strong> 这样的短名字，比 <strong>reyansh</strong> 这样的长名字更快地丢失全部信息。
+          </figcaption>
+        </figure>
+
+        <div class="aside aside--contrast">
+          <strong>离散与连续。</strong>
+          在连续（高斯）扩散中 &mdash;&mdash; 即用于图像的那一类 &mdash;&mdash; 破坏过程将每个取值向随机噪声方向偏移一部分，如 $x_t = \sqrt{\bar\alpha_t}\,x_0 + \sqrt{1-\bar\alpha_t}\,\varepsilon$，是一种平滑的模糊；而在这里，破坏过程对每个词元而言都是一次全有或全无的抛硬币（$\texttt{keep}$ 或 $\texttt{[MASK]}$），因此一个词元要么完好无损，要么彻底消失。
+        </div>
+
+        <div class="dataset-listing">
+          <p class="eyebrow">训练数据集 &mdash;&mdash; 40 个印度人名</p>
+          <div class="names-list" id="datasetNames"></div>
+        </div>
+      </section>
+
+      <!-- ─── Section III ─── -->
+
+      <section id="model" data-nav="Model">
+        <h2><span class="num">III.</span> 一个能猜出原始序列的模型</h2>
+        <p>
+          模型接收被破坏的序列 <code>x<sub>t</sub></code> 以及噪声水平 <code>t</code>，并输出每个位置上干净字符的 logit。我们采用尽可能最简单的架构：对每个词元做嵌入，将其全部展平，拼接时间信息，经过一个隐藏层，再重塑为逐位置的预测。
+        </p>
+
+        <figure class="diagram-board">
+          <div class="arch-flow">
+            <div class="arch-stage">
+              <span class="arch-label">输入（被破坏的名字，填充至长度 7）</span>
+              <div class="arch-row" id="archInput"></div>
+            </div>
+            <div class="arch-arrow-down">&darr; <span>对每个词元做嵌入（8 维）</span></div>
+            <div class="arch-block">
+              展平 7 &times; 8 = 56 个值，追加时间 <em>t</em> &rarr; <strong>57 维向量</strong>
+            </div>
+            <div class="arch-arrow-down">&darr;</div>
+            <div class="arch-block arch-block--accent">
+              线性层（57 &rarr; 128）+ ReLU
+              <span class="arch-note">总计约 2.8 万个可学习参数</span>
+            </div>
+            <div class="arch-arrow-down">&darr;</div>
+            <div class="arch-block">
+              线性层（128 &rarr; 154）&rarr; 重塑为 7 &times; 22
+            </div>
+            <div class="arch-arrow-down">&darr; <span>逐位置 softmax &rarr; 在 22 个字符上的概率分布</span></div>
+            <div class="arch-stage">
+              <span class="arch-label">输出（预测的干净名字）</span>
+              <div class="arch-row" id="arch输出"></div>
+            </div>
+          </div>
+          <figcaption>
+            该模型是一个普通的两层 MLP &mdash;&mdash; 没有注意力机制，也没有循环结构。它一次性看到全部位置，并并行地预测它们。词表共有 22 个符号：名字中出现的 20 个字母，外加一个填充词元 <code>_</code> 和一个掩码词元 <code>?</code>。
+          </figcaption>
+        </figure>
+
+        <div class="math-block" data-katex-display>
+          \[
+            \mathcal{L} = -\frac{1}{L}\sum_{i=1}^{L} \log\, p_\theta(x_{0,i} \mid x_t,\; t)
+          \]
+        </div>
+
+        <p>
+          损失函数是在所有位置上取平均的交叉熵。模型必须预测原始名字的每一个字符 &mdash;&mdash; 无论该位置是否被掩蔽。它能看到的位置提供容易的信号；被掩蔽的位置则逼迫它进行真正的学习。通过 <code>t</code> 进行的时间条件化告诉模型输入有多嘈杂，使其能够相应地校准置信度。
+        </p>
+
+        <p>
+          训练期间，每一步随机选取一个名字、一个随机噪声水平 <code>t ~ Uniform(0, 1)</code>，破坏该名字，并反向传播预测误差。随着时间推移，模型学会了印度人名的结构 &mdash;&mdash; 常见的字符模式、典型的长度、元音与辅音倾向于出现的位置。
+        </p>
+      </section>
+
+      <!-- ─── Section IV ─── -->
+
+      <section id="training" data-nav="训练ing">
+        <h2><span class="num">IV.</span> 在你的浏览器中训练</h2>
+        <p>
+          下面是一个实时的神经网络。点击 <strong>训练</strong> 以初始化随机权重并运行随机梯度下降。每个训练步骤随机选取一个名字、一个随机噪声水平，破坏该名字并反向传播。损失应从约 3.1（在 22 个字符上随机猜测）下降到接近零。
+        </p>
+        <p>
+          训练完成后，点击 <strong>再训练 500 步</strong> 以继续额外的训练轮次。你可以调整学习率并观察它如何影响收敛。学习率高则训练快，但可能过冲。学习率低则稳定，但缓慢。
+        </p>
+
+        <figure class="interactive-figure">
+          <div class="figure-toolbar">
+            <button type="button" class="toolbar-button toolbar-button--accent" id="trainBtn">训练</button>
+            <button type="button" class="toolbar-button" id="trainMoreBtn" style="display:none">再训练 500 步</button>
+            <button type="button" class="toolbar-button" id="resetBtn">重置</button>
+            <div class="epoch-chips">
+              <span class="chip-label">轮次：</span>
+              <button type="button" class="epoch-chip" data-epochs="250">250</button>
+              <button type="button" class="epoch-chip is-active" data-epochs="500">500</button>
+              <button type="button" class="epoch-chip" data-epochs="1000">1000</button>
+            </div>
+            <div class="train-status">
+              <span>Epoch</span>
+              <strong id="epochDisplay">0</strong>
+            </div>
+            <div class="train-status">
+              <span>损失</span>
+              <strong id="lossDisplay">&mdash;</strong>
+            </div>
+          </div>
+
+          <div class="training-shell">
+            <div class="chart-wrap">
+              <canvas id="lossCanvas" width="560" height="220"></canvas>
+              <div class="chart-axes">
+                <span class="chart-y-label">损失</span>
+                <span class="chart-x-label">轮次</span>
+              </div>
+            </div>
+
+            <aside class="preview-panel">
+              <p class="eyebrow">实时预测</p>
+              <div class="preview-block">
+                <span class="preview-label">被破坏的输入（t = 0.5）</span>
+                <div class="char-row" id="previewInput"></div>
+              </div>
+              <div class="preview-block">
+                <span class="preview-label">模型预测</span>
+                <div class="char-row" id="preview输出"></div>
+              </div>
+              <div class="preview-block">
+                <span class="preview-label">目标（干净）</span>
+                <div class="char-row" id="previewTarget"></div>
+              </div>
+              <div class="preview-block">
+                <span class="preview-label">显示</span>
+                <strong id="previewName" class="preview-name-label">&mdash;</strong>
+              </div>
+              <label class="control-stack">
+                学习率
+                <input id="lrSlider" type="range" min="1" max="50" step="1" value="10" />
+                <span id="lrValue">0.010</span>
+              </label>
+            </aside>
+          </div>
+          <figcaption>
+            全部约 28,000 个参数都在这里用原生 JavaScript 训练 &mdash;&mdash; 没有服务器，没有 GPU，也没有机器学习库。前向传播、交叉熵损失与反向传播都是用原始矩阵运算逐步计算出来的。
+          </figcaption>
+        </figure>
+      </section>
+
+      <!-- ─── Section V ─── -->
+
+      <section id="sampling" data-nav="采样">
+        <h2><span class="num">V.</span> 逐步去噪</h2>
+        <p>
+          训练完成后，生成从一个完全掩蔽的序列 <code>? ? ? ? ? ? ?</code> 出发，并反复运行模型。每一步模型都为每个位置预测干净字符。我们揭示一部分被掩蔽的位置并重复此过程，逐步降低噪声水平，直到序列完全确定。
+        </p>
+
+        <p>
+          <strong>温度</strong> 控制随机性：较低的值使模型更自信（更可能精确地选出训练集中的名字），较高的值引入变化（有时产生新颖的组合）。<strong>步数</strong> 控制位置被揭示的渐进程度。
+        </p>
+
+        <figure class="interactive-figure">
+          <div class="figure-toolbar">
+            <button type="button" class="toolbar-button toolbar-button--accent" id="generateBtn" disabled>生成</button>
+            <label class="slider-label slider-label--compact">
+              步数
+              <input id="stepsSlider" type="range" min="4" max="20" step="1" value="10" />
+              <span id="stepsValue">10</span>
+            </label>
+            <label class="slider-label slider-label--compact">
+              温度
+              <input id="tempSlider" type="range" min="10" max="200" step="5" value="80" />
+              <span id="tempValue">0.80</span>
+            </label>
+          </div>
+
+          <div class="sampling-shell">
+            <div class="timeline-wrap">
+              <p class="eyebrow">去噪时间线</p>
+              <div class="timeline" id="timeline"></div>
+            </div>
+
+            <aside class="names-panel">
+              <p class="eyebrow">生成的名字（反复点击「生成」以获得更多）</p>
+              <div class="names-list" id="namesList">
+                <span class="names-placeholder">请先训练模型，再点击「生成」。</span>
+              </div>
+            </aside>
+          </div>
+          <figcaption>
+            每一行展示一个去噪步骤处的序列状态。新揭示的字符以紫色高亮显示。最后一行是在 t = 0 处的一次清洁遍历，用于润色结果。尝试不同的温度 &mdash;&mdash; 低值复现训练集中的名字，高值则探索新的组合。
+          </figcaption>
+        </figure>
+      </section>
+
+      <!-- ─── Section VI ─── -->
+
+      <section id="takeaways" data-nav="Summary">
+        <h2><span class="num">VI.</span> 我们构建了什么</h2>
+        <p>
+          这个玩具模型是 BERT 式的掩码去噪 + 时间步条件化 + 迭代采样。它是字符序列上最简单且实用的类扩散模型，并涵盖了面向文本的离散扩散的全部关键要素。
+        </p>
+
+        <div class="takeaway-grid">
+          <article class="takeaway-card">
+            <p class="eyebrow">1. 破坏过程就是噪声</p>
+            <h3>随机掩蔽扮演了图像扩散中高斯噪声的角色。</h3>
+            <p>我们不是向像素值加入连续噪声，而是用掩码符号替换离散词元。噪声水平 <code>t</code> 控制有多少内容被隐藏。</p>
+          </article>
+          <article class="takeaway-card">
+            <p class="eyebrow">2. 整序列预测</p>
+            <h3>模型一次预测每个位置，而不是一次一个。</h3>
+            <p>这是与自回归模型的关键区别。模型看到完整的（被破坏的）上下文，并并行地产出一个完整的干净预测。</p>
+          </article>
+          <article class="takeaway-card">
+            <p class="eyebrow">3. 时间告诉模型输入有多嘈杂</p>
+            <h3>以 <code>t</code> 为条件，使单个模型能够处理所有噪声水平。</h3>
+            <p>当 <code>t</code> 较高时，模型几乎只能凭空猜测。当 <code>t</code> 较低时，它多半只是确认已经看到的内容。同一组权重服务于整个破坏程度谱。</p>
+          </article>
+          <article class="takeaway-card">
+            <p class="eyebrow">4. 生成时的迭代精修</p>
+            <h3>采样是一个循环：预测、揭示一部分、重复。</h3>
+            <p>从全部为掩码出发，每一步再揭示几个字符。正是这种迭代结构 &mdash;&mdash; 而非架构本身 &mdash;&mdash; 使它成为「扩散」。</p>
+          </article>
+        </div>
+
+        <div class="aside">
+          <strong>从玩具到真实。</strong>
+          这一思想的真实版本（MDLM、SEDD、Plaid）使用 Transformer、可变长度以及大得多的词表。但你刚刚看到的机制 &mdash;&mdash; 掩蔽、预测、揭示 &mdash;&mdash; 正是其核心所在。关键洞见在于，要获得扩散式的生成，你并不需要高斯扩散或连续嵌入。离散掩蔽就已足够。
+        </div>
+      </section>
+
+      <!-- ─── Section VII ─── -->
+
+      <section id="qa" data-nav="Q&amp;A">
+        <h2><span class="num">VII.</span> 从词语到答案</h2>
+        <p>
+          名字生成器从无到有地创建序列 &mdash;&mdash; 这是无条件生成。但扩散也能进行 <strong>条件生成</strong>：给定一个问题，产出答案。唯一的变化在于对什么进行掩蔽。
+        </p>
+
+        <p>
+          我们将在 30 个英语到印地语的词对上训练第二个模型。每个训练样本形如 <code>hello&gt;namaste</code>。问题与分隔符 <code>&gt;</code> <em>从不</em> 被掩蔽 &mdash;&mdash; 只有答案会被破坏。模型学会在把问题当作固定上下文读取的同时对答案去噪。
+        </p>
+
+        <div class="qa-format-demo">
+          <div class="qa-format-row">
+            <span class="qa-format-label">干净</span>
+            <div class="char-row" id="qaFormatClean"></div>
+          </div>
+          <div class="qa-format-row">
+            <span class="qa-format-label">被破坏</span>
+            <div class="char-row" id="qaFormat破坏"></div>
+          </div>
+          <div class="qa-format-row">
+            <span class="qa-format-label">图例</span>
+            <div class="qa-key">
+              <span class="qa-key-item"><span class="qa-key-swatch qa-key-swatch--q"></span> 问题（从不掩蔽）</span>
+              <span class="qa-key-item"><span class="qa-key-swatch qa-key-swatch--sep"></span> 分隔符</span>
+              <span class="qa-key-item"><span class="qa-key-swatch qa-key-swatch--mask"></span> 被掩蔽的答案</span>
+              <span class="qa-key-item"><span class="qa-key-swatch qa-key-swatch--ans"></span> 可见的答案</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="dataset-listing">
+          <p class="eyebrow">训练数据集 &mdash;&mdash; 30 个英语 &rarr; 印地语词对</p>
+          <div class="names-list" id="qaDatasetList"></div>
+        </div>
+
+        <p>
+          损失 <em>仅</em> 在答案位置上计算。模型把问题视为上下文，并学习其后应跟随什么答案。推理时，你输入一个问题，掩蔽整个答案区域，然后迭代去噪 &mdash;&mdash; 与之前完全相同的循环，但现在由问题来引导输出。
+        </p>
+
+        <div class="math-block" data-katex-display>
+          \[
+            \mathcal{L}_{\text{cond}}
+            = -\frac{1}{|\mathcal{A}|}
+              \sum_{i \in \mathcal{A}}
+              \log\, p_\theta(x_{0,i} \mid x_t,\; t)
+            \qquad
+            \mathcal{A} = \{\text{answer positions}\}
+          \]
+        </div>
+
+        <h3>训练翻译器</h3>
+
+        <figure class="interactive-figure">
+          <div class="figure-toolbar">
+            <button type="button" class="toolbar-button toolbar-button--accent" id="qa训练Btn">训练</button>
+            <button type="button" class="toolbar-button" id="qa训练MoreBtn" style="display:none">再训练 500 步</button>
+            <button type="button" class="toolbar-button" id="qa重置Btn">重置</button>
+            <div class="epoch-chips">
+              <span class="chip-label">轮次：</span>
+              <button type="button" class="epoch-chip" data-qa-epochs="500">500</button>
+              <button type="button" class="epoch-chip is-active" data-qa-epochs="1000">1000</button>
+              <button type="button" class="epoch-chip" data-qa-epochs="2000">2000</button>
+            </div>
+            <div class="train-status">
+              <span>轮次</span>
+              <strong id="qaEpochDisplay">0</strong>
+            </div>
+            <div class="train-status">
+              <span>损失</span>
+              <strong id="qa损失Display">&mdash;</strong>
+            </div>
+          </div>
+
+          <div class="training-shell">
+            <div class="chart-wrap">
+              <canvas id="qa损失Canvas" width="560" height="220"></canvas>
+              <div class="chart-axes">
+                <span class="chart-y-label">损失</span>
+                <span class="chart-x-label">轮次</span>
+              </div>
+            </div>
+
+            <aside class="preview-panel">
+              <p class="eyebrow">实时预测</p>
+              <div class="preview-block">
+                <span class="preview-label">被破坏（答案被掩蔽）</span>
+                <div class="char-row" id="qaPreviewInput"></div>
+              </div>
+              <div class="preview-block">
+                <span class="preview-label">模型预测</span>
+                <div class="char-row" id="qaPreview输出"></div>
+              </div>
+              <div class="preview-block">
+                <span class="preview-label">目标</span>
+                <div class="char-row" id="qaPreviewTarget"></div>
+              </div>
+            </aside>
+          </div>
+          <figcaption>
+            该模型约有 4.3 万个参数。它只需学习 30 个映射，因此训练收敛很快。当模型记住每一对词时，损失降为零。
+          </figcaption>
+        </figure>
+
+        <h3>翻译一个词</h3>
+
+        <figure class="interactive-figure">
+          <div class="figure-toolbar">
+            <label class="slider-label" style="flex:0 1 auto;min-width:auto">
+              英语单词
+              <select id="qaWordSelect" class="qa-select">
+                <option value="">请选择&hellip;&hellip;</option>
+              </select>
+            </label>
+            <button type="button" class="toolbar-button toolbar-button--accent" id="qa翻译Btn" disabled>翻译</button>
+            <div class="train-status" id="qaResultBox" style="display:none">
+              <span>印地语</span>
+              <strong id="qaResultText"></strong>
+            </div>
+          </div>
+
+          <div class="sampling-shell">
+            <div class="timeline-wrap">
+              <p class="eyebrow">去噪时间线 &mdash;&mdash; 问题固定，答案逐步揭示</p>
+              <div class="timeline" id="qaTimeline"></div>
+            </div>
+          </div>
+          <figcaption>
+            问题（蓝色单元）保持锁定。只有答案位置（<code>&gt;</code> 右侧）被逐步去噪。这就是条件扩散 &mdash;&mdash; 同样的迭代揭示，但由一个固定的输入来引导。
+          </figcaption>
+        </figure>
+
+        <div class="qa-summary-table">
+          <p class="eyebrow">无条件扩散与条件扩散对比</p>
+          <table class="compare-table">
+            <thead>
+              <tr><th></th><th>名字（无条件）</th><th>问答（条件）</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>破坏</td><td>全部位置</td><td>仅答案</td></tr>
+              <tr><td>损失</td><td>全部位置</td><td>仅答案</td></tr>
+              <tr><td>采样</td><td>从全部为掩码出发</td><td>固定问题，掩蔽答案</td></tr>
+              <tr><td>输出</td><td>随机名字</td><td>对给定问题的答案</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <footer class="article-footer">
+        <p>
+          该模型记住了 40 个名字 &mdash;&mdash; 这是有意为之。重点不在泛化，而在机制：观察破坏日程、去噪预测与迭代揭示如何协同，产生一个从根本上不同于自回归预测的生成模型。
+        </p>
+      </footer>
+    </article>
+
+    <script defer src="../vendor/katex/katex.min.js"></script>
+    <script defer src="app.js?v=2"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

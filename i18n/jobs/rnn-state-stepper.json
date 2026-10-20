@@ -1,0 +1,314 @@
+{
+ "slug": "rnn-state-stepper",
+ "units": {
+  "Watch an RNN's State Evolve": {
+   "zh": "观察 RNN 的状态演化",
+   "src": "Watch an RNN's State Evolve",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "A recurrent network is just one small cell applied over and over. It keeps a\n      running hidden state $h_t$, and at every timestep it folds the next input into\n      that state with the @@T0@@same@@T1@@ weights. Set the weights, feed a sequence, and\n      press @@T2@@Step@@T3@@ to watch a whole sequence collapse into a single\n      number, one timestep at a time.": {
+   "zh": "循环网络不过是一个小单元被反复应用而已。它维护一个\n      持续演化的隐藏状态 $h_t$，并在每个时间步以 @@T0@@相同的@@T1@@ 权重\n      将下一个输入折叠进该状态。设定权重，喂入一个序列，\n      然后按 @@T2@@步进@@T3@@，观察整个序列如何逐步坍缩为\n      单个数值，一个时间步一个时间步地展开。",
+   "src": "A recurrent network is just one small cell applied over and over. It keeps a\n      running hidden state $h_t$, and at every timestep it folds the next input into\n      that state with the <em>same</em> weights. Set the weights, feed a sequence, and\n      press <strong>Step</strong> to watch a whole sequence collapse into a single\n      number, one timestep at a time.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@~8 min@@T1@@\n      @@T2@@Deep Learning &middot; Sequences &middot; RNNs@@T3@@": {
+   "zh": "@@T0@@约 8 分钟@@T1@@\n      @@T2@@深度学习 &middot; 序列 &middot; RNN@@T3@@",
+   "src": "<span>~8 min</span>\n      <span>Deep Learning &middot; Sequences &middot; RNNs</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "One cell, applied over and over": {
+   "zh": "一个单元，反复应用",
+   "src": "One cell, applied over and over",
+   "tags": []
+  },
+  "Take the simplest possible recurrent unit: a single scalar hidden state $h_t$.\n      At each step it reads one input $x_t$, mixes it with the previous state, and\n      squashes the result through $\\tanh$:": {
+   "zh": "取尽可能最简单的循环单元：一个标量隐藏状态 $h_t$。\n      每一步它读取一个输入 $x_t$，将其与之前的状态混合，\n      再通过 $\\tanh$ 将结果压缩：",
+   "src": "Take the simplest possible recurrent unit: a single scalar hidden state $h_t$.\n      At each step it reads one input $x_t$, mixes it with the previous state, and\n      squashes the result through $\\tanh$:",
+   "tags": []
+  },
+  "There are only three numbers to learn &mdash; $w_x$ (how strongly the new input\n      matters), $w_h$ (how strongly the past matters), and a bias $b$ &mdash; and they\n      are @@T0@@shared across every timestep@@T1@@. That weight sharing is the whole idea:\n      a sequence of any length is processed by the same tiny function, and all the\n      network's memory lives in the single running number $h_t$.": {
+   "zh": "需要学习的只有三个数值 &mdash; $w_x$（新输入的影响强度）、\n      $w_h$（过去的影响强度）以及偏置 $b$ &mdash; 它们在\n      @@T0@@每个时间步之间共享@@T1@@。这种权重共享正是全部要旨：\n      任意长度的序列都由同一个微小的函数处理，而网络的\n      全部记忆都存在于那个持续演化的单一数值 $h_t$ 之中。",
+   "src": "There are only three numbers to learn &mdash; $w_x$ (how strongly the new input\n      matters), $w_h$ (how strongly the past matters), and a bias $b$ &mdash; and they\n      are <em>shared across every timestep</em>. That weight sharing is the whole idea:\n      a sequence of any length is processed by the same tiny function, and all the\n      network's memory lives in the single running number $h_t$.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Lab": {
+   "zh": "演练区",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Step the recurrence by hand": {
+   "zh": "手工推演这一递推",
+   "src": "Step the recurrence by hand",
+   "tags": []
+  },
+  "Choose an input sequence, set the three weights, and press @@T0@@Step@@T1@@.\n      Each press advances $t$ by one and shows the exact arithmetic with the numbers\n      substituted in &mdash; then plots the new state on the trajectory. Watch how the\n      recurrent weight $w_h$ decides whether the state settles, oscillates, saturates,\n      or (in linear mode) blows up.": {
+   "zh": "选择一个输入序列，设定三个权重，然后按 @@T0@@步进@@T1@@。\n      每按一次，$t$ 便前进一格，并展示代入具体数值后的精确\n      运算过程 &mdash; 随后在轨迹上绘出新的状态。观察\n      循环权重 $w_h$ 如何决定状态是趋于稳定、振荡、饱和，\n      还是（在线性模式下）爆炸。",
+   "src": "Choose an input sequence, set the three weights, and press <strong>Step</strong>.\n      Each press advances $t$ by one and shows the exact arithmetic with the numbers\n      substituted in &mdash; then plots the new state on the trajectory. Watch how the\n      recurrent weight $w_h$ decides whether the state settles, oscillates, saturates,\n      or (in linear mode) blows up.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Input sequence:@@T1@@": {
+   "zh": "@@T0@@输入序列：@@T1@@",
+   "src": "<span style=\"font-family:var(--sans);font-size:0.82rem;color:var(--muted);font-weight:600;\">Input sequence:</span>",
+   "tags": [
+    "<span style=\"font-family:var(--sans);font-size:0.82rem;color:var(--muted);font-weight:600;\">",
+    "</span>"
+   ]
+  },
+  "Impulse": {
+   "zh": "脉冲",
+   "src": "Impulse",
+   "tags": []
+  },
+  "Step": {
+   "zh": "阶跃",
+   "src": "Step",
+   "tags": []
+  },
+  "Alternating": {
+   "zh": "交替",
+   "src": "Alternating",
+   "tags": []
+  },
+  "Two spikes": {
+   "zh": "双尖峰",
+   "src": "Two spikes",
+   "tags": []
+  },
+  "Ramp": {
+   "zh": "斜坡",
+   "src": "Ramp",
+   "tags": []
+  },
+  "Or type your own (comma-separated)": {
+   "zh": "或自行输入（以逗号分隔）",
+   "src": "Or type your own (comma-separated)",
+   "tags": []
+  },
+  "Input weight @@T0@@$w_x$ = @@T1@@0.80@@T2@@@@T3@@": {
+   "zh": "输入权重 @@T0@@$w_x$ = @@T1@@0.80@@T2@@@@T3@@",
+   "src": "Input weight <span>$w_x$ = <span id=\"wxVal\">0.80</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"wxVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Recurrent weight @@T0@@$w_h$ = @@T1@@1.10@@T2@@@@T3@@": {
+   "zh": "循环权重 @@T0@@$w_h$ = @@T1@@1.10@@T2@@@@T3@@",
+   "src": "Recurrent weight <span>$w_h$ = <span id=\"whVal\">1.10</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"whVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Bias @@T0@@$b$ = @@T1@@0.00@@T2@@@@T3@@": {
+   "zh": "偏置 @@T0@@$b$ = @@T1@@0.00@@T2@@@@T3@@",
+   "src": "Bias <span>$b$ = <span id=\"bVal\">0.00</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"bVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Activation": {
+   "zh": "激活函数",
+   "src": "Activation",
+   "tags": []
+  },
+  "tanh (squashed)": {
+   "zh": "tanh（压缩）",
+   "src": "tanh (squashed)",
+   "tags": []
+  },
+  "linear (no squash)": {
+   "zh": "线性（不压缩）",
+   "src": "linear (no squash)",
+   "tags": []
+  },
+  "Step &rarr;": {
+   "zh": "步进 &rarr;",
+   "src": "Step &rarr;",
+   "tags": []
+  },
+  "Run to end": {
+   "zh": "运行至末尾",
+   "src": "Run to end",
+   "tags": []
+  },
+  "Reset": {
+   "zh": "重置",
+   "src": "Reset",
+   "tags": []
+  },
+  "Hidden state $h_t$ against timestep $t$. Filled dots are revealed steps; the faint dashed line previews where the current weights are heading. Grey stems at the bottom show the input $x_t$.": {
+   "zh": "隐藏状态 $h_t$ 随时间步 $t$ 的变化。实心圆点为已揭示的步；\n      浅色虚线预览当前权重将走向何处。底部的灰色竖线表示输入 $x_t$。",
+   "src": "Hidden state $h_t$ against timestep $t$. Filled dots are revealed steps; the faint dashed line previews where the current weights are heading. Grey stems at the bottom show the input $x_t$.",
+   "tags": []
+  },
+  "@@T0@@Current step $t$@@T1@@\n        @@T2@@0@@T3@@": {
+   "zh": "@@T0@@当前步 $t$@@T1@@\n        @@T2@@0@@T3@@",
+   "src": "<span class=\"stat-label\">Current step $t$</span>\n        <span class=\"stat-value\" id=\"tVal\">0</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"tVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Current state $h_t$@@T1@@\n        @@T2@@0.000@@T3@@": {
+   "zh": "@@T0@@当前状态 $h_t$@@T1@@\n        @@T2@@0.000@@T3@@",
+   "src": "<span class=\"stat-label\">Current state $h_t$</span>\n        <span class=\"stat-value\" id=\"hVal\">0.000</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"hVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Final state $h_T$@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@最终状态 $h_T$@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Final state $h_T$</span>\n        <span class=\"stat-value\" id=\"hfVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"hfVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Push $w_h$ toward 2 and step through the Step input.@@T1@@ In\n      @@T2@@tanh@@T3@@ mode the state races to $+1$ and pins there &mdash; it\n      @@T4@@saturates@@T5@@, and any further input barely moves it. Switch to\n      @@T6@@linear@@T7@@ mode with the same $w_h &gt; 1$ and the state instead doubles\n      every step: it @@T8@@explodes@@T9@@. That single knob, $w_h$, is the entire\n      vanishing / exploding story in miniature.": {
+   "zh": "@@T0@@将 $w_h$ 推向 2，并用阶跃输入逐步推进。@@T1@@ 在\n      @@T2@@tanh@@T3@@ 模式下，状态迅速冲至 $+1$ 并钉在那里 &mdash; 它\n      @@T4@@饱和@@T5@@ 了，此后再多的输入也几乎无法使其移动。切换到\n      @@T6@@线性@@T7@@ 模式并保持相同的 $w_h &gt; 1$，状态反而每步\n      翻倍：它 @@T8@@爆炸@@T9@@ 了。这单个旋钮 $w_h$，便是整个\n      梯度消失 / 爆炸问题的缩影。",
+   "src": "<strong>Push $w_h$ toward 2 and step through the Step input.</strong> In\n      <em>tanh</em> mode the state races to $+1$ and pins there &mdash; it\n      <em>saturates</em>, and any further input barely moves it. Switch to\n      <em>linear</em> mode with the same $w_h &gt; 1$ and the state instead doubles\n      every step: it <em>explodes</em>. That single knob, $w_h$, is the entire\n      vanishing / exploding story in miniature.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "回报",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "A sequence, folded into one number": {
+   "zh": "一个序列，折叠为一个数值",
+   "src": "A sequence, folded into one number",
+   "tags": []
+  },
+  "Nothing above ever stored the sequence. At step $t$ the cell only ever sees\n      $x_t$ and the single carried number $h_{t-1}$ &mdash; yet $h_t$ depends on the\n      @@T0@@whole@@T1@@ history $x_1,\\dots,x_t$, because each state was built from the one\n      before it. That is what &ldquo;recurrent&rdquo; means: memory is a running\n      summary, not a stored transcript.": {
+   "zh": "上文的一切从未存储整个序列。在第 $t$ 步，该单元只看到\n      $x_t$ 与那个被携带的单一数值 $h_{t-1}$ &mdash; 然而 $h_t$ 依赖于\n      @@T0@@完整的@@T1@@ 历史 $x_1,\\dots,x_t$，因为每个状态都由其前一个\n      状态构建而成。这正是“循环”一词的含义：记忆是一份持续演化的\n      摘要，而非被存储的完整记录。",
+   "src": "Nothing above ever stored the sequence. At step $t$ the cell only ever sees\n      $x_t$ and the single carried number $h_{t-1}$ &mdash; yet $h_t$ depends on the\n      <em>whole</em> history $x_1,\\dots,x_t$, because each state was built from the one\n      before it. That is what &ldquo;recurrent&rdquo; means: memory is a running\n      summary, not a stored transcript.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "With $|w_h| &lt; 1$ the influence of an old input @@T0@@decays@@T1@@ geometrically &mdash; the network has a short memory and forgets the impulse.": {
+   "zh": "当 $|w_h| &lt; 1$ 时，旧输入的影响呈几何式 @@T0@@衰减@@T1@@ &mdash; 网络只有短记忆，会忘掉脉冲。",
+   "src": "With $|w_h| &lt; 1$ the influence of an old input <strong>decays</strong> geometrically &mdash; the network has a short memory and forgets the impulse.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "With $w_h \\approx 1$ the state @@T0@@holds@@T1@@ information for a long time &mdash; the sweet spot, but a knife-edge that is hard to learn.": {
+   "zh": "当 $w_h \\approx 1$ 时，状态能长时间 @@T0@@保持@@T1@@ 信息 &mdash; 这是最佳区间，却也是难以学到的刀刃边缘。",
+   "src": "With $w_h \\approx 1$ the state <strong>holds</strong> information for a long time &mdash; the sweet spot, but a knife-edge that is hard to learn.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "With $|w_h| &gt; 1$ the state @@T0@@saturates@@T1@@ (through $\\tanh$) or @@T2@@explodes@@T3@@ (linear) &mdash; the same instability that makes deep RNNs hard to train.": {
+   "zh": "当 $|w_h| &gt; 1$ 时，状态会 @@T0@@饱和@@T1@@（经由 $\\tanh$）或 @@T2@@爆炸@@T3@@（线性）&mdash; 正是这种不稳定性使深层 RNN 难以训练。",
+   "src": "With $|w_h| &gt; 1$ the state <strong>saturates</strong> (through $\\tanh$) or <strong>explodes</strong> (linear) &mdash; the same instability that makes deep RNNs hard to train.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Where this goes next.@@T1@@ Because $h_t$ is built by re-applying one\n      cell, training it means differentiating through that entire chain &mdash;\n      @@T2@@backprop through time@@T3@@. And because every step multiplies by roughly\n      $w_h$, gradients shrink or grow exponentially with sequence length. LSTMs and\n      GRUs exist precisely to give the state an easier, gated path through time.": {
+   "zh": "@@T0@@后续如何展开。@@T1@@ 由于 $h_t$ 是通过重复应用同一个\n      单元构建的，训练它就意味着要对整条链求导 &mdash;\n      @@T2@@时间反向传播@@T3@@。又因为每一步都大致乘以\n      $w_h$，梯度会随序列长度呈指数式缩小或增大。LSTM 与\n      GRU 的存在，正是为了给状态提供一条更平缓、带门控的时间通路。",
+   "src": "<strong>Where this goes next.</strong> Because $h_t$ is built by re-applying one\n      cell, training it means differentiating through that entire chain &mdash;\n      <em>backprop through time</em>. And because every step multiplies by roughly\n      $w_h$, gradients shrink or grow exponentially with sequence length. LSTMs and\n      GRUs exist precisely to give the state an easier, gated path through time.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 13: RNNs, LSTMs and GRUs": {
+   "zh": "ES 667 深度学习讲解系列的一部分 &middot; 第 13 讲：RNN、LSTM 与 GRU",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 13: RNNs, LSTMs and GRUs",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "观察 RNN 的状态演化",
+  "tagline": "手工推演一个标量 RNN，观察整个序列如何折叠为一个持续演化的数值",
+  "summary": "循环网络就是一个微小单元被反复应用。设定 w_x、w_h 与 b，喂入一个输入序列，按步进以推进 t=1,2,3… &mdash; 每次按动都会展示代入具体数值后的精确运算 h_t = tanh(w_x·x_t + w_h·h_{t-1} + b)，随后在轨迹上绘出新的状态。调高 w_h，观察状态在 tanh 下饱和，或在线性模式下爆炸：整个梯度消失 / 爆炸问题尽在这一个旋钮之中。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "一个时间步一个时间步地推演这一递推，看到 h_t = tanh(w_x·x_t + w_h·h_{t-1} + b) 以实际代入的数值计算出来。",
+   "将隐藏状态轨迹随时间 t 绘出，并附有当前权重走向的浅色预览。",
+   "可喂入脉冲、阶跃、交替、尖峰或斜坡输入 &mdash; 也可自行输入以逗号分隔的序列。",
+   "将循环权重 w_h 调至超过 1，观察状态在 tanh 下饱和或在线性模式下爆炸。",
+   "理解其要旨：一个共享单元将整个序列折叠为一份持续演化的摘要。"
+  ],
+  "tags": [
+   "RNN",
+   "序列",
+   "隐藏状态",
+   "循环结构",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

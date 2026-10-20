@@ -1,0 +1,819 @@
+{
+ "slug": "vision-ssl",
+ "units": {
+  "Vision Pretraining, Without Labels": {
+   "zh": "无标签的视觉预训练",
+   "src": "Vision Pretraining, Without Labels",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Pull two augmentations of the same image together, push everything\n          else apart. Or mask 75% of an image and predict the rest. Two\n          label-free recipes that pretrain every modern vision backbone. Below:\n          a live contrastive lab where you augment an image, watch its embedding\n          barely move, and read the InfoNCE loss straight off a similarity\n          matrix &mdash; plus a mask-and-reconstruct MAE demo.": {
+   "zh": "将同一图像的两个增强视图拉近，把其余一切推远；或者掩蔽图像 75% 的部分并预测其余内容。这两种无需标签的方案为所有现代视觉骨干网络提供预训练。下文包含：一个实时对比学习实验，你可对图像施加增强、观察其嵌入几乎不变，并直接从相似度矩阵读出 InfoNCE 损失 &mdash; 此外还有一个掩码-重建的 MAE 演示。",
+   "src": "Pull two augmentations of the same image together, push everything\n          else apart. Or mask 75% of an image and predict the rest. Two\n          label-free recipes that pretrain every modern vision backbone. Below:\n          a live contrastive lab where you augment an image, watch its embedding\n          barely move, and read the InfoNCE loss straight off a similarity\n          matrix &mdash; plus a mask-and-reconstruct MAE demo.",
+   "tags": []
+  },
+  "@@T0@@~20 min@@T1@@\n          @@T2@@Computer Vision &middot; Self-Supervised &middot; Pretraining@@T3@@": {
+   "zh": "@@T0@@约 20 分钟@@T1@@\n          @@T2@@计算机视觉 &middot; 自监督 &middot; 预训练@@T3@@",
+   "src": "<span>~20 min</span>\n          <span>Computer Vision &middot; Self-Supervised &middot; Pretraining</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Why we don't train from scratch any more": {
+   "zh": "为何我们不再从零开始训练",
+   "src": "Why we don't train from scratch any more",
+   "tags": []
+  },
+  "ImageNet has 1.2M labelled images. A typical applied vision task has,\n          optimistically, a few thousand labelled examples. A ViT-Base trained\n          from scratch on that would overfit catastrophically. Self-supervised\n          pretraining on the much larger pool of @@T0@@unlabelled@@T1@@ images\n          (millions, easy to scrape; billions, with a bit of ingenuity) gets you\n          a backbone that needs only a thin fine-tune on labels.": {
+   "zh": "ImageNet 有 120 万张带标注图像。而一个典型的应用视觉任务，乐观估计也只有几千个带标注样本。在如此规模上从零训练一个 ViT-Base 会严重过拟合。而在规模大得多的@@T0@@无标注@@T1@@图像池（数百万张，易于采集；稍加巧思可达数十亿张）上进行自监督预训练，得到的骨干网络只需极少量的标注微调即可使用。",
+   "src": "ImageNet has 1.2M labelled images. A typical applied vision task has,\n          optimistically, a few thousand labelled examples. A ViT-Base trained\n          from scratch on that would overfit catastrophically. Self-supervised\n          pretraining on the much larger pool of <em>unlabelled</em> images\n          (millions, easy to scrape; billions, with a bit of ingenuity) gets you\n          a backbone that needs only a thin fine-tune on labels.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Every recipe here invents a @@T0@@pretext task@@T1@@: a\n          supervised-looking objective whose labels come free from the image\n          itself. Two big families dominate. @@T2@@Contrastive@@T3@@\n          methods (SimCLR, MoCo, CLIP) make representations of two views of one\n          image agree while disagreeing with other images.\n          @@T4@@Generative@@T5@@ methods (MAE, BEiT) hide part of the image\n          and reconstruct it. We'll build a live demo of each.": {
+   "zh": "文中每种方案都构造一个@@T0@@代理任务@@T1@@：一个看似有监督、但其标签可直接从图像本身免费获得的目标。有两大流派占据主导。@@T2@@对比式@@T3@@方法（SimCLR、MoCo、CLIP）使同一图像两个视图的表示相互一致，同时与其他图像不一致。@@T4@@生成式@@T5@@方法（MAE、BEiT）隐藏图像的一部分并要求重建。我们将为每一种构建实时演示。",
+   "src": "Every recipe here invents a <strong>pretext task</strong>: a\n          supervised-looking objective whose labels come free from the image\n          itself. Two big families dominate. <strong>Contrastive</strong>\n          methods (SimCLR, MoCo, CLIP) make representations of two views of one\n          image agree while disagreeing with other images.\n          <strong>Generative</strong> methods (MAE, BEiT) hide part of the image\n          and reconstruct it. We'll build a live demo of each.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@The slogan.@@T1@@\n          Spend your unlabelled-data calories on a self-supervised pretext task.\n          Save labelling budget for the part that actually needs labels (the\n          head, sometimes a thin LoRA through the backbone).": {
+   "zh": "@@T0@@一句话概括。@@T1@@\n          把无标注数据的算力花在自监督代理任务上，把标注预算留给真正需要标签的部分（任务头，有时是贯穿骨干网络的轻量 LoRA）。",
+   "src": "<strong>The slogan.</strong>\n          Spend your unlabelled-data calories on a self-supervised pretext task.\n          Save labelling budget for the part that actually needs labels (the\n          head, sometimes a thin LoRA through the backbone).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "Contrastive learning &amp; the InfoNCE loss": {
+   "zh": "对比学习与 InfoNCE 损失",
+   "src": "Contrastive learning &amp; the InfoNCE loss",
+   "tags": []
+  },
+  "Take an image, make two randomly augmented @@T0@@views@@T1@@ of it (crop,\n          flip, colour-jitter, blur). Push both through an encoder to get\n          embeddings $z_i$ and $z_j$. These two views came from the same image,\n          so they form a @@T2@@positive pair@@T3@@ and their embeddings\n          should be close. Every @@T4@@other@@T5@@ image in the batch is a\n          @@T6@@negative@@T7@@, and should sit far away. The InfoNCE loss\n          makes that a softmax classification &mdash; \"which of the $2N$ views is\n          my positive?\":": {
+   "zh": "取一张图像，对它生成两个随机增强的@@T0@@视图@@T1@@（裁剪、\n          翻转、色彩抖动、模糊）。将二者送入编码器得到嵌入 $z_i$ 与 $z_j$。这两个视图来自同一图像，\n          因此构成一个@@T2@@正样本对@@T3@@，其嵌入\n          应当彼此接近。批中@@T4@@其余@@T5@@每一张图像都是\n          @@T6@@负样本@@T7@@，应当相距较远。InfoNCE 损失\n          将其转化为一个 softmax 分类问题 &mdash; 「$2N$ 个视图之中，\n          哪一个才是我的正样本？」：",
+   "src": "Take an image, make two randomly augmented <em>views</em> of it (crop,\n          flip, colour-jitter, blur). Push both through an encoder to get\n          embeddings $z_i$ and $z_j$. These two views came from the same image,\n          so they form a <strong>positive pair</strong> and their embeddings\n          should be close. Every <em>other</em> image in the batch is a\n          <strong>negative</strong>, and should sit far away. The InfoNCE loss\n          makes that a softmax classification &mdash; \"which of the $2N$ views is\n          my positive?\":",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "$\\operatorname{sim}(a,b)=\\tfrac{a\\cdot b}{\\lVert a\\rVert\\,\\lVert b\\rVert}$\n          is cosine similarity and $\\tau$ is a temperature (smaller = harder\n          negatives, sharper contrast). The numerator pulls the positive pair\n          together; the denominator pushes against every negative in the batch\n          &mdash; which is why @@T0@@SimCLR needs large batches@@T1@@\n          (~4k&ndash;8k) to see enough negatives, and why MoCo swaps the batch\n          negatives for a momentum-updated queue.": {
+   "zh": "$\\operatorname{sim}(a,b)=\\tfrac{a\\cdot b}{\\lVert a\\rVert\\,\\lVert b\\rVert}$ 是余弦相似度，$\\tau$ 是温度（越小表示负样本越难、对比越锐利）。分子将正样本对拉近；分母则与批中每一个负样本相抗衡 &mdash; 这正是@@T0@@SimCLR 需要大批量@@T1@@（约 4k&ndash;8k）以便见到足够多负样本的原因，也是 MoCo 以动量更新的队列取代批内负样本的原因。",
+   "src": "$\\operatorname{sim}(a,b)=\\tfrac{a\\cdot b}{\\lVert a\\rVert\\,\\lVert b\\rVert}$\n          is cosine similarity and $\\tau$ is a temperature (smaller = harder\n          negatives, sharper contrast). The numerator pulls the positive pair\n          together; the denominator pushes against every negative in the batch\n          &mdash; which is why <strong>SimCLR needs large batches</strong>\n          (~4k&ndash;8k) to see enough negatives, and why MoCo swaps the batch\n          negatives for a momentum-updated queue.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "crop + noise strength @@T0@@0.35@@T1@@": {
+   "zh": "裁剪 + 噪声强度 @@T0@@0.35@@T1@@",
+   "src": "crop + noise strength <span class=\"ctrl-val\" id=\"sim-aug-val\">0.35</span>",
+   "tags": [
+    "<span class=\"ctrl-val\" id=\"sim-aug-val\">",
+    "</span>"
+   ]
+  },
+  "colour-jitter strength @@T0@@0.65@@T1@@": {
+   "zh": "色彩抖动强度 @@T0@@0.65@@T1@@",
+   "src": "colour-jitter strength <span class=\"ctrl-val\" id=\"sim-color-val\">0.65</span>",
+   "tags": [
+    "<span class=\"ctrl-val\" id=\"sim-color-val\">",
+    "</span>"
+   ]
+  },
+  "temperature $\\tau$ @@T0@@0.20@@T1@@": {
+   "zh": "温度 $\\tau$ @@T0@@0.20@@T1@@",
+   "src": "temperature $\\tau$ <span class=\"ctrl-val\" id=\"sim-temp-val\">0.20</span>",
+   "tags": [
+    "<span class=\"ctrl-val\" id=\"sim-temp-val\">",
+    "</span>"
+   ]
+  },
+  "Re-sample views": {
+   "zh": "重新采样视图",
+   "src": "Re-sample views",
+   "tags": []
+  },
+  "anchor image": {
+   "zh": "锚点图像",
+   "src": "anchor image",
+   "tags": []
+  },
+  "@@T0@@augment@@T1@@&nbsp;&rarr;": {
+   "zh": "@@T0@@增强@@T1@@&nbsp;&rarr;",
+   "src": "<span>augment</span>&nbsp;&rarr;",
+   "tags": [
+    "<span>",
+    "</span>"
+   ]
+  },
+  "view A &nbsp;(positive)": {
+   "zh": "视图 A &nbsp;（正样本）",
+   "src": "view A &nbsp;(positive)",
+   "tags": []
+  },
+  "view B &nbsp;(positive)": {
+   "zh": "视图 B &nbsp;（正样本）",
+   "src": "view B &nbsp;(positive)",
+   "tags": []
+  },
+  "Embedding space. Each dot is one view's 2-D embedding; the orange line joins the two anchor views. Direction encodes orientation, distance-from-centre encodes how confident the encoder is.": {
+   "zh": "嵌入空间。每个点表示一个视图的二维嵌入；橙色连线连接两个锚点视图。方向编码朝向，到中心的距离编码编码器的置信程度。",
+   "src": "Embedding space. Each dot is one view's 2-D embedding; the orange line joins the two anchor views. Direction encodes orientation, distance-from-centre encodes how confident the encoder is.",
+   "tags": []
+  },
+  "Cosine-similarity matrix over all $2N=8$ views (4 images &times; 2 views). Orange squares are the positive pairs; InfoNCE wants them to be the brightest entry in their row.": {
+   "zh": "所有 $2N=8$ 个视图（4 张图像 &times; 2 个视图）的余弦相似度矩阵。橙色方格为正样本对；InfoNCE 希望它们是所在行中最亮的元素。",
+   "src": "Cosine-similarity matrix over all $2N=8$ views (4 images &times; 2 views). Orange squares are the positive pairs; InfoNCE wants them to be the brightest entry in their row.",
+   "tags": []
+  },
+  "@@T0@@Positive similarity@@T1@@\n              @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@正样本相似度@@T1@@\n              @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Positive similarity</span>\n              <span class=\"stat-value\" id=\"sim-pos\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"sim-pos\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Mean negative sim@@T1@@\n              @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@负样本平均相似度@@T1@@\n              @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Mean negative sim</span>\n              <span class=\"stat-value\" id=\"sim-neg\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"sim-neg\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@InfoNCE loss (anchor)@@T1@@\n              @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@InfoNCE 损失（锚点）@@T1@@\n              @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">InfoNCE loss (anchor)</span>\n              <span class=\"stat-value\" id=\"sim-loss\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"sim-loss\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Positive is nearest?@@T1@@\n              @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@正样本是否最近？@@T1@@\n              @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Positive is nearest?</span>\n              <span class=\"stat-value\" id=\"sim-nn\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"sim-nn\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Two knobs, two lessons.@@T1@@\n            Crank @@T2@@colour-jitter@@T3@@ to the max: the two views look wildly\n            different in colour, yet the positive similarity barely dips and the\n            positive pair stays the brightest cell in its row. The encoder here\n            is colour-blind by construction &mdash; that is the\n            @@T4@@invariance@@T5@@ InfoNCE is training in. Now crank\n            @@T6@@crop + noise@@T7@@: augment too aggressively and the views lose\n            their shared structure, the positive dot drifts toward the centre,\n            similarity collapses, and eventually a negative wins &mdash; the loss\n            spikes. Good augmentations are strong but structure-preserving.": {
+   "zh": "@@T0@@两个旋钮，两条经验。@@T1@@\n            将@@T2@@色彩抖动@@T3@@调到最大：两个视图在颜色上大相径庭，但正样本相似度却几乎不下降，正样本对仍是所在行最亮的单元。这里的编码器在构造上就是色盲的 &mdash; 这正是 InfoNCE 所训练的@@T4@@不变性@@T5@@。现在再调大@@T6@@裁剪 + 噪声@@T7@@：增强过度时视图会丢失其共享结构，正样本点向中心漂移，相似度崩塌，最终某个负样本胜出 &mdash; 损失随之骤升。良好的增强既强烈又保持结构。",
+   "src": "<strong>Two knobs, two lessons.</strong>\n            Crank <em>colour-jitter</em> to the max: the two views look wildly\n            different in colour, yet the positive similarity barely dips and the\n            positive pair stays the brightest cell in its row. The encoder here\n            is colour-blind by construction &mdash; that is the\n            <em>invariance</em> InfoNCE is training in. Now crank\n            <em>crop + noise</em>: augment too aggressively and the views lose\n            their shared structure, the positive dot drifts toward the centre,\n            similarity collapses, and eventually a negative wins &mdash; the loss\n            spikes. Good augmentations are strong but structure-preserving.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Augmentations are the whole inductive bias: the network is forced to\n          produce the same embedding for both views, so it learns features\n          @@T0@@invariant to whatever you augmented over@@T1@@. Random crop +\n          colour jitter + Gaussian blur is the standard recipe; dropping any one\n          costs 5&ndash;10 ImageNet linear-probe points.": {
+   "zh": "增强方式本身就构成了全部归纳偏置：网络被迫为两个视图产生相同的嵌入，因此它学到的特征@@T0@@对一切被你增强的变换保持不变@@T1@@。随机裁剪 + 色彩抖动 + 高斯模糊是标准方案；去掉其中任何一项都会损失 5&ndash;10 个 ImageNet 线性探测点。",
+   "src": "Augmentations are the whole inductive bias: the network is forced to\n          produce the same embedding for both views, so it learns features\n          <em>invariant to whatever you augmented over</em>. Random crop +\n          colour jitter + Gaussian blur is the standard recipe; dropping any one\n          costs 5&ndash;10 ImageNet linear-probe points.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "The MAE recipe &mdash; mask and reconstruct": {
+   "zh": "MAE 方案 &mdash; 掩蔽与重建",
+   "src": "The MAE recipe &mdash; mask and reconstruct",
+   "tags": []
+  },
+  "Masked autoencoders (He et&nbsp;al., 2022) are the simplest generative\n          recipe that works at scale. Divide the image into patches, randomly\n          mask a large fraction (75% is the headline number), feed only the\n          @@T0@@visible@@T1@@ patches into a ViT encoder, and ask a small decoder to\n          reconstruct the masked patches. The loss is mean-squared error in pixel\n          space, computed only on the masked patches:": {
+   "zh": "掩码自编码器（He 等，2022）是在规模上可行且最简单的生成式方案。将图像划分为补丁，随机掩蔽很大一部分（标志性数字为 75%），仅将@@T0@@可见@@T1@@补丁送入 ViT 编码器，并要求一个小型解码器重建被掩蔽的补丁。损失为像素空间的均方误差，且仅在被掩蔽的补丁上计算：",
+   "src": "Masked autoencoders (He et&nbsp;al., 2022) are the simplest generative\n          recipe that works at scale. Divide the image into patches, randomly\n          mask a large fraction (75% is the headline number), feed only the\n          <em>visible</em> patches into a ViT encoder, and ask a small decoder to\n          reconstruct the masked patches. The loss is mean-squared error in pixel\n          space, computed only on the masked patches:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The asymmetry &mdash; an encoder that sees only 25% of the patches, a\n          decoder that sees the full set with placeholders for the masked ones\n          &mdash; is what makes this fast. Pretraining on ImageNet-1k takes under\n          a day on 8 GPUs. Drag the mask ratio and watch reconstruction quality\n          degrade as fewer patches survive:": {
+   "zh": "这种非对称设计 &mdash; 编码器只看到 25% 的补丁，解码器则看到全集并带有被掩蔽补丁的占位符 &mdash; 正是其高效的原因。在 ImageNet-1k 上预训练在 8 块 GPU 上不到一天即可完成。拖动掩码比例，观察当存留补丁减少时重建质量如何下降：",
+   "src": "The asymmetry &mdash; an encoder that sees only 25% of the patches, a\n          decoder that sees the full set with placeholders for the masked ones\n          &mdash; is what makes this fast. Pretraining on ImageNet-1k takes under\n          a day on 8 GPUs. Drag the mask ratio and watch reconstruction quality\n          degrade as fewer patches survive:",
+   "tags": []
+  },
+  "mask ratio &nbsp;@@T0@@0.75@@T1@@": {
+   "zh": "掩码比例 &nbsp;@@T0@@0.75@@T1@@",
+   "src": "mask ratio &nbsp;<span id=\"mae-ratio-val\">0.75</span>",
+   "tags": [
+    "<span id=\"mae-ratio-val\">",
+    "</span>"
+   ]
+  },
+  "New image": {
+   "zh": "新图像",
+   "src": "New image",
+   "tags": []
+  },
+  "Original": {
+   "zh": "原始图像",
+   "src": "Original",
+   "tags": []
+  },
+  "Masked input (encoder sees this)": {
+   "zh": "掩码输入（编码器所见）",
+   "src": "Masked input (encoder sees this)",
+   "tags": []
+  },
+  "Reconstruction (decoder output)": {
+   "zh": "重建结果（解码器输出）",
+   "src": "Reconstruction (decoder output)",
+   "tags": []
+  },
+  "@@T0@@What the demo can and can't show.@@T1@@\n          We don't run a real ViT in your browser; the 'reconstruction' is a\n          smart interpolation from the visible patches (roughly what an MAE\n          decoder converges to on a smooth scene). Real MAE reconstructions on\n          natural images preserve global structure but blur fine texture &mdash;\n          the same qualitative behaviour you see here as you push the mask ratio\n          up.": {
+   "zh": "@@T0@@本演示能展示与不能展示的内容。@@T1@@\n          我们并未在你的浏览器中运行真正的 ViT；所谓「重建」是对可见补丁的智能插值（大致相当于 MAE 解码器在平滑场景上收敛到的结果）。真实 MAE 对自然图像的重建会保留全局结构，但会模糊细节纹理 &mdash; 与你在此处提高掩码比例时所见到的定性行为相同。",
+   "src": "<strong>What the demo can and can't show.</strong>\n          We don't run a real ViT in your browser; the 'reconstruction' is a\n          smart interpolation from the visible patches (roughly what an MAE\n          decoder converges to on a smooth scene). Real MAE reconstructions on\n          natural images preserve global structure but blur fine texture &mdash;\n          the same qualitative behaviour you see here as you push the mask ratio\n          up.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "DINO &amp; self-distillation without labels": {
+   "zh": "DINO 与无标签的自蒸馏",
+   "src": "DINO &amp; self-distillation without labels",
+   "tags": []
+  },
+  "DINO (Caron et&nbsp;al., 2021) and DINOv2 (Oquab et&nbsp;al., 2023) are\n          the most-used non-contrastive recipe. A student network must match the\n          predictions of a teacher network on a different view of the same image;\n          the teacher is an @@T0@@exponential moving average@@T1@@ of the student:": {
+   "zh": "DINO（Caron 等，2021）与 DINOv2（Oquab 等，2023）是使用最广的非对比式方案。学生网络必须在一张图像的另一个视图上匹配教师网络的预测；教师网络是学生网络的@@T0@@指数移动平均@@T1@@：",
+   "src": "DINO (Caron et&nbsp;al., 2021) and DINOv2 (Oquab et&nbsp;al., 2023) are\n          the most-used non-contrastive recipe. A student network must match the\n          predictions of a teacher network on a different view of the same image;\n          the teacher is an <em>exponential moving average</em> of the student:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The trick is preventing collapse &mdash; both networks predicting a constant. Two stabilisers:": {
+   "zh": "关键在于防止坍塌 &mdash; 即两个网络都预测一个常量。有两个稳定机制：",
+   "src": "The trick is preventing collapse &mdash; both networks predicting a constant. Two stabilisers:",
+   "tags": []
+  },
+  "@@T0@@Centering.@@T1@@ Subtract a running mean $c$ from the teacher's output before softmax. Removes the easy \"always predict the same vector\" attractor.": {
+   "zh": "@@T0@@中心化。@@T1@@ 在 softmax 之前从教师输出中减去一个滑动均值 $c$。这消除了「总是预测同一向量」这一容易落入的吸引子。",
+   "src": "<strong>Centering.</strong> Subtract a running mean $c$ from the teacher's output before softmax. Removes the easy \"always predict the same vector\" attractor.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Sharpening.@@T1@@ Teacher temperature $\\tau_t \\ll \\tau_s$. The teacher's distribution is sharper than the student's, forcing the student to commit to a confident prediction.": {
+   "zh": "@@T0@@锐化。@@T1@@ 教师温度 $\\tau_t \\ll \\tau_s$。教师的分布比学生更锐利，迫使学生作出高置信度的预测。",
+   "src": "<strong>Sharpening.</strong> Teacher temperature $\\tau_t \\ll \\tau_s$. The teacher's distribution is sharper than the student's, forcing the student to commit to a confident prediction.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "DINOv2 added Sinkhorn-Knopp centering, iBOT-style patch-level loss (the\n          student must also match the teacher on masked patches), and curated\n          pretraining data. The resulting features are @@T0@@spatially@@T1@@\n          well-organised, which is why DINOv2 is the current default for any\n          downstream segmentation or detection task.": {
+   "zh": "DINOv2 加入了 Sinkhorn-Knopp 中心化、iBOT 式的补丁级损失（学生还必须在被掩蔽的补丁上匹配教师），并使用了经过精心筛选的预训练数据。由此得到的特征在@@T0@@空间上@@T1@@组织良好，这正是 DINOv2 成为当前任何下游分割或检测任务默认选择的原因。",
+   "src": "DINOv2 added Sinkhorn-Knopp centering, iBOT-style patch-level loss (the\n          student must also match the teacher on masked patches), and curated\n          pretraining data. The resulting features are <em>spatially</em>\n          well-organised, which is why DINOv2 is the current default for any\n          downstream segmentation or detection task.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "JEPA &mdash; predict features, not pixels": {
+   "zh": "JEPA &mdash; 预测特征而非像素",
+   "src": "JEPA &mdash; predict features, not pixels",
+   "tags": []
+  },
+  "MAE spends capacity predicting pixels: the loss in pixel space punishes\n          you for getting fine textures wrong, which doesn't help downstream\n          semantics. Joint Embedding Predictive Architectures (I-JEPA, V-JEPA;\n          LeCun et&nbsp;al., 2022&ndash;24) sidestep this by predicting in\n          @@T0@@feature@@T1@@ space:": {
+   "zh": "MAE 将容量花在预测像素上：像素空间的损失会因细节纹理预测错误而惩罚模型，这对下游语义并无助益。联合嵌入预测架构（I-JEPA、V-JEPA；LeCun 等，2022&ndash;24）通过在@@T0@@特征@@T1@@空间中进行预测来绕开这一点：",
+   "src": "MAE spends capacity predicting pixels: the loss in pixel space punishes\n          you for getting fine textures wrong, which doesn't help downstream\n          semantics. Joint Embedding Predictive Architectures (I-JEPA, V-JEPA;\n          LeCun et&nbsp;al., 2022&ndash;24) sidestep this by predicting in\n          <em>feature</em> space:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Both context and target pass through the (same) encoder $f$. A small\n          predictor $g$ predicts the feature embedding of the target from the\n          context's embedding plus a target location code $\\ell_{\\text{target}}$;\n          $\\operatorname{sg}[\\cdot]$ is a stop-gradient. By skipping pixel\n          prediction, JEPA spends its parameters on representations useful for\n          downstream tasks, and is increasingly competitive on linear-probe\n          benchmarks at a fraction of MAE's compute.": {
+   "zh": "上下文与目标都经过（同一个）编码器 $f$。一个小型预测器 $g$ 由上下文的嵌入加上目标位置编码 $\\ell_{\\text{target}}$ 来预测目标的特征嵌入；$\\operatorname{sg}[\\cdot]$ 表示停止梯度。由于跳过像素预测，JEPA 将参数用于对下游任务有用的表示，并以仅相当于 MAE 一小部分的计算量在线性探测基准上日益具有竞争力。",
+   "src": "Both context and target pass through the (same) encoder $f$. A small\n          predictor $g$ predicts the feature embedding of the target from the\n          context's embedding plus a target location code $\\ell_{\\text{target}}$;\n          $\\operatorname{sg}[\\cdot]$ is a stop-gradient. By skipping pixel\n          prediction, JEPA spends its parameters on representations useful for\n          downstream tasks, and is increasingly competitive on linear-probe\n          benchmarks at a fraction of MAE's compute.",
+   "tags": []
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "The four families of SSL recipes": {
+   "zh": "自监督学习方案的四大家族",
+   "src": "The four families of SSL recipes",
+   "tags": []
+  },
+  "Family": {
+   "zh": "家族",
+   "src": "Family",
+   "tags": []
+  },
+  "Pretext": {
+   "zh": "代理任务",
+   "src": "Pretext",
+   "tags": []
+  },
+  "Examples": {
+   "zh": "代表方法",
+   "src": "Examples",
+   "tags": []
+  },
+  "What it learns well": {
+   "zh": "擅长学习的方面",
+   "src": "What it learns well",
+   "tags": []
+  },
+  "What it struggles with": {
+   "zh": "困难之处",
+   "src": "What it struggles with",
+   "tags": []
+  },
+  "@@T0@@Contrastive@@T1@@": {
+   "zh": "@@T0@@对比式@@T1@@",
+   "src": "<strong>Contrastive</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Pull augmentations of same image together; push others apart": {
+   "zh": "将同一图像的增强视图拉近；把其余视图推远",
+   "src": "Pull augmentations of same image together; push others apart",
+   "tags": []
+  },
+  "SimCLR, MoCo, CLIP": {
+   "zh": "SimCLR、MoCo、CLIP",
+   "src": "SimCLR, MoCo, CLIP",
+   "tags": []
+  },
+  "Discriminative features, transfer to classification": {
+   "zh": "判别性特征，可迁移至分类",
+   "src": "Discriminative features, transfer to classification",
+   "tags": []
+  },
+  "Needs huge batches; weak on dense tasks": {
+   "zh": "需要超大批量；在稠密任务上较弱",
+   "src": "Needs huge batches; weak on dense tasks",
+   "tags": []
+  },
+  "@@T0@@Distillation@@T1@@": {
+   "zh": "@@T0@@蒸馏式@@T1@@",
+   "src": "<strong>Distillation</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Match a teacher (often EMA of student) on different views": {
+   "zh": "在不同视图上匹配教师（通常是学生的 EMA）",
+   "src": "Match a teacher (often EMA of student) on different views",
+   "tags": []
+  },
+  "DINO, DINOv2, iBOT": {
+   "zh": "DINO、DINOv2、iBOT",
+   "src": "DINO, DINOv2, iBOT",
+   "tags": []
+  },
+  "Strong dense features; SOTA for downstream segmentation": {
+   "zh": "稠密特征强；下游分割任务的当前最优",
+   "src": "Strong dense features; SOTA for downstream segmentation",
+   "tags": []
+  },
+  "Stable training is delicate (centering, sharpening)": {
+   "zh": "训练稳定性较难把握（中心化、锐化）",
+   "src": "Stable training is delicate (centering, sharpening)",
+   "tags": []
+  },
+  "@@T0@@Generative@@T1@@": {
+   "zh": "@@T0@@生成式@@T1@@",
+   "src": "<strong>Generative</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Reconstruct masked pixels / tokens": {
+   "zh": "重建被掩蔽的像素 / 词元",
+   "src": "Reconstruct masked pixels / tokens",
+   "tags": []
+  },
+  "MAE, SimMIM, BEiT": {
+   "zh": "MAE、SimMIM、BEiT",
+   "src": "MAE, SimMIM, BEiT",
+   "tags": []
+  },
+  "Sample efficiency; works on any modality": {
+   "zh": "样本效率高；适用于任何模态",
+   "src": "Sample efficiency; works on any modality",
+   "tags": []
+  },
+  "Linear-probe accuracy lower than DINO/CLIP": {
+   "zh": "线性探测准确率低于 DINO/CLIP",
+   "src": "Linear-probe accuracy lower than DINO/CLIP",
+   "tags": []
+  },
+  "@@T0@@Predictive@@T1@@": {
+   "zh": "@@T0@@预测式@@T1@@",
+   "src": "<strong>Predictive</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Predict @@T0@@features@@T1@@ of masked regions, not pixels": {
+   "zh": "预测被掩蔽区域的@@T0@@特征@@T1@@，而非像素",
+   "src": "Predict <em>features</em> of masked regions, not pixels",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "I-JEPA, V-JEPA, V-JEPA 2": {
+   "zh": "I-JEPA、V-JEPA、V-JEPA 2",
+   "src": "I-JEPA, V-JEPA, V-JEPA 2",
+   "tags": []
+  },
+  "Very efficient; emphasis on semantic features": {
+   "zh": "效率很高；侧重语义特征",
+   "src": "Very efficient; emphasis on semantic features",
+   "tags": []
+  },
+  "Newer; tooling and recipes still maturing": {
+   "zh": "较新；工具与方案仍在成熟中",
+   "src": "Newer; tooling and recipes still maturing",
+   "tags": []
+  },
+  "A useful rule of thumb: for classification-flavoured tasks and small\n          labelled fine-tune sets, prefer DINOv2 or CLIP. For dense prediction,\n          segmentation, or any task where spatial detail matters, prefer DINOv2\n          or MAE. For unusual modalities (thermal, satellite, hyperspectral) MAE\n          is the easiest to retrofit.": {
+   "zh": "一条实用的经验法则：对于偏分类性质的任务以及规模较小的标注微调集，优先选择 DINOv2 或 CLIP。对于稠密预测、分割，或任何空间细节至关重要的任务，优先选择 DINOv2 或 MAE。对于非常规模态（热成像、卫星、高光谱），MAE 最易于改造适配。",
+   "src": "A useful rule of thumb: for classification-flavoured tasks and small\n          labelled fine-tune sets, prefer DINOv2 or CLIP. For dense prediction,\n          segmentation, or any task where spatial detail matters, prefer DINOv2\n          or MAE. For unusual modalities (thermal, satellite, hyperspectral) MAE\n          is the easiest to retrofit.",
+   "tags": []
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Why this matters: linear-probe efficiency": {
+   "zh": "其重要性所在：线性探测效率",
+   "src": "Why this matters: linear-probe efficiency",
+   "tags": []
+  },
+  "The cleanest way to evaluate pretraining is to freeze the backbone and\n          train a single linear head on a small labelled set. The slope of that\n          \"labelled-data vs accuracy\" curve is the SSL value. Below: a synthetic\n          curve contrasting @@T0@@random init@@T1@@ with @@T2@@SSL pretrained@@T3@@ as\n          you grow the labelled fraction.": {
+   "zh": "评估预训练最干净的方式是冻结骨干网络，并在小规模标注集上训练单一线性头。该「标注数据量-准确率」曲线的斜率即体现自监督学习的价值。下方是一条合成曲线，随标注比例增大，对比@@T0@@随机初始化@@T1@@与@@T2@@自监督预训练@@T3@@的表现。",
+   "src": "The cleanest way to evaluate pretraining is to freeze the backbone and\n          train a single linear head on a small labelled set. The slope of that\n          \"labelled-data vs accuracy\" curve is the SSL value. Below: a synthetic\n          curve contrasting <em>random init</em> with <em>SSL pretrained</em> as\n          you grow the labelled fraction.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Synthetic illustration. Real ImageNet linear-probe numbers (Caron et&nbsp;al., 2021): DINO ~78% with 1% labels vs ~10% from random init.": {
+   "zh": "合成示意。真实的 ImageNet 线性探测数据（Caron 等，2021）：DINO 在 1% 标注下约 78%，而随机初始化约为 10%。",
+   "src": "Synthetic illustration. Real ImageNet linear-probe numbers (Caron et&nbsp;al., 2021): DINO ~78% with 1% labels vs ~10% from random init.",
+   "tags": []
+  },
+  "Step 7": {
+   "zh": "第 7 步",
+   "src": "Step 7",
+   "tags": []
+  },
+  "The augmentation-as-prior view": {
+   "zh": "将增强视为先验的视角",
+   "src": "The augmentation-as-prior view",
+   "tags": []
+  },
+  "The single biggest knob in any non-generative SSL recipe is the\n          augmentation set, for the reason the contrastive lab above made\n          tangible: the loss forces the same representation for two augmented\n          views, so the network learns @@T0@@features invariant to whatever you\n          augmented over@@T1@@. Whatever you don't augment is what the model is\n          free to latch onto.": {
+   "zh": "在任何非生成式自监督方案中，最重要的单一旋钮就是增强集合，原因已由上文对比实验具体呈现：损失迫使两个增强视图产生相同的表示，因此网络学到的@@T0@@特征对一切被你增强的变换保持不变@@T1@@。而凡是你未施加增强的方面，模型便可自由地加以依赖。",
+   "src": "The single biggest knob in any non-generative SSL recipe is the\n          augmentation set, for the reason the contrastive lab above made\n          tangible: the loss forces the same representation for two augmented\n          views, so the network learns <em>features invariant to whatever you\n          augmented over</em>. Whatever you don't augment is what the model is\n          free to latch onto.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Random crop.@@T1@@ Locality + scale invariance. Removing it tanks ImageNet linear probe by ~25 points.": {
+   "zh": "@@T0@@随机裁剪。@@T1@@ 局部性与尺度不变性。去掉它会使 ImageNet 线性探测下降约 25 个点。",
+   "src": "<strong>Random crop.</strong> Locality + scale invariance. Removing it tanks ImageNet linear probe by ~25 points.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Colour jitter.@@T1@@ Colour-invariance. Crucial for natural images where colour is unreliable.": {
+   "zh": "@@T0@@色彩抖动。@@T1@@ 颜色不变性。对于颜色不可靠的自然图像至关重要。",
+   "src": "<strong>Colour jitter.</strong> Colour-invariance. Crucial for natural images where colour is unreliable.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Gaussian blur.@@T1@@ Texture-invariance. Helps especially when the target task cares about shape, not texture.": {
+   "zh": "@@T0@@高斯模糊。@@T1@@ 纹理不变性。当目标任务关注形状而非纹理时尤其有帮助。",
+   "src": "<strong>Gaussian blur.</strong> Texture-invariance. Helps especially when the target task cares about shape, not texture.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Solarisation / random greyscale.@@T1@@ Used in DINO; further weakens colour as a shortcut.": {
+   "zh": "@@T0@@曝光反转 / 随机灰度化。@@T1@@ 用于 DINO；进一步削弱颜色作为捷径的作用。",
+   "src": "<strong>Solarisation / random greyscale.</strong> Used in DINO; further weakens colour as a shortcut.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@What to @@T1@@not@@T2@@ augment.@@T3@@ If your downstream task cares about a property (rotation in medical scans, exact pixel intensity in remote sensing), @@T4@@don't@@T5@@ augment it away &mdash; the model will learn to ignore exactly the thing you need.": {
+   "zh": "@@T0@@哪些方面@@T1@@不应@@T2@@增强。@@T3@@ 如果你的下游任务关注某一属性（医学扫描中的旋转、遥感中的精确像素强度），那么@@T4@@不要@@T5@@通过增强将其抹去 &mdash; 模型会习得忽略恰好是你所需的那一点。",
+   "src": "<strong>What to <em>not</em> augment.</strong> If your downstream task cares about a property (rotation in medical scans, exact pixel intensity in remote sensing), <em>don't</em> augment it away &mdash; the model will learn to ignore exactly the thing you need.",
+   "tags": [
+    "<strong>",
+    "<em>",
+    "</em>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@The lesson.@@T1@@\n          Your augmentation set @@T2@@is@@T3@@ your inductive bias. Choose with care; revisit it for every new modality.": {
+   "zh": "@@T0@@经验总结。@@T1@@\n          你的增强集合@@T2@@就是@@T3@@你的归纳偏置。请审慎选择，并在面对每一种新模态时重新审视它。",
+   "src": "<strong>The lesson.</strong>\n          Your augmentation set <em>is</em> your inductive bias. Choose with care; revisit it for every new modality.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 8": {
+   "zh": "第 8 步",
+   "src": "Step 8",
+   "tags": []
+  },
+  "Practical recipes": {
+   "zh": "实用方案",
+   "src": "Practical recipes",
+   "tags": []
+  },
+  "@@T0@@Custom-modality pretraining.@@T1@@ If your domain (thermal, medical, satellite, hyperspectral, microscopy) is unlike ImageNet, an off-the-shelf backbone helps less. Pretrain MAE on tens to hundreds of thousands of in-domain unlabelled images; fine-tune on the few hundred labels you actually have.": {
+   "zh": "@@T0@@自定义模态的预训练。@@T1@@ 如果你的领域（热成像、医学、卫星、高光谱、显微成像）与 ImageNet 差异很大，现成骨干网络的帮助有限。在数万至数十万张域内无标注图像上预训练 MAE；再用你实际拥有的数百个标签进行微调。",
+   "src": "<strong>Custom-modality pretraining.</strong> If your domain (thermal, medical, satellite, hyperspectral, microscopy) is unlike ImageNet, an off-the-shelf backbone helps less. Pretrain MAE on tens to hundreds of thousands of in-domain unlabelled images; fine-tune on the few hundred labels you actually have.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Continual pretraining of a public backbone.@@T1@@ Cheaper: start from DINOv2 or CLIP weights, run a short MAE-style continual pretrain on your in-domain data, then fine-tune. You get both the big-pretrain generality and the modality alignment.": {
+   "zh": "@@T0@@对公开骨干网络进行持续预训练。@@T1@@ 成本更低：从 DINOv2 或 CLIP 权重出发，在域内数据上做一次短时的 MAE 式持续预训练，然后微调。你既获得大规模预训练的通用性，又实现了模态对齐。",
+   "src": "<strong>Continual pretraining of a public backbone.</strong> Cheaper: start from DINOv2 or CLIP weights, run a short MAE-style continual pretrain on your in-domain data, then fine-tune. You get both the big-pretrain generality and the modality alignment.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Linear probe before fine-tune.@@T1@@ Always evaluate the frozen backbone with a single linear head first. If the linear probe is bad, fine-tuning rarely saves it.": {
+   "zh": "@@T0@@微调之前先做线性探测。@@T1@@ 始终先用单一线性头评估冻结的骨干网络。若线性探测结果不佳，微调通常也难以挽回。",
+   "src": "<strong>Linear probe before fine-tune.</strong> Always evaluate the frozen backbone with a single linear head first. If the linear probe is bad, fine-tuning rarely saves it.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Vision-language alignment.@@T1@@ CLIP-style training on (image, caption) pairs gives you zero-shot classification and free-text retrieval. The captions don't need to be high quality &mdash; Web noise is enough.": {
+   "zh": "@@T0@@视觉-语言对齐。@@T1@@ 在（图像，标题）对上做 CLIP 式训练，可获得零样本分类与自由文本检索能力。标题无需高质量 &mdash; 网页噪声数据已足够。",
+   "src": "<strong>Vision-language alignment.</strong> CLIP-style training on (image, caption) pairs gives you zero-shot classification and free-text retrieval. The captions don't need to be high quality &mdash; Web noise is enough.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Don't reinvent.@@T1@@ Public DINOv2, CLIP, and SAM backbones cover most \"I need a strong vision encoder\" needs in 2026. Pretrain from scratch only when no public backbone lives in your domain.": {
+   "zh": "@@T0@@不要重复造轮子。@@T1@@ 在 2026 年，公开的 DINOv2、CLIP 与 SAM 骨干网络已能满足大多数「我需要一个强大的视觉编码器」的需求。只有当你的领域没有任何公开骨干网络可用时，才从零预训练。",
+   "src": "<strong>Don't reinvent.</strong> Public DINOv2, CLIP, and SAM backbones cover most \"I need a strong vision encoder\" needs in 2026. Pretrain from scratch only when no public backbone lives in your domain.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          The hardest part of applied vision isn't training; it's labelling. SSL\n          pretraining lets the unlabelled mountain do the heavy lifting so your\n          annotators only touch the part that fundamentally needs human\n          judgement.": {
+   "zh": "@@T0@@最终结论。@@T1@@\n          应用视觉中最困难的部分不是训练，而是标注。自监督预训练让无标注数据的汪洋大海承担繁重的工作，从而使标注人员只需处理那些本质上离不开人类判断的部分。",
+   "src": "<strong>Final takeaway.</strong>\n          The hardest part of applied vision isn't training; it's labelling. SSL\n          pretraining lets the unlabelled mountain do the heavy lifting so your\n          annotators only touch the part that fundamentally needs human\n          judgement.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Coda": {
+   "zh": "尾声",
+   "src": "Coda",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "阅读清单",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Chen, Kornblith, Norouzi, Hinton (2020)@@T1@@ &mdash; @@T2@@SimCLR.@@T3@@ The contrastive lab above.": {
+   "zh": "@@T0@@Chen, Kornblith, Norouzi, Hinton (2020)@@T1@@ &mdash; @@T2@@SimCLR。@@T3@@ 即上文对比学习实验。",
+   "src": "<strong>Chen, Kornblith, Norouzi, Hinton (2020)</strong> &mdash; <em>SimCLR.</em> The contrastive lab above.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@He et&nbsp;al. (2020)@@T1@@ &mdash; @@T2@@MoCo.@@T3@@ Momentum queue of negatives.": {
+   "zh": "@@T0@@He 等 (2020)@@T1@@ &mdash; @@T2@@MoCo。@@T3@@ 负样本的动量队列。",
+   "src": "<strong>He et&nbsp;al. (2020)</strong> &mdash; <em>MoCo.</em> Momentum queue of negatives.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Caron et&nbsp;al. (2021)@@T1@@ &mdash; @@T2@@DINO.@@T3@@": {
+   "zh": "@@T0@@Caron 等 (2021)@@T1@@ &mdash; @@T2@@DINO。@@T3@@",
+   "src": "<strong>Caron et&nbsp;al. (2021)</strong> &mdash; <em>DINO.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@He, Chen, Xie, Li, Doll&aacute;r, Girshick (2022)@@T1@@ &mdash; @@T2@@Masked Autoencoders Are Scalable Vision Learners (MAE).@@T3@@": {
+   "zh": "@@T0@@He, Chen, Xie, Li, Doll&aacute;r, Girshick (2022)@@T1@@ &mdash; @@T2@@Masked Autoencoders Are Scalable Vision Learners (MAE)。@@T3@@",
+   "src": "<strong>He, Chen, Xie, Li, Doll&aacute;r, Girshick (2022)</strong> &mdash; <em>Masked Autoencoders Are Scalable Vision Learners (MAE).</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Assran et&nbsp;al. (2023)@@T1@@ &mdash; @@T2@@I-JEPA.@@T3@@": {
+   "zh": "@@T0@@Assran 等 (2023)@@T1@@ &mdash; @@T2@@I-JEPA。@@T3@@",
+   "src": "<strong>Assran et&nbsp;al. (2023)</strong> &mdash; <em>I-JEPA.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Oquab et&nbsp;al. (2023)@@T1@@ &mdash; @@T2@@DINOv2.@@T3@@ The currently dominant SSL backbone.": {
+   "zh": "@@T0@@Oquab 等 (2023)@@T1@@ &mdash; @@T2@@DINOv2。@@T3@@ 当前占主导地位的自监督骨干网络。",
+   "src": "<strong>Oquab et&nbsp;al. (2023)</strong> &mdash; <em>DINOv2.</em> The currently dominant SSL backbone.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Bardes et&nbsp;al. (2024)@@T1@@ &mdash; @@T2@@V-JEPA.@@T3@@ Video extension.": {
+   "zh": "@@T0@@Bardes 等 (2024)@@T1@@ &mdash; @@T2@@V-JEPA。@@T3@@ 向视频的扩展。",
+   "src": "<strong>Bardes et&nbsp;al. (2024)</strong> &mdash; <em>V-JEPA.</em> Video extension.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Computer Vision &middot; Self-Supervised Pretraining": {
+   "zh": "ES 667 深度学习讲解系列的一部分 &middot; 计算机视觉 &middot; 自监督预训练",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Computer Vision &middot; Self-Supervised Pretraining",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "无标签的视觉预训练",
+  "tagline": "掩蔽图像的 75% 并预测其余部分 — 以及另外四种同样奏效的同类方案",
+  "summary": "MAE、SimCLR、DINO、BEiT、JEPA — 支撑所有现代视觉骨干网络的方案。在合成图像上观看实时的 MAE 式掩蔽-重建（可拖动掩码比例），在同一张图上比较四类自监督学习家族，并理解为何你实验室中的热成像与卫星影像最迫切地呼唤自监督预训练。",
+  "difficulty": "中级",
+  "collection": "计算机视觉",
+  "highlights": [
+   "在合成图像上实时进行 MAE 式掩蔽-重建，掩码比例可拖动。",
+   "在同一张对比图中呈现四类自监督学习家族（对比式、蒸馏式、生成式、预测式）。",
+   "随标注数据比例增长而变化的线性探测准确率曲线 — 这才是自监督学习值得一做的真正原因。",
+   "与实验内容对齐：来自真实 ThermEval / SentinelKilnDB 经验的热成像预训练与卫星预训练案例。"
+  ],
+  "tags": [
+   "自监督学习",
+   "MAE",
+   "预训练",
+   "DINO",
+   "SimCLR",
+   "交互式"
+  ]
+ },
+ "js": {
+  "[[[0]]]/[[[1]]] patches visible · RMSE on masked = [[[2]]]": {
+   "zh": "可见补丁 [[[0]]]/[[[1]]] · 被掩蔽部分的 RMSE = [[[2]]]",
+   "exprs": [
+    "${visible}",
+    "${MAE.N * MAE.N}",
+    "${maeRMSE(MAE.image, recon, MAE.mask).toFixed(1)}"
+   ],
+   "tags": [],
+   "src": "${visible}/${MAE.N * MAE.N} patches visible · RMSE on masked = ${maeRMSE(MAE.image, recon, MAE.mask).toFixed(1)}"
+  },
+  "low coherence": {
+   "zh": "相干性低",
+   "exprs": [],
+   "tags": [],
+   "src": "low coherence"
+  },
+  "sim-viewA": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": "sim-viewA"
+  },
+  "sim-viewB": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": "sim-viewB"
+  },
+  "Random init": {
+   "zh": "随机初始化",
+   "exprs": [],
+   "tags": [],
+   "src": "Random init"
+  },
+  "linear-probe accuracy": {
+   "zh": "线性探测准确率",
+   "exprs": [],
+   "tags": [],
+   "src": "linear-probe accuracy"
+  }
+ }
+}

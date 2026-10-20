@@ -1,0 +1,27 @@
+{
+  "slug": "perceptual-metrics",
+  "title": "逐像素审视感知质量",
+  "date": "2026-05-22",
+  "tagline": "PSNR、SSIM、MS-SSIM、LPIPS——同样的图像，四个数字，往往相互矛盾",
+  "summary": "几十年来，像素 MSE 一直是图像质量测量的主力工具；SSIM、MS-SSIM 与 LPIPS 之所以存在，正是因为 MSE 会说谎。实时用五种方式扭曲参考图像，观察各指标产生分歧，并看到经典的“PSNR 相同、质量迥异”陷阱并排呈现。另附面向生成模型的 FID 与 KID。",
+  "readingTime": "18 min",
+  "difficulty": "中级",
+  "collection": "计算机视觉",
+  "order": 38,
+  "status": "published",
+  "tags": [
+    "LPIPS",
+    "SSIM",
+    "PSNR",
+    "FID",
+    "图像质量",
+    "交互式"
+  ],
+  "highlights": [
+    "实时失真演练场：噪声、模糊、对比度、亮度、JPEG 块效应——观察 PSNR、SSIM 与感知代理如何分道扬镳。",
+    "经典的“PSNR 相等、质量不同”画廊：五种失真被校准到相同的分贝值，再由 SSIM 与特征距离代理排序。",
+    "为何 SSIM 可分解为亮度 · 对比度 · 结构——以及 MS-SSIM 为何要引入尺度。",
+    "LPIPS 在做什么（深层特征距离）、FID 与 KID 度量的是什么（分布距离），以及各自适用何时。",
+    "与实验室对齐：面向热成像/RGB 增强、扩散样本评估与超分辨率流水线的图像质量指标。"
+  ]
+}

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>图神经网络：逐步解析</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>图神经网络：逐步解析</h1>
+        <p class="abstract">
+          一个含 14 个节点的传感器图；点击某个节点使其特征产生尖峰；观察 K 轮消息传递如何扩散该信号。切换聚合方式（均值 GCN / 最大值 / 注意力 GAT），观察传播模式随之改变。随后，一个在 4 个已标注节点上训练的逻辑回归头部读出类别。
+        </p>
+        <div class="byline">
+          <span>约 16 分钟</span>
+          <span>图 &middot; 消息传递 &middot; 传感器网络</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>GNN 解决什么问题？</h2>
+        <p>
+          许多应用型数据源是图，而非图像或序列。例如共享天气背景的空气质量传感器网络。由空间邻接关系相连的卫星瓦片网格。在交叉路口设有交通计数器的道路网络。对这类数据而言，自然的归纳偏置是<em>消息传递</em>：一个节点的预测应当取决于其自身及其邻域。
+        </p>
+        <div class="callout callout--key">
+          <strong>要旨。</strong>GNN 是一种感受野由图而非方形所设定的 CNN。每一层代表一跳；$K$ 层即可看到 $K$ 跳邻域。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>一层消息传递</h2>
+        <div class="math-block" id="math-mp"></div>
+        <p>
+          对每个节点 $i$，从邻居处收集消息，对其聚合（求和 / 均值 / 最大值 / 注意力），再通过一个小型 MLP 与节点自身的特征相结合。这就是全部配方。具体各种 GNN（GCN、GraphSAGE、GAT、MPNN）的区别在于它们如何选取消息函数、聚合器以及组合方式。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>观察特征如何扩散</h2>
+        <p>
+          点击任一节点，将其特征置为 1（并清除其余节点）。逐步经历 0、1、2、3 轮消息传递，观察数值如何扩散至邻域，再扩散至邻居的邻居。
+        </p>
+        <div class="train-controls">
+          <label>聚合方式
+            <select id="gnn-agg">
+              <option value="mean" selected>均值（GCN 风格）</option>
+              <option value="最大值">最大值</option>
+              <option value="attn">注意力（GAT 风格）</option>
+            </select>
+          </label>
+          <label>轮数 K &nbsp;<span id="gnn-k-val">2</span> <input type="range" id="gnn-k" min="0" 最大值="6" step="1" value="2"></label>
+          <button class="action-btn action-btn--ghost" id="gnn-clear">清除特征</button>
+          <button class="action-btn action-btn--ghost" id="gnn-reroll">重掷图</button>
+        </div>
+        <div class="gnn-figure">
+          <canvas id="gnn-canvas" width="880" height="440"></canvas>
+          <figcaption>点击任一节点以使其特征产生尖峰。绿色编码特征值（越深表示越高）。边表示图的结构；带虚线标注的节点是第 3 步所用的 4 个监督种子。</figcaption>
+        </div>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>使用 4 个标签进行节点分类</h2>
+        <p>
+          加入一个二分类结构：14 个节点中有 4 个被标注（红环与蓝环）。经过 $K$ 轮消息传递后，一个逻辑回归头部读取每个节点的表示并预测类别。你所见到逐渐浮现的边界是一个<em>图感知</em>分类器——红色种子的邻居往往被归为红色，依此类推。
+        </p>
+        <p style="font-family: var(--sans); color: var(--muted); font-size: 0.95rem;">
+          每当聚合器发生变化，分类器都会在你的浏览器中从零训练。调高 K：在 K=0 时，分类器只能看到 4 个已标注节点自身的特征，泛化很差。在 K=2 时，标签传播至邻居，预测有所改善。超过 K~5 后你会看到<em>过平滑</em>——每个节点的表示都变得一样，分类器坍缩到多数类。这是 GNN 已知的失效模式（Li 等，2018）。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-oversmooth">
+        <div class="step-badge">第 3 ½ 步</div>
+        <h2>过平滑曲线——以及为何「更深的 GNN」通常适得其反</h2>
+        <p>
+          对任何神经网络而言，一种自然的直觉是：叠更多层，获得更大容量。对 GNN 来说，这却惨遭失败。经过若干轮消息传递后，每个节点的表示都变成其感受野的平滑平均；最终所有节点看上去都一样，分类器坍缩到多数类（Li 等，2018；Oono 与 Suzuki，2020）。
+        </p>
+        <p>
+          下方：同一个 14 节点图，三种聚合器，K 从 0 到 8。追踪两项指标：未标注节点上的<strong>节点分类器准确率</strong>，以及<strong>节点间的特征方差</strong>（教科书式的过平滑诊断量）。观察准确率在 K=2-3 附近达到峰值，随后随方差收缩至约 0 而崩塌。
+        </p>
+        <div class="gnn-figure">
+          <canvas id="os-curve" width="880" height="320"></canvas>
+          <figcaption>实线：未标注节点上的分类器准确率。虚线：节点间的特征方差（对数刻度）。三种聚合器叠加显示。</figcaption>
+        </div>
+        <div class="callout callout--key">
+          <strong>解决之道。</strong>真实的 GNN（实践中 $\le$ 2-3 层）不应加深。当你需要长程信息时，可使用<em>残差</em>连接（PairNorm、GCNII）、基于注意力的聚合器（GAT、GATv2），或带位置编码的图 Transformer。将朴素 GCN 叠加超过 4 层几乎总是有害的。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-3b">
+        <div class="step-badge">第 3¾ 步</div>
+        <h2>表达能力——Weisfeiler-Lehman 上限</h2>
+        <p>
+          一个自然的问题是：GNN 能区分哪些图？经典答案（Xu 等，2019；Morris 等，2019）：消息传递式 GNN 的<em>表达能力至多相当于</em>一维 Weisfeiler-Lehman 图同构检验（1-WL）。该检验为：
+        </p>
+        <ol class="explanation-list">
+          <li>用节点的度（或任何一致的特征）为每个节点打上标签。</li>
+          <li>将每个标签替换为（自身标签，邻居标签的多重集）的哈希值。</li>
+          <li>重复此过程。若两个图在任何时刻产生不同的标签多重集，则它们不同构。</li>
+        </ol>
+        <p>
+          1-WL 在具有相同度序列的正则图上会失败（例如两个不同构的 6-环）。任何朴素的消息传递式 GNN 亦然。有两条前进之路：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>GIN</strong>（Xu 等，2019）——在选取合适的聚合器时可证明地达到 1-WL 上限：$h_v = \mathrm{MLP}\bigl((1+\epsilon) h_v + \sum_{u \in \mathcal{N}(v)} h_u\bigr)$。当你怀疑图的可区分性至关重要时，请使用它。</li>
+          <li><strong>高阶 GNN / k-WL。</strong>在节点的 $k$-元组上而非单个邻居上聚合。表达能力更强，但代价为 $O(N^k)$。PPGN、$k$-GNN。</li>
+          <li><strong>子图 GNN / 位置编码。</strong>用结构特征（拉普拉斯特征向量、随机游走编码）增强每个节点。代价低廉，实践中往往已足够。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-3c">
+        <div class="step-badge">第 3⅞ 步</div>
+        <h2>扩展至百万节点规模的图</h2>
+        <p>
+          对含 $|V|$ 个节点、平均度为 $d$ 的图做全批量 GNN 前向传播会触及每一条边——内存与计算量均为 $O(|V| d)$。当节点数超过约 10⁶ 时，这便是难以承受的。有三条出路：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>邻居采样</strong>（GraphSAGE，Hamilton 等，2017）。对每个目标节点，每层采样固定数目 $S$ 个邻居。每批次的代价变为 $O(B \cdot S^K)$，而非 $O(|V| d)$。</li>
+          <li><strong>子图采样</strong>（Cluster-GCN、GraphSAINT）。划分或采样子图并在其上训练；子图内部进行完整的消息传递，忽略子图之间的边。吞吐量大幅提升，准确率仅略有损失。</li>
+          <li><strong>逐层采样</strong>（FastGCN、LADIES）。逐层独立采样节点。方差缩减技巧（重要性采样）可将梯度偏差保持在较低水平。</li>
+          <li><strong>前沿方法（2024 年以后）：</strong>采用线性注意力的 NeurIPS 时代图 Transformer；预计算的位置编码；为服务端部署而将 GNN 蒸馏为 MLP。</li>
+        </ul>
+        <p>
+          库的默认选择：PyG 与 DGL 均内置上述全部方法；大规模场景下实践中的首试方案是采用邻居采样 $S = 25, 10$ 的两层 GraphSAGE。
+        </p>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>值得了解的变体</h2>
+        <ul class="explanation-list">
+          <li><strong>GCN。</strong>对称归一化的均值聚合。最廉价，是默认的首试方案。</li>
+          <li><strong>GraphSAGE。</strong>邻域采样 + 均值 / LSTM / 池化聚合器。可扩展至大规模图。</li>
+          <li><strong>GAT。</strong>在邻居上的注意力。边权变为可学习且依赖于内容——对异构邻域颇为有用。</li>
+          <li><strong>MPNN。</strong>即上述通用框架；消息与聚合器可任意选择。</li>
+          <li><strong>GIN。</strong>可证明地具有与 Weisfeiler-Lehman 检验同等的表达能力——当图同构确实重要时所需。</li>
+          <li><strong>图 Transformer。</strong>在所有节点上的自注意力（带位置 / 拉普拉斯编码）。计算量更重；对全局结构有帮助。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>GNN 适用之处</h2>
+        <ul class="explanation-list">
+          <li><strong>分子性质预测。</strong>原子为节点，化学键为边。GNN（MPNN、SchNet、DimeNet、ChemProp）常居 MoleculeNet 排行榜前列；其归纳偏置与化学的局域性相契合。</li>
+          <li><strong>推荐系统。</strong>用户-物品二部图；节点嵌入通过消息传递学习。PinSage（Pinterest）、基于 GraphSAGE 的流程支撑着生产级推荐系统。</li>
+          <li><strong>交通预测。</strong>道路网络 + 交通计数器；时空 GNN（DCRNN、STGCN、Graph WaveNet）在全城范围预测上优于纯时间序列模型。</li>
+          <li><strong>知识图谱。</strong>关系型 GNN（R-GCN、CompGCN）用于异构知识库中的链接预测。</li>
+          <li><strong>电网 / 传感器网络。</strong>节点为传感器 / 站点；边为物理连接或空间邻近关系。GNN 可插补缺失读数、标记异常传感器、传播警报。</li>
+          <li><strong>社交与引文网络。</strong>开启该领域的 Cora / Citeseer / Pubmed 基准；至今仍是标准基线。</li>
+        </ul>
+        <div class="callout callout--think">
+          <strong>最终结论。</strong>若你的数据中含有图结构，请先构建 GNN 而非 MLP。归纳偏置是白得的；表达能力上限更高；而过平滑是唯一真正的隐患。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>推荐阅读</h2>
+        <ul class="explanation-list">
+          <li><strong>Kipf 与 Welling (2017)</strong> &mdash; <em>Semi-Supervised Classification with Graph Convolutional Networks.</em>GCN 论文。</li>
+          <li><strong>Hamilton、Ying、Leskovec (2017)</strong> &mdash; <em>Inductive Representation Learning on Large Graphs.</em>GraphSAGE。</li>
+          <li><strong>Veličković 等 (2018)</strong> &mdash; <em>Graph Attention Networks.</em></li>
+          <li><strong>Xu、Hu、Leskovec、Jegelka (2019)</strong> &mdash; <em>How Powerful are Graph Neural Networks?</em>GIN 与 WL 之间的联系。</li>
+          <li><strong>Li、Han、Wu (2018)</strong> &mdash; 过平滑论文。</li>
+          <li><strong>Hamilton (2020)</strong> — <em>Graph Representation Learning</em>教材。可免费在线阅读。</li>
+          <li><strong>PyG 与 DGL</strong> — 两个生产级库。二者均内置上述每一个模型以及各种采样方法。</li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

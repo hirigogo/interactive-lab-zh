@@ -1,0 +1,26 @@
+{
+  "slug": "clip-zero-shot",
+  "title": "CLIP 与零样本分类：从嵌入出发",
+  "date": "2026-05-07",
+  "tagline": "输入任意标签，观察真实 CLIP 模型给出的真实余弦相似度",
+  "summary": "一个真实的 OpenAI CLIP-ViT-B/32 经由 transformers.js 在你的浏览器中运行。上传一张照片，输入你想要的任意标签，观察模型把两侧都嵌入到共享的 512 维空间，计算真实的余弦相似度，并通过 softmax 转化为实时概率。全程无需微调。",
+  "readingTime": "18 min",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "order": 18,
+  "status": "published",
+  "tags": [
+    "CLIP",
+    "零样本",
+    "嵌入",
+    "Transformers.js",
+    "视觉-语言",
+    "交互式"
+  ],
+  "highlights": [
+    "加载真实的 OpenAI CLIP-ViT-B/32（经由 transformers.js / ONNX），把你的照片与标签嵌入到共享的 512 维空间。",
+    "即时编辑标签；每一次余弦相似度与 softmax 概率都会立即重算。",
+    "切换提示模板（「a photo of a {}」「a picture of a {}」或裸标签），观察准确率随之变化。",
+    "拖动 softmax 温度滑块，看置信度如何崩塌或趋于平坦。"
+  ]
+}

@@ -1,0 +1,229 @@
+{
+ "slug": "transfer-learning-playground",
+ "units": {
+  "Freeze or Fine-tune?": {
+   "zh": "冻结还是微调？",
+   "src": "Freeze or Fine-tune?",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "You have a network pretrained on a giant dataset and a new task with your own\n      data. Do you retrain the whole thing, freeze the backbone and only train a fresh\n      head, or start from scratch? The right answer swings on one thing:\n      @@T0@@how much data you have@@T1@@. Set the dataset size and cut point below and\n      watch the accuracy curves &mdash; and the overfitting &mdash; respond.": {
+   "zh": "你有一个在超大规数据集上预训练好的网络，以及一个需要你自己的数据的新任务。你会重新训练整个网络、冻结骨干网络而只训练新的头部，还是从零开始？正确答案取决于一件事：@@T0@@你手上有多少数据@@T1@@。在下方设置数据集规模与切分点，观察准确率曲线 &mdash; 以及过拟合 &mdash; 如何响应。",
+   "src": "You have a network pretrained on a giant dataset and a new task with your own\n      data. Do you retrain the whole thing, freeze the backbone and only train a fresh\n      head, or start from scratch? The right answer swings on one thing:\n      <em>how much data you have</em>. Set the dataset size and cut point below and\n      watch the accuracy curves &mdash; and the overfitting &mdash; respond.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~8 min@@T1@@\n      @@T2@@Deep Learning &middot; Transfer Learning &middot; Fine-tuning@@T3@@": {
+   "zh": "@@T0@@约 8 分钟@@T1@@\n      @@T2@@深度学习 &middot; 迁移学习 &middot; 微调@@T3@@",
+   "src": "<span>~8 min</span>\n      <span>Deep Learning &middot; Transfer Learning &middot; Fine-tuning</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "The Lab": {
+   "zh": "实验",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Pick a strategy, watch it learn": {
+   "zh": "选择一种策略，观察其学习",
+   "src": "Pick a strategy, watch it learn",
+   "tags": []
+  },
+  "The backbone is four convolutional blocks; the head is a fresh classifier for your\n      task. Choose a training strategy, then set how many backbone blocks are\n      @@T0@@frozen@@T1@@ (kept at their pretrained weights) and how big your dataset\n      is. The curves are illustrative but deterministic &mdash; they encode the standard\n      bias&ndash;variance story, not random noise.": {
+   "zh": "骨干网络由四个卷积块构成；头部则是针对你的任务新建的分类器。选择一种训练策略，然后设置有多少个骨干块被@@T0@@冻结@@T1@@（保持其预训练权重不变），以及你的数据集有多大。这些曲线是示意性的但却是确定性的 &mdash; 它们编码的是标准的偏差&ndash;方差叙事，而非随机噪声。",
+   "src": "The backbone is four convolutional blocks; the head is a fresh classifier for your\n      task. Choose a training strategy, then set how many backbone blocks are\n      <strong>frozen</strong> (kept at their pretrained weights) and how big your dataset\n      is. The curves are illustrative but deterministic &mdash; they encode the standard\n      bias&ndash;variance story, not random noise.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Strategy:@@T1@@": {
+   "zh": "@@T0@@策略：@@T1@@",
+   "src": "<span style=\"font-family:var(--sans);font-size:0.85rem;font-weight:600;color:var(--muted)\">Strategy:</span>",
+   "tags": [
+    "<span style=\"font-family:var(--sans);font-size:0.85rem;font-weight:600;color:var(--muted)\">",
+    "</span>"
+   ]
+  },
+  "Train from scratch": {
+   "zh": "从零开始训练",
+   "src": "Train from scratch",
+   "tags": []
+  },
+  "Freeze backbone, train head": {
+   "zh": "冻结骨干网络，训练头部",
+   "src": "Freeze backbone, train head",
+   "tags": []
+  },
+  "Fine-tune all": {
+   "zh": "全量微调",
+   "src": "Fine-tune all",
+   "tags": []
+  },
+  "Frozen blocks (cut point) @@T0@@= @@T1@@0@@T2@@ / 4@@T3@@": {
+   "zh": "冻结块数（切分点）@@T0@@= @@T1@@0@@T2@@ / 4@@T3@@",
+   "src": "Frozen blocks (cut point) <span>= <span id=\"cutVal\">0</span> / 4</span>",
+   "tags": [
+    "<span>",
+    "<span id=\"cutVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Dataset size @@T0@@= @@T1@@100@@T2@@ imgs@@T3@@": {
+   "zh": "数据集规模 @@T0@@= @@T1@@100@@T2@@ 张图像@@T3@@",
+   "src": "Dataset size <span>= <span id=\"dataVal\">100</span> imgs</span>",
+   "tags": [
+    "<span>",
+    "<span id=\"dataVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "The backbone (four conv blocks) and head. Blue = pretrained &amp; trainable, grey = frozen, orange = trained from scratch, teal = the fresh head.": {
+   "zh": "骨干网络（四个卷积块）与头部。蓝色 = 预训练且可训练，灰色 = 已冻结，橙色 = 从零训练，青色 = 全新的头部。",
+   "src": "The backbone (four conv blocks) and head. Blue = pretrained &amp; trainable, grey = frozen, orange = trained from scratch, teal = the fresh head.",
+   "tags": []
+  },
+  "Illustrative learning curves for the chosen setting. Solid = training accuracy, dashed = validation accuracy. A wide gap between them is overfitting.": {
+   "zh": "所选设置下的示意性学习曲线。实线 = 训练准确率，虚线 = 验证准确率。二者之间差距过大即为过拟合。",
+   "src": "Illustrative learning curves for the chosen setting. Solid = training accuracy, dashed = validation accuracy. A wide gap between them is overfitting.",
+   "tags": []
+  },
+  "@@T0@@Best validation acc.@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@最佳验证准确率@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Best validation acc.</span>\n        <span class=\"stat-value\" id=\"bestValStat\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"bestValStat\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Generalisation gap@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@泛化差距@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Generalisation gap</span>\n        <span class=\"stat-value\" id=\"gapStat\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"gapStat\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Trainable params@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@可训练参数量@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Trainable params</span>\n        <span class=\"stat-value\" id=\"paramStat\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"paramStat\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Recommendation@@T1@@\n      @@T2@@ &mdash; @@T3@@": {
+   "zh": "@@T0@@推荐@@T1@@\n      @@T2@@ &mdash; @@T3@@",
+   "src": "<strong id=\"recTitle\">Recommendation</strong>\n      <span id=\"recText\"> &mdash; </span>",
+   "tags": [
+    "<strong id=\"recTitle\">",
+    "</strong>",
+    "<span id=\"recText\">",
+    "</span>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "收益",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Less data → freeze more. More data → fine-tune more.": {
+   "zh": "数据越少 → 冻结得越多。数据越多 → 微调得越多。",
+   "src": "Less data → freeze more. More data → fine-tune more.",
+   "tags": []
+  },
+  "@@T0@@Tiny dataset.@@T1@@ Fine-tuning millions of weights on a few hundred images overfits: training accuracy shoots up, validation lags and even droops. Freezing the backbone slashes the number of trainable parameters, so the model can't memorise &mdash; the frozen pretrained features do the heavy lifting and validation holds up.": {
+   "zh": "@@T0@@极小数据集。@@T1@@ 在几百张图像上微调数百万个权重会导致过拟合：训练准确率飙升，验证表现滞后甚至下滑。冻结骨干网络大幅削减可训练参数的数量，使模型无法死记硬背 &mdash; 冻结的预训练特征承担起繁重的任务，验证表现得以维持。",
+   "src": "<strong>Tiny dataset.</strong> Fine-tuning millions of weights on a few hundred images overfits: training accuracy shoots up, validation lags and even droops. Freezing the backbone slashes the number of trainable parameters, so the model can't memorise &mdash; the frozen pretrained features do the heavy lifting and validation holds up.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Large dataset.@@T1@@ Now there is enough signal to safely move every weight. Fine-tuning adapts the backbone's features to your task and pulls ahead; a frozen backbone becomes a ceiling because those features can no longer specialise.": {
+   "zh": "@@T0@@大规模数据集。@@T1@@ 此时已有足够的信号来安全地移动每一个权重。微调使骨干网络的特征适配你的任务并取得领先；冻结的骨干网络则成为上限，因为那些特征再也无法特化。",
+   "src": "<strong>Large dataset.</strong> Now there is enough signal to safely move every weight. Fine-tuning adapts the backbone's features to your task and pulls ahead; a frozen backbone becomes a ceiling because those features can no longer specialise.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@From scratch@@T1@@ needs the most data of all &mdash; with no pretrained features it starts from noise, so with little data it is the worst option by a wide margin.": {
+   "zh": "@@T0@@从零开始@@T1@@ 所需的数据量最大 &mdash; 没有任何预训练特征，它从噪声出发，因此在数据较少时，它是以巨大差距落后于其他选项的最差选择。",
+   "src": "<strong>From scratch</strong> needs the most data of all &mdash; with no pretrained features it starts from noise, so with little data it is the worst option by a wide margin.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@The cut point is a dial, not a switch.@@T1@@ Freeze the early, generic layers (edges, textures) and fine-tune the later, task-specific ones. Slide the cut point and watch the trainable-parameter count &mdash; and the overfitting risk &mdash; move with it.": {
+   "zh": "@@T0@@切分点是一个旋钮，而非一个开关。@@T1@@ 冻结早期、通用的层（边缘、纹理），微调后期、任务特定的层。滑动切分点，观察可训练参数量 &mdash; 以及过拟合风险 &mdash; 如何随之变化。",
+   "src": "<strong>The cut point is a dial, not a switch.</strong> Freeze the early, generic layers (edges, textures) and fine-tune the later, task-specific ones. Slide the cut point and watch the trainable-parameter count &mdash; and the overfitting risk &mdash; move with it.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Why early layers transfer best.@@T1@@ The first conv blocks of almost any vision\n      model learn edge and texture detectors that are useful for essentially every image task.\n      The later blocks are increasingly specialised to the original labels. So the safe default is:\n      freeze early, fine-tune late, and let the amount of data decide how far down the fine-tuning\n      reaches.": {
+   "zh": "@@T0@@为何早期层迁移效果最好。@@T1@@ 几乎任何视觉模型的前几个卷积块学到的都是边缘与纹理检测器，它们对基本上每一种图像任务都有用。越靠后的块则越是针对原始标签而特化。因此稳妥的默认做法是：冻结早期、微调后期，并让数据量决定微调向下延伸到何处。",
+   "src": "<strong>Why early layers transfer best.</strong> The first conv blocks of almost any vision\n      model learn edge and texture detectors that are useful for essentially every image task.\n      The later blocks are increasingly specialised to the original labels. So the safe default is:\n      freeze early, fine-tune late, and let the amount of data decide how far down the fine-tuning\n      reaches.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 9: Modern CNNs &amp; Transfer Learning": {
+   "zh": "ES 667 深度学习讲解系列之一 &middot; 第 9 讲：现代 CNN 与迁移学习",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 9: Modern CNNs &amp; Transfer Learning",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "冻结还是微调？",
+  "tagline": "设置数据集规模与切分点，观察冻结与微调如何在准确率曲线上互换位置",
+  "summary": "一个由四个卷积块构成的预训练骨干网络加上一个全新的头部，配以三种策略：从零开始训练、冻结骨干网络而只训练头部，或全量微调。选择冻结多少个块以及你手上有多少数据，随后观察确定性的训练与验证准确率曲线如何响应，并以二者之间的距离绘制出泛化差距。一条实时推荐会给出期望验证准确率最高的策略，使这条规则变得具体：数据少则宜冻结，数据多则宜微调。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "观察骨干网络加头部的示意图如何随各块在冻结、微调与从零训练之间切换而实时重新着色。",
+   "确定性的学习曲线显示：数据稀缺时，训练准确率逐渐偏离验证准确率，即为过拟合。",
+   "数据集规模滑块使交叉点清晰可见：数据少时冻结胜出，数据多时微调胜出。",
+   "切分点滑块以逐块的方式在可训练参数量与过拟合风险之间进行权衡。",
+   "一条实时推荐为你当前的数据预算挑选期望验证准确率最高的策略。"
+  ],
+  "tags": [
+   "迁移学习",
+   "微调",
+   "过拟合",
+   "CNN",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

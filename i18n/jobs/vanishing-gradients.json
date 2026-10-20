@@ -1,0 +1,605 @@
+{
+ "slug": "vanishing-gradients",
+ "units": {
+  "Vanishing &amp; Exploding Gradients": {
+   "zh": "梯度消失与梯度爆炸",
+   "src": "Vanishing &amp; Exploding Gradients",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Stack a hundred layers; multiply a hundred Jacobians;\n          watch the gradient die — or blow up. A derivative panel\n          demystifies the magic factor (0.25 for sigmoid, 1.0 for\n          ReLU); a depth slider shows the multiplicative chain\n          compound; a weight-scale slider flips the failure mode\n          from vanishing to exploding. Then a misconceptions card\n          cleans up what \"vanishing\" really means.": {
+   "zh": "堆叠一百层；连乘一百个 Jacobian；观察梯度如何凋亡 —— 或爆炸。一个导数面板将那个神秘因子（sigmoid 为 0.25，ReLU 为 1.0）去神秘化；深度滑块展示连乘链条的累积效应；权重尺度滑块则将失效模式从梯度消失翻转为梯度爆炸。随后，一张误区卡片澄清“梯度消失”究竟意味着什么。",
+   "src": "Stack a hundred layers; multiply a hundred Jacobians;\n          watch the gradient die — or blow up. A derivative panel\n          demystifies the magic factor (0.25 for sigmoid, 1.0 for\n          ReLU); a depth slider shows the multiplicative chain\n          compound; a weight-scale slider flips the failure mode\n          from vanishing to exploding. Then a misconceptions card\n          cleans up what \"vanishing\" really means.",
+   "tags": []
+  },
+  "@@T0@@~14 min@@T1@@\n          @@T2@@Deep learning &middot; Foundations &middot; Initialization@@T3@@": {
+   "zh": "@@T0@@约 14 分钟@@T1@@\n          @@T2@@深度学习 &middot; 基础 &middot; 初始化@@T3@@",
+   "src": "<span>~14 min</span>\n          <span>Deep learning &middot; Foundations &middot; Initialization</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Why gradients matter at all": {
+   "zh": "梯度为何如此重要",
+   "src": "Why gradients matter at all",
+   "tags": []
+  },
+  "A neural network learns by subtracting a tiny multiple of\n          $\\partial \\mathcal{L} / \\partial W$ from each weight. If\n          that gradient is essentially zero, the weight doesn't move\n          and the layer doesn't learn. If it's astronomical, the\n          weight overshoots and the loss explodes. Both failure\n          modes have the same root cause: the gradient at layer 1\n          is a @@T0@@product@@T1@@ of $L$ factors — one per layer\n          downstream of it.": {
+   "zh": "神经网络的训练方式是从每个权重中减去 $\\partial \\mathcal{L} / \\partial W$ 的一个微小倍数。若该梯度实质上为零，权重便不动，该层也就学不到任何东西。若该梯度大得惊人，权重就会过冲，损失爆炸。两种失效模式有共同的根源：第 1 层的梯度是 $L$ 个因子的@@T0@@乘积@@T1@@ —— 其下游每一层各贡献一个因子。",
+   "src": "A neural network learns by subtracting a tiny multiple of\n          $\\partial \\mathcal{L} / \\partial W$ from each weight. If\n          that gradient is essentially zero, the weight doesn't move\n          and the layer doesn't learn. If it's astronomical, the\n          weight overshoots and the loss explodes. Both failure\n          modes have the same root cause: the gradient at layer 1\n          is a <em>product</em> of $L$ factors — one per layer\n          downstream of it.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "A product of numbers all less than 1 shrinks to zero. A\n          product of numbers all greater than 1 blows up. The two\n          failures — vanishing and exploding — are the same\n          algebraic accident, with opposite signs.": {
+   "zh": "若所有数都小于 1，其乘积会收缩至零；若所有数都大于 1，其乘积则会爆炸。这两种失效 —— 梯度消失与梯度爆炸 —— 是同一个代数效应，只是方向相反。",
+   "src": "A product of numbers all less than 1 shrinks to zero. A\n          product of numbers all greater than 1 blows up. The two\n          failures — vanishing and exploding — are the same\n          algebraic accident, with opposite signs.",
+   "tags": []
+  },
+  "The interactives below take you through the story in\n          three layers: (1) what a single activation's derivative\n          actually looks like; (2) what stacking the chain does;\n          (3) what changing weight scale or activation function\n          buys you.": {
+   "zh": "下方的交互模块将从三个层面带你走过这段历程：(1) 单个激活函数的导数究竟是什么样子；(2) 叠加成链后会带来什么；(3) 改变权重尺度或激活函数能换来什么。",
+   "src": "The interactives below take you through the story in\n          three layers: (1) what a single activation's derivative\n          actually looks like; (2) what stacking the chain does;\n          (3) what changing weight scale or activation function\n          buys you.",
+   "tags": []
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "Where the magic factor 0.25 comes from": {
+   "zh": "神秘因子 0.25 从何而来",
+   "src": "Where the magic factor 0.25 comes from",
+   "tags": []
+  },
+  "Every backprop chain factor is the derivative of the\n          layer's activation function evaluated at the pre-activation\n          $z$. So we should start by @@T0@@looking at that\n          derivative@@T1@@. Drag the input $z$ below; the dot on the\n          left panel walks the activation function, and the dot on\n          the right panel walks its derivative. The right panel is\n          the one that ends up in the chain.": {
+   "zh": "反向传播链条中的每一个因子，都是该层激活函数在预激活值 $z$ 处的导数。因此我们应当从@@T0@@观察该导数@@T1@@ 开始。拖动下方的输入 $z$；左图上的圆点沿激活函数移动，右图上的圆点沿其导数移动。最终进入链条的正是右图所描绘的量。",
+   "src": "Every backprop chain factor is the derivative of the\n          layer's activation function evaluated at the pre-activation\n          $z$. So we should start by <em>looking at that\n          derivative</em>. Drag the input $z$ below; the dot on the\n          left panel walks the activation function, and the dot on\n          the right panel walks its derivative. The right panel is\n          the one that ends up in the chain.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@activation:@@T1@@": {
+   "zh": "@@T0@@激活函数：@@T1@@",
+   "src": "<span style=\"font-family: var(--sans); font-size: 0.92rem;\">activation:</span>",
+   "tags": [
+    "<span style=\"font-family: var(--sans); font-size: 0.92rem;\">",
+    "</span>"
+   ]
+  },
+  "sigmoid": {
+   "zh": "sigmoid（S 型函数）",
+   "src": "sigmoid",
+   "tags": []
+  },
+  "tanh": {
+   "zh": "tanh（双曲正切）",
+   "src": "tanh",
+   "tags": []
+  },
+  "ReLU": {
+   "zh": "ReLU（线性整流单元）",
+   "src": "ReLU",
+   "tags": []
+  },
+  "activation σ(z)": {
+   "zh": "激活函数 σ(z)",
+   "src": "activation σ(z)",
+   "tags": []
+  },
+  "derivative σ'(z) &mdash; this is what backprop multiplies": {
+   "zh": "导数 σ'(z) &mdash; 这正是反向传播所连乘的量",
+   "src": "derivative σ'(z) &mdash; this is what backprop multiplies",
+   "tags": []
+  },
+  "@@T0@@σ'(z) at current slider:@@T1@@\n            @@T2@@0.250@@T3@@": {
+   "zh": "@@T0@@当前滑块处的 σ'(z)：@@T1@@\n            @@T2@@0.250@@T3@@",
+   "src": "<span>σ'(z) at current slider:</span>\n            <strong id=\"deriv-cur\">0.250</strong>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong id=\"deriv-cur\">",
+    "</strong>"
+   ]
+  },
+  "@@T0@@max σ'(z) over all z:@@T1@@\n            @@T2@@0.250@@T3@@": {
+   "zh": "@@T0@@所有 z 上 σ'(z) 的最大值：@@T1@@\n            @@T2@@0.250@@T3@@",
+   "src": "<span>max σ'(z) over all z:</span>\n            <strong id=\"deriv-max\">0.250</strong>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong id=\"deriv-max\">",
+    "</strong>"
+   ]
+  },
+  "Why sigmoid is doomed at depth: even at its most generous\n          point ($z = 0$), $\\sigma'(z) = 0.25$. Anywhere else, it's\n          smaller. The chain rule is going to multiply $L$ of these\n          numbers together — and they are @@T0@@all@@T1@@ at most\n          $0.25$.": {
+   "zh": "为何 sigmoid 在深层注定失败：即便在其最宽裕之处（$z = 0$），$\\sigma'(z) = 0.25$。在其他任何位置都更小。链式法则要将 $L$ 个这样的数连乘 —— 而它们@@T0@@全都@@T1@@ 至多为 $0.25$。",
+   "src": "Why sigmoid is doomed at depth: even at its most generous\n          point ($z = 0$), $\\sigma'(z) = 0.25$. Anywhere else, it's\n          smaller. The chain rule is going to multiply $L$ of these\n          numbers together — and they are <em>all</em> at most\n          $0.25$.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Sigmoid.@@T1@@ $\\sigma'(z) = \\sigma(z)(1 - \\sigma(z))$. Max value $0.25$ at $z = 0$; falls off to zero on either side.": {
+   "zh": "@@T0@@Sigmoid。@@T1@@ $\\sigma'(z) = \\sigma(z)(1 - \\sigma(z))$。在 $z = 0$ 处取最大值 $0.25$；向两侧均衰减至零。",
+   "src": "<strong>Sigmoid.</strong> $\\sigma'(z) = \\sigma(z)(1 - \\sigma(z))$. Max value $0.25$ at $z = 0$; falls off to zero on either side.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Tanh.@@T1@@ $\\tanh'(z) = 1 - \\tanh(z)^2$. Max value $1.0$ at $z = 0$ — generous in the middle, saturates fast outside $|z| > 2$.": {
+   "zh": "@@T0@@Tanh。@@T1@@ $\\tanh'(z) = 1 - \\tanh(z)^2$。在 $z = 0$ 处取最大值 $1.0$ —— 中部宽裕，但在 $|z| > 2$ 之外迅速饱和。",
+   "src": "<strong>Tanh.</strong> $\\tanh'(z) = 1 - \\tanh(z)^2$. Max value $1.0$ at $z = 0$ — generous in the middle, saturates fast outside $|z| > 2$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@ReLU.@@T1@@ $\\sigma'(z) = \\mathbb{1}\\{z > 0\\}$ — either exactly 1 (active) or exactly 0 (dead). No saturation; a discrete switch.": {
+   "zh": "@@T0@@ReLU。@@T1@@ $\\sigma'(z) = \\mathbb{1}\\{z > 0\\}$ —— 要么恰为 1（激活），要么恰为 0（失效）。无饱和；是一个离散开关。",
+   "src": "<strong>ReLU.</strong> $\\sigma'(z) = \\mathbb{1}\\{z > 0\\}$ — either exactly 1 (active) or exactly 0 (dead). No saturation; a discrete switch.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "The chain compounds — let's watch it": {
+   "zh": "链条逐步叠加 —— 我们来观察",
+   "src": "The chain compounds — let's watch it",
+   "tags": []
+  },
+  "Now stack $L$ identical layers, each contributing the\n          activation's @@T0@@best-case@@T1@@ derivative to the chain.\n          The input-layer gradient is the cumulative product of\n          those $L$ factors. Below: the bar at the top is the\n          output layer (where backprop starts); each bar below it\n          is one more multiplication into the chain. The bottom bar\n          is the input layer — the one whose gradient we care about\n          when we say \"vanishing\".": {
+   "zh": "现在堆叠 $L$ 个相同的层，每层向链条贡献该激活函数的@@T0@@最好情形@@T1@@ 导数。输入层的梯度便是这 $L$ 个因子的累乘。下方：顶部的柱条为输出层（反向传播的起点）；其下每一根柱条都表示向链条中再作一次乘法。最底部的柱条为输入层 —— 也就是我们说“梯度消失”时所关心的那一层。",
+   "src": "Now stack $L$ identical layers, each contributing the\n          activation's <em>best-case</em> derivative to the chain.\n          The input-layer gradient is the cumulative product of\n          those $L$ factors. Below: the bar at the top is the\n          output layer (where backprop starts); each bar below it\n          is one more multiplication into the chain. The bottom bar\n          is the input layer — the one whose gradient we care about\n          when we say \"vanishing\".",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "depth L": {
+   "zh": "深度 L",
+   "src": "depth L",
+   "tags": []
+  },
+  "input-layer gradient": {
+   "zh": "输入层梯度",
+   "src": "input-layer gradient",
+   "tags": []
+  },
+  "per-layer factor": {
+   "zh": "逐层因子",
+   "src": "per-layer factor",
+   "tags": []
+  },
+  "depth at 1e-9": {
+   "zh": "降至 1e-9 处的深度",
+   "src": "depth at 1e-9",
+   "tags": []
+  },
+  "@@T0@@@@T1@@@@T2@@gradient &gt; 10⁻³ (alive)@@T3@@\n          @@T4@@@@T5@@@@T6@@10⁻⁶ – 10⁻³ (shrinking)@@T7@@\n          @@T8@@@@T9@@@@T10@@&lt; 10⁻⁶ (effectively zero)@@T11@@\n          @@T12@@@@T13@@@@T14@@&gt; 10² (exploding)@@T15@@": {
+   "zh": "@@T0@@@@T1@@@@T2@@梯度 &gt; 10⁻³（存活）@@T3@@\n          @@T4@@@@T5@@@@T6@@10⁻⁶ – 10⁻³（收缩中）@@T7@@\n          @@T8@@@@T9@@@@T10@@&lt; 10⁻⁶（实质为零）@@T11@@\n          @@T12@@@@T13@@@@T14@@&gt; 10²（爆炸）@@T15@@",
+   "src": "<span><span class=\"legend-sw\" style=\"background: var(--healthy);\"></span>gradient &gt; 10⁻³ (alive)</span>\n          <span><span class=\"legend-sw\" style=\"background: var(--warn);\"></span>10⁻⁶ – 10⁻³ (shrinking)</span>\n          <span><span class=\"legend-sw\" style=\"background: var(--dead);\"></span>&lt; 10⁻⁶ (effectively zero)</span>\n          <span><span class=\"legend-sw\" style=\"background: var(--explode);\"></span>&gt; 10² (exploding)</span>",
+   "tags": [
+    "<span>",
+    "<span class=\"legend-sw\" style=\"background: var(--healthy);\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"legend-sw\" style=\"background: var(--warn);\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"legend-sw\" style=\"background: var(--dead);\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"legend-sw\" style=\"background: var(--explode);\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@log₁₀ |gradient|: 10⁻²⁰ ← shrunk &middot; alive → 10²@@T1@@": {
+   "zh": "@@T0@@log₁₀ |gradient|：10⁻²⁰ ← 收缩 &middot; 存活 → 10²@@T1@@",
+   "src": "<span>log₁₀ |gradient|: 10⁻²⁰ ← shrunk &middot; alive → 10²</span>",
+   "tags": [
+    "<span>",
+    "</span>"
+   ]
+  },
+  "the multiplicative chain (input-layer gradient written out)": {
+   "zh": "连乘链条（输入层梯度的逐项展开）",
+   "src": "the multiplicative chain (input-layer gradient written out)",
+   "tags": []
+  },
+  "Things worth trying:": {
+   "zh": "值得一试的操作：",
+   "src": "Things worth trying:",
+   "tags": []
+  },
+  "Set activation to @@T0@@sigmoid@@T1@@, depth $L = 10$:\n            the chain is $0.25^{10} \\approx 9.5 \\times 10^{-7}$ —\n            already in the \"shrinking\" band.": {
+   "zh": "将激活函数设为@@T0@@sigmoid@@T1@@、深度 $L = 10$：链条为 $0.25^{10} \\approx 9.5 \\times 10^{-7}$ —— 已落入“收缩”区间。",
+   "src": "Set activation to <em>sigmoid</em>, depth $L = 10$:\n            the chain is $0.25^{10} \\approx 9.5 \\times 10^{-7}$ —\n            already in the \"shrinking\" band.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Sigmoid at $L = 20$: $0.25^{20} \\approx 9 \\times 10^{-13}$\n            — below typical float-32 precision. The layer cannot learn.": {
+   "zh": "sigmoid 在 $L = 20$ 时：$0.25^{20} \\approx 9 \\times 10^{-13}$ —— 低于典型的 float-32 精度。该层无法学习。",
+   "src": "Sigmoid at $L = 20$: $0.25^{20} \\approx 9 \\times 10^{-13}$\n            — below typical float-32 precision. The layer cannot learn.",
+   "tags": []
+  },
+  "Switch to @@T0@@tanh@@T1@@: max derivative 1.0; at $L = 50$\n            the gradient stays at $1.0^{50} = 1$. But that's the\n            best case — at any $|z| > 2$, $\\tanh' \\ll 1$ and the\n            real chain still vanishes, just more slowly.": {
+   "zh": "切换到@@T0@@tanh@@T1@@：最大导数为 1.0；在 $L = 50$ 时梯度保持在 $1.0^{50} = 1$。但那是最好情形 —— 只要 $|z| > 2$，$\\tanh' \\ll 1$，真实的链条依然会消失，只是更慢一些。",
+   "src": "Switch to <em>tanh</em>: max derivative 1.0; at $L = 50$\n            the gradient stays at $1.0^{50} = 1$. But that's the\n            best case — at any $|z| > 2$, $\\tanh' \\ll 1$ and the\n            real chain still vanishes, just more slowly.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Switch to @@T0@@ReLU@@T1@@ with active fraction 100%:\n            gradient stays at 1 forever. This is why ReLU broke the\n            depth ceiling.": {
+   "zh": "切换到@@T0@@ReLU@@T1@@、激活比例 100%：梯度永远保持为 1。这正是 ReLU 打破了深度上限的原因。",
+   "src": "Switch to <em>ReLU</em> with active fraction 100%:\n            gradient stays at 1 forever. This is why ReLU broke the\n            depth ceiling.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "The other failure mode: exploding": {
+   "zh": "另一种失效模式：梯度爆炸",
+   "src": "The other failure mode: exploding",
+   "tags": []
+  },
+  "We have been ignoring the weight matrices in the chain.\n          The real per-layer factor is $W_\\ell^\\top \\sigma'(z_\\ell)$\n          — the activation derivative times the weight. If we\n          initialise the weights too large, the product is greater\n          than 1, and the chain blows up instead of dying.": {
+   "zh": "我们此前一直忽略了链条中的权重矩阵。真实的逐层因子是 $W_\\ell^\\top \\sigma'(z_\\ell)$ —— 激活导数乘以权重。若把权重初始化得过大，乘积便大于 1，链条将爆炸而非凋亡。",
+   "src": "We have been ignoring the weight matrices in the chain.\n          The real per-layer factor is $W_\\ell^\\top \\sigma'(z_\\ell)$\n          — the activation derivative times the weight. If we\n          initialise the weights too large, the product is greater\n          than 1, and the chain blows up instead of dying.",
+   "tags": []
+  },
+  "advanced: weight initialisation scale (try this)": {
+   "zh": "进阶：权重初始化尺度（试一试）",
+   "src": "advanced: weight initialisation scale (try this)",
+   "tags": []
+  },
+  "Move the slider below. Each layer now contributes\n              $w \\cdot \\sigma'(z)$ to the chain. Values $w > 1$ flip\n              the failure mode from vanishing to exploding.": {
+   "zh": "拖动下方的滑块。此时每一层向链条贡献 $w \\cdot \\sigma'(z)$。当 $w > 1$ 时，失效模式便从梯度消失翻转为梯度爆炸。",
+   "src": "Move the slider below. Each layer now contributes\n              $w \\cdot \\sigma'(z)$ to the chain. Values $w > 1$ flip\n              the failure mode from vanishing to exploding.",
+   "tags": []
+  },
+  "weight scale w": {
+   "zh": "权重尺度 w",
+   "src": "weight scale w",
+   "tags": []
+  },
+  "activation": {
+   "zh": "激活函数",
+   "src": "activation",
+   "tags": []
+  },
+  "depth": {
+   "zh": "深度",
+   "src": "depth",
+   "tags": []
+  },
+  "ReLU active fraction": {
+   "zh": "ReLU 激活比例",
+   "src": "ReLU active fraction",
+   "tags": []
+  },
+  "per-layer factor (w · σ')": {
+   "zh": "逐层因子（w · σ'）",
+   "src": "per-layer factor (w · σ')",
+   "tags": []
+  },
+  "regime": {
+   "zh": "所处区间",
+   "src": "regime",
+   "tags": []
+  },
+  "@@T0@@The five fixes the field converged on.@@T1@@\n          Every one of them is targeted at keeping the per-layer\n          chain factor close to 1.": {
+   "zh": "@@T0@@学界最终收敛到的五种对策。@@T1@@\n          它们中的每一种都旨在使逐层链条因子保持在 1 附近。",
+   "src": "<strong>The five fixes the field converged on.</strong>\n          Every one of them is targeted at keeping the per-layer\n          chain factor close to 1.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@ReLU and friends@@T1@@ (Glorot &amp; Bengio 2010; Nair &amp; Hinton 2010): $\\sigma' \\in \\{0, 1\\}$ instead of $\\le 0.25$.": {
+   "zh": "@@T0@@ReLU 及其同类@@T1@@（Glorot &amp; Bengio 2010；Nair &amp; Hinton 2010）：$\\sigma' \\in \\{0, 1\\}$，而非 $\\le 0.25$。",
+   "src": "<strong>ReLU and friends</strong> (Glorot &amp; Bengio 2010; Nair &amp; Hinton 2010): $\\sigma' \\in \\{0, 1\\}$ instead of $\\le 0.25$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Xavier / He initialisation@@T1@@: scale weights so $\\mathrm{Var}(W_\\ell) \\cdot \\mathbb{E}[\\sigma'^2] = 1$ — the chain factor's variance is 1.0 by construction.": {
+   "zh": "@@T0@@Xavier / He 初始化@@T1@@：缩放权重使 $\\mathrm{Var}(W_\\ell) \\cdot \\mathbb{E}[\\sigma'^2] = 1$ —— 链条因子的方差在构造上即为 1.0。",
+   "src": "<strong>Xavier / He initialisation</strong>: scale weights so $\\mathrm{Var}(W_\\ell) \\cdot \\mathbb{E}[\\sigma'^2] = 1$ — the chain factor's variance is 1.0 by construction.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Batch / Layer norm@@T1@@: rescale activations layer-by-layer so the per-layer Jacobian's spectral radius stays near 1.": {
+   "zh": "@@T0@@批归一化 / 层归一化@@T1@@：逐层重新缩放激活值，使逐层 Jacobian 的谱半径保持在 1 附近。",
+   "src": "<strong>Batch / Layer norm</strong>: rescale activations layer-by-layer so the per-layer Jacobian's spectral radius stays near 1.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Residual connections@@T1@@ (He et&nbsp;al. 2015): $y = f(x) + x$. The identity path adds 1 to the Jacobian; even if $f$ vanishes, $1$ does not.": {
+   "zh": "@@T0@@残差连接@@T1@@（He 等 2015）：$y = f(x) + x$。恒等路径为 Jacobian 增加 1；即便 $f$ 消失，这个 $1$ 也不会消失。",
+   "src": "<strong>Residual connections</strong> (He et&nbsp;al. 2015): $y = f(x) + x$. The identity path adds 1 to the Jacobian; even if $f$ vanishes, $1$ does not.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@LSTM cell state / gated cells@@T1@@: the forget gate $\\in [0, 1]$ multiplies the cell-state Jacobian directly; setting it near 1 gives a gradient highway across thousands of timesteps.": {
+   "zh": "@@T0@@LSTM 单元状态 / 门控单元@@T1@@：遗忘门 $\\in [0, 1]$ 直接乘在单元状态的 Jacobian 上；将其设为接近 1 便得到一条横贯数千时间步的梯度高速公路。",
+   "src": "<strong>LSTM cell state / gated cells</strong>: the forget gate $\\in [0, 1]$ multiplies the cell-state Jacobian directly; setting it near 1 gives a gradient highway across thousands of timesteps.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Three misconceptions, three corrections": {
+   "zh": "三个误区，三点纠正",
+   "src": "Three misconceptions, three corrections",
+   "tags": []
+  },
+  "\"Dying ReLU neurons cause vanishing gradients.\"": {
+   "zh": "“ReLU 神经元死亡会导致梯度消失。”",
+   "src": "\"Dying ReLU neurons cause vanishing gradients.\"",
+   "tags": []
+  },
+  "Not quite. Vanishing gradients from sigmoid / tanh are\n            @@T0@@multiplicative@@T1@@ — the effect compounds\n            exponentially with depth ($0.25^L$). A 50% ReLU-neuron\n            death rate is a @@T2@@linear@@T3@@ scaling — $1^L \\cdot 0.5\n            = 0.5$ at every depth. It shrinks once, but it doesn't\n            vanish exponentially. The two are different problems\n            with different fixes.": {
+   "zh": "并不尽然。源自 sigmoid / tanh 的梯度消失是@@T0@@乘性@@T1@@ 的 —— 其效应随深度呈指数累积（$0.25^L$）。而 50% 的 ReLU 神经元死亡率则是@@T2@@线性@@T3@@ 缩放 —— 在任何深度下均为 $1^L \\cdot 0.5\n            = 0.5$。它只收缩一次，并不会指数式地消失。二者是不同的问题，对策也不同。",
+   "src": "Not quite. Vanishing gradients from sigmoid / tanh are\n            <em>multiplicative</em> — the effect compounds\n            exponentially with depth ($0.25^L$). A 50% ReLU-neuron\n            death rate is a <em>linear</em> scaling — $1^L \\cdot 0.5\n            = 0.5$ at every depth. It shrinks once, but it doesn't\n            vanish exponentially. The two are different problems\n            with different fixes.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "\"A vanishing gradient makes the weights go to zero.\"": {
+   "zh": "“梯度消失会使权重趋于零。”",
+   "src": "\"A vanishing gradient makes the weights go to zero.\"",
+   "tags": []
+  },
+  "The @@T0@@updates@@T1@@ go to zero, not the weights:\n            $W_{\\text{new}} = W_{\\text{old}} - \\eta \\cdot 0 =\n            W_{\\text{old}}$. The weights stay at their random\n            initialisation; the layer fails to learn anything\n            meaningful, but it isn't pushed toward zero.": {
+   "zh": "趋于零的是@@T0@@更新量@@T1@@，而非权重：$W_{\\text{new}} = W_{\\text{old}} - \\eta \\cdot 0 =\n            W_{\\text{old}}$。权重停留在其随机初始化的取值上；该层学不到任何有意义的东西，但权重并未被推向零。",
+   "src": "The <em>updates</em> go to zero, not the weights:\n            $W_{\\text{new}} = W_{\\text{old}} - \\eta \\cdot 0 =\n            W_{\\text{old}}$. The weights stay at their random\n            initialisation; the layer fails to learn anything\n            meaningful, but it isn't pushed toward zero.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "\"This (factor)^N model is just a cartoon.\"": {
+   "zh": "“这个 (factor)^N 模型不过是个卡通画。”",
+   "src": "\"This (factor)^N model is just a cartoon.\"",
+   "tags": []
+  },
+  "It's a powerful illustration, not a precise simulation.\n            In a real network every $\\sigma'(z_\\ell)$ is different.\n            But because the sigmoid derivative is @@T0@@always@@T1@@\n            $\\le 0.25$ and tanh's is $\\le 1.0$, the worst-case bound\n            $0.25^L$ governs the product. The cartoon captures the\n            asymptotic behaviour exactly; the constants are\n            optimistic.": {
+   "zh": "它是有力的示意，而非精确的模拟。在真实网络中，每个 $\\sigma'(z_\\ell)$ 都不相同。但由于 sigmoid 的导数@@T0@@始终@@T1@@ $\\le 0.25$、tanh 的导数 $\\le 1.0$，最坏情形的上界 $0.25^L$ 支配着该乘积。这一示意精确地刻画了渐近行为；其常数则是偏乐观的。",
+   "src": "It's a powerful illustration, not a precise simulation.\n            In a real network every $\\sigma'(z_\\ell)$ is different.\n            But because the sigmoid derivative is <em>always</em>\n            $\\le 0.25$ and tanh's is $\\le 1.0$, the worst-case bound\n            $0.25^L$ governs the product. The cartoon captures the\n            asymptotic behaviour exactly; the constants are\n            optimistic.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "\"Vanishing gradients are a sigmoid problem; ReLU solved them.\"": {
+   "zh": "“梯度消失是 sigmoid 的问题；ReLU 已将其解决。”",
+   "src": "\"Vanishing gradients are a sigmoid problem; ReLU solved them.\"",
+   "tags": []
+  },
+  "ReLU made vanishing @@T0@@much@@T1@@ less common, but not\n            impossible. A network with $w &lt; 1$ initial weights\n            and a non-residual architecture can still see gradients\n            shrink layer by layer — the chain is $w^L$ rather than\n            $0.25^L$, but the principle is identical. Modern\n            training relies on initialisation @@T2@@and@@T3@@\n            normalisation @@T4@@and@@T5@@ residual paths together.": {
+   "zh": "ReLU 使梯度消失@@T0@@大幅@@T1@@ 减少，但并未使其绝迹。一个初始权重 $w &lt; 1$ 且不含残差结构的网络，仍会看到梯度逐层收缩 —— 其链条是 $w^L$ 而非 $0.25^L$，但原理完全相同。现代训练同时依赖初始化@@T2@@与@@T3@@ 归一化@@T4@@与@@T5@@ 残差路径三者。",
+   "src": "ReLU made vanishing <em>much</em> less common, but not\n            impossible. A network with $w &lt; 1$ initial weights\n            and a non-residual architecture can still see gradients\n            shrink layer by layer — the chain is $w^L$ rather than\n            $0.25^L$, but the principle is identical. Modern\n            training relies on initialisation <em>and</em>\n            normalisation <em>and</em> residual paths together.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Numbers to remember": {
+   "zh": "值得记住的数字",
+   "src": "Numbers to remember",
+   "tags": []
+  },
+  "Six facts that make the next time you look at a deep\n          network's training curve immediately legible:": {
+   "zh": "以下六个事实，可让你下一次查看深度网络训练曲线时立即心领神会：",
+   "src": "Six facts that make the next time you look at a deep\n          network's training curve immediately legible:",
+   "tags": []
+  },
+  "$\\sigma'_{\\max} = 0.25$ (sigmoid), $1.0$ (tanh), $1$ (ReLU active).": {
+   "zh": "$\\sigma'_{\\max} = 0.25$（sigmoid）、$1.0$（tanh）、$1$（ReLU 激活）。",
+   "src": "$\\sigma'_{\\max} = 0.25$ (sigmoid), $1.0$ (tanh), $1$ (ReLU active).",
+   "tags": []
+  },
+  "Sigmoid hits the gradient floor at depth $\\approx \\log_4 (1 / \\text{floor}) \\approx 20$ for floor $= 10^{-12}$.": {
+   "zh": "sigmoid 在深度 $\\approx \\log_4 (1 / \\text{floor}) \\approx 20$ 处触及梯度下限（取下限为 $10^{-12}$）。",
+   "src": "Sigmoid hits the gradient floor at depth $\\approx \\log_4 (1 / \\text{floor}) \\approx 20$ for floor $= 10^{-12}$.",
+   "tags": []
+  },
+  "Xavier init scales weights as $\\mathcal{N}(0, 1/\\text{fan\\_in})$; He init scales as $\\mathcal{N}(0, 2/\\text{fan\\_in})$. The factor 2 is because ReLU kills half the activations on average.": {
+   "zh": "Xavier 初始化将权重缩放为 $\\mathcal{N}(0, 1/\\text{fan\\_in})$；He 初始化则缩放为 $\\mathcal{N}(0, 2/\\text{fan\\_in})$。系数 2 源于 ReLU 平均会使一半的激活值失效。",
+   "src": "Xavier init scales weights as $\\mathcal{N}(0, 1/\\text{fan\\_in})$; He init scales as $\\mathcal{N}(0, 2/\\text{fan\\_in})$. The factor 2 is because ReLU kills half the activations on average.",
+   "tags": []
+  },
+  "BatchNorm typically rescales layer outputs to $\\mathrm{Var} = 1$; this is equivalent to \"renormalise the Jacobian's spectrum to 1\" at every layer.": {
+   "zh": "BatchNorm 通常将各层输出重新缩放至 $\\mathrm{Var} = 1$；这等价于在每一层“把 Jacobian 的谱重新归一化为 1”。",
+   "src": "BatchNorm typically rescales layer outputs to $\\mathrm{Var} = 1$; this is equivalent to \"renormalise the Jacobian's spectrum to 1\" at every layer.",
+   "tags": []
+  },
+  "Residual connections add an identity to the Jacobian, so the lower bound on the gradient is $1$, not $0$.": {
+   "zh": "残差连接为 Jacobian 增加一个恒等项，因此梯度的下界为 $1$，而非 $0$。",
+   "src": "Residual connections add an identity to the Jacobian, so the lower bound on the gradient is $1$, not $0$.",
+   "tags": []
+  },
+  "Gradient @@T0@@clipping@@T1@@ caps the exploding direction; it doesn't fix vanishing. Use clipping for RNNs / transformers training stability; don't expect it to make a sigmoid-MLP train at depth 50.": {
+   "zh": "梯度@@T0@@裁剪@@T1@@ 为爆炸方向设置了上限；它并不能解决梯度消失。可将裁剪用于 RNN / Transformer 的训练稳定性；但不要指望它能让一个 sigmoid-MLP 在深度 50 时训得起来。",
+   "src": "Gradient <em>clipping</em> caps the exploding direction; it doesn't fix vanishing. Use clipping for RNNs / transformers training stability; don't expect it to make a sigmoid-MLP train at depth 50.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "推荐阅读",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Hochreiter, 1991 (Diploma thesis)@@T1@@ &mdash; the original \"long-term dependencies are hard\" analysis.": {
+   "zh": "@@T0@@Hochreiter，1991（学位论文）@@T1@@ &mdash; 最早关于“长期依赖难以学习”的分析。",
+   "src": "<strong>Hochreiter, 1991 (Diploma thesis)</strong> &mdash; the original \"long-term dependencies are hard\" analysis.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Bengio, Simard, Frasconi, 1994@@T1@@ &mdash; @@T2@@Learning long-term dependencies with gradient descent is difficult.@@T3@@ The formal vanishing-gradient analysis.": {
+   "zh": "@@T0@@Bengio、Simard、Frasconi，1994@@T1@@ &mdash; @@T2@@Learning long-term dependencies with gradient descent is difficult.@@T3@@ 对梯度消失的形式化分析。",
+   "src": "<strong>Bengio, Simard, Frasconi, 1994</strong> &mdash; <em>Learning long-term dependencies with gradient descent is difficult.</em> The formal vanishing-gradient analysis.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Glorot &amp; Bengio, 2010@@T1@@ &mdash; @@T2@@Understanding the difficulty of training deep feedforward neural networks.@@T3@@ Xavier init; the modern story starts here.": {
+   "zh": "@@T0@@Glorot &amp; Bengio，2010@@T1@@ &mdash; @@T2@@Understanding the difficulty of training deep feedforward neural networks.@@T3@@ Xavier 初始化；现代叙事由此开始。",
+   "src": "<strong>Glorot &amp; Bengio, 2010</strong> &mdash; <em>Understanding the difficulty of training deep feedforward neural networks.</em> Xavier init; the modern story starts here.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Nair &amp; Hinton, 2010@@T1@@ &mdash; @@T2@@Rectified linear units improve restricted Boltzmann machines.@@T3@@": {
+   "zh": "@@T0@@Nair &amp; Hinton，2010@@T1@@ &mdash; @@T2@@Rectified linear units improve restricted Boltzmann machines.@@T3@@",
+   "src": "<strong>Nair &amp; Hinton, 2010</strong> &mdash; <em>Rectified linear units improve restricted Boltzmann machines.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@He et&nbsp;al., 2015@@T1@@ &mdash; @@T2@@Delving deep into rectifiers.@@T3@@ He init; ReLU-aware variance.": {
+   "zh": "@@T0@@He 等，2015@@T1@@ &mdash; @@T2@@Delving deep into rectifiers.@@T3@@ He 初始化；考虑 ReLU 的方差。",
+   "src": "<strong>He et&nbsp;al., 2015</strong> &mdash; <em>Delving deep into rectifiers.</em> He init; ReLU-aware variance.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@He et&nbsp;al., 2015@@T1@@ &mdash; @@T2@@Deep residual learning for image recognition.@@T3@@ Residual connections.": {
+   "zh": "@@T0@@He 等，2015@@T1@@ &mdash; @@T2@@Deep residual learning for image recognition.@@T3@@ 残差连接。",
+   "src": "<strong>He et&nbsp;al., 2015</strong> &mdash; <em>Deep residual learning for image recognition.</em> Residual connections.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Pascanu, Mikolov, Bengio, 2013@@T1@@ &mdash; @@T2@@On the difficulty of training recurrent neural networks.@@T3@@ Exploding gradients and clipping.": {
+   "zh": "@@T0@@Pascanu、Mikolov、Bengio，2013@@T1@@ &mdash; @@T2@@On the difficulty of training recurrent neural networks.@@T3@@ 梯度爆炸与裁剪。",
+   "src": "<strong>Pascanu, Mikolov, Bengio, 2013</strong> &mdash; <em>On the difficulty of training recurrent neural networks.</em> Exploding gradients and clipping.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Karpathy, \"Yes you should understand backprop\"@@T1@@ &mdash; readable companion piece arguing students should know all of this without autograd.": {
+   "zh": "@@T0@@Karpathy，“Yes you should understand backprop”@@T1@@ &mdash; 一篇可读性极佳的配套文章，主张学生应在不借助自动微分的情况下掌握这一切。",
+   "src": "<strong>Karpathy, \"Yes you should understand backprop\"</strong> &mdash; readable companion piece arguing students should know all of this without autograd.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "梯度消失与梯度爆炸",
+  "tagline": "神秘的 0.25 从何而来 —— 以及如何阻止它毁掉深度网络",
+  "summary": "堆叠一百层；连乘一百个 Jacobian；观察梯度如何凋亡或爆炸。一个单层导数面板将那个神秘因子（sigmoid 为 0.25，ReLU 为 1.0）去神秘化；深度滑块展示连乘链条的累积；权重尺度滑块则将失效模式从梯度消失切换为梯度爆炸。随后，误区卡片澄清了“梯度消失”究竟意味着什么。",
+  "difficulty": "入门",
+  "collection": "深度学习",
+  "highlights": [
+   "单层导数探索器：在 [-6, 6] 上拖动 z 并观察 σ'(z) 的移动；立刻看清为何 sigmoid 的 max σ' = 0.25。",
+   "数值链条：将 0.25 × 0.25 × … × 0.25 逐项写出，使“乘性坍缩”变得可感而非抽象。",
+   "权重尺度滑块揭示梯度爆炸 —— 这一对称的失效模式可用相同方式（初始化 + 归一化）修复。",
+   "将 ReLU 的“神经元死亡”与梯度消失的叙事区分开：那是线性缩放，而非指数坍缩。",
+   "误区卡片针对学生在梯度消失问题上屡屡出错的三个方面作出澄清。",
+   "ES 667 第 1–2 讲演示（深度、初始化、梯度消失）；与自动微分一文配套，涵盖其底层的链式法则。"
+  ],
+  "tags": [
+   "梯度消失",
+   "梯度爆炸",
+   "激活函数",
+   "初始化",
+   "深度学习",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

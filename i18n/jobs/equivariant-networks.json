@@ -1,0 +1,353 @@
+{
+ "slug": "equivariant-networks",
+ "units": {
+  "Equivariant Networks, Live": {
+   "zh": "等变网络实战",
+   "src": "Equivariant Networks, Live",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "A neural network is @@T0@@equivariant@@T1@@ to a transformation\n          when rotating the input rotates the output the same way.\n          For satellite imagery, molecules, point clouds, and any\n          system without a privileged orientation, this is what you\n          want and most vanilla networks don't deliver it.": {
+   "zh": "当旋转输入会使输出以同样的方式旋转时，我们称神经网络对该变换@@T0@@等变@@T1@@。对于卫星影像、分子、点云，以及任何没有特殊优越朝向的系统，这正是你所需要的，而大多数普通网络无法提供。",
+   "src": "A neural network is <em>equivariant</em> to a transformation\n          when rotating the input rotates the output the same way.\n          For satellite imagery, molecules, point clouds, and any\n          system without a privileged orientation, this is what you\n          want and most vanilla networks don't deliver it.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~16 min@@T1@@\n          @@T2@@Inductive Bias &middot; Symmetry &middot; CNN@@T3@@": {
+   "zh": "@@T0@@约 16 分钟@@T1@@\n          @@T2@@归纳偏置 &middot; 对称性 &middot; CNN@@T3@@",
+   "src": "<span>~16 min</span>\n          <span>Inductive Bias &middot; Symmetry &middot; CNN</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Step 1": {
+   "zh": "步骤 1",
+   "src": "Step 1",
+   "tags": []
+  },
+  "Equivariance vs invariance": {
+   "zh": "等变与不变",
+   "src": "Equivariance vs invariance",
+   "tags": []
+  },
+  "$f$ is @@T0@@equivariant@@T1@@ to a transformation $T_g$\n          if applying $T_g$ to the input has the same effect as\n          applying some (possibly different) transformation to the\n          output. @@T2@@Invariance@@T3@@ is the special case\n          where the output doesn't change at all.": {
+   "zh": "若把 $T_g$ 施加于输入所产生的效果，等同于对输出施加某个（可能不同的）变换，则称 $f$ 对变换 $T_g$ @@T0@@等变@@T1@@。@@T2@@不变@@T3@@ 是输出完全不变的特殊情形。",
+   "src": "$f$ is <strong>equivariant</strong> to a transformation $T_g$\n          if applying $T_g$ to the input has the same effect as\n          applying some (possibly different) transformation to the\n          output. <strong>Invariance</strong> is the special case\n          where the output doesn't change at all.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Translation equivariance.@@T1@@ Move an object\n            sideways — feature maps shift the same way. Standard\n            CNN convolution gives you this for free (modulo padding).": {
+   "zh": "@@T0@@平移等变。@@T1@@ 把物体横向移动 &mdash;— 特征图也随之平移。标准 CNN 卷积免费为你提供了这种性质（在填充的边界考虑之外）。",
+   "src": "<strong>Translation equivariance.</strong> Move an object\n            sideways — feature maps shift the same way. Standard\n            CNN convolution gives you this for free (modulo padding).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Rotation equivariance.@@T1@@ Rotate the input\n            by 90° — feature maps rotate by 90° too. Standard CNNs\n            @@T2@@don't@@T3@@ have this; you'd need C4 group convolutions\n            (Cohen &amp; Welling, 2016).": {
+   "zh": "@@T0@@旋转等变。@@T1@@ 把输入旋转 90° &mdash;— 特征图也旋转 90°。标准 CNN @@T2@@并不具备@@T3@@ 这一性质；你需要 C4 群卷积（Cohen &amp; Welling，2016）。",
+   "src": "<strong>Rotation equivariance.</strong> Rotate the input\n            by 90° — feature maps rotate by 90° too. Standard CNNs\n            <em>don't</em> have this; you'd need C4 group convolutions\n            (Cohen &amp; Welling, 2016).",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Scale equivariance.@@T1@@ Zoom in — features\n            scale. Mostly approximated via pyramids; true equivariant\n            architectures exist but are rare.": {
+   "zh": "@@T0@@尺度等变。@@T1@@ 放大 &mdash;— 特征随之缩放。大多通过金字塔来近似；真正的等变架构存在，但较为罕见。",
+   "src": "<strong>Scale equivariance.</strong> Zoom in — features\n            scale. Mostly approximated via pyramids; true equivariant\n            architectures exist but are rare.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@SE(3) equivariance.@@T1@@ 3-D rigid-body\n            symmetries. Critical for molecules / point clouds (E(3)NN,\n            SE(3)-Transformer).": {
+   "zh": "@@T0@@SE(3) 等变。@@T1@@ 三维刚体对称性。对分子 / 点云至关重要（E(3)NN、SE(3)-Transformer）。",
+   "src": "<strong>SE(3) equivariance.</strong> 3-D rigid-body\n            symmetries. Critical for molecules / point clouds (E(3)NN,\n            SE(3)-Transformer).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Permutation equivariance.@@T1@@ Sets and\n            graphs. Self-attention is permutation-equivariant; GNN\n            aggregations are too.": {
+   "zh": "@@T0@@置换等变。@@T1@@ 集合与图。自注意力具有置换等变性；GNN 的聚合操作亦然。",
+   "src": "<strong>Permutation equivariance.</strong> Sets and\n            graphs. Self-attention is permutation-equivariant; GNN\n            aggregations are too.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 2": {
+   "zh": "步骤 2",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Why a vanilla CNN can't rotate": {
+   "zh": "为何普通 CNN 无法旋转",
+   "src": "Why a vanilla CNN can't rotate",
+   "tags": []
+  },
+  "A standard 3×3 convolution filter is a fixed pattern in pixel\n          space. Rotating the input does not rotate the filter; the\n          response thrashes. Three classical fixes:": {
+   "zh": "标准的 3×3 卷积滤波器是像素空间中一个固定的模式。旋转输入并不会旋转该滤波器；响应会剧烈抖动。三种经典补救办法：",
+   "src": "A standard 3×3 convolution filter is a fixed pattern in pixel\n          space. Rotating the input does not rotate the filter; the\n          response thrashes. Three classical fixes:",
+   "tags": []
+  },
+  "@@T0@@Data augmentation.@@T1@@ Train with random\n            rotations. Cheap; nearly works for classification; the\n            response is approximately invariant but not equivariant,\n            and the model still has to learn each rotation\n            redundantly.": {
+   "zh": "@@T0@@数据增强。@@T1@@ 用随机旋转进行训练。代价低廉；对分类几乎有效；其响应近似不变但并非等变，而且模型仍须冗余地学习每一种旋转。",
+   "src": "<strong>Data augmentation.</strong> Train with random\n            rotations. Cheap; nearly works for classification; the\n            response is approximately invariant but not equivariant,\n            and the model still has to learn each rotation\n            redundantly.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Group convolutions (G-CNN).@@T1@@ Apply $k$\n            rotated copies of the same filter at each layer; the\n            feature map has an extra \"rotation\" axis. Cohen &amp;\n            Welling 2016; provably equivariant.": {
+   "zh": "@@T0@@群卷积（G-CNN）。@@T1@@ 在每一层施加同一滤波器的 $k$ 个旋转副本；特征图因此多出一个「旋转」轴。Cohen &amp; Welling 2016；可证明具有等变性。",
+   "src": "<strong>Group convolutions (G-CNN).</strong> Apply $k$\n            rotated copies of the same filter at each layer; the\n            feature map has an extra \"rotation\" axis. Cohen &amp;\n            Welling 2016; provably equivariant.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Steerable CNNs.@@T1@@ Use filters that\n            transform continuously under rotation (linear combinations\n            of circular harmonics). Equivariant to the continuous\n            $\\mathrm{SO}(2)$ group, not just discrete.": {
+   "zh": "@@T0@@可操纵 CNN。@@T1@@ 使用在旋转下连续变换的滤波器（圆谐波的线性组合）。对连续的 $\\mathrm{SO}(2)$ 群等变，而不仅限于离散群。",
+   "src": "<strong>Steerable CNNs.</strong> Use filters that\n            transform continuously under rotation (linear combinations\n            of circular harmonics). Equivariant to the continuous\n            $\\mathrm{SO}(2)$ group, not just discrete.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 3": {
+   "zh": "步骤 3",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Live: rotate the input, watch three architectures respond": {
+   "zh": "实战：旋转输入，观察三种架构的响应",
+   "src": "Live: rotate the input, watch three architectures respond",
+   "tags": []
+  },
+  "A synthetic airplane-silhouette input is rotated by θ. Three\n          tiny networks emit a feature vector. Plot the L2 distance\n          between the feature at θ=0 and the feature at the current θ.\n          A perfectly invariant network would output a flat line at\n          zero; a perfectly equivariant one would show a clean orbit\n          shape. The vanilla CNN responds erratically.": {
+   "zh": "一个合成的飞机剪影输入被旋转了 θ。三个微小的网络各自输出一个特征向量。绘制 θ=0 处的特征与当前 θ 处特征之间的 L2 距离。完全不变的网络会给出一条恒为零的平直线；完全等变的网络会呈现出一条干净的轨道形状。普通 CNN 的响应则杂乱无章。",
+   "src": "A synthetic airplane-silhouette input is rotated by θ. Three\n          tiny networks emit a feature vector. Plot the L2 distance\n          between the feature at θ=0 and the feature at the current θ.\n          A perfectly invariant network would output a flat line at\n          zero; a perfectly equivariant one would show a clean orbit\n          shape. The vanilla CNN responds erratically.",
+   "tags": []
+  },
+  "rotation θ &nbsp;@@T0@@0°@@T1@@": {
+   "zh": "旋转角 θ &nbsp;@@T0@@0°@@T1@@",
+   "src": "rotation θ &nbsp;<span id=\"eq-theta-val\">0°</span>",
+   "tags": [
+    "<span id=\"eq-theta-val\">",
+    "</span>"
+   ]
+  },
+  "New shape": {
+   "zh": "更换形状",
+   "src": "New shape",
+   "tags": []
+  },
+  "input at θ": {
+   "zh": "θ 处的输入",
+   "src": "input at θ",
+   "tags": []
+  },
+  "vanilla CNN response": {
+   "zh": "普通 CNN 的响应",
+   "src": "vanilla CNN response",
+   "tags": []
+  },
+  "augmented CNN response": {
+   "zh": "增强 CNN 的响应",
+   "src": "augmented CNN response",
+   "tags": []
+  },
+  "C4 group conv response": {
+   "zh": "C4 群卷积的响应",
+   "src": "C4 group conv response",
+   "tags": []
+  },
+  "Feature distance from θ=0, swept over θ": {
+   "zh": "相对 θ=0 的特征距离，随 θ 扫描",
+   "src": "Feature distance from θ=0, swept over θ",
+   "tags": []
+  },
+  "Step 4": {
+   "zh": "步骤 4",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Where to use what": {
+   "zh": "何处使用何物",
+   "src": "Where to use what",
+   "tags": []
+  },
+  "@@T0@@Satellite / aerial imagery.@@T1@@ Sentinel\n            and Landsat tiles have no canonical \"up\"; aerial / drone\n            footage rotates with the platform. C4 / C8 group\n            convolutions on the backbone, or rotation augmentation +\n            test-time average-of-rotations.": {
+   "zh": "@@T0@@卫星 / 航拍影像。@@T1@@ Sentinel 与 Landsat 瓦片没有规范的「上」方向；航拍 / 无人机影像随平台一起旋转。可用于骨干网络的有 C4 / C8 群卷积，或旋转增强 + 测试时对多个旋转取平均。",
+   "src": "<strong>Satellite / aerial imagery.</strong> Sentinel\n            and Landsat tiles have no canonical \"up\"; aerial / drone\n            footage rotates with the platform. C4 / C8 group\n            convolutions on the backbone, or rotation augmentation +\n            test-time average-of-rotations.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Molecular & atomic systems.@@T1@@ Energies are\n            invariant to rigid rotations; forces are equivariant. Use\n            E(3)NN, SE(3)-Transformer, MACE for molecular ML; AlphaFold-2's\n            invariant point attention is in this family.": {
+   "zh": "@@T0@@分子与原子体系。@@T1@@ 能量对刚性旋转不变；而力是等变的。在分子机器学习中可使用 E(3)NN、SE(3)-Transformer、MACE；AlphaFold-2 的不变点注意力也属于这一族。",
+   "src": "<strong>Molecular & atomic systems.</strong> Energies are\n            invariant to rigid rotations; forces are equivariant. Use\n            E(3)NN, SE(3)-Transformer, MACE for molecular ML; AlphaFold-2's\n            invariant point attention is in this family.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Point clouds.@@T1@@ 3-D LiDAR / scans need\n            SE(3) equivariance for object detection that respects how\n            you mounted the sensor.": {
+   "zh": "@@T0@@点云。@@T1@@ 三维 LiDAR / 扫描数据需要 SE(3) 等变，才能实现尊重传感器安装方式的物体检测。",
+   "src": "<strong>Point clouds.</strong> 3-D LiDAR / scans need\n            SE(3) equivariance for object detection that respects how\n            you mounted the sensor.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Sets and graphs.@@T1@@ Permutation equivariance\n            is non-negotiable: GNNs, Deep Sets, transformers (without\n            positional encoding) all sit here.": {
+   "zh": "@@T0@@集合与图。@@T1@@ 置换等变是毫无商量余地的：GNN、Deep Sets、transformer（不含位置编码）都属于这一范畴。",
+   "src": "<strong>Sets and graphs.</strong> Permutation equivariance\n            is non-negotiable: GNNs, Deep Sets, transformers (without\n            positional encoding) all sit here.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Medical 3-D volumes.@@T1@@ CT / MRI / PET\n            with rotated patient pose. Rotation equivariance helps\n            small-data fine-tunes generalise.": {
+   "zh": "@@T0@@医学三维体数据。@@T1@@ 患者体位被旋转的 CT / MRI / PET。旋转等变有助于小数据微调的泛化。",
+   "src": "<strong>Medical 3-D volumes.</strong> CT / MRI / PET\n            with rotated patient pose. Rotation equivariance helps\n            small-data fine-tunes generalise.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@The slogan.@@T1@@\n          Equivariance is data efficiency in disguise. A network that\n          can't rotate has to learn every rotation separately; an\n          equivariant network sees the rotation as a symmetry and\n          spends its capacity on the parts that actually matter.": {
+   "zh": "@@T0@@一句话口号。@@T1@@\n          等变性是伪装起来的数据效率。无法旋转的网络不得不分别学习每一种旋转；而等变网络把旋转视为一种对称性，将自身容量花在真正重要的部分上。",
+   "src": "<strong>The slogan.</strong>\n          Equivariance is data efficiency in disguise. A network that\n          can't rotate has to learn every rotation separately; an\n          equivariant network sees the rotation as a symmetry and\n          spends its capacity on the parts that actually matter.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 5": {
+   "zh": "步骤 5",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Practical gotchas": {
+   "zh": "实践中的坑",
+   "src": "Practical gotchas",
+   "tags": []
+  },
+  "@@T0@@Discrete vs continuous group.@@T1@@ C4 (90°)\n            and C8 (45°) are easy to implement; continuous SO(2)\n            requires steerable filters or harmonic networks.": {
+   "zh": "@@T0@@离散群与连续群。@@T1@@ C4（90°）与 C8（45°）易于实现；连续 SO(2) 则需要可操纵滤波器或谐波网络。",
+   "src": "<strong>Discrete vs continuous group.</strong> C4 (90°)\n            and C8 (45°) are easy to implement; continuous SO(2)\n            requires steerable filters or harmonic networks.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Cost.@@T1@@ A C4 group conv has 4× the\n            channels of a vanilla conv; train and inference cost\n            scale accordingly. Modern hardware tolerates it.": {
+   "zh": "@@T0@@代价。@@T1@@ C4 群卷积的通道数是普通卷积的 4 倍；训练与推理代价也相应放大。现代硬件可以承受。",
+   "src": "<strong>Cost.</strong> A C4 group conv has 4× the\n            channels of a vanilla conv; train and inference cost\n            scale accordingly. Modern hardware tolerates it.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Combine with augmentation, don't replace it.@@T1@@\n            Equivariant ≠ no augmentation; you still want crops, brightness,\n            noise. The equivariant axis takes @@T2@@one@@T3@@ source of\n            variation off the table.": {
+   "zh": "@@T0@@与增强结合，而非取代它。@@T1@@\n            等变 ≠ 不做增强；你仍然需要裁剪、亮度、噪声。等变的那个轴只是把@@T2@@一个@@T3@@变异来源从桌上拿掉而已。",
+   "src": "<strong>Combine with augmentation, don't replace it.</strong>\n            Equivariant ≠ no augmentation; you still want crops, brightness,\n            noise. The equivariant axis takes <em>one</em> source of\n            variation off the table.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Don't equivary the wrong thing.@@T1@@ If your\n            task @@T2@@depends@@T3@@ on orientation (text recognition,\n            scene understanding with \"up\"), rotation equivariance\n            is wrong. Use it where symmetry truly exists.": {
+   "zh": "@@T0@@不要对错误的东西施加等变。@@T1@@ 如果你的任务@@T2@@依赖@@T3@@ 朝向（文字识别、带「上」方向的场景理解），旋转等变就是错的。只在对称性真正存在之处使用它。",
+   "src": "<strong>Don't equivary the wrong thing.</strong> If your\n            task <em>depends</em> on orientation (text recognition,\n            scene understanding with \"up\"), rotation equivariance\n            is wrong. Use it where symmetry truly exists.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Libraries.@@T1@@ @@T2@@escnn@@T3@@ /\n            @@T4@@e2cnn@@T5@@ (PyTorch), @@T6@@se3-transformer@@T7@@\n            (PyTorch), @@T8@@e3nn@@T9@@ (PyTorch for molecules),\n            @@T10@@jaxon@@T11@@ / @@T12@@JAX-MD@@T13@@ for SE(3)\n            equivariant work in JAX.": {
+   "zh": "@@T0@@库。@@T1@@ @@T2@@escnn@@T3@@ /\n            @@T4@@e2cnn@@T5@@（PyTorch）、@@T6@@se3-transformer@@T7@@（PyTorch）、@@T8@@e3nn@@T9@@（面向分子的 PyTorch）、在 JAX 中进行 SE(3) 等变工作的 @@T10@@jaxon@@T11@@ / @@T12@@JAX-MD@@T13@@。",
+   "src": "<strong>Libraries.</strong> <code>escnn</code> /\n            <code>e2cnn</code> (PyTorch), <code>se3-transformer</code>\n            (PyTorch), <code>e3nn</code> (PyTorch for molecules),\n            <code>jaxon</code> / <code>JAX-MD</code> for SE(3)\n            equivariant work in JAX.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "等变网络实战",
+  "tagline": "旋转输入——正确的架构会让输出也随之旋转，而普通 CNN 做不到。",
+  "summary": "旋转一幅合成输入图像；比较普通 CNN、增强 CNN 与旋转等变网络的响应。观察旋转等变网络给出干净的轨道，而普通 CNN 的响应剧烈抖动。并与卫星与分子深度学习应用相互关联。",
+  "difficulty": "进阶",
+  "collection": "计算机视觉",
+  "highlights": [
+   "拖动输入旋转角 θ；观察三种架构对一个被旋转的飞机剪影的响应。",
+   "普通 CNN：响应跳变。增强 CNN：变平滑但仍会抖动。C4 群卷积：干净的轨道。",
+   "等变与不变：各自何时需要。",
+   "超越旋转：尺度、规范、SE(3)、球面、图自同构。"
+  ],
+  "tags": [
+   "等变性",
+   "群卷积",
+   "可操纵 CNN",
+   "旋转",
+   "交互式"
+  ]
+ },
+ "js": {
+  "vanilla CNN": {
+   "zh": "普通 CNN",
+   "exprs": [],
+   "tags": [],
+   "src": "vanilla CNN"
+  },
+  "C4 group conv": {
+   "zh": "C4 群卷积",
+   "exprs": [],
+   "tags": [],
+   "src": "C4 group conv"
+  }
+ }
+}

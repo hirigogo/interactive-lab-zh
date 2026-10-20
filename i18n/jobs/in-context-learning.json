@@ -1,0 +1,347 @@
+{
+ "slug": "in-context-learning",
+ "units": {
+  "In-Context Learning, From the Inside": {
+   "zh": "从内部看上下文学习",
+   "src": "In-Context Learning, From the Inside",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "A frozen LLM learns a new task from a few examples in its\n          prompt. No weight updates. Why? The mechanistic answer is\n          the @@T0@@induction head@@T1@@: a two-step attention circuit\n          that, once trained, can copy \"patterns seen earlier in the\n          context\" almost arbitrarily.": {
+   "zh": "一个冻结的 LLM 能从提示中的几个示例学会一项新任务，而无需更新任何权重。为什么？机制层面的答案是@@T0@@归纳头@@T1@@：一个两步注意力回路，一旦训练完成，就能几乎任意地复制“此前在上下文中出现过的模式”。",
+   "src": "A frozen LLM learns a new task from a few examples in its\n          prompt. No weight updates. Why? The mechanistic answer is\n          the <em>induction head</em>: a two-step attention circuit\n          that, once trained, can copy \"patterns seen earlier in the\n          context\" almost arbitrarily.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~20 min@@T1@@\n          @@T2@@LLM &middot; Mech Interp &middot; Few-shot@@T3@@": {
+   "zh": "@@T0@@约 20 分钟@@T1@@\n          @@T2@@LLM &middot; 机制可解释性 &middot; 少样本@@T3@@",
+   "src": "<span>~20 min</span>\n          <span>LLM &middot; Mech Interp &middot; Few-shot</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "What ICL is, operationally": {
+   "zh": "从操作层面看什么是 ICL",
+   "src": "What ICL is, operationally",
+   "tags": []
+  },
+  "You pass a frozen model a prompt like:": {
+   "zh": "你向一个冻结模型传入这样的提示：",
+   "src": "You pass a frozen model a prompt like:",
+   "tags": []
+  },
+  "apple → red\nbanana → yellow\nbroccoli → green\nstrawberry →": {
+   "zh": "苹果 → 红色\n香蕉 → 黄色\n西兰花 → 绿色\n草莓 →",
+   "src": "apple → red\nbanana → yellow\nbroccoli → green\nstrawberry →",
+   "tags": []
+  },
+  "and the model outputs @@T0@@red@@T1@@. No fine-tuning, no\n          gradient steps. The accuracy on the task usually grows with\n          the number of in-context examples $k$, then plateaus.\n          Empirically this works for translation, arithmetic, named\n          entity recognition, function approximation, even small\n          reasoning tasks.": {
+   "zh": "模型便输出 @@T0@@红色@@T1@@。无需微调，无需梯度步。任务上的准确率通常随上下文示例数 $k$ 增长而上升，随后趋于平缓。经验上，这对翻译、算术、命名实体识别、函数逼近，甚至小型推理任务都有效。",
+   "src": "and the model outputs <code>red</code>. No fine-tuning, no\n          gradient steps. The accuracy on the task usually grows with\n          the number of in-context examples $k$, then plateaus.\n          Empirically this works for translation, arithmetic, named\n          entity recognition, function approximation, even small\n          reasoning tasks.",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Two facts that motivated the research:": {
+   "zh": "两个推动了这项研究的事实：",
+   "src": "Two facts that motivated the research:",
+   "tags": []
+  },
+  "ICL @@T0@@emerges@@T1@@ with scale. GPT-2 (1.5B) does it\n            poorly; GPT-3 (175B) does it well. Below a critical model\n            size and training-data scale, ICL accuracy is at chance.": {
+   "zh": "ICL 随规模@@T0@@涌现@@T1@@。GPT-2（1.5B）做得很差；GPT-3（175B）做得很好。低于某个临界的模型规模与训练数据规模时，ICL 准确率仅相当于随机猜测。",
+   "src": "ICL <em>emerges</em> with scale. GPT-2 (1.5B) does it\n            poorly; GPT-3 (175B) does it well. Below a critical model\n            size and training-data scale, ICL accuracy is at chance.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "ICL works on tasks that don't appear in pretraining.\n            The model isn't retrieving memorised answers; it's running\n            something that functions like an algorithm at inference.": {
+   "zh": "ICL 在预训练中未出现的任务上也能生效。模型并非在检索记忆中的答案；它是在推理时运行某种起算法作用的东西。",
+   "src": "ICL works on tasks that don't appear in pretraining.\n            The model isn't retrieving memorised answers; it's running\n            something that functions like an algorithm at inference.",
+   "tags": []
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "The induction head — a 2-layer attention circuit": {
+   "zh": "归纳头——一个两层的注意力回路",
+   "src": "The induction head — a 2-layer attention circuit",
+   "tags": []
+  },
+  "Olsson et&nbsp;al. (2022) localised the mechanism behind\n          the simplest form of ICL — @@T0@@copying@@T1@@. It needs two\n          attention heads working together:": {
+   "zh": "Olsson 等人（2022）定位了 ICL 最简单形式——@@T0@@复制@@T1@@——背后的机制。它需要两个注意力头协同工作：",
+   "src": "Olsson et&nbsp;al. (2022) localised the mechanism behind\n          the simplest form of ICL — <em>copying</em>. It needs two\n          attention heads working together:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Layer 1 — previous-token head.@@T1@@ At each\n            position $t$, attend to position $t-1$. Now every token's\n            representation contains \"the previous token\".": {
+   "zh": "@@T0@@第 1 层——前一词元头。@@T1@@ 在每个位置 $t$，关注位置 $t-1$。此时每个词元的表示都包含了“前一个词元”。",
+   "src": "<strong>Layer 1 — previous-token head.</strong> At each\n            position $t$, attend to position $t-1$. Now every token's\n            representation contains \"the previous token\".",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Layer 2 — induction head.@@T1@@ Given the\n            current token $A$ at position $t$, search earlier in the\n            sequence for places where the @@T2@@previous@@T3@@ token was\n            also $A$. Found one? Predict whatever followed it.": {
+   "zh": "@@T0@@第 2 层——归纳头。@@T1@@ 给定位置 $t$ 处的当前词元 $A$，在序列更早处搜索那些@@T2@@前一个@@T3@@词元也是 $A$ 的位置。找到了？就预测紧随其后的那个词元。",
+   "src": "<strong>Layer 2 — induction head.</strong> Given the\n            current token $A$ at position $t$, search earlier in the\n            sequence for places where the <em>previous</em> token was\n            also $A$. Found one? Predict whatever followed it.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "That two-step circuit implements: \"find the last time we\n          saw this token; copy what came next.\" On a sequence\n          @@T0@@X A Y B A ?@@T1@@ it predicts @@T2@@Y@@T3@@.\n          Combined with the\n          @@T4@@attention article@@T5@@'s\n          mechanics, this is one short script.": {
+   "zh": "这个两步回路实现的是：“找出上一次看到该词元的位置；复制其后出现的内容。”在序列 @@T0@@X A Y B A ?@@T1@@ 上，它预测@@T2@@ Y@@T3@@。结合@@T4@@注意力一文@@T5@@的机制，这不过是一小段脚本。",
+   "src": "That two-step circuit implements: \"find the last time we\n          saw this token; copy what came next.\" On a sequence\n          <code>X A Y B A ?</code> it predicts <code>Y</code>.\n          Combined with the\n          <a href=\"../attention/index.html\">attention article</a>'s\n          mechanics, this is one short script.",
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<a href=\"../attention/index.html\">",
+    "</a>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Watch it work — k-shot copy task, live": {
+   "zh": "看它如何工作——实时的 k 样本复制任务",
+   "src": "Watch it work — k-shot copy task, live",
+   "tags": []
+  },
+  "A toy task: each prompt has $k$ (key, value) pairs followed\n          by a query key. The correct answer is the value of the pair\n          whose key equals the query. The model is a 2-layer attention\n          network with 4 heads pre-trained to do well at copy tasks.\n          Slide $k$; watch accuracy.": {
+   "zh": "一个玩具任务：每个提示有 $k$ 个（键, 值）对，其后跟一个查询键。正确答案是键与查询相等的那个对的值。该模型是一个带 4 个头的两层注意力网络，已预训练至擅长复制任务。滑动 $k$；观察准确率。",
+   "src": "A toy task: each prompt has $k$ (key, value) pairs followed\n          by a query key. The correct answer is the value of the pair\n          whose key equals the query. The model is a 2-layer attention\n          network with 4 heads pre-trained to do well at copy tasks.\n          Slide $k$; watch accuracy.",
+   "tags": []
+  },
+  "k (in-context examples) &nbsp;@@T0@@3@@T1@@": {
+   "zh": "k（上下文示例数）&nbsp;@@T0@@3@@T1@@",
+   "src": "k (in-context examples) &nbsp;<span id=\"icl-k-val\">3</span>",
+   "tags": [
+    "<span id=\"icl-k-val\">",
+    "</span>"
+   ]
+  },
+  "vocabulary size V &nbsp;@@T0@@6@@T1@@": {
+   "zh": "词表大小 V &nbsp;@@T0@@6@@T1@@",
+   "src": "vocabulary size V &nbsp;<span id=\"icl-V-val\">6</span>",
+   "tags": [
+    "<span id=\"icl-V-val\">",
+    "</span>"
+   ]
+  },
+  "New prompt": {
+   "zh": "新建提示",
+   "src": "New prompt",
+   "tags": []
+  },
+  "@@T0@@accuracy @@T1@@—@@T2@@@@T3@@": {
+   "zh": "@@T0@@准确率 @@T1@@—@@T2@@@@T3@@",
+   "src": "<span class=\"train-stat\">accuracy <strong id=\"icl-acc\">—</strong></span>",
+   "tags": [
+    "<span class=\"train-stat\">",
+    "<strong id=\"icl-acc\">",
+    "</strong>",
+    "</span>"
+   ]
+  },
+  "Sample prompt + model prediction": {
+   "zh": "示例提示 + 模型预测",
+   "src": "Sample prompt + model prediction",
+   "tags": []
+  },
+  "Layer 2 attention from the query token (the induction head in action)": {
+   "zh": "从查询词元出发的第 2 层注意力（归纳头正在工作）",
+   "src": "Layer 2 attention from the query token (the induction head in action)",
+   "tags": []
+  },
+  "k-shot accuracy vs k": {
+   "zh": "k 样本准确率随 k 的变化",
+   "src": "k-shot accuracy vs k",
+   "tags": []
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "\"ICL is implicit gradient descent\"": {
+   "zh": "“ICL 是隐式的梯度下降”",
+   "src": "\"ICL is implicit gradient descent\"",
+   "tags": []
+  },
+  "A surprising line of work (Akyürek et&nbsp;al. 2023;\n          von&nbsp;Oswald et&nbsp;al. 2022; Garg et&nbsp;al. 2022)\n          shows that a single Transformer layer applied to a sequence\n          of $(x_i, y_i)$ pairs can @@T0@@implement@@T1@@ a step of\n          gradient descent on linear regression. With enough layers,\n          ICL approximately equals \"fit a small model to the prompt's\n          examples, then predict.\"": {
+   "zh": "一条出人意料的研究路线（Akyürek 等人 2023；von Oswald 等人 2022；Garg 等人 2022）表明，单个 Transformer 层作用于一串 $(x_i, y_i)$ 对时，可以@@T0@@实现@@T1@@线性回归上的一步梯度下降。层数足够时，ICL 近似等于“用提示中的示例拟合一个小模型，然后预测”。",
+   "src": "A surprising line of work (Akyürek et&nbsp;al. 2023;\n          von&nbsp;Oswald et&nbsp;al. 2022; Garg et&nbsp;al. 2022)\n          shows that a single Transformer layer applied to a sequence\n          of $(x_i, y_i)$ pairs can <em>implement</em> a step of\n          gradient descent on linear regression. With enough layers,\n          ICL approximately equals \"fit a small model to the prompt's\n          examples, then predict.\"",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The construction: pack $(x, y)$ pairs into tokens; the\n          attention layer's $W_Q, W_K, W_V$ can be chosen so the\n          output at the query position equals the prediction of one\n          step of GD on the data so far. Layer-by-layer compounds\n          into multiple GD steps. This explains both why ICL needs\n          scale (enough layers to do enough steps) and why it\n          generalises to held-out function classes.": {
+   "zh": "其构造方式：把 $(x, y)$ 对打包成词元；可以选取注意力层的 $W_Q, W_K, W_V$，使得查询位置处的输出等于对迄今数据做一步 GD 的预测。逐层叠加便复合成多步 GD。这既解释了 ICL 为何需要规模（要有足够多的层来执行足够多的步），也解释了它为何能泛化到留出的函数类。",
+   "src": "The construction: pack $(x, y)$ pairs into tokens; the\n          attention layer's $W_Q, W_K, W_V$ can be chosen so the\n          output at the query position equals the prediction of one\n          step of GD on the data so far. Layer-by-layer compounds\n          into multiple GD steps. This explains both why ICL needs\n          scale (enough layers to do enough steps) and why it\n          generalises to held-out function classes.",
+   "tags": []
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Practical implications": {
+   "zh": "实践意涵",
+   "src": "Practical implications",
+   "tags": []
+  },
+  "@@T0@@More examples isn't always better.@@T1@@\n            Accuracy plateaus around $k=10-20$ for most tasks; beyond\n            that you're just using context for diminishing returns.": {
+   "zh": "@@T0@@示例越多并不总是越好。@@T1@@\n            对大多数任务，准确率在 $k=10-20$ 附近趋于平缓；再往上只是在用上下文换取递减的收益。",
+   "src": "<strong>More examples isn't always better.</strong>\n            Accuracy plateaus around $k=10-20$ for most tasks; beyond\n            that you're just using context for diminishing returns.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Example selection matters.@@T1@@ Diverse,\n            representative examples outperform random sampling. The\n            \"best-of-K with semantic search over a labelled pool\" is\n            the RAG-flavoured improvement.": {
+   "zh": "@@T0@@示例的选取很重要。@@T1@@ 多样且有代表性的示例胜过随机采样。“在带标注的池子上做语义检索后取最优 K 个”就是 RAG 风格的改进。",
+   "src": "<strong>Example selection matters.</strong> Diverse,\n            representative examples outperform random sampling. The\n            \"best-of-K with semantic search over a labelled pool\" is\n            the RAG-flavoured improvement.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Format sensitivity is real.@@T1@@ The exact\n            separator, capitalisation, and ordering of examples can\n            swing accuracy by 5-15 points. Test variants.": {
+   "zh": "@@T0@@格式敏感性确实存在。@@T1@@ 确切的分隔符、大小写以及示例顺序都可能使准确率摆动 5-15 个点。务必测试多种变体。",
+   "src": "<strong>Format sensitivity is real.</strong> The exact\n            separator, capitalisation, and ordering of examples can\n            swing accuracy by 5-15 points. Test variants.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Chain-of-thought is ICL with reasoning steps.@@T1@@\n            Including \"let's think step by step\" plus worked examples\n            unlocks much harder tasks. Why: the model gets to allocate\n            more compute to the answer.": {
+   "zh": "@@T0@@思维链就是带有推理步骤的 ICL。@@T1@@\n            加入“让我们一步步思考”以及完整的解题示例，能开启困难得多的任务。原因在于：模型得以把更多算力分配给答案。",
+   "src": "<strong>Chain-of-thought is ICL with reasoning steps.</strong>\n            Including \"let's think step by step\" plus worked examples\n            unlocks much harder tasks. Why: the model gets to allocate\n            more compute to the answer.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Calibration breaks badly under ICL.@@T1@@\n            Confidence is unreliable; wrap critical predictions in\n            @@T2@@conformal prediction@@T3@@.": {
+   "zh": "@@T0@@在 ICL 下校准会严重失效。@@T1@@\n            置信度并不可靠；请把关键的预测用@@T2@@共形预测@@T3@@包裹起来。",
+   "src": "<strong>Calibration breaks badly under ICL.</strong>\n            Confidence is unreliable; wrap critical predictions in\n            <a href=\"../conformal/index.html\">conformal prediction</a>.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<a href=\"../conformal/index.html\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@Fine-tune vs ICL tradeoff.@@T1@@ If you have\n            ≥100 labelled examples and care about reliability, LoRA\n            fine-tune; if you have ≤30 examples or constantly-changing\n            tasks, ICL is the right tool.": {
+   "zh": "@@T0@@微调与 ICL 的权衡。@@T1@@ 若你有不少于 100 个带标注示例且看重可靠性，就用 LoRA 微调；若你只有不超过 30 个示例，或任务不断变化，那么 ICL 才是正确的工具。",
+   "src": "<strong>Fine-tune vs ICL tradeoff.</strong> If you have\n            ≥100 labelled examples and care about reliability, LoRA\n            fine-tune; if you have ≤30 examples or constantly-changing\n            tasks, ICL is the right tool.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@The slogan.@@T1@@\n          ICL is not magic: it's a circuit (induction heads) inside a\n          model big enough to have learned it, doing what looks like\n          gradient descent over your prompt. Once you see the circuit,\n          you stop being surprised that prompts matter so much.": {
+   "zh": "@@T0@@这句口号。@@T1@@\n          ICL 不是魔法：它只是一个足够大、已经学会它的模型内部的回路（归纳头），做着一件看起来像是在你的提示上做梯度下降的事。一旦你看见了这个回路，就不会再因提示如此重要而感到惊讶。",
+   "src": "<strong>The slogan.</strong>\n          ICL is not magic: it's a circuit (induction heads) inside a\n          model big enough to have learned it, doing what looks like\n          gradient descent over your prompt. Once you see the circuit,\n          you stop being surprised that prompts matter so much.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "从内部看上下文学习",
+  "tagline": "为何一个冻结的 Transformer 能从提示中的几个示例学会一项新任务",
+  "summary": "一个实时的归纳头玩具：一个仅在下一词元预测上训练的两层注意力模型，自行发现了上下文复制的能力——这正是所有少样本提示方法的机制基础。滑动 k（上下文示例数），观察准确率如何攀升；随后阅读为何 ICL 不过是伪装起来的梯度下降。",
+  "difficulty": "进阶",
+  "collection": "深度学习",
+  "highlights": [
+   "一个实时的两层注意力模型，通过归纳头机制学会在上下文中复制。",
+   "k 样本准确率曲线：性能如何随提示中示例的增多而攀升。",
+   "机制层面的故事：前一词元头 + 归纳头 = 复制任务上的 ICL。",
+   "为何 ICL ≈ 在提示上的隐式梯度下降（Akyürek 等人 2023；von Oswald 等人 2022）。"
+  ],
+  "tags": [
+   "上下文学习",
+   "归纳头",
+   "LLM",
+   "机制可解释性",
+   "交互式"
+  ]
+ },
+ "js": {
+  "@@T0@@predicted @@T1@@[[[1]]]@@T2@@ · correct answer @@T3@@[[[2]]]@@T4@@ · [[[3]]]@@T5@@": {
+   "zh": "@@T0@@预测为 @@T1@@[[[1]]]@@T2@@ · 正确答案 @@T3@@[[[2]]]@@T4@@ · [[[3]]]@@T5@@",
+   "exprs": [
+    "${correct ? 'is-correct' : 'is-wrong'}",
+    "${TOKENS[STATE.attn.predicted]}",
+    "${TOKENS[p.answer]}",
+    "${correct ? '✓' : '✗'}"
+   ],
+   "tags": [
+    "<div class=\"icl-pred-result [[[0]]]\">",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "</div>"
+   ],
+   "src": "<div class=\"icl-pred-result ${correct ? 'is-correct' : 'is-wrong'}\">predicted <strong>${TOKENS[STATE.attn.predicted]}</strong> · correct answer <strong>${TOKENS[p.answer]}</strong> · ${correct ? '✓' : '✗'}</div>"
+  },
+  "repeat([[[0]]], minmax(0, 1fr))": {
+   "zh": "",
+   "exprs": [
+    "${T}"
+   ],
+   "tags": [],
+   "src": "repeat(${T}, minmax(0, 1fr))"
+  },
+  "icl-tok icl-tok-pred": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": "icl-tok icl-tok-pred"
+  },
+  "icl-V-val": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": "icl-V-val"
+  }
+ }
+}

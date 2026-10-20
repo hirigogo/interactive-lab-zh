@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>主动学习：实时挑选样本</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解文章库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>主动学习：实时挑选样本</h1>
+        <p class="abstract">
+          在一个二维分类问题上进行基于池的主动学习。选择一个采集函数，逐步推进循环，观察决策边界如何在查询落点处收紧。让四种策略在同一数据集与相同起始标注预算下相互竞速。
+        </p>
+        <div class="byline">
+          <span>约 16 分钟</span>
+          <span>主动学习 &middot; 采集函数 &middot; 标注效率</span>
+        </div>
+      </header>
+
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>标注预算问题</h2>
+        <p>
+          你可以标注 1000 个卫星瓦片，或 1000 张热成像帧，或 1000 个睡眠时段 &mdash;&mdash; <em>但不能更多</em>。这 1000 个名额该花在哪里？随机挑选是基线做法；而挑选当前模型觉得最费解的点，通常能显著胜出。这就是主动学习。
+        </p>
+        <div class="callout callout--key">
+          <strong>一句话概括。</strong> 不要给模型看它已经知道答案的点。把标注预算花在它最不确定的边界上。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>你将会遇到的四种采集函数</h2>
+        <ul class="explanation-list">
+          <li><strong>随机。</strong> 从池中均匀地选取一个点。这是诚实的基线。</li>
+          <li><strong>不确定性（最低置信度）。</strong> 选取 $\max_c p(y=c\mid x)$ 最小的点。模型在此处「最没把握」。</li>
+          <li><strong>间隔（margin）。</strong> 选取最高与次高类别概率之间差距最小的点。当不确定性无法区分「真正困难的情形」与「容易的接近平局情形」时，此法尤为有用。</li>
+          <li><strong>BALD / 委员会分歧。</strong> 训练一个小型集成（或使用 Monte-Carlo dropout）；选取委员会分歧最大的点。它近似于贝叶斯信息增益。</li>
+        </ul>
+        <div class="math-block" id="math-aq"></div>
+      </section>
+
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>在真实样本池上运行循环</h2>
+        <p>
+          我们构造了一个二维分类问题（3 个以颜色区分的类别，彼此有重叠）。模型以 5 个标注起步；点击 <em>采集</em> 即可再增加一个。观察决策边界恰好在所选采集函数取得标注之处收紧。图例同步维护四个计分板 &mdash;&mdash; 相同的起始集合、相同的「逻辑回归 + RBF 特征」模型，四种策略在准确率上竞速。
+        </p>
+        <div class="train-controls">
+          <button class="action-btn" id="al-step">采集 1 个</button>
+          <button class="action-btn" id="al-step5">采集 5 个</button>
+          <button class="action-btn action-btn--ghost" id="al-reset">全部重置</button>
+          <label>当前策略
+            <select id="al-strategy">
+              <option value="random">随机</option>
+              <option value="uncertainty" selected>不确定性</option>
+              <option value="margin">间隔</option>
+              <option value="committee">委员会分歧</option>
+            </select>
+          </label>
+          <span class="train-stat">标注数 = <strong id="al-budget">5</strong> / 200</span>
+          <span class="train-stat">测试准确率 <strong id="al-acc">—</strong></span>
+        </div>
+        <div class="al-grid">
+          <div class="al-panel">
+            <div class="panel-label">样本池与所选策略的决策边界</div>
+            <canvas id="al-board" width="380" height="380"></canvas>
+          </div>
+          <div class="al-panel">
+            <div class="panel-label">采集分数图</div>
+            <canvas id="al-acq" width="380" height="380"></canvas>
+          </div>
+          <div class="al-panel">
+            <div class="panel-label">准确率随标注数的变化（4 种策略）</div>
+            <canvas id="al-curve" width="380" height="380"></canvas>
+          </div>
+        </div>
+        <div class="callout callout--think">
+          <strong>观察要点。</strong>
+          中间的采集分数图是一张热力图，表示此刻每个池中点有多大的信息量。<em>随机</em>
+          完全无视它；<em>不确定性</em> 选取最亮之处；
+          <em>间隔</em> 选取两个类别几近平局之处；
+          <em>委员会</em> 选取集成成员意见相左之处
+          （这往往能最先捕捉到最有用的边界点）。对每种策略各运行 25 次采集，然后读出右侧的差距。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>真实标注预算容易陷入的陷阱</h2>
+        <ul class="explanation-list">
+          <li><strong>冷启动。</strong> 当标注数 $\le 5$ 时，各种策略基本上都等同于随机 &mdash;&mdash; 模型所获信息太少，无法识别「有用」的点。始终应以一小组随机种子标注起步。</li>
+          <li><strong>冗余查询。</strong> 纯粹的不确定性采样往往反复选取同一模糊区域中的邻近点。应加入多样性项（对前 $k$ 个点做 k-medoids，或使用 BatchBALD）以使查询分散开。</li>
+          <li><strong>对稀有类别的偏向性忽视。</strong> 若某个类别在池中样本极少，不确定性采样会忽略它。应使用类别均衡的采样，或在采集函数中为稀有类别加权。</li>
+          <li><strong>采集与模型不匹配。</strong> 你用于主动学习的模型类别，必须与你在标注上训练的模型类别一致。用逻辑回归做采集、再去训练神经网络，会很快把标注效率白白浪费掉。</li>
+          <li><strong>可复现性。</strong> 随机种子在主动学习中影响极大；应把结果报告为跨多个种子的曲线，而非单次运行。（参见实践建议中关于多种子报告的部分。）</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>主动学习适用的场景</h2>
+        <ul class="explanation-list">
+          <li><strong>传感器 / 测量点布置。</strong> 在你当前场模型下，按最大预测不确定性来选取下一个位置/传感器/探针。这是经典的贝叶斯实验设计 &mdash;&mdash; 相关「期望改进」框架参见贝叶斯优化一文。</li>
+          <li><strong>图像 / 视频标注。</strong> 帧级标注成本高昂；主动学习瞄准当前模型最没有把握的帧。这在医学影像、自动驾驶数据集、监控视频标注中已是标准做法。</li>
+          <li><strong>卫星瓦片筛选。</strong> 在数百万个未标注瓦片中，主动学习挑出检测器最没把握的那几百个，从而成倍提升标注效率。</li>
+          <li><strong>NLP 微调。</strong> 决定让人类标注者接下来标注哪些文本；对于每个样本都很耗时的片段 / 实体标注尤其有价值。</li>
+          <li><strong>药物发现。</strong> 决定接下来测定哪些分子 &mdash;&mdash; 湿实验每个数据点耗资数百美元，此时主动学习不可或缺。</li>
+        </ul>
+        <div class="callout callout--think">
+          <strong>最终要点。</strong>
+          主动学习是成倍放大标注预算最廉价的方式之一。它每次查询只需重训一次模型，外加少量记账工作。对于任何预算有限的标注流程，它都应成为默认做法，而非可有可无的附加项。
+        </div>
+      </section>
+
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>为何主动学习在深度学习中常常失效</h2>
+        <p>
+          文献中充斥着「主动学习有效」的论文，而生产实践的经验谈中则充斥着「主动学习在我们这里没能胜过随机采样」。二者都没错；调和这一矛盾的观点来自 2021–2022 年一批细致的实证工作（Munjal 等，2022；Lüth 等，2024）：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>随机是比较强的基线。</strong> 当你的样本池与测试集同分布（i.i.d.）且模型调校良好时，随机采样很难被超越。多数被报告的主动学习「胜绩」在严谨的多随机种子平均之下都会消失。</li>
+          <li><strong>模型比采集函数更重要。</strong> 从逻辑回归换成经过定标的深度网络，对准确率的影响往往大于在 BALD 与熵之间切换。</li>
+          <li><strong>类别不平衡正是主动学习的用武之地。</strong> 当某些类别稀有到 100 倍时，随机采样对其代表性不足；基于不确定性的主动学习（尤其是配合类别感知的采集函数）能更快地覆盖它们。</li>
+          <li><strong>糟糕的定标会毁掉主动学习。</strong> 采集函数读取的是置信度。若你的模型严重失准（参见<a href="../calibration/index.html">定标一文</a>），那么采集函数读到的便是垃圾。</li>
+          <li><strong>批量模式的主动学习很难。</strong> 单查询主动学习已有充分研究；而批量模式（每轮采集 $B$ 个样本以让 GPU 保持忙碌）在 BatchBALD（Kirsch 等，2019）与基于 CORESET 的方法出现之前一直是个开放问题。任何以批为单位重训的实用流程都应采用这些方法。</li>
+        </ul>
+      </section>
+
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>参考文献</h2>
+        <ul class="explanation-list">
+          <li><strong>Settles（2009）</strong> &mdash;&mdash; <em>Active Learning Literature Survey.</em> 历史性综述。</li>
+          <li><strong>Gal、Islam、Ghahramani（2017）</strong> &mdash;&mdash; <em>Deep Bayesian Active Learning with Image Data.</em> 结合 MC-dropout 的 BALD 论文。</li>
+          <li><strong>Sener 与 Savarese（2018）</strong> &mdash;&mdash; <em>Active Learning for Convolutional Neural Networks: A Core-Set Approach.</em> 以多样性为先的论文。</li>
+          <li><strong>Kirsch、van Amersfoort、Gal（2019）</strong> &mdash;&mdash; <em>BatchBALD.</em> 批量模式 BALD 的论文。</li>
+          <li><strong>Munjal 等（2022）</strong> &mdash;&mdash; <em>Towards Robust and Reproducible Active Learning Using Neural Networks.</em></li>
+          <li><strong>Lüth、Bungert、Klein、Maier-Hein（2024）</strong> &mdash;&mdash; <em>Navigating the Pitfalls of Active Learning Evaluation.</em></li>
+        </ul>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

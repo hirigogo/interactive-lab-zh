@@ -1,0 +1,718 @@
+{
+ "slug": "sorting-race",
+ "units": {
+  "Sorting, Race by Race": {
+   "zh": "逐场竞速看排序",
+   "src": "Sorting, Race by Race",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Five classic sorts on the same array, stepping in lockstep.\n          Comparisons and writes count up live. Toggle the input\n          distribution to watch quicksort's worst case appear and\n          insertion sort win on tiny arrays. The asymptotics are\n          equal between three of them — the constants are not.": {
+   "zh": "五种经典排序算法作用于同一数组，同步逐操作步进。比较次数与写入次数实时累加。切换输入分布，观察快速排序的最坏情形如何出现，以及插入排序如何在极小数组上取胜。其中三种算法的渐近阶相同 —— 但常数因子不同。",
+   "src": "Five classic sorts on the same array, stepping in lockstep.\n          Comparisons and writes count up live. Toggle the input\n          distribution to watch quicksort's worst case appear and\n          insertion sort win on tiny arrays. The asymptotics are\n          equal between three of them — the constants are not.",
+   "tags": []
+  },
+  "@@T0@@~14 min@@T1@@\n          @@T2@@Data structures &middot; Algorithms &middot; Complexity@@T3@@": {
+   "zh": "@@T0@@约 14 分钟@@T1@@\n          @@T2@@数据结构 &middot; 算法 &middot; 复杂度@@T3@@",
+   "src": "<span>~14 min</span>\n          <span>Data structures &middot; Algorithms &middot; Complexity</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "The asymptotic answer hides the real one": {
+   "zh": "渐近答案掩盖了真正的答案",
+   "src": "The asymptotic answer hides the real one",
+   "tags": []
+  },
+  "Every algorithms textbook lists the same table:\n          mergesort, quicksort, heapsort — all $O(n \\log n)$.\n          Insertion sort, bubble sort, selection sort — all $O(n^2)$.\n          End of story. Yet your standard library's sort is none of\n          those three $n \\log n$ algorithms. It's Timsort (Python,\n          Java) or pdqsort (Rust, C++). Both spend a surprising\n          amount of code calling @@T0@@insertion sort@@T1@@.": {
+   "zh": "每一本算法教科书都列出同一张表：归并排序、快速排序、堆排序 —— 全为 $O(n \\log n)$；插入排序、冒泡排序、选择排序 —— 全为 $O(n^2)$。故事到此为止。然而你所用标准库的排序却并非这三种 $n \\log n$ 算法中的任何一种，而是 Timsort（Python、Java）或 pdqsort（Rust、C++）。二者都在相当多的代码中调用@@T0@@插入排序@@T1@@。",
+   "src": "Every algorithms textbook lists the same table:\n          mergesort, quicksort, heapsort — all $O(n \\log n)$.\n          Insertion sort, bubble sort, selection sort — all $O(n^2)$.\n          End of story. Yet your standard library's sort is none of\n          those three $n \\log n$ algorithms. It's Timsort (Python,\n          Java) or pdqsort (Rust, C++). Both spend a surprising\n          amount of code calling <em>insertion sort</em>.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Asymptotics tell you how the cost scales. They don't tell\n          you what the cost @@T0@@is@@T1@@. On 16 elements, insertion\n          sort is faster than quicksort. On a nearly-sorted array of\n          a million, Timsort beats vanilla quicksort by 10× by\n          detecting existing runs. On adversarial input,\n          a naïve quicksort degrades to $O(n^2)$ and a balanced\n          mergesort doesn't.": {
+   "zh": "渐近分析告诉你代价如何随规模增长，却不告诉你代价@@T0@@究竟是多少@@T1@@。在 16 个元素上，插入排序快于快速排序。在近乎有序的百万元素数组上，Timsort 通过检测已有的有序段而以 10× 的优势胜过朴素快速排序。在对抗性输入下，朴素快速排序退化为 $O(n^2)$，而均衡的归并排序不会。",
+   "src": "Asymptotics tell you how the cost scales. They don't tell\n          you what the cost <em>is</em>. On 16 elements, insertion\n          sort is faster than quicksort. On a nearly-sorted array of\n          a million, Timsort beats vanilla quicksort by 10× by\n          detecting existing runs. On adversarial input,\n          a naïve quicksort degrades to $O(n^2)$ and a balanced\n          mergesort doesn't.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The race below shows all of this directly. Five algorithms\n          start on the same array and step one operation at a time.\n          You can pick the input distribution, count comparisons and\n          writes, and see the constants the big-O notation discards.": {
+   "zh": "下方的竞速直接展示了这一切。五种算法从同一数组出发，每次步进一个操作。你可以选择输入分布、统计比较与写入次数，并看到大 O 记号所丢弃的那些常数。",
+   "src": "The race below shows all of this directly. Five algorithms\n          start on the same array and step one operation at a time.\n          You can pick the input distribution, count comparisons and\n          writes, and see the constants the big-O notation discards.",
+   "tags": []
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "The race": {
+   "zh": "竞速",
+   "src": "The race",
+   "tags": []
+  },
+  "Each card shows an algorithm's current state: bars are\n          values, the highlighted bar is the position currently\n          being compared, swaps flash, sorted segments turn teal.\n          All cards advance one operation per tick.": {
+   "zh": "每张卡片展示一种算法的当前状态：柱条表示数值，高亮的柱条为当前正在比较的位置，交换时会闪烁，已排序的区段变为青色。所有卡片每拍推进一个操作。",
+   "src": "Each card shows an algorithm's current state: bars are\n          values, the highlighted bar is the position currently\n          being compared, swaps flash, sorted segments turn teal.\n          All cards advance one operation per tick.",
+   "tags": []
+  },
+  "distribution": {
+   "zh": "分布",
+   "src": "distribution",
+   "tags": []
+  },
+  "random": {
+   "zh": "随机",
+   "src": "random",
+   "tags": []
+  },
+  "nearly sorted": {
+   "zh": "近乎有序",
+   "src": "nearly sorted",
+   "tags": []
+  },
+  "reversed": {
+   "zh": "逆序",
+   "src": "reversed",
+   "tags": []
+  },
+  "already sorted": {
+   "zh": "已有序",
+   "src": "already sorted",
+   "tags": []
+  },
+  "few unique": {
+   "zh": "少量不同值",
+   "src": "few unique",
+   "tags": []
+  },
+  "size": {
+   "zh": "规模",
+   "src": "size",
+   "tags": []
+  },
+  "speed": {
+   "zh": "速度",
+   "src": "speed",
+   "tags": []
+  },
+  "slow": {
+   "zh": "慢",
+   "src": "slow",
+   "tags": []
+  },
+  "normal": {
+   "zh": "正常",
+   "src": "normal",
+   "tags": []
+  },
+  "fast": {
+   "zh": "快",
+   "src": "fast",
+   "tags": []
+  },
+  "turbo": {
+   "zh": "极速",
+   "src": "turbo",
+   "tags": []
+  },
+  "play": {
+   "zh": "播放",
+   "src": "play",
+   "tags": []
+  },
+  "pause": {
+   "zh": "暂停",
+   "src": "pause",
+   "tags": []
+  },
+  "reset": {
+   "zh": "重置",
+   "src": "reset",
+   "tags": []
+  },
+  "@@T0@@@@T1@@@@T2@@unsorted bar@@T3@@\n          @@T4@@@@T5@@@@T6@@comparing@@T7@@\n          @@T8@@@@T9@@@@T10@@writing@@T11@@\n          @@T12@@@@T13@@@@T14@@pivot / aux@@T15@@\n          @@T16@@@@T17@@@@T18@@final position@@T19@@": {
+   "zh": "@@T0@@@@T1@@@@T2@@未排序柱条@@T3@@\n          @@T4@@@@T5@@@@T6@@比较中@@T7@@\n          @@T8@@@@T9@@@@T10@@写入中@@T11@@\n          @@T12@@@@T13@@@@T14@@基准 / 辅助@@T15@@\n          @@T16@@@@T17@@@@T18@@最终位置@@T19@@",
+   "src": "<span><span class=\"legend-swatch\" style=\"background: var(--bar-fill);\"></span>unsorted bar</span>\n          <span><span class=\"legend-swatch\" style=\"background: var(--bar-cmp);\"></span>comparing</span>\n          <span><span class=\"legend-swatch\" style=\"background: var(--bar-write);\"></span>writing</span>\n          <span><span class=\"legend-swatch\" style=\"background: var(--bar-pivot);\"></span>pivot / aux</span>\n          <span><span class=\"legend-swatch\" style=\"background: var(--bar-sorted);\"></span>final position</span>",
+   "tags": [
+    "<span>",
+    "<span class=\"legend-swatch\" style=\"background: var(--bar-fill);\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"legend-swatch\" style=\"background: var(--bar-cmp);\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"legend-swatch\" style=\"background: var(--bar-write);\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"legend-swatch\" style=\"background: var(--bar-pivot);\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"legend-swatch\" style=\"background: var(--bar-sorted);\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Things worth trying:": {
+   "zh": "值得一试的操作：",
+   "src": "Things worth trying:",
+   "tags": []
+  },
+  "Set distribution to @@T0@@already sorted@@T1@@. Insertion\n            sort finishes in $n-1$ comparisons — its best case.\n            First-element-pivot quicksort needs $\\binom{n}{2}$\n            comparisons — its worst case. Same input, opposite\n            outcomes.": {
+   "zh": "将分布设为@@T0@@已有序@@T1@@。插入排序以 $n-1$ 次比较完成 —— 这是它的最好情形。以首元素为基准的快速排序则需要 $\\binom{n}{2}$ 次比较 —— 这是它的最坏情形。相同的输入，截然相反的结局。",
+   "src": "Set distribution to <em>already sorted</em>. Insertion\n            sort finishes in $n-1$ comparisons — its best case.\n            First-element-pivot quicksort needs $\\binom{n}{2}$\n            comparisons — its worst case. Same input, opposite\n            outcomes.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Set distribution to @@T0@@reversed@@T1@@. Now bubble sort\n            performs its maximum number of swaps. Mergesort doesn't\n            care.": {
+   "zh": "将分布设为@@T0@@逆序@@T1@@。此时冒泡排序执行其最大次数的交换。归并排序则毫不在意。",
+   "src": "Set distribution to <em>reversed</em>. Now bubble sort\n            performs its maximum number of swaps. Mergesort doesn't\n            care.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Set size to 24, distribution to @@T0@@random@@T1@@. Watch\n            quicksort and mergesort finish in roughly the same wall-clock\n            time despite different recursion structures.": {
+   "zh": "将规模设为 24、分布设为@@T0@@随机@@T1@@。观察快速排序与归并排序尽管递归结构不同，完成时间却大致相当。",
+   "src": "Set size to 24, distribution to <em>random</em>. Watch\n            quicksort and mergesort finish in roughly the same wall-clock\n            time despite different recursion structures.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Set size to 60, distribution to @@T0@@random@@T1@@.\n            Insertion and bubble sort visibly lag behind the\n            $n \\log n$ contestants.": {
+   "zh": "将规模设为 60、分布设为@@T0@@随机@@T1@@。插入排序与冒泡排序明显落后于那些 $n \\log n$ 的参赛者。",
+   "src": "Set size to 60, distribution to <em>random</em>.\n            Insertion and bubble sort visibly lag behind the\n            $n \\log n$ contestants.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Insertion sort — small-n champion": {
+   "zh": "插入排序 —— 小规模之王",
+   "src": "Insertion sort — small-n champion",
+   "tags": []
+  },
+  "Walk through the array. For each new element, slide it\n          leftward past every larger element until it lands.": {
+   "zh": "沿数组遍历。对每个新元素，将其向左滑动越过所有比它大的元素，直至落位。",
+   "src": "Walk through the array. For each new element, slide it\n          leftward past every larger element until it lands.",
+   "tags": []
+  },
+  "Two facts that make insertion sort matter beyond textbook\n          examples:": {
+   "zh": "有两个事实使插入排序的重要性超出教科书的示例范围：",
+   "src": "Two facts that make insertion sort matter beyond textbook\n          examples:",
+   "tags": []
+  },
+  "@@T0@@It is the best you can do on tiny arrays.@@T1@@\n            Modern hybrid sorts (introsort, pdqsort, Timsort) call\n            insertion sort below a threshold (typically 16 or 32).\n            The asymptotic loss is bounded; the constants are\n            unbeatable.": {
+   "zh": "@@T0@@在极小数组上它是最优选择。@@T1@@\n            现代混合排序（introsort、pdqsort、Timsort）在低于某个阈值（通常为 16 或 32）时调用插入排序。\n            渐近意义上的损失是有界的，而常数因子无可匹敌。",
+   "src": "<strong>It is the best you can do on tiny arrays.</strong>\n            Modern hybrid sorts (introsort, pdqsort, Timsort) call\n            insertion sort below a threshold (typically 16 or 32).\n            The asymptotic loss is bounded; the constants are\n            unbeatable.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@It is @@T1@@adaptive@@T2@@.@@T3@@ On a\n            $k$-nearly-sorted input ($k$ inversions), insertion sort\n            runs in $O(n + k)$. On already-sorted, $O(n)$. Mergesort\n            and heapsort don't speed up on adaptive input.": {
+   "zh": "@@T0@@它是@@T1@@自适应性@@T2@@的。@@T3@@ 对\n            $k$-近乎有序的输入（$k$ 个逆序对），插入排序运行时间为 $O(n + k)$。对已有序输入则为 $O(n)$。归并排序与堆排序在自适应输入上并不会加速。",
+   "src": "<strong>It is <em>adaptive</em>.</strong> On a\n            $k$-nearly-sorted input ($k$ inversions), insertion sort\n            runs in $O(n + k)$. On already-sorted, $O(n)$. Mergesort\n            and heapsort don't speed up on adaptive input.",
+   "tags": [
+    "<strong>",
+    "<em>",
+    "</em>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@It is stable and in-place.@@T1@@ Equal keys\n            keep their relative order; no auxiliary memory.": {
+   "zh": "@@T0@@它是稳定的且原地排序。@@T1@@ 相等的键保持其相对顺序；无需辅助内存。",
+   "src": "<strong>It is stable and in-place.</strong> Equal keys\n            keep their relative order; no auxiliary memory.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Mergesort — the deterministic n log n": {
+   "zh": "归并排序 —— 确定性的 n log n",
+   "src": "Mergesort — the deterministic n log n",
+   "tags": []
+  },
+  "Split the array in half, sort each half recursively, merge\n          the two sorted halves in linear time. The merge is the\n          heart of it:": {
+   "zh": "将数组一分为二，递归地排序每一半，再以线性时间合并两个已排序的半区。合并正是其核心：",
+   "src": "Split the array in half, sort each half recursively, merge\n          the two sorted halves in linear time. The merge is the\n          heart of it:",
+   "tags": []
+  },
+  "Mergesort's guarantees:": {
+   "zh": "归并排序的保证：",
+   "src": "Mergesort's guarantees:",
+   "tags": []
+  },
+  "@@T0@@$O(n \\log n)$ worst case@@T1@@ — no\n            adversarial input slows it down.": {
+   "zh": "@@T0@@最坏情形为 $O(n \\log n)$@@T1@@ —— 任何对抗性输入都无法拖慢它。",
+   "src": "<strong>$O(n \\log n)$ worst case</strong> — no\n            adversarial input slows it down.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Stable@@T1@@ (with the standard\n            implementation).": {
+   "zh": "@@T0@@稳定@@T1@@（在标准实现下）。",
+   "src": "<strong>Stable</strong> (with the standard\n            implementation).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Pays $O(n)$ extra memory@@T1@@ for the\n            merge buffer. This is the reason mergesort lost the\n            in-place fight to quicksort despite the better worst\n            case.": {
+   "zh": "@@T0@@为合并缓冲区付出 $O(n)$ 的额外内存@@T1@@。这正是归并排序尽管最坏情形更优，却在原地排序的竞争中输给快速排序的原因。",
+   "src": "<strong>Pays $O(n)$ extra memory</strong> for the\n            merge buffer. This is the reason mergesort lost the\n            in-place fight to quicksort despite the better worst\n            case.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@External-sort friendly.@@T1@@ Mergesort is\n            the algorithm you use when the data doesn't fit in\n            memory: split into RAM-sized runs, sort each, merge from\n            disk. This is how databases sort terabytes.": {
+   "zh": "@@T0@@对外部排序友好。@@T1@@ 当归并排序是数据无法全部装入内存时所使用的算法：切分为若干内存大小的有序段，分别排序，再从磁盘合并。数据库排序 TB 级数据正是如此。",
+   "src": "<strong>External-sort friendly.</strong> Mergesort is\n            the algorithm you use when the data doesn't fit in\n            memory: split into RAM-sized runs, sort each, merge from\n            disk. This is how databases sort terabytes.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Quicksort — and the pivot question": {
+   "zh": "快速排序 —— 以及基准的选择问题",
+   "src": "Quicksort — and the pivot question",
+   "tags": []
+  },
+  "Pick a pivot. Partition the array into \"less than pivot\",\n          \"equal\", \"greater than pivot\". Recurse on the two outer\n          partitions. The maths is similar to mergesort —\n          a divide-and-conquer recursion that costs $O(n \\log n)$\n          on average — but the implementation has one painful\n          decision: @@T0@@which pivot?@@T1@@": {
+   "zh": "选取一个基准。将数组划分为“小于基准”“等于”“大于基准”三部分。对两侧的分区递归处理。其数学形式与归并排序相似 —— 是一个平均代价为 $O(n \\log n)$ 的分治递归 —— 但实现上有一个令人头疼的决定：@@T0@@选哪个基准？@@T1@@",
+   "src": "Pick a pivot. Partition the array into \"less than pivot\",\n          \"equal\", \"greater than pivot\". Recurse on the two outer\n          partitions. The maths is similar to mergesort —\n          a divide-and-conquer recursion that costs $O(n \\log n)$\n          on average — but the implementation has one painful\n          decision: <em>which pivot?</em>",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Pivot strategies, ranked from \"easy to break\" to\n          \"production\":": {
+   "zh": "基准策略，按从“易被攻破”到“可上生产”排序：",
+   "src": "Pivot strategies, ranked from \"easy to break\" to\n          \"production\":",
+   "tags": []
+  },
+  "@@T0@@First element.@@T1@@ The textbook\n            introduction. On already-sorted or reverse-sorted input,\n            partition is maximally unbalanced and quicksort\n            collapses to $O(n^2)$.": {
+   "zh": "@@T0@@首元素。@@T1@@ 教科书中的入门做法。对已有序或逆序的输入，划分会极度不均衡，快速排序退化为 $O(n^2)$。",
+   "src": "<strong>First element.</strong> The textbook\n            introduction. On already-sorted or reverse-sorted input,\n            partition is maximally unbalanced and quicksort\n            collapses to $O(n^2)$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Random pivot.@@T1@@ Pick a uniformly random\n            index per partition. Expected $O(n \\log n)$ regardless\n            of input distribution. An adversary who can see your\n            random source can still hurt you, so use a real PRNG.": {
+   "zh": "@@T0@@随机基准。@@T1@@ 每次划分选取一个均匀随机的下标。无论输入分布如何，期望复杂度为 $O(n \\log n)$。但能看到你随机源的对手仍可造成伤害，因此请使用真正的伪随机数生成器。",
+   "src": "<strong>Random pivot.</strong> Pick a uniformly random\n            index per partition. Expected $O(n \\log n)$ regardless\n            of input distribution. An adversary who can see your\n            random source can still hurt you, so use a real PRNG.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Median-of-three.@@T1@@ Pivot = median of\n            first, middle, last. Defeats sorted and reverse-sorted\n            inputs (median-of-three on a sorted array picks the\n            middle, which is the true median); doesn't defeat a\n            crafted \"killer\" input. Cheap and very common.": {
+   "zh": "@@T0@@三数取中。@@T1@@ 基准 = 首、中、尾三个元素的中位数。可破解已有序与逆序输入（在有序数组上三数取中所选即中间元素，也就是真正的中位数）；但无法破解精心构造的“杀手”输入。开销低廉且极为常用。",
+   "src": "<strong>Median-of-three.</strong> Pivot = median of\n            first, middle, last. Defeats sorted and reverse-sorted\n            inputs (median-of-three on a sorted array picks the\n            middle, which is the true median); doesn't defeat a\n            crafted \"killer\" input. Cheap and very common.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Introsort.@@T1@@ Start with quicksort;\n            switch to heapsort if recursion depth exceeds $2 \\log n$.\n            Guarantees $O(n \\log n)$ worst case while keeping\n            quicksort's cache-friendly average. Used by\n            @@T2@@std::sort@@T3@@ in C++.": {
+   "zh": "@@T0@@内省排序。@@T1@@ 以快速排序开始；若递归深度超过 $2 \\log n$ 则改用堆排序。既保证最坏情形为 $O(n \\log n)$，又保留快速排序对缓存友好的平均表现。C++ 中的 @@T2@@std::sort@@T3@@ 即采用此法。",
+   "src": "<strong>Introsort.</strong> Start with quicksort;\n            switch to heapsort if recursion depth exceeds $2 \\log n$.\n            Guarantees $O(n \\log n)$ worst case while keeping\n            quicksort's cache-friendly average. Used by\n            <code>std::sort</code> in C++.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@Three-way partition@@T1@@ (Bentley-McIlroy).\n            Handles arrays with many duplicates in $O(n)$ — the\n            \"few unique\" distribution above collapses quicksort to\n            linear time when you partition into \"$&lt;$, $=$, $&gt;$\"\n            instead of \"$\\le$, $&gt;$\".": {
+   "zh": "@@T0@@三路划分@@T1@@（Bentley-McIlroy）。以 $O(n)$ 处理含大量重复元素的数组 —— 当你把划分方式从“$\\le$, $&gt;$”改为“$&lt;$, $=$, $&gt;$”时，上方的“少量不同值”分布会使快速排序降为线性时间。",
+   "src": "<strong>Three-way partition</strong> (Bentley-McIlroy).\n            Handles arrays with many duplicates in $O(n)$ — the\n            \"few unique\" distribution above collapses quicksort to\n            linear time when you partition into \"$&lt;$, $=$, $&gt;$\"\n            instead of \"$\\le$, $&gt;$\".",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Why quicksort wins on real data despite a worse worst case.@@T1@@\n          Cache locality. Each partition step touches contiguous\n          memory; recursion descends into smaller and smaller\n          contiguous ranges that fit in L1 / L2 cache. Heapsort and\n          mergesort have access patterns that thrash the cache.\n          Asymptotics don't see this — your CPU does.": {
+   "zh": "@@T0@@为何快速排序尽管最坏情形更差，却在真实数据上胜出。@@T1@@\n          缓存局部性。每一次划分都访问连续内存；递归进入越来越小、可容纳于 L1 / L2 缓存的连续区间。堆排序与归并排序的访问模式会使缓存失效。渐近分析看不到这一点 —— 但你的 CPU 看得到。",
+   "src": "<strong>Why quicksort wins on real data despite a worse worst case.</strong>\n          Cache locality. Each partition step touches contiguous\n          memory; recursion descends into smaller and smaller\n          contiguous ranges that fit in L1 / L2 cache. Heapsort and\n          mergesort have access patterns that thrash the cache.\n          Asymptotics don't see this — your CPU does.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Heapsort — guaranteed n log n, in place": {
+   "zh": "堆排序 —— 保证 n log n，且原地",
+   "src": "Heapsort — guaranteed n log n, in place",
+   "tags": []
+  },
+  "Build a max-heap from the array in $O(n)$ (Floyd's bottom-up\n          heapify — see the @@T0@@Trees\n          article@@T1@@). Then repeatedly extract-max into the last\n          slot of the array, shrinking the heap by one. The\n          extracted maxes accumulate in sorted order at the tail.": {
+   "zh": "以 $O(n)$ 由数组构建最大堆（Floyd 自底向上的建堆 —— 参见@@T0@@树\n          一文@@T1@@）。随后反复取出最大值并放入数组末尾的槽位，堆的规模减一。被取出的最大值按有序顺序在尾部累积。",
+   "src": "Build a max-heap from the array in $O(n)$ (Floyd's bottom-up\n          heapify — see the <a href=\"../trees/index.html\">Trees\n          article</a>). Then repeatedly extract-max into the last\n          slot of the array, shrinking the heap by one. The\n          extracted maxes accumulate in sorted order at the tail.",
+   "tags": [
+    "<a href=\"../trees/index.html\">",
+    "</a>"
+   ]
+  },
+  "The combination is rare and useful: $O(n \\log n)$ worst\n          case, in place, no auxiliary memory. Why isn't it the\n          standard? Cache. The implicit binary tree's array indices\n          $i, 2i+1, 2i+2$ scatter accesses across memory; each\n          sift-down is a series of cache misses. Quicksort touches\n          contiguous regions; heapsort jumps. On real hardware\n          quicksort wins by 2–3× for the same $n$.": {
+   "zh": "这一组合既罕见又实用：最坏情形 $O(n \\log n)$、原地、无需辅助内存。那它为何不是标准做法？答案是缓存。隐式二叉树的数组下标 $i, 2i+1, 2i+2$ 使访问散布于内存各处；每次下沉都是一连串缓存未命中。快速排序访问连续区域，堆排序则跳跃访问。在真实硬件上，相同 $n$ 时快速排序以 2–3× 的优势取胜。",
+   "src": "The combination is rare and useful: $O(n \\log n)$ worst\n          case, in place, no auxiliary memory. Why isn't it the\n          standard? Cache. The implicit binary tree's array indices\n          $i, 2i+1, 2i+2$ scatter accesses across memory; each\n          sift-down is a series of cache misses. Quicksort touches\n          contiguous regions; heapsort jumps. On real hardware\n          quicksort wins by 2–3× for the same $n$.",
+   "tags": []
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "The big-O table — and what it leaves out": {
+   "zh": "大 O 表 —— 以及它所遗漏的内容",
+   "src": "The big-O table — and what it leaves out",
+   "tags": []
+  },
+  "algorithm": {
+   "zh": "算法",
+   "src": "algorithm",
+   "tags": []
+  },
+  "best": {
+   "zh": "最好",
+   "src": "best",
+   "tags": []
+  },
+  "average": {
+   "zh": "平均",
+   "src": "average",
+   "tags": []
+  },
+  "worst": {
+   "zh": "最坏",
+   "src": "worst",
+   "tags": []
+  },
+  "memory": {
+   "zh": "内存",
+   "src": "memory",
+   "tags": []
+  },
+  "stable": {
+   "zh": "稳定",
+   "src": "stable",
+   "tags": []
+  },
+  "in place": {
+   "zh": "原地",
+   "src": "in place",
+   "tags": []
+  },
+  "adaptive": {
+   "zh": "自适应",
+   "src": "adaptive",
+   "tags": []
+  },
+  "insertion": {
+   "zh": "插入排序",
+   "src": "insertion",
+   "tags": []
+  },
+  "yes": {
+   "zh": "是",
+   "src": "yes",
+   "tags": []
+  },
+  "bubble": {
+   "zh": "冒泡排序",
+   "src": "bubble",
+   "tags": []
+  },
+  "merge": {
+   "zh": "归并排序",
+   "src": "merge",
+   "tags": []
+  },
+  "quick (random pivot)": {
+   "zh": "快速排序（随机基准）",
+   "src": "quick (random pivot)",
+   "tags": []
+  },
+  "$O(\\log n)$ stack": {
+   "zh": "$O(\\log n)$ 栈空间",
+   "src": "$O(\\log n)$ stack",
+   "tags": []
+  },
+  "heap": {
+   "zh": "堆排序",
+   "src": "heap",
+   "tags": []
+  },
+  "Timsort": {
+   "zh": "Timsort（Python 内置排序）",
+   "src": "Timsort",
+   "tags": []
+  },
+  "introsort (pdqsort)": {
+   "zh": "内省排序（pdqsort）",
+   "src": "introsort (pdqsort)",
+   "tags": []
+  },
+  "partial": {
+   "zh": "部分",
+   "src": "partial",
+   "tags": []
+  },
+  "The columns that the textbook table omits — @@T0@@stable@@T1@@,\n          @@T2@@in place@@T3@@, @@T4@@adaptive@@T5@@ — are exactly the\n          ones that decide which sort your standard library actually\n          ships.": {
+   "zh": "教科书表格所略去的那些列 —— @@T0@@稳定@@T1@@、@@T2@@原地@@T3@@、@@T4@@自适应@@T5@@ —— 恰恰决定了你的标准库实际搭载何种排序。",
+   "src": "The columns that the textbook table omits — <em>stable</em>,\n          <em>in place</em>, <em>adaptive</em> — are exactly the\n          ones that decide which sort your standard library actually\n          ships.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 7": {
+   "zh": "第 7 步",
+   "src": "Step 7",
+   "tags": []
+  },
+  "Beyond the comparison-sort ceiling": {
+   "zh": "超越比较排序的上限",
+   "src": "Beyond the comparison-sort ceiling",
+   "tags": []
+  },
+  "Any comparison-based sort must take at least\n          $\\Omega(n \\log n)$ comparisons in the worst case — every\n          permutation needs to be distinguishable, and a comparison\n          tree of depth $d$ can only distinguish $2^d$ permutations.": {
+   "zh": "任何基于比较的排序在最坏情形下都必须进行至少 $\\Omega(n \\log n)$ 次比较 —— 每种排列都需可被区分，而深度为 $d$ 的比较树至多区分 $2^d$ 种排列。",
+   "src": "Any comparison-based sort must take at least\n          $\\Omega(n \\log n)$ comparisons in the worst case — every\n          permutation needs to be distinguishable, and a comparison\n          tree of depth $d$ can only distinguish $2^d$ permutations.",
+   "tags": []
+  },
+  "If you don't need to compare — i.e., your keys are\n          structured — you can do better.": {
+   "zh": "若你无需比较 —— 也就是说，你的键具有结构 —— 便能做得更好。",
+   "src": "If you don't need to compare — i.e., your keys are\n          structured — you can do better.",
+   "tags": []
+  },
+  "@@T0@@Counting sort.@@T1@@ Keys in $\\{0, \\ldots,\n            k\\}$? Count occurrences in $O(n + k)$, emit. Linear when\n            $k = O(n)$. The block sort underlying radix.": {
+   "zh": "@@T0@@计数排序。@@T1@@ 键取值于 $\\{0, \\ldots,\n            k\\}$？以 $O(n + k)$ 统计出现次数，再依次输出。当 $k = O(n)$ 时为线性。这是基数排序底层的块排序。",
+   "src": "<strong>Counting sort.</strong> Keys in $\\{0, \\ldots,\n            k\\}$? Count occurrences in $O(n + k)$, emit. Linear when\n            $k = O(n)$. The block sort underlying radix.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Radix sort.@@T1@@ Sort by least-significant\n            digit, then next, then next. $O(d \\cdot n)$ where $d$ is\n            the number of digits. Faster than $n \\log n$ on\n            fixed-width integers; loses on cache behaviour for\n            short arrays.": {
+   "zh": "@@T0@@基数排序。@@T1@@ 先按最低位排序，再按次低位、依此类推。$O(d \\cdot n)$，其中 $d$ 为位数。对定宽整数快于 $n \\log n$；但在短数组上因缓存行为而不占优势。",
+   "src": "<strong>Radix sort.</strong> Sort by least-significant\n            digit, then next, then next. $O(d \\cdot n)$ where $d$ is\n            the number of digits. Faster than $n \\log n$ on\n            fixed-width integers; loses on cache behaviour for\n            short arrays.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Bucket sort.@@T1@@ Hash into $k$ buckets,\n            sort each bucket, concatenate. Expected $O(n + k)$ on\n            uniform input. Adversarial input drives it to $O(n^2)$.": {
+   "zh": "@@T0@@桶排序。@@T1@@ 散列到 $k$ 个桶中，对每个桶排序，再拼接。对均匀输入期望为 $O(n + k)$。对抗性输入会使其退化为 $O(n^2)$。",
+   "src": "<strong>Bucket sort.</strong> Hash into $k$ buckets,\n            sort each bucket, concatenate. Expected $O(n + k)$ on\n            uniform input. Adversarial input drives it to $O(n^2)$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@One rule of thumb.@@T1@@\n          For general-purpose ordering of comparable objects, use\n          your language's built-in sort — it is Timsort or pdqsort\n          and has been carefully tuned. Reach for a custom sort only\n          when (a) you need a guarantee the standard sort doesn't\n          give (worst-case $O(n \\log n)$? stable across primitive\n          and object?) or (b) your keys are structured enough for\n          counting / radix / bucket to actually win.": {
+   "zh": "@@T0@@一条经验法则。@@T1@@\n          对于可比较对象的一般性排序，请使用你所用语言的内置排序 —— 它是 Timsort 或 pdqsort，且经过精心调校。只有在以下情形才求助于自定义排序：(a) 你需要标准排序无法提供的保证（最坏情形 $O(n \\log n)$？在基本类型与对象上均稳定？）；或 (b) 你的键结构足够强，使计数 / 基数 / 桶排序确实能够取胜。",
+   "src": "<strong>One rule of thumb.</strong>\n          For general-purpose ordering of comparable objects, use\n          your language's built-in sort — it is Timsort or pdqsort\n          and has been carefully tuned. Reach for a custom sort only\n          when (a) you need a guarantee the standard sort doesn't\n          give (worst-case $O(n \\log n)$? stable across primitive\n          and object?) or (b) your keys are structured enough for\n          counting / radix / bucket to actually win.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 8": {
+   "zh": "第 8 步",
+   "src": "Step 8",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "推荐阅读",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Knuth, TAOCP Vol&nbsp;3@@T1@@ — Sorting and\n            Searching. Still the reference. The merge-network\n            chapter alone is worth the cover price.": {
+   "zh": "@@T0@@Knuth，TAOCP 第&nbsp;3&nbsp;卷@@T1@@ —— 排序与查找。至今仍是权威参考。仅其中关于归并网络的章节便值回书价。",
+   "src": "<strong>Knuth, TAOCP Vol&nbsp;3</strong> — Sorting and\n            Searching. Still the reference. The merge-network\n            chapter alone is worth the cover price.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Sedgewick, 1978@@T1@@ — @@T2@@Implementing\n            Quicksort Programs.@@T3@@ The paper that introduced\n            median-of-three and the in-place partitioning trick used\n            for decades.": {
+   "zh": "@@T0@@Sedgewick，1978@@T1@@ —— @@T2@@Implementing\n            Quicksort Programs.@@T3@@ 该文引入的三数取中法以及沿用数十年的原地划分技巧。",
+   "src": "<strong>Sedgewick, 1978</strong> — <em>Implementing\n            Quicksort Programs.</em> The paper that introduced\n            median-of-three and the in-place partitioning trick used\n            for decades.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Bentley &amp; McIlroy, 1993@@T1@@ —\n            @@T2@@Engineering a Sort Function.@@T3@@ The three-way\n            partition that defeats the duplicates case; the\n            partition-by-pseudo-median for large arrays. The paper\n            that made @@T4@@qsort@@T5@@ usable.": {
+   "zh": "@@T0@@Bentley &amp; McIlroy，1993@@T1@@ ——\n            @@T2@@Engineering a Sort Function.@@T3@@ 破解重复元素情形的三路划分；针对大数组的伪中位数划分。正是这篇论文使 @@T4@@qsort@@T5@@ 真正可用。",
+   "src": "<strong>Bentley &amp; McIlroy, 1993</strong> —\n            <em>Engineering a Sort Function.</em> The three-way\n            partition that defeats the duplicates case; the\n            partition-by-pseudo-median for large arrays. The paper\n            that made <code>qsort</code> usable.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@Peters, 2002@@T1@@ — @@T2@@Timsort original\n            listsort.txt.@@T3@@ The design notes of the Python sort.\n            Beautiful engineering writing.": {
+   "zh": "@@T0@@Peters，2002@@T1@@ —— @@T2@@Timsort 原始设计文档\n            listsort.txt.@@T3@@ Python 排序的设计笔记。工程写作的典范。",
+   "src": "<strong>Peters, 2002</strong> — <em>Timsort original\n            listsort.txt.</em> The design notes of the Python sort.\n            Beautiful engineering writing.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Auger, Nicaud, Pivoteau, 2018@@T1@@ —\n            @@T2@@Merge Strategies: from Merge Sort to TimSort.@@T3@@\n            The first thorough complexity analysis of Timsort,\n            including the bug they found in the merge invariant.": {
+   "zh": "@@T0@@Auger、Nicaud、Pivoteau，2018@@T1@@ ——\n            @@T2@@Merge Strategies: from Merge Sort to TimSort.@@T3@@\n            首篇对 Timsort 的完整复杂度分析，其中包括他们在归并不变量中发现的缺陷。",
+   "src": "<strong>Auger, Nicaud, Pivoteau, 2018</strong> —\n            <em>Merge Strategies: from Merge Sort to TimSort.</em>\n            The first thorough complexity analysis of Timsort,\n            including the bug they found in the merge invariant.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Edelkamp, Weiss, Wild, 2020@@T1@@ —\n            @@T2@@BlockQuicksort.@@T3@@ Branchless partitioning that\n            beats @@T4@@std::sort@@T5@@ on modern CPUs by reducing\n            branch mispredictions.": {
+   "zh": "@@T0@@Edelkamp、Weiss、Wild，2020@@T1@@ ——\n            @@T2@@BlockQuicksort.@@T3@@ 无分支划分，通过减少分支预测失败在现代 CPU 上胜过 @@T4@@std::sort@@T5@@。",
+   "src": "<strong>Edelkamp, Weiss, Wild, 2020</strong> —\n            <em>BlockQuicksort.</em> Branchless partitioning that\n            beats <code>std::sort</code> on modern CPUs by reducing\n            branch mispredictions.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<code>",
+    "</code>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "逐场竞速看排序",
+  "tagline": "五种算法，同一数组 —— 观察插入、冒泡、归并、快速与堆排序并驾齐驱",
+  "summary": "柱状图排序可视化随处可见，但鲜有能让算法在完全相同的输入上正面竞速者。五种经典排序在同一数组上同步步进；计数器跟踪比较与写入次数；切换输入分布即可看到为何快速排序的最坏情形是已排序输入、为何插入排序在极小数组上取胜，以及 Timsort 为何接管了各大标准库。",
+  "difficulty": "入门",
+  "collection": "数据结构",
+  "highlights": [
+   "五种算法在同一数组上同步竞速：插入排序、冒泡排序、归并排序、快速排序、堆排序。",
+   "实时的比较与写入计数器揭示出渐近分析所掩盖的常数因子。",
+   "切换分布（随机 / 近乎有序 / 逆序 / 已有序）—— 观察快速排序的最坏情形如何出现，以及插入排序如何在小数组上取胜。",
+   "将各基准策略并排比较：在相同的对抗性输入上对比首元素、随机与三数取中。",
+   "为何 Timsort / 快速排序在渐近性相同的情况下仍胜于堆排序：缓存局部性、分支预测、有序段检测。"
+  ],
+  "tags": [
+   "排序",
+   "算法",
+   "复杂度",
+   "交互式"
+  ]
+ },
+ "js": {
+  "\n      @@T0@@\n        @@T1@@[[[0]]]@@T2@@\n        @@T3@@@@T4@@\n      @@T5@@\n      @@T6@@@@T7@@\n      @@T8@@\n        @@T9@@cmp @@T10@@0@@T11@@@@T12@@\n        @@T13@@write @@T14@@0@@T15@@@@T16@@\n        @@T17@@step @@T18@@0@@T19@@@@T20@@\n      @@T21@@\n    ": {
+   "zh": "\n      @@T0@@\n        @@T1@@[[[0]]]@@T2@@\n        @@T3@@@@T4@@\n      @@T5@@\n      @@T6@@@@T7@@\n      @@T8@@\n        @@T9@@比较 @@T10@@0@@T11@@@@T12@@\n        @@T13@@写入 @@T14@@0@@T15@@@@T16@@\n        @@T17@@步数 @@T18@@0@@T19@@@@T20@@\n      @@T21@@\n    ",
+   "exprs": [
+    "${meta.name}",
+    "${meta.id}"
+   ],
+   "tags": [
+    "<div class=\"race-card-head\">",
+    "<span class=\"race-card-name\">",
+    "</span>",
+    "<span class=\"race-card-cx\" id=\"cx-[[[1]]]\">",
+    "</span>",
+    "</div>",
+    "<canvas>",
+    "</canvas>",
+    "<div class=\"race-card-stats\">",
+    "<span>",
+    "<strong class=\"race-stats-cmp\">",
+    "</strong>",
+    "</span>",
+    "<span>",
+    "<strong class=\"race-stats-wr\">",
+    "</strong>",
+    "</span>",
+    "<span>",
+    "<strong class=\"race-stats-st\">",
+    "</strong>",
+    "</span>",
+    "</div>"
+   ],
+   "src": "\n      <div class=\"race-card-head\">\n        <span class=\"race-card-name\">${meta.name}</span>\n        <span class=\"race-card-cx\" id=\"cx-${meta.id}\"></span>\n      </div>\n      <canvas></canvas>\n      <div class=\"race-card-stats\">\n        <span>cmp <strong class=\"race-stats-cmp\">0</strong></span>\n        <span>write <strong class=\"race-stats-wr\">0</strong></span>\n        <span>step <strong class=\"race-stats-st\">0</strong></span>\n      </div>\n    "
+  },
+  "insertion sort": {
+   "zh": "插入排序",
+   "exprs": [],
+   "tags": [],
+   "src": "insertion sort"
+  },
+  "bubble sort": {
+   "zh": "冒泡排序",
+   "exprs": [],
+   "tags": [],
+   "src": "bubble sort"
+  }
+ }
+}

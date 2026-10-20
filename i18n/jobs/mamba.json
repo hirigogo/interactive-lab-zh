@@ -1,0 +1,308 @@
+{
+ "slug": "mamba",
+ "units": {
+  "Mamba & State-Space Models, Visualised": {
+   "zh": "Mamba 与状态空间模型，可视化",
+   "src": "Mamba & State-Space Models, Visualised",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Mamba &amp; State-Space Models, Visualised": {
+   "zh": "Mamba &amp; 状态空间模型，可视化",
+   "src": "Mamba &amp; State-Space Models, Visualised",
+   "tags": []
+  },
+  "A linear recurrence over a hidden state. Watch the state\n          evolve as it processes a 256-step signal. Toggle the\n          input-dependent Δ that gives Mamba its selectivity edge.\n          See why O(N) is the right complexity for million-token\n          contexts.": {
+   "zh": "一个关于隐藏状态的线性递推。观察它在处理一段\n          256 步信号时状态如何演化。切换那个依赖输入的 Δ，\n          正是它赋予 Mamba 选择性的优势。\n          看清为何 O(N) 才是百万词元级上下文\n          应有的复杂度。",
+   "src": "A linear recurrence over a hidden state. Watch the state\n          evolve as it processes a 256-step signal. Toggle the\n          input-dependent Δ that gives Mamba its selectivity edge.\n          See why O(N) is the right complexity for million-token\n          contexts.",
+   "tags": []
+  },
+  "@@T0@@~18 min@@T1@@\n          @@T2@@SSM &middot; Mamba &middot; Long Context@@T3@@": {
+   "zh": "@@T0@@约 18 分钟@@T1@@\n          @@T2@@SSM &middot; Mamba &middot; 长上下文@@T3@@",
+   "src": "<span>~18 min</span>\n          <span>SSM &middot; Mamba &middot; Long Context</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "The long-context bottleneck": {
+   "zh": "长上下文瓶颈",
+   "src": "The long-context bottleneck",
+   "tags": []
+  },
+  "Self-attention is $O(N^2)$ in sequence length. At 1k tokens\n          that's fine; at 100k it's the dominant cost; at 1M it's\n          impossible. State-space models (S4, S5, H3, Mamba)\n          replace attention with a linear recurrence whose\n          per-token cost is $O(1)$ regardless of sequence length.": {
+   "zh": "自注意力在序列长度上的复杂度为 $O(N^2)$。在 1k 词元时\n          尚可；在 100k 时已成为主要开销；在 1M 时则\n          不可行。状态空间模型（S4、S5、H3、Mamba）\n          用线性递推取代注意力，其\n          每个词元的开销为 $O(1)$，与序列长度无关。",
+   "src": "Self-attention is $O(N^2)$ in sequence length. At 1k tokens\n          that's fine; at 100k it's the dominant cost; at 1M it's\n          impossible. State-space models (S4, S5, H3, Mamba)\n          replace attention with a linear recurrence whose\n          per-token cost is $O(1)$ regardless of sequence length.",
+   "tags": []
+  },
+  "@@T0@@The slogan.@@T1@@\n          A discrete-time SSM is a fancy RNN with carefully chosen\n          dynamics that lets you compute many tokens in parallel via\n          a \"scan\". It keeps the linear-in-length cost of an RNN and\n          regains the parallelism of attention.": {
+   "zh": "@@T0@@一句口号。@@T1@@\n          离散时间 SSM 是一个动力学经过精心选择的\n          进阶版 RNN，它让你能通过一次「扫描」并行计算\n          许多词元。它保留了 RNN 随长度线性增长的开销，\n          同时重新获得了注意力的并行性。",
+   "src": "<strong>The slogan.</strong>\n          A discrete-time SSM is a fancy RNN with carefully chosen\n          dynamics that lets you compute many tokens in parallel via\n          a \"scan\". It keeps the linear-in-length cost of an RNN and\n          regains the parallelism of attention.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "The recurrence": {
+   "zh": "递推式",
+   "src": "The recurrence",
+   "tags": []
+  },
+  "$h_t \\in \\mathbb{R}^d$ is the hidden state. $\\bar A, \\bar B$\n          are the discretised dynamics; $C$ is the output projection.\n          For S4 / S5 these are fixed (or learned but\n          input-independent). The big Mamba idea: make $\\bar A, \\bar\n          B$ depend on the current input $x_t$. That single change\n          gives \"selective\" SSMs that can decide which inputs to\n          carry forward and which to forget.": {
+   "zh": "$h_t \\in \\mathbb{R}^d$ 是隐藏状态。$\\bar A, \\bar B$\n          是离散化后的动力学；$C$ 是输出投影。\n          对 S4 / S5 而言，这些是固定的（或是学习得到但\n          与输入无关的）。Mamba 的重大思想是：让 $\\bar A, \\bar\n          B$ 依赖于当前输入 $x_t$。仅此一处改动\n          便带来了「选择性」SSM，它能决定哪些输入应当\n          继续携带、哪些应当遗忘。",
+   "src": "$h_t \\in \\mathbb{R}^d$ is the hidden state. $\\bar A, \\bar B$\n          are the discretised dynamics; $C$ is the output projection.\n          For S4 / S5 these are fixed (or learned but\n          input-independent). The big Mamba idea: make $\\bar A, \\bar\n          B$ depend on the current input $x_t$. That single change\n          gives \"selective\" SSMs that can decide which inputs to\n          carry forward and which to forget.",
+   "tags": []
+  },
+  "Δ is the per-token step size; tiny Δ means \"barely update\n          the state\" (good for skipping uninformative inputs); large\n          Δ means \"treat this input as important\". Both are learned.": {
+   "zh": "Δ 是每个词元的步长；极小的 Δ 意味着「几乎不更新\n          状态」（有利于跳过无信息的输入）；较大的\n          Δ 意味着「把这个输入视为重要」。二者都是学习得到的。",
+   "src": "Δ is the per-token step size; tiny Δ means \"barely update\n          the state\" (good for skipping uninformative inputs); large\n          Δ means \"treat this input as important\". Both are learned.",
+   "tags": []
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Watch the state evolve": {
+   "zh": "观察状态的演化",
+   "src": "Watch the state evolve",
+   "tags": []
+  },
+  "A 1-channel discrete SSM with $A = -0.2$ (slow decay), $B =\n          C = 1$, and a Δ that you can either fix or modulate from\n          the input. The bottom panel shows $|h_t|$ across the 256-step\n          sequence; the top shows the input.": {
+   "zh": "一个单通道的离散 SSM，取 $A = -0.2$（缓慢衰减）、$B =\n          C = 1$，以及一个 Δ 由你选择：固定不变，或依据输入\n          进行调制。下方面板显示 $|h_t|$ 在 256 步\n          序列上的变化；上方显示输入。",
+   "src": "A 1-channel discrete SSM with $A = -0.2$ (slow decay), $B =\n          C = 1$, and a Δ that you can either fix or modulate from\n          the input. The bottom panel shows $|h_t|$ across the 256-step\n          sequence; the top shows the input.",
+   "tags": []
+  },
+  "signal": {
+   "zh": "信号",
+   "src": "signal",
+   "tags": []
+  },
+  "impulses (3 spikes)": {
+   "zh": "脉冲（3 个尖峰）",
+   "src": "impulses (3 spikes)",
+   "tags": []
+  },
+  "square pulse": {
+   "zh": "方波脉冲",
+   "src": "square pulse",
+   "tags": []
+  },
+  "needle in noise": {
+   "zh": "噪声中的针",
+   "src": "needle in noise",
+   "tags": []
+  },
+  "fixed Δ &nbsp;@@T0@@0.30@@T1@@": {
+   "zh": "固定 Δ &nbsp;@@T0@@0.30@@T1@@",
+   "src": "fixed Δ &nbsp;<span id=\"mb-d-val\">0.30</span>",
+   "tags": [
+    "<span id=\"mb-d-val\">",
+    "</span>"
+   ]
+  },
+  "selective Δ (Mamba)": {
+   "zh": "选择性 Δ（Mamba）",
+   "src": "selective Δ (Mamba)",
+   "tags": []
+  },
+  "Top: input x_t. Bottom: |h_t| (state magnitude). With selective Δ, the state ignores low-amplitude inputs and latches onto sparse important events.": {
+   "zh": "上：输入 x_t。下：|h_t|（状态幅度）。采用选择性 Δ 时，状态会忽略低幅度的输入，并锁住稀疏而重要的事件。",
+   "src": "Top: input x_t. Bottom: |h_t| (state magnitude). With selective Δ, the state ignores low-amplitude inputs and latches onto sparse important events.",
+   "tags": []
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Cost vs sequence length": {
+   "zh": "开销与序列长度的关系",
+   "src": "Cost vs sequence length",
+   "tags": []
+  },
+  "Mamba is linear in length; attention is quadratic. Below:\n          synthetic operation count for both vs sequence length.\n          The break-even point depends on hidden width, but for any\n          sufficiently long sequence, attention loses.": {
+   "zh": "Mamba 随长度线性增长；注意力则是二次的。下方：\n          两者相对于序列长度的合成运算次数。\n          平衡点取决于隐藏宽度，但对任何\n          足够长的序列而言，注意力都会落败。",
+   "src": "Mamba is linear in length; attention is quadratic. Below:\n          synthetic operation count for both vs sequence length.\n          The break-even point depends on hidden width, but for any\n          sufficiently long sequence, attention loses.",
+   "tags": []
+  },
+  "Operation counts (log-log). Attention's $O(N^2)$ vs Mamba scan's $O(N \\cdot d_{\\text{state}})$.": {
+   "zh": "运算次数（双对数坐标）。注意力的 $O(N^2)$ 与 Mamba 扫描的 $O(N \\cdot d_{\\text{state}})$。",
+   "src": "Operation counts (log-log). Attention's $O(N^2)$ vs Mamba scan's $O(N \\cdot d_{\\text{state}})$.",
+   "tags": []
+  },
+  "Step 3 ½": {
+   "zh": "第 3½ 步",
+   "src": "Step 3 ½",
+   "tags": []
+  },
+  "The parallel scan — the trick that makes SSMs trainable at scale": {
+   "zh": "并行扫描 —— 使 SSM 能够大规模训练的技巧",
+   "src": "The parallel scan — the trick that makes SSMs trainable at scale",
+   "tags": []
+  },
+  "A linear recurrence $h_t = A h_{t-1} + B x_t$ @@T0@@looks@@T1@@\n          inherently sequential &mdash; each step depends on the\n          previous. RNNs sit in this trap: their training is\n          $O(N)$ wall-clock because each layer waits for the previous\n          token's hidden state. SSMs escape via the\n          @@T2@@parallel scan@@T3@@ (Blelloch, 1990; Smith\n          et&nbsp;al., 2023): an associative tree-reduction that\n          computes all $h_1, \\dots, h_N$ in $O(\\log N)$ depth.": {
+   "zh": "线性递推 $h_t = A h_{t-1} + B x_t$ @@T0@@看起来@@T1@@\n          天生是顺序的&mdash;每一步都依赖前一步。RNN 正困在这个\n          陷阱里：其训练耗时（墙钟时间）为\n          $O(N)$，因为每一层都要等待前一个\n          词元的隐藏状态。SSM 通过@@T2@@并行扫描@@T3@@\n          摆脱了这一点（Blelloch, 1990；Smith\n          等人，2023）：一种可结合的树形归约，\n          以 $O(\\log N)$ 的深度计算出全部 $h_1, \\dots, h_N$。",
+   "src": "A linear recurrence $h_t = A h_{t-1} + B x_t$ <em>looks</em>\n          inherently sequential &mdash; each step depends on the\n          previous. RNNs sit in this trap: their training is\n          $O(N)$ wall-clock because each layer waits for the previous\n          token's hidden state. SSMs escape via the\n          <strong>parallel scan</strong> (Blelloch, 1990; Smith\n          et&nbsp;al., 2023): an associative tree-reduction that\n          computes all $h_1, \\dots, h_N$ in $O(\\log N)$ depth.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The trick: the operator $(c_1, M_1) \\oplus (c_2, M_2) =\n          (M_2 c_1 + c_2,\\; M_2 M_1)$ is associative. Pair-wise reduce\n          neighbours, then pair-wise reduce neighbours-of-neighbours,\n          and so on. Each level halves the count; $\\log_2 N$ levels\n          finish the scan. On a GPU this matches matmul throughput.": {
+   "zh": "诀窍在于：算子 $(c_1, M_1) \\oplus (c_2, M_2) =\n          (M_2 c_1 + c_2,\\; M_2 M_1)$ 是可结合的。先将相邻元素\n          两两归约，再将相邻元素组的相邻元素两两归约，\n          依此类推。每一层都把数量减半；$\\log_2 N$ 层\n          便完成扫描。在 GPU 上其吞吐可与矩阵乘法相当。",
+   "src": "The trick: the operator $(c_1, M_1) \\oplus (c_2, M_2) =\n          (M_2 c_1 + c_2,\\; M_2 M_1)$ is associative. Pair-wise reduce\n          neighbours, then pair-wise reduce neighbours-of-neighbours,\n          and so on. Each level halves the count; $\\log_2 N$ levels\n          finish the scan. On a GPU this matches matmul throughput.",
+   "tags": []
+  },
+  "Parallel-scan tree for N=8. Step 1 combines (1,2), (3,4), (5,6), (7,8). Step 2 combines (1:2, 3:4) and (5:6, 7:8). Step 3 combines (1:4, 5:8). After log₂N levels, every prefix is computed.": {
+   "zh": "N=8 的并行扫描树。第 1 步合并 (1,2)、(3,4)、(5,6)、(7,8)。第 2 步合并 (1:2, 3:4) 与 (5:6, 7:8)。第 3 步合并 (1:4, 5:8)。经过 log₂N 层之后，每个前缀都计算完毕。",
+   "src": "Parallel-scan tree for N=8. Step 1 combines (1,2), (3,4), (5,6), (7,8). Step 2 combines (1:2, 3:4) and (5:6, 7:8). Step 3 combines (1:4, 5:8). After log₂N levels, every prefix is computed.",
+   "tags": []
+  },
+  "sequence length N &nbsp;@@T0@@8@@T1@@": {
+   "zh": "序列长度 N &nbsp;@@T0@@8@@T1@@",
+   "src": "sequence length N &nbsp;<span id=\"scan-N-val\">8</span>",
+   "tags": [
+    "<span id=\"scan-N-val\">",
+    "</span>"
+   ]
+  },
+  "animate sequential RNN comparison": {
+   "zh": "动画：与顺序 RNN 的对比",
+   "src": "animate sequential RNN comparison",
+   "tags": []
+  },
+  "Wall-clock depth: sequential RNN is $O(N)$; parallel scan is $O(\\log N)$. On a 1M-token context that's 1M sequential steps vs 20.": {
+   "zh": "墙钟时间深度：顺序 RNN 为 $O(N)$；并行扫描为 $O(\\log N)$。在一段百万词元的上下文上，这意味着 100 万个顺序步骤对 20 个步骤。",
+   "src": "Wall-clock depth: sequential RNN is $O(N)$; parallel scan is $O(\\log N)$. On a 1M-token context that's 1M sequential steps vs 20.",
+   "tags": []
+  },
+  "@@T0@@Why this is the SSM superpower.@@T1@@\n          The parallel scan is the only reason SSMs (S4, S5, Mamba)\n          can train as fast as Transformers despite being recurrent.\n          Without it, \"linear in length\" stays a paper claim.": {
+   "zh": "@@T0@@为何这是 SSM 的超能力。@@T1@@\n          并行扫描是 SSM（S4、S5、Mamba）尽管是递推式的，\n          却能训练得像 Transformer 一样快的唯一原因。\n          没有它，「随长度线性增长」就只是纸面上的说法。",
+   "src": "<strong>Why this is the SSM superpower.</strong>\n          The parallel scan is the only reason SSMs (S4, S5, Mamba)\n          can train as fast as Transformers despite being recurrent.\n          Without it, \"linear in length\" stays a paper claim.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Where each wins": {
+   "zh": "各自胜出之处",
+   "src": "Where each wins",
+   "tags": []
+  },
+  "@@T0@@Attention wins on:@@T1@@ short sequences,\n            tasks needing exact long-range copy / lookup, in-context\n            learning of arbitrary patterns. Most LLM tasks at\n            sub-32k context.": {
+   "zh": "@@T0@@注意力胜出于：@@T1@@ 短序列、\n            需要精确长程复制 / 查找的任务、任意模式的上下文内\n            学习。大多数 32k 上下文以下的\n            LLM 任务。",
+   "src": "<strong>Attention wins on:</strong> short sequences,\n            tasks needing exact long-range copy / lookup, in-context\n            learning of arbitrary patterns. Most LLM tasks at\n            sub-32k context.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Mamba wins on:@@T1@@ very long contexts\n            (DNA, audio, long documents, time series). Linear scaling\n            stops being a research detail and starts being the\n            difference between feasible and not.": {
+   "zh": "@@T0@@Mamba 胜出于：@@T1@@ 极长的上下文\n            （DNA、音频、长文档、时间序列）。线性扩展\n            不再只是一个研究细节，而开始成为\n            可行与不可行之间的分水岭。",
+   "src": "<strong>Mamba wins on:</strong> very long contexts\n            (DNA, audio, long documents, time series). Linear scaling\n            stops being a research detail and starts being the\n            difference between feasible and not.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Hybrids win:@@T1@@ Mamba-2, Jamba,\n            Nemotron-H, Zamba interleave SSM and attention layers\n            and beat the pure variants of either. The 2026 default.": {
+   "zh": "@@T0@@混合架构胜出：@@T1@@ Mamba-2、Jamba、\n            Nemotron-H、Zamba 交错堆叠 SSM 层与注意力层，\n            胜过了二者各自的纯版本。这是 2026 年的默认选择。",
+   "src": "<strong>Hybrids win:</strong> Mamba-2, Jamba,\n            Nemotron-H, Zamba interleave SSM and attention layers\n            and beat the pure variants of either. The 2026 default.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Time-series forecasting.@@T1@@ Mamba and S5\n            currently trade blows with PatchTST on long horizons.\n            For data with hour / minute resolution\n            stretching across years, this is the natural backbone.": {
+   "zh": "@@T0@@时间序列预测。@@T1@@ Mamba 与 S5\n            目前在长预测跨度上与 PatchTST 互有胜负。\n            对于跨越数年、以小时 / 分钟为\n            分辨率的数据，这是天然的骨干网络。",
+   "src": "<strong>Time-series forecasting.</strong> Mamba and S5\n            currently trade blows with PatchTST on long horizons.\n            For data with hour / minute resolution\n            stretching across years, this is the natural backbone.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          The right way to think of an SSM is \"a parallel-friendly\n          RNN with hand-tuned eigenvalues\". The right way to think\n          of Mamba on top is \"the SSM gets to look at its input\n          before deciding how much to update\". Together they remove\n          the $N^2$ ceiling on context length without sacrificing\n          training speed.": {
+   "zh": "@@T0@@最终要点。@@T1@@\n          理解 SSM 的正确方式是把它看作「一个特征值经过精心调校、\n          对并行友好的 RNN」。在此基础上理解 Mamba 的正确方式是\n          「SSM 可以在决定更新多少之前先看看它的输入」。\n          二者结合，在不牺牲训练速度的前提下\n          移除了上下文长度上的 $N^2$ 天花板。",
+   "src": "<strong>Final takeaway.</strong>\n          The right way to think of an SSM is \"a parallel-friendly\n          RNN with hand-tuned eigenvalues\". The right way to think\n          of Mamba on top is \"the SSM gets to look at its input\n          before deciding how much to update\". Together they remove\n          the $N^2$ ceiling on context length without sacrificing\n          training speed.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "Mamba 与状态空间模型，可视化",
+  "tagline": "一个随序列长度线性扩展的 RNN —— 在长上下文上胜过注意力",
+  "summary": "离散时间 SSM 是一种线性递推。观察一个单通道 SSM 的状态在处理一段 256 步输入时如何演化；切换赋予 Mamba 关键优势的选择性 Δ 参数；在同一序列上与注意力的二次开销作比较。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "在 256 步输入上实时运行离散时间 SSM 前向传播；状态值与输入并排绘制。",
+   "选择性 Δ 滑块 —— Mamba 依赖输入的步长，把静态 SSM 变为对内容敏感的 SSM。",
+   "开销-长度曲线：O(N) 的 Mamba 扫描与 O(N²) 的注意力。",
+   "SSM 何时胜出、注意力何时胜出、混合架构身处何处。"
+  ],
+  "tags": [
+   "Mamba",
+   "SSM",
+   "状态空间",
+   "长上下文",
+   "交互式"
+  ]
+ },
+ "js": {
+  "level [[[0]]] (stride 2^[[[1]]])": {
+   "zh": "第 [[[0]]] 层（步长 2^[[[1]]]）",
+   "exprs": [
+    "${lvl}",
+    "${lvl - 1}"
+   ],
+   "tags": [],
+   "src": "level ${lvl} (stride 2^${lvl - 1})"
+  },
+  "input x_t": {
+   "zh": "输入 x_t",
+   "exprs": [],
+   "tags": [],
+   "src": "input x_t"
+  },
+  "inputs x_t": {
+   "zh": "输入 x_t",
+   "exprs": [],
+   "tags": [],
+   "src": "inputs x_t"
+  }
+ }
+}

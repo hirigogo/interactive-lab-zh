@@ -1,0 +1,506 @@
+{
+ "slug": "federated-learning",
+ "units": {
+  "Federated Learning, Round by Round": {
+   "zh": "联邦学习：逐轮理解",
+   "src": "Federated Learning, Round by Round",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Six clients with private data train a shared classifier\n          without ever sending the data to a server. Watch FedAvg\n          succeed on IID clients and collapse on non-IID ones; flip\n          to FedProx and watch it recover. Then the privacy + security\n          stack (secure aggregation, differential privacy).": {
+   "zh": "六个持有私有数据的客户端共同训练一个共享分类器，\n          全程不向服务器发送数据。观察 FedAvg 在 IID 客户端上成功、\n          在非 IID 客户端上崩溃；切换到 FedProx 看它如何恢复。\n          随后是隐私与安全技术栈（安全聚合、差分隐私）。",
+   "src": "Six clients with private data train a shared classifier\n          without ever sending the data to a server. Watch FedAvg\n          succeed on IID clients and collapse on non-IID ones; flip\n          to FedProx and watch it recover. Then the privacy + security\n          stack (secure aggregation, differential privacy).",
+   "tags": []
+  },
+  "@@T0@@~20 min@@T1@@\n          @@T2@@Distributed ML &middot; Privacy &middot; FedAvg@@T3@@": {
+   "zh": "@@T0@@约 20 分钟@@T1@@\n          @@T2@@分布式机器学习 &middot; 隐私 &middot; FedAvg@@T3@@",
+   "src": "<span>~20 min</span>\n          <span>Distributed ML &middot; Privacy &middot; FedAvg</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "The federated setting": {
+   "zh": "联邦学习的设定",
+   "src": "The federated setting",
+   "tags": []
+  },
+  "Data lives on $K$ clients (phones, hospitals, edge devices,\n          sensor networks). Each client has a private dataset\n          $\\mathcal{D}_k$ it will not share. A central server\n          coordinates training of a shared model $\\theta$. Each round:": {
+   "zh": "数据存于 $K$ 个客户端之上（手机、医院、边缘设备、\n          传感器网络）。每个客户端持有一个不愿共享的私有数据集\n          $\\mathcal{D}_k$。一台中心服务器协调共享模型 $\\theta$ 的训练。每一轮：",
+   "src": "Data lives on $K$ clients (phones, hospitals, edge devices,\n          sensor networks). Each client has a private dataset\n          $\\mathcal{D}_k$ it will not share. A central server\n          coordinates training of a shared model $\\theta$. Each round:",
+   "tags": []
+  },
+  "Server sends $\\theta$ to a random sample of clients.": {
+   "zh": "服务器把 $\\theta$ 发送给随机抽取的一部分客户端。",
+   "src": "Server sends $\\theta$ to a random sample of clients.",
+   "tags": []
+  },
+  "Each client runs $E$ local epochs of SGD on its data.": {
+   "zh": "每个客户端在其数据上运行 $E$ 个本地 SGD 轮次。",
+   "src": "Each client runs $E$ local epochs of SGD on its data.",
+   "tags": []
+  },
+  "Clients send back updated $\\theta_k$.": {
+   "zh": "客户端回传更新后的 $\\theta_k$。",
+   "src": "Clients send back updated $\\theta_k$.",
+   "tags": []
+  },
+  "Server averages: $\\theta \\leftarrow \\sum_k \\frac{n_k}{n}\\,\\theta_k$\n            (FedAvg, McMahan et&nbsp;al., 2017).": {
+   "zh": "服务器做平均：$\\theta \\leftarrow \\sum_k \\frac{n_k}{n}\\,\\theta_k$\n            （FedAvg，McMahan et&nbsp;al.，2017）。",
+   "src": "Server averages: $\\theta \\leftarrow \\sum_k \\frac{n_k}{n}\\,\\theta_k$\n            (FedAvg, McMahan et&nbsp;al., 2017).",
+   "tags": []
+  },
+  "FedAvg is one of the most cited DL papers of the decade and\n          one of the brittlest. It works beautifully when client\n          datasets are IID (random partition of a global dataset);\n          it collapses when they aren't (which is most of the time\n          in production).": {
+   "zh": "FedAvg 是这十年被引用最多的深度学习论文之一，\n          也是最脆弱的方法之一。当客户端数据集为 IID（对全局数据集的随机划分）时，\n          它表现极佳；而当它们并非如此时（生产中大多数情况即是如此），\n          它便崩溃。",
+   "src": "FedAvg is one of the most cited DL papers of the decade and\n          one of the brittlest. It works beautifully when client\n          datasets are IID (random partition of a global dataset);\n          it collapses when they aren't (which is most of the time\n          in production).",
+   "tags": []
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "FedAvg vs FedProx — see them break and heal": {
+   "zh": "FedAvg 与 FedProx——观察它们如何崩溃与修复",
+   "src": "FedAvg vs FedProx — see them break and heal",
+   "tags": []
+  },
+  "Six clients, three-class 2-D classification. The non-IID\n          slider controls how skewed each client's label distribution\n          is. At 0, every client sees roughly uniform classes; at 1,\n          each client sees only one or two classes. FedProx\n          (Li et&nbsp;al., 2020) adds a proximal term $\\frac{\\mu}{2}\\|\\theta_k -\n          \\theta\\|^2$ to each client's local objective, gently\n          pulling local updates back toward the global model.": {
+   "zh": "六个客户端，三分类的二维分类问题。非 IID 滑块控制每个客户端\n          标签分布的偏斜程度。取 0 时，每个客户端看到大致均匀的各类别；\n          取 1 时，每个客户端只看到一两个类别。FedProx\n          （Li et&nbsp;al.，2020）在每个客户端的本地目标中增加一个近端项\n          $\\frac{\\mu}{2}\\|\\theta_k -\n          \\theta\\|^2$，从而温和地把本地更新拉回全局模型。",
+   "src": "Six clients, three-class 2-D classification. The non-IID\n          slider controls how skewed each client's label distribution\n          is. At 0, every client sees roughly uniform classes; at 1,\n          each client sees only one or two classes. FedProx\n          (Li et&nbsp;al., 2020) adds a proximal term $\\frac{\\mu}{2}\\|\\theta_k -\n          \\theta\\|^2$ to each client's local objective, gently\n          pulling local updates back toward the global model.",
+   "tags": []
+  },
+  "Run 1 round": {
+   "zh": "运行 1 轮",
+   "src": "Run 1 round",
+   "tags": []
+  },
+  "+10 rounds": {
+   "zh": "+10 轮",
+   "src": "+10 rounds",
+   "tags": []
+  },
+  "Reinitialise": {
+   "zh": "重新初始化",
+   "src": "Reinitialise",
+   "tags": []
+  },
+  "algorithm": {
+   "zh": "算法",
+   "src": "algorithm",
+   "tags": []
+  },
+  "FedAvg": {
+   "zh": "FedAvg（联邦平均）",
+   "src": "FedAvg",
+   "tags": []
+  },
+  "FedProx (μ = 0.1)": {
+   "zh": "FedProx（μ = 0.1）",
+   "src": "FedProx (μ = 0.1)",
+   "tags": []
+  },
+  "non-IID α &nbsp;@@T0@@0.50@@T1@@": {
+   "zh": "非 IID α &nbsp;@@T0@@0.50@@T1@@",
+   "src": "non-IID α &nbsp;<span id=\"fl-niid-val\">0.50</span>",
+   "tags": [
+    "<span id=\"fl-niid-val\">",
+    "</span>"
+   ]
+  },
+  "local epochs E &nbsp;@@T0@@3@@T1@@": {
+   "zh": "本地轮次 E &nbsp;@@T0@@3@@T1@@",
+   "src": "local epochs E &nbsp;<span id=\"fl-E-val\">3</span>",
+   "tags": [
+    "<span id=\"fl-E-val\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@round @@T1@@0@@T2@@@@T3@@\n          @@T4@@global acc @@T5@@—@@T6@@@@T7@@": {
+   "zh": "@@T0@@轮次 @@T1@@0@@T2@@@@T3@@\n          @@T4@@全局准确率 @@T5@@—@@T6@@@@T7@@",
+   "src": "<span class=\"train-stat\">round <strong id=\"fl-round-count\">0</strong></span>\n          <span class=\"train-stat\">global acc <strong id=\"fl-acc\">—</strong></span>",
+   "tags": [
+    "<span class=\"train-stat\">",
+    "<strong id=\"fl-round-count\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"fl-acc\">",
+    "</strong>",
+    "</span>"
+   ]
+  },
+  "Global classifier on test data": {
+   "zh": "测试数据上的全局分类器",
+   "src": "Global classifier on test data",
+   "tags": []
+  },
+  "Per-client class distribution": {
+   "zh": "各客户端的类别分布",
+   "src": "Per-client class distribution",
+   "tags": []
+  },
+  "Accuracy vs rounds": {
+   "zh": "准确率随轮次的变化",
+   "src": "Accuracy vs rounds",
+   "tags": []
+  },
+  "@@T0@@What to watch.@@T1@@\n          With non-IID α near 0, FedAvg converges within ~10 rounds.\n          Push α to 1 and FedAvg @@T2@@oscillates@@T3@@ or diverges &mdash;\n          each client's local SGD overfits to its own classes and the\n          average ends up worse than any client's local model. Switch\n          to FedProx; the proximal term clips drift and accuracy\n          climbs again.": {
+   "zh": "@@T0@@观察要点。@@T1@@\n          当非 IID 的 α 接近 0 时，FedAvg 在约 10 轮内收敛。\n          把 α 推向 1，FedAvg 会@@T2@@震荡@@T3@@甚至发散——\n          每个客户端的本地 SGD 都过拟合于它自己的类别，\n          于是平均值反而比任何客户端的本地模型都差。切换到\n          FedProx；近端项抑制了漂移，准确率重新攀升。",
+   "src": "<strong>What to watch.</strong>\n          With non-IID α near 0, FedAvg converges within ~10 rounds.\n          Push α to 1 and FedAvg <em>oscillates</em> or diverges &mdash;\n          each client's local SGD overfits to its own classes and the\n          average ends up worse than any client's local model. Switch\n          to FedProx; the proximal term clips drift and accuracy\n          climbs again.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "The privacy + security stack": {
+   "zh": "隐私与安全技术栈",
+   "src": "The privacy + security stack",
+   "tags": []
+  },
+  "FedAvg by itself isn't private. Sharing gradients leaks\n          information; reconstruction attacks (Zhu et&nbsp;al., 2019)\n          can recover original images from a single client update.\n          Three layers fix this:": {
+   "zh": "FedAvg 本身并不具备隐私性。共享梯度会泄漏信息；\n          重构攻击（Zhu et&nbsp;al.，2019）能够从单个客户端的更新中\n          还原出原始图像。三层机制可以解决这一问题：",
+   "src": "FedAvg by itself isn't private. Sharing gradients leaks\n          information; reconstruction attacks (Zhu et&nbsp;al., 2019)\n          can recover original images from a single client update.\n          Three layers fix this:",
+   "tags": []
+  },
+  "@@T0@@Secure aggregation@@T1@@ (Bonawitz et&nbsp;al.,\n            2017). Cryptographic protocol so the server only sees the\n            @@T2@@sum@@T3@@ $\\sum_k \\theta_k$, not individual updates.\n            Information-theoretically secure under a t-honest-but-curious\n            threat model.": {
+   "zh": "@@T0@@安全聚合@@T1@@（Bonawitz et&nbsp;al.，\n            2017）。这是一种密码学协议，使服务器只能看到@@T2@@总和@@T3@@\n            $\\sum_k \\theta_k$，而看不到各个单独的更新。\n            在 t-诚实但好奇的威胁模型下具有信息论意义上的安全性。",
+   "src": "<strong>Secure aggregation</strong> (Bonawitz et&nbsp;al.,\n            2017). Cryptographic protocol so the server only sees the\n            <em>sum</em> $\\sum_k \\theta_k$, not individual updates.\n            Information-theoretically secure under a t-honest-but-curious\n            threat model.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Differential privacy@@T1@@ (DP-FedAvg, Abadi\n            et&nbsp;al., 2016). Each client clips its update to a\n            bounded norm and adds Gaussian noise; the global model\n            satisfies $(\\varepsilon, \\delta)$-DP. Trade accuracy\n            against privacy budget.": {
+   "zh": "@@T0@@差分隐私@@T1@@（DP-FedAvg，Abadi\n            et&nbsp;al.，2016）。每个客户端把其更新裁剪到有界范数，\n            并加入高斯噪声；全局模型满足 $(\\varepsilon, \\delta)$-差分隐私。\n            在准确率与隐私预算之间权衡。",
+   "src": "<strong>Differential privacy</strong> (DP-FedAvg, Abadi\n            et&nbsp;al., 2016). Each client clips its update to a\n            bounded norm and adds Gaussian noise; the global model\n            satisfies $(\\varepsilon, \\delta)$-DP. Trade accuracy\n            against privacy budget.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Homomorphic encryption / TEE.@@T1@@ The\n            server computes the average on encrypted values; or runs\n            in a Trusted Execution Environment (Intel SGX, AMD SEV).\n            Heavier, used in regulated industries.": {
+   "zh": "@@T0@@同态加密 / TEE。@@T1@@\n            服务器在加密数值上计算平均值；或运行于\n            可信执行环境（Intel SGX、AMD SEV）之中。\n            开销更重，用于受监管的行业。",
+   "src": "<strong>Homomorphic encryption / TEE.</strong> The\n            server computes the average on encrypted values; or runs\n            in a Trusted Execution Environment (Intel SGX, AMD SEV).\n            Heavier, used in regulated industries.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Practical setups in 2026: @@T0@@FedML@@T1@@,\n          @@T2@@Flower@@T3@@, @@T4@@NVFlare@@T5@@,\n          @@T6@@OpenFL@@T7@@ all ship FedAvg/FedProx/SCAFFOLD,\n          secure aggregation, and DP-SGD as drop-in components.": {
+   "zh": "2026 年的实用方案：@@T0@@FedML@@T1@@、\n          @@T2@@Flower@@T3@@、@@T4@@NVFlare@@T5@@、\n          @@T6@@OpenFL@@T7@@ 都把 FedAvg/FedProx/SCAFFOLD、\n          安全聚合与 DP-SGD 作为即插即用组件提供。",
+   "src": "Practical setups in 2026: <strong>FedML</strong>,\n          <strong>Flower</strong>, <strong>NVFlare</strong>,\n          <strong>OpenFL</strong> all ship FedAvg/FedProx/SCAFFOLD,\n          secure aggregation, and DP-SGD as drop-in components.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Algorithm zoo — what to use when": {
+   "zh": "算法图谱——何时用哪一种",
+   "src": "Algorithm zoo — what to use when",
+   "tags": []
+  },
+  "Algorithm": {
+   "zh": "算法",
+   "src": "Algorithm",
+   "tags": []
+  },
+  "Key idea": {
+   "zh": "核心思想",
+   "src": "Key idea",
+   "tags": []
+  },
+  "Best when": {
+   "zh": "最适用于",
+   "src": "Best when",
+   "tags": []
+  },
+  "@@T0@@FedAvg@@T1@@": {
+   "zh": "@@T0@@FedAvg@@T1@@（联邦平均）",
+   "src": "<strong>FedAvg</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Plain weight average": {
+   "zh": "朴素权重平均",
+   "src": "Plain weight average",
+   "tags": []
+  },
+  "IID-ish clients, baseline": {
+   "zh": "近似 IID 的客户端，作为基线",
+   "src": "IID-ish clients, baseline",
+   "tags": []
+  },
+  "@@T0@@FedProx@@T1@@": {
+   "zh": "@@T0@@FedProx@@T1@@（近端联邦优化）",
+   "src": "<strong>FedProx</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "+ proximal term on client objective": {
+   "zh": "在客户端目标上增加近端项",
+   "src": "+ proximal term on client objective",
+   "tags": []
+  },
+  "Non-IID, system heterogeneity": {
+   "zh": "非 IID、系统异构",
+   "src": "Non-IID, system heterogeneity",
+   "tags": []
+  },
+  "@@T0@@SCAFFOLD@@T1@@": {
+   "zh": "@@T0@@SCAFFOLD@@T1@@（控制变量法）",
+   "src": "<strong>SCAFFOLD</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Control variates to cancel client drift": {
+   "zh": "用控制变量抵消客户端漂移",
+   "src": "Control variates to cancel client drift",
+   "tags": []
+  },
+  "Strongly non-IID, large E": {
+   "zh": "强非 IID、较大的 E",
+   "src": "Strongly non-IID, large E",
+   "tags": []
+  },
+  "@@T0@@FedAvgM / FedAdam@@T1@@": {
+   "zh": "@@T0@@FedAvgM / FedAdam@@T1@@（服务器端自适应优化）",
+   "src": "<strong>FedAvgM / FedAdam</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Server-side momentum / Adam": {
+   "zh": "服务器端动量 / Adam",
+   "src": "Server-side momentum / Adam",
+   "tags": []
+  },
+  "Slow / unstable convergence": {
+   "zh": "收敛缓慢 / 不稳定",
+   "src": "Slow / unstable convergence",
+   "tags": []
+  },
+  "@@T0@@FedDF@@T1@@": {
+   "zh": "@@T0@@FedDF@@T1@@（联邦蒸馏）",
+   "src": "<strong>FedDF</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Distillation on a server-side public set": {
+   "zh": "在服务器端公开集上做蒸馏",
+   "src": "Distillation on a server-side public set",
+   "tags": []
+  },
+  "Heterogeneous client architectures": {
+   "zh": "客户端架构异构",
+   "src": "Heterogeneous client architectures",
+   "tags": []
+  },
+  "@@T0@@FedBN@@T1@@": {
+   "zh": "@@T0@@FedBN@@T1@@（联邦批归一化）",
+   "src": "<strong>FedBN</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Keep BatchNorm stats local, average everything else": {
+   "zh": "让 BatchNorm 统计量保持本地，其余全部平均",
+   "src": "Keep BatchNorm stats local, average everything else",
+   "tags": []
+  },
+  "Image clients with different statistics": {
+   "zh": "统计分布各异的图像客户端",
+   "src": "Image clients with different statistics",
+   "tags": []
+  },
+  "@@T0@@Personalised FL (pFedMe, Ditto)@@T1@@": {
+   "zh": "@@T0@@个性化联邦学习（pFedMe、Ditto）@@T1@@",
+   "src": "<strong>Personalised FL (pFedMe, Ditto)</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Per-client head, global trunk": {
+   "zh": "各客户端独立头部，共享全局主干",
+   "src": "Per-client head, global trunk",
+   "tags": []
+  },
+  "Per-client distribution drift; medical, mobile keyboards": {
+   "zh": "各客户端分布漂移；医疗、移动端键盘",
+   "src": "Per-client distribution drift; medical, mobile keyboards",
+   "tags": []
+  },
+  "@@T0@@Federated MoE@@T1@@": {
+   "zh": "@@T0@@联邦专家混合（MoE）@@T1@@",
+   "src": "<strong>Federated MoE</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Mixture-of-experts where each expert is local": {
+   "zh": "每个专家都位于本地的专家混合结构",
+   "src": "Mixture-of-experts where each expert is local",
+   "tags": []
+  },
+  "Strongly heterogeneous clients; 2024+": {
+   "zh": "强异构客户端；2024 年之后",
+   "src": "Strongly heterogeneous clients; 2024+",
+   "tags": []
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Practical pitfalls": {
+   "zh": "实践陷阱",
+   "src": "Practical pitfalls",
+   "tags": []
+  },
+  "@@T0@@Stragglers.@@T1@@ One slow client blocks every\n            round. Standard fix: drop the slowest 20% per round; use\n            asynchronous variants like FedBuff.": {
+   "zh": "@@T0@@掉队者。@@T1@@ 一个缓慢的客户端会阻塞每一轮。\n            标准做法是：每轮丢弃最慢的 20%；或采用\n            诸如 FedBuff 之类的异步变体。",
+   "src": "<strong>Stragglers.</strong> One slow client blocks every\n            round. Standard fix: drop the slowest 20% per round; use\n            asynchronous variants like FedBuff.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Heterogeneous compute.@@T1@@ A phone client\n            can't run 10 epochs in the time the server waits. Use\n            FedProx (insensitive to E) or per-client local-step budgets.": {
+   "zh": "@@T0@@算力异构。@@T1@@ 手机客户端无法在服务器等待的时间内\n            跑完 10 个轮次。可改用 FedProx（对 E 不敏感），\n            或为每个客户端设定本地步数预算。",
+   "src": "<strong>Heterogeneous compute.</strong> A phone client\n            can't run 10 epochs in the time the server waits. Use\n            FedProx (insensitive to E) or per-client local-step budgets.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Catastrophic forgetting.@@T1@@ If a client\n            joins late with a new class, the global model can lose\n            old classes. FedDF / replay buffers / continual-FL papers\n            address this.": {
+   "zh": "@@T0@@灾难性遗忘。@@T1@@ 若某个客户端带着新类别较晚加入，\n            全局模型可能丢失旧类别。FedDF / 回放缓冲区 / 持续联邦学习的\n            论文对此有所研究。",
+   "src": "<strong>Catastrophic forgetting.</strong> If a client\n            joins late with a new class, the global model can lose\n            old classes. FedDF / replay buffers / continual-FL papers\n            address this.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Reconstruction attacks.@@T1@@ Gradients reveal\n            data. Always combine FedAvg with secure aggregation and DP\n            for any privacy-sensitive deployment.": {
+   "zh": "@@T0@@重构攻击。@@T1@@ 梯度会泄漏数据。\n            对任何隐私敏感的部署，务必将 FedAvg 与安全聚合、差分隐私\n            结合使用。",
+   "src": "<strong>Reconstruction attacks.</strong> Gradients reveal\n            data. Always combine FedAvg with secure aggregation and DP\n            for any privacy-sensitive deployment.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Free-rider / Byzantine clients.@@T1@@ A\n            malicious client can poison the model. Robust aggregation\n            (Krum, median, trimmed mean) defends against a bounded\n            fraction; cryptographic verifiable aggregation goes further.": {
+   "zh": "@@T0@@搭便车 / 拜占庭客户端。@@T1@@ 恶意客户端\n            可以污染模型。鲁棒聚合（Krum、中位数、截尾均值）\n            可抵御有界比例的恶意方；密码学可验证聚合则更进一层。",
+   "src": "<strong>Free-rider / Byzantine clients.</strong> A\n            malicious client can poison the model. Robust aggregation\n            (Krum, median, trimmed mean) defends against a bounded\n            fraction; cryptographic verifiable aggregation goes further.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Evaluation.@@T1@@ Global accuracy hides\n            per-client disparity. Always report worst-client and\n            10th-percentile accuracy too.": {
+   "zh": "@@T0@@评估。@@T1@@ 全局准确率会掩盖各客户端之间的差距。\n            务必同时报告最差客户端与第 10 百分位的准确率。",
+   "src": "<strong>Evaluation.</strong> Global accuracy hides\n            per-client disparity. Always report worst-client and\n            10th-percentile accuracy too.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@The slogan.@@T1@@\n          Federated learning works when clients differ @@T2@@a little@@T3@@;\n          collapses when they differ @@T4@@a lot@@T5@@; needs FedProx /\n          SCAFFOLD / personalised variants in the middle; and always\n          needs privacy primitives if the data is private. The\n          algorithmic part is small; the systems and threat-model\n          parts dominate.": {
+   "zh": "@@T0@@口号。@@T1@@\n          当客户端之间@@T2@@略有@@T3@@差异时，联邦学习行之有效；\n          当它们差异@@T4@@很大@@T5@@时则会崩溃；处于二者之间时需要\n          FedProx / SCAFFOLD / 个性化变体；而若数据是私有的，\n          则始终需要隐私原语。算法部分所占甚小；\n          系统与威胁模型部分才是主角。",
+   "src": "<strong>The slogan.</strong>\n          Federated learning works when clients differ <em>a little</em>;\n          collapses when they differ <em>a lot</em>; needs FedProx /\n          SCAFFOLD / personalised variants in the middle; and always\n          needs privacy primitives if the data is private. The\n          algorithmic part is small; the systems and threat-model\n          parts dominate.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "联邦学习：逐轮理解",
+  "tagline": "在不共享数据的多个客户端上训练模型——并观察非 IID 漂移如何击垮 FedAvg",
+  "summary": "六个具有不同本地标签分布的客户端，通过 FedAvg 训练一个共享分类器。滑动非 IID 强度滑块，观察全局准确率如何崩溃；切换到 FedProx 看它如何稳定下来。附带通信轮次-准确率曲线、各客户端权重漂移图，以及安全聚合与差分隐私的说明。",
+  "difficulty": "中级",
+  "collection": "分布式机器学习",
+  "highlights": [
+   "六个客户端，各具非 IID 标签偏斜；在浏览器中实时运行 FedAvg 各轮。",
+   "非 IID 滑块：IID → 标签偏斜 → 每客户端单一类别；观察全局准确率的失效。",
+   "FedProx 与 FedAvg 切换：近端项驯服了非 IID 客户端上的漂移。",
+   "通信轮次-准确率曲线 + 各客户端权重漂移柱状图。"
+  ],
+  "tags": [
+   "联邦学习",
+   "FedAvg",
+   "FedProx",
+   "隐私",
+   "交互式"
+  ]
+ },
+ "js": {
+  "Press Run 1 round to start.": {
+   "zh": "按“运行 1 轮”以开始。",
+   "exprs": [],
+   "tags": [],
+   "src": "Press Run 1 round to start."
+  },
+  "fl-E-val": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": "fl-E-val"
+  }
+ }
+}

@@ -1,0 +1,713 @@
+{
+ "slug": "autograd-topological-order",
+ "units": {
+  "Topological Order for Backpropagation": {
+   "zh": "面向反向传播的拓扑序",
+   "src": "Topological Order for Backpropagation",
+   "tags": []
+  },
+  "@@T0@@Skip to the interactive@@T1@@": {
+   "zh": "@@T0@@跳至交互部分@@T1@@",
+   "src": "<a class=\"skip-link\" href=\"#topology-tool\">Skip to the interactive</a>",
+   "tags": [
+    "<a class=\"skip-link\" href=\"#topology-tool\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@\n        @@T1@@&larr;@@T2@@\n        Explainer Library\n      @@T3@@": {
+   "zh": "@@T0@@\n        @@T1@@&larr;@@T2@@\n        讲解库\n      @@T3@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\" aria-label=\"Back to the explainer library\">\n        <span aria-hidden=\"true\">&larr;</span>\n        Explainer Library\n      </a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\" aria-label=\"Back to the explainer library\">",
+    "<span aria-hidden=\"true\">",
+    "</span>",
+    "</a>"
+   ]
+  },
+  "Deep learning foundations": {
+   "zh": "深度学习基础",
+   "src": "Deep learning foundations",
+   "tags": []
+  },
+  "Interactive explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive explainer",
+   "tags": []
+  },
+  "Why backpropagation needs an order": {
+   "zh": "反向传播为何需要一种顺序",
+   "src": "Why backpropagation needs an order",
+   "tags": []
+  },
+  "A gradient can move through a node only after every downstream path has contributed to\n            that node. Topological sorting gives us exactly that safe schedule.": {
+   "zh": "只有当所有下游路径都已对该节点作出贡献之后，梯度才能流经该节点。拓扑排序恰恰为我们提供了这样一种安全的调度方案。",
+   "src": "A gradient can move through a node only after every downstream path has contributed to\n            that node. Topological sorting gives us exactly that safe schedule.",
+   "tags": []
+  },
+  "Step through one real scalar graph. Watch the recursive calls build a\n            dependency-first list, then reverse it once for backpropagation.": {
+   "zh": "逐步遍历一个真实的标量图。观察递归调用如何构建出一个依赖优先的列表，再将其反转一次以用于反向传播。",
+   "src": "Step through one real scalar graph. Watch the recursive calls build a\n            dependency-first list, then reverse it once for backpropagation.",
+   "tags": []
+  },
+  "@@T0@@01@@T1@@@@T2@@Follow@@T3@@ each saved ParentLink to an operand.": {
+   "zh": "@@T0@@01@@T1@@@@T2@@沿@@T3@@每个保存的 ParentLink 追踪到相应的操作数。",
+   "src": "<span>01</span><strong>Follow</strong> each saved ParentLink to an operand.",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@02@@T1@@@@T2@@Append@@T3@@ a node only after its parents return.": {
+   "zh": "@@T0@@02@@T1@@@@T2@@仅在其父节点返回之后@@T3@@再追加该节点。",
+   "src": "<span>02</span><strong>Append</strong> a node only after its parents return.",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@03@@T1@@@@T2@@Reverse@@T3@@ the finished list for backward.": {
+   "zh": "@@T0@@03@@T1@@@@T2@@为反向传播将完成的列表@@T3@@反转。",
+   "src": "<span>03</span><strong>Reverse</strong> the finished list for backward.",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Interactive trace · exact notebook graph": {
+   "zh": "交互式追踪 &middot; 与 notebook 完全一致的图",
+   "src": "Interactive trace · exact notebook graph",
+   "tags": []
+  },
+  "Watch @@T0@@dependency_safe_order(L)@@T1@@ build its list": {
+   "zh": "观察 @@T0@@dependency_safe_order(L)@@T1@@ 如何构建其列表",
+   "src": "Watch <code>dependency_safe_order(L)</code> build its list",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Each step is one action performed by the recursive helper. The graph is fixed;\n              only the call stack, @@T0@@seen@@T1@@, and @@T2@@safe_order@@T3@@ change.": {
+   "zh": "每一步都是递归辅助函数执行的一次动作。图是固定的；只有调用栈、@@T0@@seen@@T1@@ 与 @@T2@@safe_order@@T3@@ 会发生变化。",
+   "src": "Each step is one action performed by the recursive helper. The graph is fixed;\n              only the call stack, <code>seen</code>, and <code>safe_order</code> change.",
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Reset": {
+   "zh": "重置",
+   "src": "Reset",
+   "tags": []
+  },
+  "Previous": {
+   "zh": "上一步",
+   "src": "Previous",
+   "tags": []
+  },
+  "Play": {
+   "zh": "播放",
+   "src": "Play",
+   "tags": []
+  },
+  "Next": {
+   "zh": "下一步",
+   "src": "Next",
+   "tags": []
+  },
+  "Speed": {
+   "zh": "速度",
+   "src": "Speed",
+   "tags": []
+  },
+  "@@T0@@Step 0 of 0@@T1@@": {
+   "zh": "@@T0@@第 0 步 / 共 0 步@@T1@@",
+   "src": "<span class=\"tsa-step-count\" data-step-count>Step 0 of 0</span>",
+   "tags": [
+    "<span class=\"tsa-step-count\" data-step-count>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Ready@@T1@@": {
+   "zh": "@@T0@@就绪@@T1@@",
+   "src": "<span class=\"tsa-action-badge\" data-kind=\"ready\" data-action-badge>Ready</span>",
+   "tags": [
+    "<span class=\"tsa-action-badge\" data-kind=\"ready\" data-action-badge>",
+    "</span>"
+   ]
+  },
+  "Press @@T0@@Next@@T1@@ or @@T2@@Play@@T3@@ to call @@T4@@append_after_parents(L)@@T5@@.": {
+   "zh": "按下 @@T0@@下一步@@T1@@ 或 @@T2@@播放@@T3@@ 以调用 @@T4@@append_after_parents(L)@@T5@@。",
+   "src": "Press <strong>Next</strong> or <strong>Play</strong> to call <code>append_after_parents(L)</code>.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "The moving dashed edge is a saved @@T0@@ParentLink@@T1@@ being followed from an output back to one direct operand. On a phone, scroll the graph sideways.": {
+   "zh": "移动的虚线边是一个保存的 @@T0@@ParentLink@@T1@@，正被从一个输出追踪回某个直接操作数。在手机上可横向滚动该图。",
+   "src": "The moving dashed edge is a saved <code>ParentLink</code> being followed from an output back to one direct operand. On a phone, scroll the graph sideways.",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@@@T1@@@@T2@@unseen@@T3@@\n                @@T4@@@@T5@@@@T6@@seen@@T7@@\n                @@T8@@@@T9@@@@T10@@on call stack@@T11@@\n                @@T12@@@@T13@@@@T14@@appended@@T15@@": {
+   "zh": "@@T0@@@@T1@@@@T2@@未见过@@T3@@\n                @@T4@@@@T5@@@@T6@@已见过@@T7@@\n                @@T8@@@@T9@@@@T10@@位于调用栈@@T11@@\n                @@T12@@@@T13@@@@T14@@已追加@@T15@@",
+   "src": "<span><i class=\"tsa-swatch\"></i>unseen</span>\n                <span><i class=\"tsa-swatch seen\"></i>seen</span>\n                <span><i class=\"tsa-swatch stack\"></i>on call stack</span>\n                <span><i class=\"tsa-swatch appended\"></i>appended</span>",
+   "tags": [
+    "<span>",
+    "<i class=\"tsa-swatch\">",
+    "</i>",
+    "</span>",
+    "<span>",
+    "<i class=\"tsa-swatch seen\">",
+    "</i>",
+    "</span>",
+    "<span>",
+    "<i class=\"tsa-swatch stack\">",
+    "</i>",
+    "</span>",
+    "<span>",
+    "<i class=\"tsa-swatch appended\">",
+    "</i>",
+    "</span>"
+   ]
+  },
+  "The code now running": {
+   "zh": "当前正在运行的代码",
+   "src": "The code now running",
+   "tags": []
+  },
+  "@@T0@@@@T1@@def append_after_parents(node):@@T2@@@@T3@@  if id(node) in seen: return@@T4@@@@T5@@  seen.add(id(node))@@T6@@@@T7@@  for link in node.parents:@@T8@@@@T9@@    append_after_parents(link.value)@@T10@@@@T11@@  safe_order.append(node)@@T12@@@@T13@@@@T14@@@@T15@@append_after_parents(L)@@T16@@@@T17@@return safe_order@@T18@@@@T19@@@@T20@@@@T21@@for output in reversed(safe_order):  # backward@@T22@@@@T23@@": {
+   "zh": "@@T0@@@@T1@@def append_after_parents(node):@@T2@@@@T3@@  if id(node) in seen: return@@T4@@@@T5@@  seen.add(id(node))@@T6@@@@T7@@  for link in node.parents:@@T8@@@@T9@@    append_after_parents(link.value)@@T10@@@@T11@@  safe_order.append(node)@@T12@@@@T13@@@@T14@@@@T15@@append_after_parents(L)@@T16@@@@T17@@return safe_order@@T18@@@@T19@@@@T20@@@@T21@@for output in reversed(safe_order):  # 反向传播@@T22@@@@T23@@",
+   "src": "<code><span class=\"tsa-code-line\" data-line=\"1\">def append_after_parents(node):</span><span class=\"tsa-code-line\" data-line=\"2\">  if id(node) in seen: return</span><span class=\"tsa-code-line\" data-line=\"3\">  seen.add(id(node))</span><span class=\"tsa-code-line\" data-line=\"4\">  for link in node.parents:</span><span class=\"tsa-code-line\" data-line=\"5\">    append_after_parents(link.value)</span><span class=\"tsa-code-line\" data-line=\"6\">  safe_order.append(node)</span><span class=\"tsa-code-line\" data-line=\"7\"></span><span class=\"tsa-code-line\" data-line=\"8\">append_after_parents(L)</span><span class=\"tsa-code-line\" data-line=\"9\">return safe_order</span><span class=\"tsa-code-line\" data-line=\"10\"></span><span class=\"tsa-code-line\" data-line=\"11\">for output in reversed(safe_order):  # backward</span></code>",
+   "tags": [
+    "<code>",
+    "<span class=\"tsa-code-line\" data-line=\"1\">",
+    "</span>",
+    "<span class=\"tsa-code-line\" data-line=\"2\">",
+    "</span>",
+    "<span class=\"tsa-code-line\" data-line=\"3\">",
+    "</span>",
+    "<span class=\"tsa-code-line\" data-line=\"4\">",
+    "</span>",
+    "<span class=\"tsa-code-line\" data-line=\"5\">",
+    "</span>",
+    "<span class=\"tsa-code-line\" data-line=\"6\">",
+    "</span>",
+    "<span class=\"tsa-code-line\" data-line=\"7\">",
+    "</span>",
+    "<span class=\"tsa-code-line\" data-line=\"8\">",
+    "</span>",
+    "<span class=\"tsa-code-line\" data-line=\"9\">",
+    "</span>",
+    "<span class=\"tsa-code-line\" data-line=\"10\">",
+    "</span>",
+    "<span class=\"tsa-code-line\" data-line=\"11\">",
+    "</span>",
+    "</code>"
+   ]
+  },
+  "Active recursive calls": {
+   "zh": "活跃的递归调用",
+   "src": "Active recursive calls",
+   "tags": []
+  },
+  "@@T0@@empty@@T1@@": {
+   "zh": "@@T0@@空@@T1@@",
+   "src": "<span class=\"tsa-empty\">empty</span>",
+   "tags": [
+    "<span class=\"tsa-empty\">",
+    "</span>"
+   ]
+  },
+  "Seen Values": {
+   "zh": "已见过的值",
+   "src": "Seen Values",
+   "tags": []
+  },
+  "@@T0@@none yet@@T1@@": {
+   "zh": "@@T0@@暂无@@T1@@",
+   "src": "<span class=\"tsa-empty\">none yet</span>",
+   "tags": [
+    "<span class=\"tsa-empty\">",
+    "</span>"
+   ]
+  },
+  "Shown in discovery order for readability; @@T0@@seen@@T1@@ is a set, so only membership matters.": {
+   "zh": "为便于阅读而按发现顺序展示；@@T0@@seen@@T1@@ 是集合，因此只需关注成员资格。",
+   "src": "Shown in discovery order for readability; <code>seen</code> is a set, so only membership matters.",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Current ParentLink": {
+   "zh": "当前的 ParentLink",
+   "src": "Current ParentLink",
+   "tags": []
+  },
+  "@@T0@@No link is being followed.@@T1@@": {
+   "zh": "@@T0@@当前没有在追踪任何链接。@@T1@@",
+   "src": "<span class=\"tsa-empty\">No link is being followed.</span>",
+   "tags": [
+    "<span class=\"tsa-empty\">",
+    "</span>"
+   ]
+  },
+  "Sorting follows @@T0@@.value@@T1@@. The saved @@T2@@.local_grad@@T3@@ is displayed but remains unused until backward.": {
+   "zh": "排序追踪的是 @@T0@@.value@@T1@@。保存的 @@T2@@.local_grad@@T3@@ 会被显示，但在反向传播之前始终未被使用。",
+   "src": "Sorting follows <code>.value</code>. The saved <code>.local_grad</code> is displayed but remains unused until backward.",
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Dependency-first output being built": {
+   "zh": "正在构建的依赖优先输出",
+   "src": "Dependency-first output being built",
+   "tags": []
+  },
+  "A Value enters this list only after every recursive parent call has returned.": {
+   "zh": "只有当每一个递归的父调用都已返回之后，某个 Value 才会进入该列表。",
+   "src": "A Value enters this list only after every recursive parent call has returned.",
+   "tags": []
+  },
+  "What the current structures mean": {
+   "zh": "当前各结构的含义",
+   "src": "What the current structures mean",
+   "tags": []
+  },
+  "@@T0@@stack@@T1@@ answers “which calls are waiting?” · @@T2@@seen@@T3@@ prevents scheduling one shared Value twice · @@T4@@safe_order@@T5@@ is the list we will reverse.": {
+   "zh": "@@T0@@stack@@T1@@ 回答「哪些调用正在等待？」· @@T2@@seen@@T3@@ 防止同一个共享 Value 被调度两次 · @@T4@@safe_order@@T5@@ 是即将被反转的列表。",
+   "src": "<code>stack</code> answers “which calls are waiting?” · <code>seen</code> prevents scheduling one shared Value twice · <code>safe_order</code> is the list we will reverse.",
+   "tags": [
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Reverse once · backward schedule": {
+   "zh": "反转一次 &middot; 反向传播调度",
+   "src": "Reverse once · backward schedule",
+   "tags": []
+  },
+  "@@T0@@Why every node is ready:@@T1@@ reversing puts an output before the operands it can update.\n              Therefore every later output that can contribute to a node's @@T2@@.grad@@T3@@ has already run before\n              that node sends its completed gradient to its own parents.": {
+   "zh": "@@T0@@为何每个节点都已就绪：@@T1@@反转后，输出被置于它能够更新的操作数之前。因此，在某个节点将该节点已完成的梯度发送给自己的父节点之前，所有可能对该节点的 @@T2@@.grad@@T3@@ 作出贡献的后续输出都已执行完毕。",
+   "src": "<strong>Why every node is ready:</strong> reversing puts an output before the operands it can update.\n              Therefore every later output that can contribute to a node's <code>.grad</code> has already run before\n              that node sends its completed gradient to its own parents.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@@@T1@@enter@@T2@@ start one call and mark new@@T3@@\n            @@T4@@@@T5@@follow link@@T6@@ recurse to an operand@@T7@@\n            @@T8@@@@T9@@skip seen@@T10@@ immediate return for a shared Value; this exact graph never needs it@@T11@@\n            @@T12@@@@T13@@append@@T14@@ parents are finished@@T15@@\n            @@T16@@@@T17@@unwind@@T18@@ child call returned@@T19@@\n            @@T20@@@@T21@@return@@T22@@ sorting is finished@@T23@@\n            @@T24@@@@T25@@reverse@@T26@@ enter the backward schedule@@T27@@\n            @@T28@@Keyboard when the panel itself is focused: ← previous · → next · Space play/pause · Home reset.@@T29@@": {
+   "zh": "@@T0@@@@T1@@进入@@T2@@ 开始一次调用并标记为新的@@T3@@\n            @@T4@@@@T5@@追踪链接@@T6@@ 递归至某个操作数@@T7@@\n            @@T8@@@@T9@@跳过已见过@@T10@@ 对共享 Value 立即返回；此图恰好从不需要它@@T11@@\n            @@T12@@@@T13@@追加@@T14@@ 父节点均已完成@@T15@@\n            @@T16@@@@T17@@回退@@T18@@ 子调用已返回@@T19@@\n            @@T20@@@@T21@@返回@@T22@@ 排序已完成@@T23@@\n            @@T24@@@@T25@@反转@@T26@@ 进入反向传播调度@@T27@@\n            @@T28@@当面板本身获得焦点时的键盘操作：← 上一步 · → 下一步 · 空格 播放/暂停 · Home 重置。@@T29@@",
+   "src": "<span><b class=\"tsa-legend-badge enter\">enter</b> start one call and mark new</span>\n            <span><b class=\"tsa-legend-badge follow\">follow link</b> recurse to an operand</span>\n            <span><b class=\"tsa-legend-badge skip\">skip seen</b> immediate return for a shared Value; this exact graph never needs it</span>\n            <span><b class=\"tsa-legend-badge append\">append</b> parents are finished</span>\n            <span><b class=\"tsa-legend-badge unwind\">unwind</b> child call returned</span>\n            <span><b class=\"tsa-legend-badge return\">return</b> sorting is finished</span>\n            <span><b class=\"tsa-legend-badge reverse\">reverse</b> enter the backward schedule</span>\n            <span class=\"tsa-keyboard\">Keyboard when the panel itself is focused: ← previous · → next · Space play/pause · Home reset.</span>",
+   "tags": [
+    "<span>",
+    "<b class=\"tsa-legend-badge enter\">",
+    "</b>",
+    "</span>",
+    "<span>",
+    "<b class=\"tsa-legend-badge follow\">",
+    "</b>",
+    "</span>",
+    "<span>",
+    "<b class=\"tsa-legend-badge skip\">",
+    "</b>",
+    "</span>",
+    "<span>",
+    "<b class=\"tsa-legend-badge append\">",
+    "</b>",
+    "</span>",
+    "<span>",
+    "<b class=\"tsa-legend-badge unwind\">",
+    "</b>",
+    "</span>",
+    "<span>",
+    "<b class=\"tsa-legend-badge return\">",
+    "</b>",
+    "</span>",
+    "<span>",
+    "<b class=\"tsa-legend-badge reverse\">",
+    "</b>",
+    "</span>",
+    "<span class=\"tsa-keyboard\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Dependency-first order:@@T1@@ w → x → m → b → a → y → e → L@@T2@@\n            @@T3@@Reverse for backward:@@T4@@ L → e → y → a → b → m → x → w@@T5@@\n            Each operand appears before the output that uses it; reversing makes each output ready before it sends gradient contributions to its operands.": {
+   "zh": "@@T0@@依赖优先顺序：@@T1@@ w → x → m → b → a → y → e → L@@T2@@\n            @@T3@@为反向传播反转后：@@T4@@ L → e → y → a → b → m → x → w@@T5@@\n            每个操作数都出现在使用它的输出之前；反转后，每个输出在向自己的操作数发送梯度贡献之前就已就绪。",
+   "src": "<strong>Dependency-first order:</strong> w → x → m → b → a → y → e → L<br>\n            <strong>Reverse for backward:</strong> L → e → y → a → b → m → x → w<br>\n            Each operand appears before the output that uses it; reversing makes each output ready before it sends gradient contributions to its operands.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br>",
+    "<strong>",
+    "</strong>",
+    "<br>"
+   ]
+  },
+  "@@T0@@JavaScript is off.@@T1@@ Use the static dependency-order diagram immediately above this trace.": {
+   "zh": "@@T0@@JavaScript 已关闭。@@T1@@请使用紧邻本追踪上方的静态依赖顺序图。",
+   "src": "<strong>JavaScript is off.</strong> Use the static dependency-order diagram immediately above this trace.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The invariant": {
+   "zh": "不变式",
+   "src": "The invariant",
+   "tags": []
+  },
+  "Wait until the gradient is complete": {
+   "zh": "等待梯度完整",
+   "src": "Wait until the gradient is complete",
+   "tags": []
+  },
+  "The forward graph points from operands to outputs. The traversal follows stored parent\n          links in the opposite direction and appends on the way back. Reversing that list puts\n          every output before the operands whose gradient buffers it updates.": {
+   "zh": "前向图由操作数指向输出。该遍历沿保存的父链接以相反方向行进，并在返回途中追加。反转该列表后，每个输出都被置于它所要更新其梯度缓冲区的操作数之前。",
+   "src": "The forward graph points from operands to outputs. The traversal follows stored parent\n          links in the opposite direction and appends on the way back. Reversing that list puts\n          every output before the operands whose gradient buffers it updates.",
+   "tags": []
+  },
+  "Designed for ES 667: Deep Learning at IIT Gandhinagar.": {
+   "zh": "为印度理工学院甘地讷格尔分校的 ES 667：深度学习课程而设计。",
+   "src": "Designed for ES 667: Deep Learning at IIT Gandhinagar.",
+   "tags": []
+  },
+  "Back to the explainer library": {
+   "zh": "返回讲解库",
+   "src": "Back to the explainer library",
+   "tags": []
+  },
+  "Three-part route through the interactive": {
+   "zh": "贯穿交互内容的三段式路径",
+   "src": "Three-part route through the interactive",
+   "tags": []
+  },
+  "Interactive trace of dependency-safe ordering": {
+   "zh": "依赖安全排序的交互式追踪",
+   "src": "Interactive trace of dependency-safe ordering",
+   "tags": []
+  },
+  "Animation controls": {
+   "zh": "动画控制",
+   "src": "Animation controls",
+   "tags": []
+  },
+  "Playback speed": {
+   "zh": "播放速度",
+   "src": "Playback speed",
+   "tags": []
+  },
+  "Scrollable computation graph; use left and right arrow keys to pan": {
+   "zh": "可滚动的计算图；使用左右方向键平移",
+   "src": "Scrollable computation graph; use left and right arrow keys to pan",
+   "tags": []
+  },
+  "Node color key": {
+   "zh": "节点颜色图例",
+   "src": "Node color key",
+   "tags": []
+  },
+  "Algorithm state": {
+   "zh": "算法状态",
+   "src": "Algorithm state",
+   "tags": []
+  },
+  "dependency safe order pseudocode": {
+   "zh": "依赖安全排序伪代码",
+   "src": "dependency safe order pseudocode",
+   "tags": []
+  },
+  "Call stack": {
+   "zh": "调用栈",
+   "src": "Call stack",
+   "tags": []
+  },
+  "Dependency-first output": {
+   "zh": "依赖优先输出",
+   "src": "Dependency-first output",
+   "tags": []
+  },
+  "Final backward schedule": {
+   "zh": "最终反向传播调度",
+   "src": "Final backward schedule",
+   "tags": []
+  },
+  "Action type key": {
+   "zh": "动作类型图例",
+   "src": "Action type key",
+   "tags": []
+  },
+  "Reset (Home)": {
+   "zh": "重置（Home）",
+   "src": "Reset (Home)",
+   "tags": []
+  },
+  "Previous step (Left arrow)": {
+   "zh": "上一步（左方向键）",
+   "src": "Previous step (Left arrow)",
+   "tags": []
+  },
+  "Play or pause (Space)": {
+   "zh": "播放或暂停（空格）",
+   "src": "Play or pause (Space)",
+   "tags": []
+  },
+  "Next step (Right arrow)": {
+   "zh": "下一步（右方向键）",
+   "src": "Next step (Right arrow)",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "面向反向传播的拓扑序",
+  "tagline": "观察一次递归的图遍历如何为反向模式自动微分构建安全调度",
+  "summary": "一篇逐步演示的讲解，说明反向传播为何需要拓扑序。追踪真实的 ParentLink，检视调用栈与 seen 集合，观察依赖优先顺序如何生长，再将其反转以用于反向传播。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "以一次一个递归动作的方式，逐步遍历自动微分课程中所用的那个标量图。",
+   "同步查看图、当前激活的伪代码行、调用栈、seen 集合、ParentLink 以及输出列表的变化。",
+   "将排序与微积分分离：局部梯度会被存储，但在反向传播之前保持不变。",
+   "比较依赖优先的返回帧与为反向传播而反转的那个截然不同的帧。",
+   "既可将该工具用作独立讲解，也可将其连同实时追踪数据嵌入课程 notebook。"
+  ],
+  "tags": [
+   "自动微分",
+   "反向传播",
+   "拓扑排序",
+   "交互式"
+  ]
+ },
+ "js": {
+  "tsa-chip [[[0]]]": {
+   "zh": "[[[0]]] tsa-chip",
+   "exprs": [
+    "${kind}"
+   ],
+   "tags": [],
+   "src": "tsa-chip ${kind}"
+  },
+  "Step [[[0]]] of [[[1]]]": {
+   "zh": "第 [[[0]]] 步 / 共 [[[1]]] 步",
+   "exprs": [
+    "${index}",
+    "${events.length - 1}"
+   ],
+   "tags": [],
+   "src": "Step ${index} of ${events.length - 1}"
+  },
+  ".value = [[[0]]]  ← followed now": {
+   "zh": ".value = [[[0]]]  ← 当前追踪",
+   "exprs": [
+    "${event.parent}"
+   ],
+   "tags": [],
+   "src": ".value = ${event.parent}  ← followed now"
+  },
+  ".local_grad = [[[0]]]  · stored, not read by sorting": {
+   "zh": ".local_grad = [[[0]]]  · 已存储，排序过程不会读取",
+   "exprs": [
+    "${event.local_grad}"
+   ],
+   "tags": [],
+   "src": ".local_grad = ${event.local_grad}  · stored, not read by sorting"
+  },
+  "Press <strong>Next</strong> or <strong>Play</strong> to call ": {
+   "zh": "按下 <strong>下一步</strong> 或 <strong>播放</strong> 以调用 ",
+   "exprs": [],
+   "tags": [],
+   "src": "Press <strong>Next</strong> or <strong>Play</strong> to call "
+  },
+  "</strong> is already in <code>seen</code>, so this repeated ": {
+   "zh": "</strong> 已在 <code>seen</code> 中，因此这次重复的 ",
+   "exprs": [],
+   "tags": [],
+   "src": "</strong> is already in <code>seen</code>, so this repeated "
+  },
+  "call returns without appending it again.": {
+   "zh": "调用会直接返回，不会再将其追加一次。",
+   "exprs": [],
+   "tags": [],
+   "src": "call returns without appending it again."
+  },
+  "Enter <strong>": {
+   "zh": "进入 <strong>",
+   "exprs": [],
+   "tags": [],
+   "src": "Enter <strong>"
+  },
+  "its parent.": {
+   "zh": "其父节点。",
+   "exprs": [],
+   "tags": [],
+   "src": "its parent."
+  },
+  " parents.": {
+   "zh": " 父节点。",
+   "exprs": [],
+   "tags": [],
+   "src": " parents."
+  },
+  "Enter leaf <strong>": {
+   "zh": "进入叶节点 <strong>",
+   "exprs": [],
+   "tags": [],
+   "src": "Enter leaf <strong>"
+  },
+  "</strong>. It is new, so mark it seen. ": {
+   "zh": "</strong>。它是新的，故将其标记为已见过。",
+   "exprs": [],
+   "tags": [],
+   "src": "</strong>. It is new, so mark it seen. "
+  },
+  "It has no ParentLinks, so it can be appended next.": {
+   "zh": "它没有 ParentLink，因此接下来即可将其追加。",
+   "exprs": [],
+   "tags": [],
+   "src": "It has no ParentLinks, so it can be appended next."
+  },
+  "Follow <code>": {
+   "zh": "追踪 <code>",
+   "exprs": [],
+   "tags": [],
+   "src": "Follow <code>"
+  },
+  "</strong>, then call ": {
+   "zh": "</strong>，然后调用 ",
+   "exprs": [],
+   "tags": [],
+   "src": "</strong>, then call "
+  },
+  "The call for <strong>": {
+   "zh": "对 <strong> 的调用",
+   "exprs": [],
+   "tags": [],
+   "src": "The call for <strong>"
+  },
+  "</strong> has returned to ": {
+   "zh": "</strong> 已返回至 ",
+   "exprs": [],
+   "tags": [],
+   "src": "</strong> has returned to "
+  },
+  "Continue to the next ParentLink.": {
+   "zh": "继续处理下一个 ParentLink。",
+   "exprs": [],
+   "tags": [],
+   "src": "Continue to the next ParentLink."
+  },
+  "All of this node's parent calls are now finished.": {
+   "zh": "该节点的所有父调用现已完成。",
+   "exprs": [],
+   "tags": [],
+   "src": "All of this node's parent calls are now finished."
+  },
+  "Append <strong>": {
+   "zh": "追加 <strong>",
+   "exprs": [],
+   "tags": [],
+   "src": "Append <strong>"
+  },
+  "</strong> to <code>safe_order</code>. Every direct ": {
+   "zh": "</strong> 至 <code>safe_order</code>。它的每个直接 ",
+   "exprs": [],
+   "tags": [],
+   "src": "</strong> to <code>safe_order</code>. Every direct "
+  },
+  "parent of ": {
+   "zh": "父节点 ",
+   "exprs": [],
+   "tags": [],
+   "src": "parent of "
+  },
+  " is already earlier in the list.": {
+   "zh": " 在列表中都已更靠前。",
+   "exprs": [],
+   "tags": [],
+   "src": " is already earlier in the list."
+  },
+  "The recursive helper is finished. Return the dependency-first ": {
+   "zh": "递归辅助函数已完成。返回依赖优先的 ",
+   "exprs": [],
+   "tags": [],
+   "src": "The recursive helper is finished. Return the dependency-first "
+  },
+  "<code>safe_order</code> unchanged.": {
+   "zh": "<code>safe_order</code>，保持不变。",
+   "exprs": [],
+   "tags": [],
+   "src": "<code>safe_order</code> unchanged."
+  },
+  "Now move into <code>backward</code>. Its loop reads ": {
+   "zh": "现在进入 <code>backward</code>。它的循环读取 ",
+   "exprs": [],
+   "tags": [],
+   "src": "Now move into <code>backward</code>. Its loop reads "
+  },
+  "The default topological-order trace must contain exactly 33 frames.": {
+   "zh": "默认的拓扑序追踪必须恰好包含 33 帧。",
+   "exprs": [],
+   "tags": [],
+   "src": "The default topological-order trace must contain exactly 33 frames."
+  },
+  "svg.tsa-graph": {
+   "zh": ".tsa-graph",
+   "exprs": [],
+   "tags": [],
+   "src": "svg.tsa-graph"
+  },
+  "Follow link": {
+   "zh": "追踪链接",
+   "exprs": [],
+   "tags": [],
+   "src": "Follow link"
+  },
+  "Skip seen": {
+   "zh": "跳过已见过",
+   "exprs": [],
+   "tags": [],
+   "src": "Skip seen"
+  },
+  "No link is being followed in this step.": {
+   "zh": "本步没有在追踪任何链接。",
+   "exprs": [],
+   "tags": [],
+   "src": "No link is being followed in this step."
+  },
+  "none yet": {
+   "zh": "暂无",
+   "exprs": [],
+   "tags": [],
+   "src": "none yet"
+  },
+  "Using the trace generated by the notebook.": {
+   "zh": "使用由 notebook 生成的追踪数据。",
+   "exprs": [],
+   "tags": [],
+   "src": "Using the trace generated by the notebook."
+  }
+ }
+}

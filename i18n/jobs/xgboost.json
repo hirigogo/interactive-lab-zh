@@ -1,0 +1,422 @@
+{
+ "slug": "xgboost",
+ "units": {
+  "XGBoost, Tree by Tree": {
+   "zh": "逐棵树理解 XGBoost",
+   "src": "XGBoost, Tree by Tree",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Gradient boosting in slow motion: each new tree fits the\n          residual of the previous ensemble. Click @@T0@@Add tree@@T1@@;\n          watch the prediction sharpen and the loss drop. Then see\n          why the second-order (Newton) update XGBoost actually uses\n          beats the vanilla first-order one.": {
+   "zh": "慢镜头下的梯度提升：每一棵新树拟合前一集成模型的残差。点击 @@T0@@添加树@@T1@@；观察预测变清晰、损失下降。随后了解 XGBoost 实际采用的二阶（牛顿）更新为何胜过朴素的一阶更新。",
+   "src": "Gradient boosting in slow motion: each new tree fits the\n          residual of the previous ensemble. Click <em>Add tree</em>;\n          watch the prediction sharpen and the loss drop. Then see\n          why the second-order (Newton) update XGBoost actually uses\n          beats the vanilla first-order one.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~18 min@@T1@@\n          @@T2@@Classical ML &middot; Boosting &middot; Trees@@T3@@": {
+   "zh": "@@T0@@约 18 分钟@@T1@@\n          @@T2@@经典机器学习 &middot; 提升 &middot; 树模型@@T3@@",
+   "src": "<span>~18 min</span>\n          <span>Classical ML &middot; Boosting &middot; Trees</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "The boosting recipe in two lines": {
+   "zh": "两行讲清提升法的配方",
+   "src": "The boosting recipe in two lines",
+   "tags": []
+  },
+  "Build a sequence of weak learners (small trees), each\n          fitting the residual of the running prediction. The\n          ensemble prediction is the sum of all trees.": {
+   "zh": "构建一系列弱学习器（小树），每一棵都拟合当前预测的残差。集成预测是所有树之和。",
+   "src": "Build a sequence of weak learners (small trees), each\n          fitting the residual of the running prediction. The\n          ensemble prediction is the sum of all trees.",
+   "tags": []
+  },
+  "$\\eta$ is the learning rate. Smaller $\\eta$ + more trees is\n          almost always better than larger $\\eta$ + fewer trees, up to\n          a budget. $f_t$ is what tree $t$ outputs on input $x$.": {
+   "zh": "$\\eta$ 是学习率。在给定预算下，较小的 $\\eta$ 加更多的树几乎总是优于较大的 $\\eta$ 加更少的树。$f_t$ 是第 $t$ 棵树在输入 $x$ 上的输出。",
+   "src": "$\\eta$ is the learning rate. Smaller $\\eta$ + more trees is\n          almost always better than larger $\\eta$ + fewer trees, up to\n          a budget. $f_t$ is what tree $t$ outputs on input $x$.",
+   "tags": []
+  },
+  "What XGBoost adds": {
+   "zh": "XGBoost 额外做了什么",
+   "src": "What XGBoost adds",
+   "tags": []
+  },
+  "Vanilla gradient boosting fits $f_t$ to the\n          @@T0@@negative gradient@@T1@@ $-\\partial L / \\partial \\hat y$\n          (a first-order approximation). XGBoost (Chen &amp; Guestrin,\n          2016) does a @@T2@@second-order Taylor expansion@@T3@@\n          and fits the tree to optimise the\n          @@T4@@Newton-step@@T5@@ direction. Its split-gain and leaf-value\n          formulas are:": {
+   "zh": "朴素的梯度提升让 $f_t$ 拟合 @@T0@@负梯度@@T1@@ $-\\partial L / \\partial \\hat y$（一阶近似）。XGBoost（Chen &amp; Guestrin，2016）则进行 @@T2@@二阶泰勒展开@@T3@@，并让树去优化 @@T4@@牛顿步@@T5@@ 方向。其分裂增益与叶值公式为：",
+   "src": "Vanilla gradient boosting fits $f_t$ to the\n          <em>negative gradient</em> $-\\partial L / \\partial \\hat y$\n          (a first-order approximation). XGBoost (Chen &amp; Guestrin,\n          2016) does a <strong>second-order Taylor expansion</strong>\n          and fits the tree to optimise the\n          <em>Newton-step</em> direction. Its split-gain and leaf-value\n          formulas are:",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "where $g_i = \\partial L / \\partial \\hat y_i$ and\n          $h_i = \\partial^2 L / \\partial \\hat y_i^2$. For squared loss\n          $L = \\frac{1}{2}(y - \\hat y)^2$ this reduces to vanilla GBM\n          ($g = \\hat y - y$, $h = 1$). For logistic loss XGBoost's\n          Hessian-aware update converges meaningfully faster.": {
+   "zh": "其中 $g_i = \\partial L / \\partial \\hat y_i$，$h_i = \\partial^2 L / \\partial \\hat y_i^2$。对于平方损失 $L = \\frac{1}{2}(y - \\hat y)^2$，这退化为朴素的 GBM（$g = \\hat y - y$，$h = 1$）。对于逻辑损失，XGBoost 顾及 Hessian 的更新收敛速度明显更快。",
+   "src": "where $g_i = \\partial L / \\partial \\hat y_i$ and\n          $h_i = \\partial^2 L / \\partial \\hat y_i^2$. For squared loss\n          $L = \\frac{1}{2}(y - \\hat y)^2$ this reduces to vanilla GBM\n          ($g = \\hat y - y$, $h = 1$). For logistic loss XGBoost's\n          Hessian-aware update converges meaningfully faster.",
+   "tags": []
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Tree by tree, live": {
+   "zh": "实时逐棵树构建",
+   "src": "Tree by tree, live",
+   "tags": []
+  },
+  "A 1-D regression toy with a hidden curve. Click @@T0@@Add\n          tree@@T1@@; the next tree fits the current residual; the\n          ensemble prediction (teal) updates. Compare to a single\n          deep tree and a random forest of 25 trees on the same data.": {
+   "zh": "一个带隐藏曲线的一维回归玩具示例。点击 @@T0@@添加树@@T1@@；下一棵树拟合当前残差；集成预测（青色）随之更新。在同一数据上与单棵深树以及 25 棵树的随机森林作比较。",
+   "src": "A 1-D regression toy with a hidden curve. Click <em>Add\n          tree</em>; the next tree fits the current residual; the\n          ensemble prediction (teal) updates. Compare to a single\n          deep tree and a random forest of 25 trees on the same data.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Add tree": {
+   "zh": "添加树",
+   "src": "Add tree",
+   "tags": []
+  },
+  "+10 trees": {
+   "zh": "+10 棵树",
+   "src": "+10 trees",
+   "tags": []
+  },
+  "Reset": {
+   "zh": "重置",
+   "src": "Reset",
+   "tags": []
+  },
+  "learning rate η &nbsp;@@T0@@0.30@@T1@@": {
+   "zh": "学习率 η &nbsp;@@T0@@0.30@@T1@@",
+   "src": "learning rate η &nbsp;<span id=\"xg-lr-val\">0.30</span>",
+   "tags": [
+    "<span id=\"xg-lr-val\">",
+    "</span>"
+   ]
+  },
+  "max depth &nbsp;@@T0@@3@@T1@@": {
+   "zh": "最大深度 &nbsp;@@T0@@3@@T1@@",
+   "src": "max depth &nbsp;<span id=\"xg-depth-val\">3</span>",
+   "tags": [
+    "<span id=\"xg-depth-val\">",
+    "</span>"
+   ]
+  },
+  "New data": {
+   "zh": "新数据",
+   "src": "New data",
+   "tags": []
+  },
+  "@@T0@@trees @@T1@@0@@T2@@@@T3@@\n          @@T4@@train RMSE @@T5@@—@@T6@@@@T7@@": {
+   "zh": "@@T0@@树的数量 @@T1@@0@@T2@@@@T3@@\n          @@T4@@训练 RMSE @@T5@@—@@T6@@@@T7@@",
+   "src": "<span class=\"train-stat\">trees <strong id=\"xg-n\">0</strong></span>\n          <span class=\"train-stat\">train RMSE <strong id=\"xg-rmse\">—</strong></span>",
+   "tags": [
+    "<span class=\"train-stat\">",
+    "<strong id=\"xg-n\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"xg-rmse\">",
+    "</strong>",
+    "</span>"
+   ]
+  },
+  "Training data (●), true curve (dashed), boosted ensemble (teal solid), latest tree's contribution (orange dashed).": {
+   "zh": "训练数据（●）、真实曲线（虚线）、提升集成（青色实线）、最新一棵树的贡献（橙色虚线）。",
+   "src": "Training data (●), true curve (dashed), boosted ensemble (teal solid), latest tree's contribution (orange dashed).",
+   "tags": []
+  },
+  "Residuals after the current ensemble. Boosting drives this toward zero.": {
+   "zh": "当前集成之后的残差。提升法将其推向零。",
+   "src": "Residuals after the current ensemble. Boosting drives this toward zero.",
+   "tags": []
+  },
+  "Train RMSE vs number of trees. Watch the elbow shape.": {
+   "zh": "训练 RMSE 随树数量的变化。观察其肘部形状。",
+   "src": "Train RMSE vs number of trees. Watch the elbow shape.",
+   "tags": []
+  },
+  "Compare to single tree + random forest": {
+   "zh": "与单棵树 + 随机森林比较",
+   "src": "Compare to single tree + random forest",
+   "tags": []
+  },
+  "single deep tree (depth 8)": {
+   "zh": "单棵深树（深度 8）",
+   "src": "single deep tree (depth 8)",
+   "tags": []
+  },
+  "random forest (25 trees, depth 6)": {
+   "zh": "随机森林（25 棵树，深度 6）",
+   "src": "random forest (25 trees, depth 6)",
+   "tags": []
+  },
+  "boosted ensemble (current)": {
+   "zh": "提升集成（当前）",
+   "src": "boosted ensemble (current)",
+   "tags": []
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "What you should see": {
+   "zh": "你应当看到的现象",
+   "src": "What you should see",
+   "tags": []
+  },
+  "@@T0@@The first tree is just a step function.@@T1@@\n            Depth-3 means at most 8 leaves; the prediction is a\n            blocky approximation of the truth.": {
+   "zh": "@@T0@@第一棵树只是一个阶梯函数。@@T1@@\n            深度为 3 意味着至多 8 个叶节点；预测是对真实函数的块状近似。",
+   "src": "<strong>The first tree is just a step function.</strong>\n            Depth-3 means at most 8 leaves; the prediction is a\n            blocky approximation of the truth.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Each subsequent tree corrects the residual.@@T1@@\n            Watch the residual panel: it gets noisier and smaller,\n            never really hitting zero unless you keep adding trees.": {
+   "zh": "@@T0@@其后每一棵树都修正残差。@@T1@@\n            观察残差面板：它变得更具噪声也更小，除非你持续添加树，否则永远无法真正达到零。",
+   "src": "<strong>Each subsequent tree corrects the residual.</strong>\n            Watch the residual panel: it gets noisier and smaller,\n            never really hitting zero unless you keep adding trees.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Lower η = smoother fits.@@T1@@ At η=0.05 + 100\n            trees the curve is smooth. At η=0.5 + 20 trees it's\n            jagged. Same total \"step size\", different bias/variance.": {
+   "zh": "@@T0@@较低的 η = 更平滑的拟合。@@T1@@ 在 η=0.05 加 100 棵树时曲线平滑。在 η=0.5 加 20 棵树时则参差不齐。总的「步长」相同，偏差/方差的权衡不同。",
+   "src": "<strong>Lower η = smoother fits.</strong> At η=0.05 + 100\n            trees the curve is smooth. At η=0.5 + 20 trees it's\n            jagged. Same total \"step size\", different bias/variance.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Boosted vs RF.@@T1@@ Random forest averages\n            many @@T2@@independent@@T3@@ deep trees; boosting builds\n            @@T4@@dependent@@T5@@ shallow trees. RF is robust + parallel;\n            boosting is more accurate + sequential. For tabular\n            tasks XGBoost / LightGBM / CatBoost beat RF on most\n            benchmarks since 2018.": {
+   "zh": "@@T0@@提升法与随机森林对比。@@T1@@ 随机森林对许多 @@T2@@相互独立@@T3@@ 的深树取平均；提升法则构建 @@T4@@相互依赖@@T5@@ 的浅树。随机森林稳健且可并行；提升法更准确但需串行。自 2018 年以来，在表格任务上 XGBoost / LightGBM / CatBoost 在大多数基准中胜过随机森林。",
+   "src": "<strong>Boosted vs RF.</strong> Random forest averages\n            many <em>independent</em> deep trees; boosting builds\n            <em>dependent</em> shallow trees. RF is robust + parallel;\n            boosting is more accurate + sequential. For tabular\n            tasks XGBoost / LightGBM / CatBoost beat RF on most\n            benchmarks since 2018.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Production XGBoost — what to actually tune": {
+   "zh": "生产环境中的 XGBoost —— 真正该调什么",
+   "src": "Production XGBoost — what to actually tune",
+   "tags": []
+  },
+  "@@T0@@n_estimators / num_boost_round.@@T1@@ Use\n            early stopping with a validation set. 500–5000 is the\n            useful range; more is wasted.": {
+   "zh": "@@T0@@n_estimators / num_boost_round。@@T1@@ 配合验证集使用早停。500–5000 是有用的范围；更多则是浪费。",
+   "src": "<strong>n_estimators / num_boost_round.</strong> Use\n            early stopping with a validation set. 500–5000 is the\n            useful range; more is wasted.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@learning_rate (η).@@T1@@ 0.01–0.1 for big\n            datasets, 0.05–0.3 for small. Lower with more trees.": {
+   "zh": "@@T0@@learning_rate (η)。@@T1@@ 大数据集用 0.01–0.1，小数据集用 0.05–0.3。树更多时取更低值。",
+   "src": "<strong>learning_rate (η).</strong> 0.01–0.1 for big\n            datasets, 0.05–0.3 for small. Lower with more trees.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@max_depth.@@T1@@ 3–10. Deeper for big tabular\n            data with rich interactions; shallower for noisy data.": {
+   "zh": "@@T0@@max_depth。@@T1@@ 3–10。对于交互丰富的大型表格数据可更深；对于噪声数据则更浅。",
+   "src": "<strong>max_depth.</strong> 3–10. Deeper for big tabular\n            data with rich interactions; shallower for noisy data.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@min_child_weight.@@T1@@ Equivalent of\n            min-samples-per-leaf weighted by the Hessian. 1 default;\n            push higher for noisy data.": {
+   "zh": "@@T0@@min_child_weight。@@T1@@ 相当于按 Hessian 加权的每叶最小样本数。默认值为 1；对噪声数据可调高。",
+   "src": "<strong>min_child_weight.</strong> Equivalent of\n            min-samples-per-leaf weighted by the Hessian. 1 default;\n            push higher for noisy data.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@subsample / colsample_bytree.@@T1@@ Bootstrap\n            row / feature sampling per tree. 0.7–0.9 is the sweet\n            spot — adds randomness, regularises.": {
+   "zh": "@@T0@@subsample / colsample_bytree。@@T1@@ 每棵树的行 / 特征自助采样。0.7–0.9 是最佳区间 —— 引入随机性，起到正则化作用。",
+   "src": "<strong>subsample / colsample_bytree.</strong> Bootstrap\n            row / feature sampling per tree. 0.7–0.9 is the sweet\n            spot — adds randomness, regularises.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@reg_alpha / reg_lambda.@@T1@@ L1 / L2 on\n            leaf weights. Tune if you have many features and worry\n            about overfitting.": {
+   "zh": "@@T0@@reg_alpha / reg_lambda。@@T1@@ 作用于叶权重的 L1 / L2 正则。若你的特征很多且担心过拟合，可加以调校。",
+   "src": "<strong>reg_alpha / reg_lambda.</strong> L1 / L2 on\n            leaf weights. Tune if you have many features and worry\n            about overfitting.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@tree_method.@@T1@@ Use 'hist' (default in\n            modern XGBoost) for everything; it's faster and as accurate\n            as 'exact'.": {
+   "zh": "@@T0@@tree_method。@@T1@@ 一切情况都使用 'hist'（现代 XGBoost 的默认值）；它比 'exact' 更快且同样准确。",
+   "src": "<strong>tree_method.</strong> Use 'hist' (default in\n            modern XGBoost) for everything; it's faster and as accurate\n            as 'exact'.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@objective.@@T1@@ 'reg:squarederror',\n            'binary:logistic', 'multi:softprob', 'rank:pairwise',\n            'reg:tweedie' (zero-inflated counts), …": {
+   "zh": "@@T0@@objective。@@T1@@ 'reg:squarederror'、'binary:logistic'、'multi:softprob'、'rank:pairwise'、'reg:tweedie'（零膨胀计数），……",
+   "src": "<strong>objective.</strong> 'reg:squarederror',\n            'binary:logistic', 'multi:softprob', 'rank:pairwise',\n            'reg:tweedie' (zero-inflated counts), …",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@monotonic constraints.@@T1@@ Force\n            \"prediction must be monotone in feature X\" — useful for\n            insurance, healthcare, regulation.": {
+   "zh": "@@T0@@单调性约束。@@T1@@ 强制「预测必须对特征 X 单调」—— 在保险、医疗、监管场景中很有用。",
+   "src": "<strong>monotonic constraints.</strong> Force\n            \"prediction must be monotone in feature X\" — useful for\n            insurance, healthcare, regulation.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@missing values.@@T1@@ XGBoost natively learns\n            best-direction routing for NaN per split; don't impute\n            unless you must.": {
+   "zh": "@@T0@@缺失值。@@T1@@ XGBoost 会为每个分裂原生地学习 NaN 的最佳方向路由；除非必要，否则不要做插补。",
+   "src": "<strong>missing values.</strong> XGBoost natively learns\n            best-direction routing for NaN per split; don't impute\n            unless you must.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@The slogan.@@T1@@\n          For tabular data with mixed types, missing values, and\n          $\\le$ a few million rows, XGBoost / LightGBM / CatBoost are\n          still the strongest @@T2@@and simplest@@T3@@ default.\n          Neural-tabular models (TabNet, FT-Transformer, SAINT) win\n          benchmarks occasionally; gradient-boosted trees still win\n          most of the production time.": {
+   "zh": "@@T0@@一句口号。@@T1@@\n          对于类型混杂、含缺失值且行数 $\\le$ 数百万的表格数据，XGBoost / LightGBM / CatBoost 依然是最强大 @@T2@@也最简单@@T3@@ 的默认选择。神经表格模型（TabNet、FT-Transformer、SAINT）偶尔在基准中获胜；但在大多数生产场景中，梯度提升树仍然胜出。",
+   "src": "<strong>The slogan.</strong>\n          For tabular data with mixed types, missing values, and\n          $\\le$ a few million rows, XGBoost / LightGBM / CatBoost are\n          still the strongest <em>and simplest</em> default.\n          Neural-tabular models (TabNet, FT-Transformer, SAINT) win\n          benchmarks occasionally; gradient-boosted trees still win\n          most of the production time.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Variants worth knowing": {
+   "zh": "值得了解的变体",
+   "src": "Variants worth knowing",
+   "tags": []
+  },
+  "@@T0@@LightGBM.@@T1@@ Histogram-based; leaf-wise\n            (deepest-first) splitting; faster than XGBoost on big\n            data; slightly more overfit-prone, easily controlled with\n            @@T2@@num_leaves@@T3@@ and regularisation.": {
+   "zh": "@@T0@@LightGBM。@@T1@@ 基于直方图；按叶生长（优先最深）的分裂方式；在大数据上比 XGBoost 更快；稍易过拟合，但用 @@T2@@num_leaves@@T3@@ 和正则化即可轻松控制。",
+   "src": "<strong>LightGBM.</strong> Histogram-based; leaf-wise\n            (deepest-first) splitting; faster than XGBoost on big\n            data; slightly more overfit-prone, easily controlled with\n            <code>num_leaves</code> and regularisation.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@CatBoost.@@T1@@ Native handling of\n            categorical features (target encoding without leakage);\n            excellent default hyperparameters; slowest of the three\n            on large data.": {
+   "zh": "@@T0@@CatBoost。@@T1@@ 原生处理类别特征（无泄漏的目标编码）；默认超参数极佳；在大数据上是三者中最慢的。",
+   "src": "<strong>CatBoost.</strong> Native handling of\n            categorical features (target encoding without leakage);\n            excellent default hyperparameters; slowest of the three\n            on large data.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@HistGradientBoosting (sklearn).@@T1@@\n            Pure-Python alternative; much faster than the original\n            sklearn GBM; comparable accuracy; ships with sklearn.": {
+   "zh": "@@T0@@HistGradientBoosting（sklearn）。@@T1@@ 纯 Python 的替代方案；比最初的 sklearn GBM 快得多；精度相当；随 sklearn 一同提供。",
+   "src": "<strong>HistGradientBoosting (sklearn).</strong>\n            Pure-Python alternative; much faster than the original\n            sklearn GBM; comparable accuracy; ships with sklearn.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@NGBoost.@@T1@@ Gradient boosting that\n            outputs a @@T2@@distribution@@T3@@ (mean + variance); useful\n            for downstream uncertainty work.": {
+   "zh": "@@T0@@NGBoost。@@T1@@ 输出一个 @@T2@@分布@@T3@@（均值 + 方差）的梯度提升；对下游的不确定性工作很有用。",
+   "src": "<strong>NGBoost.</strong> Gradient boosting that\n            outputs a <em>distribution</em> (mean + variance); useful\n            for downstream uncertainty work.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@XGBoost-Spark / Dask-XGBoost.@@T1@@\n            Distributed for very large data.": {
+   "zh": "@@T0@@XGBoost-Spark / Dask-XGBoost。@@T1@@ 面向超大数据集的分布式实现。",
+   "src": "<strong>XGBoost-Spark / Dask-XGBoost.</strong>\n            Distributed for very large data.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@TabNet, FT-Transformer, SAINT.@@T1@@ Neural\n            tabular alternatives; sometimes win, often tie, rarely\n            justify the extra ML-ops complexity.": {
+   "zh": "@@T0@@TabNet、FT-Transformer、SAINT。@@T1@@ 神经表格模型的替代方案；有时胜出，常常打平，很少能证明额外的 ML-ops 复杂度是值得的。",
+   "src": "<strong>TabNet, FT-Transformer, SAINT.</strong> Neural\n            tabular alternatives; sometimes win, often tie, rarely\n            justify the extra ML-ops complexity.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "逐棵树理解 XGBoost",
+  "tagline": "每一棵新树都拟合上一棵的残差 —— 一次次点击，看回归曲线如何落定",
+  "summary": "在一个一维玩具问题上进行实时的梯度提升回归。每次点击都会添加一棵拟合残差的新树；集成预测随之变清晰。配有学习率、最大深度与树数量的滑块。在同一目标上比较提升集成、单棵树与随机森林。此外还有 XGBoost 所用的精确梯度/Hessian 公式。",
+  "difficulty": "中级",
+  "collection": "经典机器学习",
+  "highlights": [
+   "点击「添加树」逐步走过提升轮次；观察残差缩小、预测逼近真实函数。",
+   "在同一数据上并排比较单棵树、随机森林与提升集成。",
+   "逐步的训练损失曲线；面向学习率、深度与树数量的超参数滑块。",
+   "XGBoost 的增益公式，以及它为何胜过朴素 GBM 的二阶牛顿视角。"
+  ],
+  "tags": [
+   "XGBoost",
+   "梯度提升",
+   "树模型",
+   "经典机器学习",
+   "交互式"
+  ]
+ },
+ "js": {
+  "Press Add tree to start.": {
+   "zh": "请点击「添加树」开始。",
+   "exprs": [],
+   "tags": [],
+   "src": "Press Add tree to start."
+  }
+ }
+}

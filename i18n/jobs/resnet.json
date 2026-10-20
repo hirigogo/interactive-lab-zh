@@ -1,0 +1,532 @@
+{
+ "slug": "resnet",
+ "units": {
+  "Residual Connections, Why They Work": {
+   "zh": "残差连接为何有效",
+   "src": "Residual Connections, Why They Work",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "The single line $y = x + F(x)$ unlocked networks 100× deeper.\n          Watch the failure mode of plain deep nets as a 64-layer\n          activation map collapses to noise, then add the skip and watch\n          the same network train cleanly. Three live experiments and one\n          loss-surface tour.": {
+   "zh": "单单一行的 $y = x + F(x)$ 便开启了深达 100 倍的网络。\n          观察普通深层网络的失效模式：64 层的\n          激活图崩塌为噪声；随后加入跳跃连接，\n          再看同一个网络干净地完成训练。包含三个实时实验与一次\n          损失曲面巡览。",
+   "src": "The single line $y = x + F(x)$ unlocked networks 100× deeper.\n          Watch the failure mode of plain deep nets as a 64-layer\n          activation map collapses to noise, then add the skip and watch\n          the same network train cleanly. Three live experiments and one\n          loss-surface tour.",
+   "tags": []
+  },
+  "@@T0@@~20 min@@T1@@\n          @@T2@@Deep Learning &middot; CNN &middot; Optimization@@T3@@": {
+   "zh": "@@T0@@约 20 分钟@@T1@@\n          @@T2@@深度学习 &middot; CNN &middot; 优化@@T3@@",
+   "src": "<span>~20 min</span>\n          <span>Deep Learning &middot; CNN &middot; Optimization</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "The depth degradation problem": {
+   "zh": "深度退化问题",
+   "src": "The depth degradation problem",
+   "tags": []
+  },
+  "Before December 2015, conventional wisdom said deeper networks\n          should generalise better &mdash; until you tried to train a\n          plain 50-layer CNN and watched it do worse than the 20-layer\n          version on the @@T0@@training@@T1@@ set, never mind the test\n          set. That's not overfitting; it's a failure of the\n          optimiser. He et al. called it the @@T2@@degradation problem@@T3@@.": {
+   "zh": "在 2015 年 12 月之前，普遍观点认为更深的网络\n          应当泛化得更好 &mdash; 直到你尝试训练一个\n          普通的 50 层 CNN，发现它在 @@T0@@训练@@T1@@ 集上竟不如 20 层\n          的版本，测试集就更不必提了。这并非过拟合；\n          而是优化器的失效。He 等人将其称为 @@T2@@退化问题@@T3@@。",
+   "src": "Before December 2015, conventional wisdom said deeper networks\n          should generalise better &mdash; until you tried to train a\n          plain 50-layer CNN and watched it do worse than the 20-layer\n          version on the <em>training</em> set, never mind the test\n          set. That's not overfitting; it's a failure of the\n          optimiser. He et al. called it the <em>degradation problem</em>.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The fix was a single line of code: change every block from\n          $y = F(x)$ to $y = F(x) + x$. The output is now whatever the\n          block computes @@T0@@plus@@T1@@ a copy of the input the block\n          could ignore. That tiny change made it possible to train\n          ResNet-152, ImageNet-class accuracy at 3× the depth of every\n          prior architecture, and started the modern deep-learning\n          rocket.": {
+   "zh": "修复方法仅需一行代码：将每个模块从\n          $y = F(x)$ 改为 $y = F(x) + x$。此时输出为该模块\n          所计算的结果 @@T0@@加上@@T1@@ 一份该模块本可忽略的\n          输入副本。这一微小改动使训练 ResNet-152 成为可能，\n          其 ImageNet 级别的精度达到此前所有架构深度的 3 倍，\n          并由此启动了现代深度学习的火箭。",
+   "src": "The fix was a single line of code: change every block from\n          $y = F(x)$ to $y = F(x) + x$. The output is now whatever the\n          block computes <em>plus</em> a copy of the input the block\n          could ignore. That tiny change made it possible to train\n          ResNet-152, ImageNet-class accuracy at 3× the depth of every\n          prior architecture, and started the modern deep-learning\n          rocket.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@The slogan.@@T1@@\n          A residual block doesn't have to learn the right output. It\n          only has to learn the @@T2@@residual@@T3@@ &mdash; the small\n          correction on top of the input. If a layer has nothing to add\n          it can output zeros, and the input passes through untouched.": {
+   "zh": "@@T0@@一句话概括。@@T1@@\n          残差模块不必学会正确的输出。它\n          只需学会 @@T2@@残差@@T3@@ &mdash; 即叠加在输入之上的\n          小幅修正。若某一层无内容可加，\n          它可以输出零，输入便原封不动地通过。",
+   "src": "<strong>The slogan.</strong>\n          A residual block doesn't have to learn the right output. It\n          only has to learn the <em>residual</em> &mdash; the small\n          correction on top of the input. If a layer has nothing to add\n          it can output zeros, and the input passes through untouched.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "Watch activations die without skips": {
+   "zh": "观察无跳跃连接时激活的消亡",
+   "src": "Watch activations die without skips",
+   "tags": []
+  },
+  "Below: a tiny feed-forward stack at depth $L$. Each layer is\n          $h_{l+1} = \\tanh(W_l h_l + b_l)$, randomly initialised. The\n          plain version is just that recursion. The residual version\n          replaces it with $h_{l+1} = h_l + \\tanh(W_l h_l + b_l)$.\n          Slide $L$ and watch the activation magnitude at each depth.": {
+   "zh": "下方：一个深度为 $L$ 的小型前馈堆叠。每一层为\n          $h_{l+1} = \\tanh(W_l h_l + b_l)$，权重随机初始化。\n          普通版本就是这一递推。残差版本\n          将其替换为 $h_{l+1} = h_l + \\tanh(W_l h_l + b_l)$。\n          滑动 $L$，观察各深度处的激活量级。",
+   "src": "Below: a tiny feed-forward stack at depth $L$. Each layer is\n          $h_{l+1} = \\tanh(W_l h_l + b_l)$, randomly initialised. The\n          plain version is just that recursion. The residual version\n          replaces it with $h_{l+1} = h_l + \\tanh(W_l h_l + b_l)$.\n          Slide $L$ and watch the activation magnitude at each depth.",
+   "tags": []
+  },
+  "depth L &nbsp;@@T0@@32@@T1@@": {
+   "zh": "深度 L &nbsp;@@T0@@32@@T1@@",
+   "src": "depth L &nbsp;<span id=\"act-L-val\">32</span>",
+   "tags": [
+    "<span id=\"act-L-val\">",
+    "</span>"
+   ]
+  },
+  "init scale &nbsp;@@T0@@0.6@@T1@@": {
+   "zh": "初始化尺度 &nbsp;@@T0@@0.6@@T1@@",
+   "src": "init scale &nbsp;<span id=\"act-scale-val\">0.6</span>",
+   "tags": [
+    "<span id=\"act-scale-val\">",
+    "</span>"
+   ]
+  },
+  "Activation L₂-norm per layer. Solid teal: residual stack.\n            Dashed orange: plain stack. The plain trace decays to zero\n            (or blows up); the residual stack stays bounded.": {
+   "zh": "各层的激活 L₂ 范数。青色实线：残差堆叠。\n            橙色虚线：普通堆叠。普通网络的曲线衰减至零\n            （或爆炸）；残差堆叠则保持有界。",
+   "src": "Activation L₂-norm per layer. Solid teal: residual stack.\n            Dashed orange: plain stack. The plain trace decays to zero\n            (or blows up); the residual stack stays bounded.",
+   "tags": []
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Gradient flow — the same story, backwards": {
+   "zh": "梯度流动 &mdash; 同样的故事，方向相反",
+   "src": "Gradient flow — the same story, backwards",
+   "tags": []
+  },
+  "Backpropagation computes\n          $\\frac{\\partial \\mathcal{L}}{\\partial h_l}$ as a chain of\n          matrix products. In a plain net every link in the chain is\n          some Jacobian close to a non-identity matrix; their product\n          collapses fast. In a residual net the Jacobian is\n          $I + \\frac{\\partial F}{\\partial h_l}$ &mdash; identity plus\n          something small. Identity preserves; \"plus something small\"\n          adds gradient signal layer by layer instead of multiplying it\n          away.": {
+   "zh": "反向传播将 $\\frac{\\partial \\mathcal{L}}{\\partial h_l}$ 计算为一连串\n          矩阵乘积。在普通网络中，链条上的每一环\n          都是某个接近非单位矩阵的 Jacobian 矩阵；它们的乘积\n          迅速崩塌。在残差网络中，Jacobian 为\n          $I + \\frac{\\partial F}{\\partial h_l}$ &mdash; 单位矩阵加上\n          一个小量。单位矩阵起保真作用；“加一个小量”\n          会逐层累加梯度信号，而非将其相乘消去。",
+   "src": "Backpropagation computes\n          $\\frac{\\partial \\mathcal{L}}{\\partial h_l}$ as a chain of\n          matrix products. In a plain net every link in the chain is\n          some Jacobian close to a non-identity matrix; their product\n          collapses fast. In a residual net the Jacobian is\n          $I + \\frac{\\partial F}{\\partial h_l}$ &mdash; identity plus\n          something small. Identity preserves; \"plus something small\"\n          adds gradient signal layer by layer instead of multiplying it\n          away.",
+   "tags": []
+  },
+  "Below: gradient norm at each depth, traced from the loss back\n          to layer 0. The residual line is roughly flat. The plain\n          line falls off geometrically.": {
+   "zh": "下方：从损失回溯至第 0 层，各深度处的梯度范数。\n          残差网络的曲线大致平坦。普通网络的\n          曲线则呈几何式衰减。",
+   "src": "Below: gradient norm at each depth, traced from the loss back\n          to layer 0. The residual line is roughly flat. The plain\n          line falls off geometrically.",
+   "tags": []
+  },
+  "‖∂ℒ/∂h_l‖ vs depth l, on a log scale.": {
+   "zh": "‖∂ℒ/∂h_l‖ 随深度 l 的变化，对数刻度。",
+   "src": "‖∂ℒ/∂h_l‖ vs depth l, on a log scale.",
+   "tags": []
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Train both, side by side": {
+   "zh": "并排训练二者",
+   "src": "Train both, side by side",
+   "tags": []
+  },
+  "Same dataset, same depth, same optimiser. Press @@T0@@Start\n          training@@T1@@ below; one canvas trains the plain net, the\n          other trains the residual net. The plain version visibly\n          stalls at $L \\ge 16$; the residual version trains cleanly to\n          much greater depth.": {
+   "zh": "相同数据集、相同深度、相同优化器。按下方\n          @@T0@@开始训练@@T1@@；一块画布训练普通网络，\n          另一块训练残差网络。普通版本在 $L \\ge 16$ 时\n          明显停滞；残差版本则能干净地训练至\n          大得多的深度。",
+   "src": "Same dataset, same depth, same optimiser. Press <em>Start\n          training</em> below; one canvas trains the plain net, the\n          other trains the residual net. The plain version visibly\n          stalls at $L \\ge 16$; the residual version trains cleanly to\n          much greater depth.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "depth L &nbsp;@@T0@@12@@T1@@": {
+   "zh": "深度 L &nbsp;@@T0@@12@@T1@@",
+   "src": "depth L &nbsp;<span id=\"train-L-val\">12</span>",
+   "tags": [
+    "<span id=\"train-L-val\">",
+    "</span>"
+   ]
+  },
+  "learning rate &nbsp;@@T0@@0.05@@T1@@": {
+   "zh": "学习率 &nbsp;@@T0@@0.05@@T1@@",
+   "src": "learning rate &nbsp;<span id=\"train-lr-val\">0.05</span>",
+   "tags": [
+    "<span id=\"train-lr-val\">",
+    "</span>"
+   ]
+  },
+  "Start training": {
+   "zh": "开始训练",
+   "src": "Start training",
+   "tags": []
+  },
+  "Reset both": {
+   "zh": "全部重置",
+   "src": "Reset both",
+   "tags": []
+  },
+  "@@T0@@step @@T1@@0@@T2@@@@T3@@\n          @@T4@@plain loss @@T5@@—@@T6@@@@T7@@\n          @@T8@@residual loss @@T9@@—@@T10@@@@T11@@": {
+   "zh": "@@T0@@步数 @@T1@@0@@T2@@@@T3@@\n          @@T4@@普通网络损失 @@T5@@—@@T6@@@@T7@@\n          @@T8@@残差网络损失 @@T9@@—@@T10@@@@T11@@",
+   "src": "<span class=\"train-stat\">step <strong id=\"train-step\">0</strong></span>\n          <span class=\"train-stat\">plain loss <strong id=\"plain-loss\">—</strong></span>\n          <span class=\"train-stat\">residual loss <strong id=\"resid-loss\">—</strong></span>",
+   "tags": [
+    "<span class=\"train-stat\">",
+    "<strong id=\"train-step\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"plain-loss\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"resid-loss\">",
+    "</strong>",
+    "</span>"
+   ]
+  },
+  "Training loss for the two architectures, same data, same lr. Crank L up to 64 and watch the gap blow open.": {
+   "zh": "两种架构的训练损失，相同数据、相同学习率。将 L 调至 64，观察差距如何急剧拉开。",
+   "src": "Training loss for the two architectures, same data, same lr. Crank L up to 64 and watch the gap blow open.",
+   "tags": []
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "The loss surface, visualised": {
+   "zh": "损失曲面的可视化",
+   "src": "The loss surface, visualised",
+   "tags": []
+  },
+  "Li et al. (2018) showed that residual connections smooth the\n          loss landscape. We render a 2-D slice: pick two random\n          directions in parameter space, evaluate the loss on a grid,\n          and contour. The plain landscape is ridged and full of bad\n          minima; the residual landscape is a single shallow bowl.": {
+   "zh": "Li 等人（2018）表明，残差连接会使\n          损失景观变得平滑。我们渲染一个二维切片：在参数空间中\n          选取两个随机方向，在网格上求损失值，\n          并绘制等高线。普通网络的景观起伏多脊、遍布糟糕的\n          极小值；残差网络的景观则是一个单一的浅碗。",
+   "src": "Li et al. (2018) showed that residual connections smooth the\n          loss landscape. We render a 2-D slice: pick two random\n          directions in parameter space, evaluate the loss on a grid,\n          and contour. The plain landscape is ridged and full of bad\n          minima; the residual landscape is a single shallow bowl.",
+   "tags": []
+  },
+  "Plain net (L = 24)": {
+   "zh": "普通网络（L = 24）",
+   "src": "Plain net (L = 24)",
+   "tags": []
+  },
+  "Residual net (L = 24)": {
+   "zh": "残差网络（L = 24）",
+   "src": "Residual net (L = 24)",
+   "tags": []
+  },
+  "Lighter regions are lower loss. Notice the plain surface has\n          multiple basins separated by ridges; the residual surface has\n          a single broad basin around the origin. Same model class, one\n          line of code different.": {
+   "zh": "颜色较浅的区域损失较低。注意普通曲面有\n          多个被脊分隔的盆地；残差曲面则\n          在原点附近有一个宽阔的单一盆地。同一模型类别，\n          仅一行代码之差。",
+   "src": "Lighter regions are lower loss. Notice the plain surface has\n          multiple basins separated by ridges; the residual surface has\n          a single broad basin around the origin. Same model class, one\n          line of code different.",
+   "tags": []
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Iterative refinement — what each block does": {
+   "zh": "迭代式精化 &mdash; 每个模块在做什么",
+   "src": "Iterative refinement — what each block does",
+   "tags": []
+  },
+  "A useful mental model (Greff et al., Jastrzębski et al.,\n          Veit et al.): each residual block makes a small correction\n          to a running representation. The \"residual stream\" carries\n          the input forward unchanged; blocks are read-write\n          peripherals that nudge it.": {
+   "zh": "一个有用的心智模型（Greff 等人、Jastrzębski 等人、\n          Veit 等人）：每个残差模块对一个持续演化的表示\n          作出小幅修正。“残差流”将输入\n          原样向前传递；各个模块则是读写的\n          外设，对其施加微调。",
+   "src": "A useful mental model (Greff et al., Jastrzębski et al.,\n          Veit et al.): each residual block makes a small correction\n          to a running representation. The \"residual stream\" carries\n          the input forward unchanged; blocks are read-write\n          peripherals that nudge it.",
+   "tags": []
+  },
+  "That's also exactly the picture of a Transformer's residual\n          stream &mdash; attention and MLP blocks read the stream,\n          add their contributions, and pass it on. Mechanistic\n          interpretability work (Elhage et al., 2021) treats the\n          stream as a literal communication channel between layers.": {
+   "zh": "这恰好也是 Transformer 残差流\n          的图景 &mdash; 注意力与 MLP 模块读取该流，\n          加上自己的贡献，再将其传递下去。机制\n          可解释性研究（Elhage 等人，2021）将这一\n          流视为层与层之间实打实的通信通道。",
+   "src": "That's also exactly the picture of a Transformer's residual\n          stream &mdash; attention and MLP blocks read the stream,\n          add their contributions, and pass it on. Mechanistic\n          interpretability work (Elhage et al., 2021) treats the\n          stream as a literal communication channel between layers.",
+   "tags": []
+  },
+  "@@T0@@What the model can do that a plain stack cannot.@@T1@@\n          A residual stack can @@T2@@choose@@T3@@ its own depth: any\n          unnecessary block just outputs $\\approx 0$ and the input\n          passes through. A plain stack has to use every layer\n          fully &mdash; and the optimiser has to learn an identity\n          subnetwork from scratch to do so.": {
+   "zh": "@@T0@@残差模型能做什么而普通堆叠不能。@@T1@@\n          残差堆叠可以 @@T2@@自行选择@@T3@@ 其深度：任何\n          多余的模块只需输出 $\\approx 0$，输入\n          便直接通过。普通堆叠则必须充分利用每一层\n          &mdash; 为此优化器还得从零学出一个\n          恒等子网络。",
+   "src": "<strong>What the model can do that a plain stack cannot.</strong>\n          A residual stack can <em>choose</em> its own depth: any\n          unnecessary block just outputs $\\approx 0$ and the input\n          passes through. A plain stack has to use every layer\n          fully &mdash; and the optimiser has to learn an identity\n          subnetwork from scratch to do so.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "The variants and their lessons": {
+   "zh": "各类变体及其启示",
+   "src": "The variants and their lessons",
+   "tags": []
+  },
+  "@@T0@@ResNet-v1.@@T1@@ $y = \\mathrm{ReLU}(F(x) + x)$.\n            Original, still strong on ImageNet.": {
+   "zh": "@@T0@@ResNet-v1。@@T1@@ $y = \\mathrm{ReLU}(F(x) + x)$。\n            原始版本，在 ImageNet 上仍然表现强劲。",
+   "src": "<strong>ResNet-v1.</strong> $y = \\mathrm{ReLU}(F(x) + x)$.\n            Original, still strong on ImageNet.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Pre-activation ResNet.@@T1@@\n            $y = F(x) + x$ with the BN→ReLU @@T2@@before@@T3@@ the conv.\n            Cleaner gradient flow; preferred for very deep stacks\n            (1000+ layers).": {
+   "zh": "@@T0@@预激活 ResNet。@@T1@@\n            $y = F(x) + x$，并将 BN→ReLU 置于卷积 @@T2@@之前@@T3@@。\n            梯度流动更干净；适用于极深的堆叠\n            （1000 层以上）。",
+   "src": "<strong>Pre-activation ResNet.</strong>\n            $y = F(x) + x$ with the BN→ReLU <em>before</em> the conv.\n            Cleaner gradient flow; preferred for very deep stacks\n            (1000+ layers).",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@DenseNet.@@T1@@ Concatenate every previous\n            output instead of summing. More parameter-efficient,\n            slightly slower on hardware due to memory.": {
+   "zh": "@@T0@@DenseNet。@@T1@@ 将此前所有输出\n            拼接而非相加。参数效率更高，\n            但因内存原因在硬件上略慢。",
+   "src": "<strong>DenseNet.</strong> Concatenate every previous\n            output instead of summing. More parameter-efficient,\n            slightly slower on hardware due to memory.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Highway / gated residuals.@@T1@@\n            $y = T(x) \\odot F(x) + (1 - T(x)) \\odot x$ with a learned\n            gate $T$. ResNet is the special case $T = 1$. Recovers a\n            similar idea in LSTMs.": {
+   "zh": "@@T0@@Highway / 门控残差。@@T1@@\n            $y = T(x) \\odot F(x) + (1 - T(x)) \\odot x$，其中 $T$ 为可学习的\n            门。ResNet 是其 $T = 1$ 的特例。LSTM 中\n            也有类似的思想。",
+   "src": "<strong>Highway / gated residuals.</strong>\n            $y = T(x) \\odot F(x) + (1 - T(x)) \\odot x$ with a learned\n            gate $T$. ResNet is the special case $T = 1$. Recovers a\n            similar idea in LSTMs.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Transformer residuals.@@T1@@ Every attention\n            and MLP block reads-and-writes a residual stream. The\n            mathematical justification is identical to ResNet's.": {
+   "zh": "@@T0@@Transformer 的残差。@@T1@@ 每个注意力\n            模块与 MLP 模块都在读写一个残差流。其\n            数学依据与 ResNet 完全相同。",
+   "src": "<strong>Transformer residuals.</strong> Every attention\n            and MLP block reads-and-writes a residual stream. The\n            mathematical justification is identical to ResNet's.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          One line of code &mdash; \"and add the input back\" &mdash; was\n          the deep-learning equivalent of the printing press. Without\n          residuals, no ResNet-152, no BERT, no GPT-anything. Every\n          time you stack more than ~10 layers and it just works,\n          you're using this trick.": {
+   "zh": "@@T0@@最后总结。@@T1@@\n          一行代码 &mdash; “并把输入加回来” &mdash; 堪称\n          深度学习中的活字印刷术。若无\n          残差，就没有 ResNet-152，没有 BERT，也没有任何 GPT。每当\n          你堆叠超过约 10 层而它依然正常工作时，\n          你就在使用这一技巧。",
+   "src": "<strong>Final takeaway.</strong>\n          One line of code &mdash; \"and add the input back\" &mdash; was\n          the deep-learning equivalent of the printing press. Without\n          residuals, no ResNet-152, no BERT, no GPT-anything. Every\n          time you stack more than ~10 layers and it just works,\n          you're using this trick.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 7": {
+   "zh": "第 7 步",
+   "src": "Step 7",
+   "tags": []
+  },
+  "Why the residual stream view unlocks Transformers": {
+   "zh": "残差流视角为何能打通对 Transformer 的理解",
+   "src": "Why the residual stream view unlocks Transformers",
+   "tags": []
+  },
+  "Modern transformers are best understood as @@T0@@residual streams@@T1@@ (Elhage et&nbsp;al., 2021, Anthropic interpretability). Each layer reads from a high-dimensional residual stream, computes a delta, and writes it back. Layer $\\ell$'s output is": {
+   "zh": "现代 Transformer 最好被理解为 @@T0@@残差流@@T1@@（Elhage 等人，2021，Anthropic 可解释性研究）。每一层从高维残差流中读取信息，计算一个增量，再将其写回。第 $\\ell$ 层的输出为",
+   "src": "Modern transformers are best understood as <em>residual streams</em> (Elhage et&nbsp;al., 2021, Anthropic interpretability). Each layer reads from a high-dimensional residual stream, computes a delta, and writes it back. Layer $\\ell$'s output is",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Three consequences of this view:": {
+   "zh": "这一视角带来三点推论：",
+   "src": "Three consequences of this view:",
+   "tags": []
+  },
+  "@@T0@@Layers communicate through the stream.@@T1@@ Layer 12 can read what layer 3 wrote because the residual stream carried it through unchanged (modulo whatever later layers added).": {
+   "zh": "@@T0@@各层通过该流进行通信。@@T1@@ 第 12 层能读到第 3 层所写的内容，因为残差流将其原样传递了过来（扣除后续各层所添加的部分）。",
+   "src": "<strong>Layers communicate through the stream.</strong> Layer 12 can read what layer 3 wrote because the residual stream carried it through unchanged (modulo whatever later layers added).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@The stream is a \"shared workspace\".@@T1@@ Different heads / MLPs specialise in writing different \"kinds\" of information; downstream layers read what's relevant. Mech-interp papers identify \"induction heads\", \"successor heads\", \"letter-counting circuits\" that span multiple layers.": {
+   "zh": "@@T0@@该流是一个“共享工作区”。@@T1@@ 不同的头 / MLP 各自专精于写入不同“种类”的信息；下游各层读取其中相关的内容。机制可解释性论文识别出了跨越多个层的“归纳头”“后继头”“字母计数回路”。",
+   "src": "<strong>The stream is a \"shared workspace\".</strong> Different heads / MLPs specialise in writing different \"kinds\" of information; downstream layers read what's relevant. Mech-interp papers identify \"induction heads\", \"successor heads\", \"letter-counting circuits\" that span multiple layers.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@LayerNorm is the gate.@@T1@@ Pre-norm transformers (norm before attention/MLP) work better than post-norm precisely because pre-norm preserves the residual identity path. Post-norm transformers need warmup; pre-norm don't.": {
+   "zh": "@@T0@@LayerNorm 充当闸门。@@T1@@ 前置归一化的 Transformer（在注意力 / MLP 之前归一化）之所以优于后置归一化，正是因为前置归一化保留了残差的恒等路径。后置归一化的 Transformer 需要预热；前置归一化则不需要。",
+   "src": "<strong>LayerNorm is the gate.</strong> Pre-norm transformers (norm before attention/MLP) work better than post-norm precisely because pre-norm preserves the residual identity path. Post-norm transformers need warmup; pre-norm don't.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 8": {
+   "zh": "第 8 步",
+   "src": "Step 8",
+   "tags": []
+  },
+  "Where residuals can hurt": {
+   "zh": "残差可能带来危害之处",
+   "src": "Where residuals can hurt",
+   "tags": []
+  },
+  "Three failure modes to know:": {
+   "zh": "有三种值得了解的失效模式：",
+   "src": "Three failure modes to know:",
+   "tags": []
+  },
+  "@@T0@@Representation rank collapse.@@T1@@ Stacking many residual blocks with similar deltas can push the residual stream into a low-rank manifold (Dong et&nbsp;al., 2021). Symptoms: late-layer attention heads all attending to the same token, slow convergence. Fix: stronger regularisation, depth scaling, or initialisation that biases each block to write something distinct.": {
+   "zh": "@@T0@@表示秩崩塌。@@T1@@ 堆叠许多增量相近的残差模块，\n            可能把残差流推入一个低秩流形（Dong 等人，2021）。症状：\n            靠后各层的注意力头全部关注同一个词元，收敛缓慢。修复：\n            更强的正则化、深度缩放，或使每个模块倾向于写入\n            不同内容的初始化方式。",
+   "src": "<strong>Representation rank collapse.</strong> Stacking many residual blocks with similar deltas can push the residual stream into a low-rank manifold (Dong et&nbsp;al., 2021). Symptoms: late-layer attention heads all attending to the same token, slow convergence. Fix: stronger regularisation, depth scaling, or initialisation that biases each block to write something distinct.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@\"Free path\" overuse.@@T1@@ If a block consistently outputs near-zero, you've wasted parameters; if every block outputs strongly, the residual stream is dominated by noise. Healthy transformers sit in between, but it's worth checking layer-output norms during training.": {
+   "zh": "@@T0@@“自由通道”的过度使用。@@T1@@ 若某个模块持续输出接近零，则参数被浪费；若每个模块都输出很强，则残差流被噪声主导。健康的 Transformer 居于二者之间，但训练期间检查各层输出范数是值得的。",
+   "src": "<strong>\"Free path\" overuse.</strong> If a block consistently outputs near-zero, you've wasted parameters; if every block outputs strongly, the residual stream is dominated by noise. Healthy transformers sit in between, but it's worth checking layer-output norms during training.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Skip-connection memory cost.@@T1@@ The original input has to be kept around through the block for the addition; this doubles activation memory in some implementations. Reversible variants (RevNet) recompute activations on the backward pass; rarely needed in practice.": {
+   "zh": "@@T0@@跳跃连接的内存代价。@@T1@@ 为完成加法，原始输入必须在整个模块中\n            一直保留；在某些实现中这会使激活内存翻倍。可逆变体\n            （RevNet）在反向传播时重新计算激活；实践中很少需要。",
+   "src": "<strong>Skip-connection memory cost.</strong> The original input has to be kept around through the block for the addition; this doubles activation memory in some implementations. Reversible variants (RevNet) recompute activations on the backward pass; rarely needed in practice.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 9": {
+   "zh": "第 9 步",
+   "src": "Step 9",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "参考文献",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@He, Zhang, Ren, Sun (2015)@@T1@@ &mdash; @@T2@@Deep Residual Learning for Image Recognition.@@T3@@ The ResNet paper.": {
+   "zh": "@@T0@@He, Zhang, Ren, Sun（2015）@@T1@@ &mdash; @@T2@@Deep Residual Learning for Image Recognition.@@T3@@ ResNet 的原始论文。",
+   "src": "<strong>He, Zhang, Ren, Sun (2015)</strong> &mdash; <em>Deep Residual Learning for Image Recognition.</em> The ResNet paper.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@He et&nbsp;al. (2016)@@T1@@ &mdash; @@T2@@Identity Mappings in Deep Residual Networks.@@T3@@ Pre-activation variant.": {
+   "zh": "@@T0@@He 等人（2016）@@T1@@ &mdash; @@T2@@Identity Mappings in Deep Residual Networks.@@T3@@ 预激活变体。",
+   "src": "<strong>He et&nbsp;al. (2016)</strong> &mdash; <em>Identity Mappings in Deep Residual Networks.</em> Pre-activation variant.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Huang et&nbsp;al. (2017)@@T1@@ &mdash; @@T2@@DenseNet.@@T3@@": {
+   "zh": "@@T0@@Huang 等人（2017）@@T1@@ &mdash; @@T2@@DenseNet.@@T3@@",
+   "src": "<strong>Huang et&nbsp;al. (2017)</strong> &mdash; <em>DenseNet.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Veit, Wilber, Belongie (2016)@@T1@@ &mdash; @@T2@@Residual Networks Behave Like Ensembles of Relatively Shallow Networks.@@T3@@ The \"exponential ensemble of paths\" interpretation.": {
+   "zh": "@@T0@@Veit, Wilber, Belongie（2016）@@T1@@ &mdash; @@T2@@Residual Networks Behave Like Ensembles of Relatively Shallow Networks.@@T3@@ “路径的指数级集成”这一解读。",
+   "src": "<strong>Veit, Wilber, Belongie (2016)</strong> &mdash; <em>Residual Networks Behave Like Ensembles of Relatively Shallow Networks.</em> The \"exponential ensemble of paths\" interpretation.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Elhage et&nbsp;al. (2021)@@T1@@ &mdash; @@T2@@A Mathematical Framework for Transformer Circuits.@@T3@@ The residual stream view.": {
+   "zh": "@@T0@@Elhage 等人（2021）@@T1@@ &mdash; @@T2@@A Mathematical Framework for Transformer Circuits.@@T3@@ 残差流视角。",
+   "src": "<strong>Elhage et&nbsp;al. (2021)</strong> &mdash; <em>A Mathematical Framework for Transformer Circuits.</em> The residual stream view.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Dong, Cordonnier, Loukas (2021)@@T1@@ &mdash; @@T2@@Attention is Not All You Need: Pure Attention Loses Rank Doubly Exponentially with Depth.@@T3@@": {
+   "zh": "@@T0@@Dong, Cordonnier, Loukas（2021）@@T1@@ &mdash; @@T2@@Attention is Not All You Need: Pure Attention Loses Rank Doubly Exponentially with Depth.@@T3@@",
+   "src": "<strong>Dong, Cordonnier, Loukas (2021)</strong> &mdash; <em>Attention is Not All You Need: Pure Attention Loses Rank Doubly Exponentially with Depth.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "残差连接为何有效",
+  "tagline": "观察一个 50 层网络在无跳跃连接时如何衰亡，又如何一键痊愈",
+  "summary": "在 L = 4、16、64 层处训练极小的网络，开启或关闭残差开关。观察激活如何随深度爆炸或消失，观察损失曲面如何由崎岖变得平滑，并理解为何一个单行的架构技巧能让网络加深 100 倍而不致失效。随后进入使 Transformer 得以运转的残差流视角。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "在浏览器中训练结构相同、带或不带跳跃连接的 L 层网络；观察 L=64 的普通网络停滞而残差网络持续前进。",
+   "逐层激活量级的实时展示 &mdash; 观察其在无跳跃连接时呈指数式崩塌，在有跳跃连接时趋于稳定。",
+   "损失曲面二维切片的有无残差对比：崎岖的普通景观与平滑的残差景观（Li 等人，2018，交互形式）。",
+   "将 ResNet 与 Transformer 编码器联系起来的残差流视角。"
+  ],
+  "tags": [
+   "ResNet",
+   "残差连接",
+   "跳跃连接",
+   "优化",
+   "交互式"
+  ]
+ },
+ "js": {
+  "act-L-val": {
+   "zh": "act-L-val",
+   "exprs": [],
+   "tags": [],
+   "src": "act-L-val"
+  },
+  "layer index l": {
+   "zh": "层索引 l",
+   "exprs": [],
+   "tags": [],
+   "src": "layer index l"
+  },
+  "Press Start training to begin.": {
+   "zh": "按“开始训练”即可开始。",
+   "exprs": [],
+   "tags": [],
+   "src": "Press Start training to begin."
+  },
+  "train-L-val": {
+   "zh": "train-L-val",
+   "exprs": [],
+   "tags": [],
+   "src": "train-L-val"
+  },
+  "Start training": {
+   "zh": "开始训练",
+   "exprs": [],
+   "tags": [],
+   "src": "Start training"
+  }
+ }
+}

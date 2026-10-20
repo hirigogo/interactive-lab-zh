@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>雅可比矩阵是一次局部形变</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+
+<style>
+:root {
+  --serif: 'Source Serif 4', Georgia, serif;
+  --sans: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+  --bg: #fdfcf9;
+  --paper: #ffffff;
+  --text: #2f2a22;
+  --muted: #6e665b;
+  --border: #e2d8c6;
+  --accent: #2c6fb7;
+  --warm: #d9622b;
+  --success: #1e7770;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; font-family: var(--serif); color: var(--text); background: var(--bg); line-height: 1.65; }
+
+.article { max-width: 980px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+.back-link { display: inline-block; margin-bottom: 1.5rem; color: var(--muted); text-decoration: none; font-family: var(--sans); font-size: 0.9rem; }
+.back-link:hover { color: var(--text); }
+.article-header { margin-bottom: 3rem; text-align: center; }
+.kicker { margin: 0 0 0.75rem; font-family: var(--sans); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); }
+h1 { margin: 0 auto 1rem; font-size: clamp(2.4rem, 5vw, 3.5rem); line-height: 1.1; letter-spacing: -0.02em; color: #1a1815; max-width: 20ch; }
+.abstract { margin: 0 auto 1rem; max-width: 62ch; font-size: 1.15rem; color: #4d463d; }
+.byline { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1.4rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-family: var(--sans); font-size: 0.92rem; }
+
+.step-section {
+  position: relative;
+  margin-top: 4rem;
+  padding: 3rem 2.5rem;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.03);
+}
+.step-badge {
+  position: absolute;
+  top: -16px;
+  left: 32px;
+  background: var(--accent);
+  color: white;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.4rem 1.2rem;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(44, 111, 183, 0.25);
+}
+h2 { margin: 0 0 1rem; font-size: clamp(1.6rem, 3.5vw, 2.2rem); line-height: 1.15; color: #1a1815; }
+h3 { margin-top: 2rem; margin-bottom: 0.8rem; font-size: 1.25rem; color: #1a1815; }
+p { max-width: 68ch; font-size: 1.1rem; }
+ul { max-width: 68ch; font-size: 1.1rem; padding-left: 1.4rem; }
+li { margin-bottom: 0.5rem; }
+.math-block { margin: 1.5rem 0; text-align: center; font-size: 1.05rem; }
+
+.control-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.4rem;
+  margin: 1.6rem 0;
+}
+.control-block { display: flex; flex-direction: column; gap: 0.5rem; }
+.control-block label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.control-block label span { font-family: var(--mono); color: var(--warm); font-weight: 500; font-size: 0.95rem; }
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid var(--paper);
+  box-shadow: 0 2px 6px rgba(44,111,183,0.4);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid var(--paper);
+}
+
+.button-row { display: flex; gap: 0.6rem; flex-wrap: wrap; margin: 1rem 0; }
+.mode-button {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--paper);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.mode-button:hover { border-color: var(--accent); }
+.mode-button.is-active { background: var(--accent); color: white; border-color: var(--accent); }
+
+.interactive-figure { margin: 1.5rem 0; }
+.interactive-figure canvas {
+  display: block;
+  width: 100%;
+  background: #fbfaf6;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  touch-action: none;
+}
+.interactive-figure figcaption { margin-top: 0.7rem; font-size: 0.92rem; color: var(--muted); text-align: center; font-style: italic; }
+
+.panels-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin: 1.5rem 0; }
+.panels-grid figure { margin: 0; }
+@media (max-width: 720px) { .panels-grid { grid-template-columns: 1fr; } }
+
+.stat-strip { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0; align-items: stretch; }
+.stat-pill {
+  flex: 1 1 140px;
+  min-width: 140px;
+  background: var(--paper);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 0.9rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  text-align: left;
+}
+.stat-pill .stat-label { font-family: var(--sans); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+.stat-pill .stat-value { font-family: var(--mono); font-size: 1.5rem; font-weight: 600; color: var(--text); }
+.stat-pill--accent { border-color: var(--accent); }
+.stat-pill--accent .stat-value { color: var(--accent); }
+.stat-pill--warm { border-color: var(--warm); }
+.stat-pill--warm .stat-value { color: var(--warm); }
+.stat-pill--success { border-color: var(--success); }
+.stat-pill--success .stat-value { color: var(--success); }
+
+.matrix-card {
+  flex: 1 1 260px;
+  min-width: 240px;
+  background: var(--paper);
+  border: 1.5px solid var(--accent);
+  border-radius: 12px;
+  padding: 0.9rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.matrix-card .stat-label { font-family: var(--sans); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+.matrix-wrap { display: flex; align-items: center; gap: 0.4rem; }
+.matrix-bracket { font-size: 2.6rem; color: var(--accent); font-family: var(--serif); line-height: 1; }
+.matrix-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.15rem 1.1rem;
+  font-family: var(--mono);
+  font-size: 1.15rem;
+  color: var(--text);
+}
+.matrix-grid span { text-align: right; }
+.matrix-grid .col0 { color: var(--warm); }
+.matrix-grid .col1 { color: var(--accent); }
+
+.callout {
+  margin: 2rem 0 0.5rem;
+  padding: 1.2rem 1.5rem;
+  border-radius: 12px;
+  border-left: 4px solid var(--accent);
+  background: rgba(44,111,183,0.05);
+  font-size: 1.02rem;
+}
+.callout strong { color: var(--accent); }
+.callout--think { border-left-color: var(--success); background: rgba(30,119,112,0.06); }
+.callout--think strong { color: var(--success); }
+.callout--warn { border-left-color: var(--warm); background: rgba(217,98,43,0.06); }
+.callout--warn strong { color: var(--warm); }
+
+footer { margin-top: 4rem; text-align: center; font-family: var(--sans); font-size: 0.85rem; color: var(--muted); }
+
+@media (max-width: 640px) { .step-section { padding: 2rem 1.4rem; } }
+</style>
+</head>
+<body>
+
+<article class="article">
+  <header class="article-header">
+    <a class="back-link" href="../">&larr; 讲解库</a>
+    <p class="kicker">交互式讲解 &middot; 微积分工具箱</p>
+    <h1>雅可比矩阵是一次局部形变</h1>
+    <p class="abstract">
+      一个非线性映射以复杂的方式弯曲空间。但放大到任何一个点，
+      弯曲便变得平直：在局部，该映射只是拉伸与旋转，
+      恰如它的雅可比矩阵所言。观察你所选点周围的一个微小圆
+      如何变成一个椭圆&mdash;并观察该椭圆与
+      雅可比矩阵所预测的如何吻合。
+    </p>
+    <div class="byline">
+      <span>约 9 分钟</span>
+      <span>深度学习 &middot; 微积分 &middot; 线性代数</span>
+    </div>
+  </header>
+
+  <section class="step-section" id="prelude">
+    <div class="step-badge">前言</div>
+    <h2>映射的最佳线性图景</h2>
+    <p>
+      一个映射 $F:\mathbb{R}^2 \to \mathbb{R}^2$ 把 $(x,y)$ 映到
+      $\big(F_1(x,y),\, F_2(x,y)\big)$。它在某点处的雅可比矩阵由全部
+      四个偏导数构成&mdash;即 $f'(x_0)$ 在多输出、多输入情形下的推广：
+    </p>
+    <div class="math-block">
+      $$J(x_0,y_0) = \begin{bmatrix}
+        \dfrac{\partial F_1}{\partial x} & \dfrac{\partial F_1}{\partial y} \\[1.1em]
+        \dfrac{\partial F_2}{\partial x} & \dfrac{\partial F_2}{\partial y}
+      \end{bmatrix}, \qquad
+      F(x_0 + \Delta) \approx F(x_0) + J\,\Delta .$$
+    </div>
+    <p>
+      这一近似就是全部要义。在基点附近，一个微小的
+      位移 $\Delta$ 被<em>乘以</em> $J$ 所映射&mdash;即一次
+      线性的拉伸与旋转。因此该点周围微小的位移圆
+      变成一个椭圆：$J$ 作用在一个圆上。
+    </p>
+  </section>
+
+  <section class="step-section" id="lab">
+    <div class="step-badge">实验台</div>
+    <h2>输入是圆，输出是椭圆</h2>
+    <p>
+      左侧是输入空间；右侧是输出空间，二者按相同的尺度绘制。
+      $(x_0,y_0)$ 周围的橙色圆经过真实的非线性映射，成为
+      右侧实线的橙色闭合曲线。蓝色虚线椭圆则是
+      仅由雅可比矩阵给出的<em>预测</em>，即 $F(x_0) + J\cdot(\text{circle})$。
+      缩小半径，二者便彼此贴合&mdash;这就是局部线性性。
+    </p>
+
+    <div class="button-row" id="map-row">
+      <button class="mode-button is-active" data-map="fold">抛物折痕</button>
+      <button class="mode-button" data-map="swirl">旋涡</button>
+    </div>
+
+    <div class="control-row">
+      <div class="control-block">
+        <label>基点 <span>$x_0$ = <span id="x0Val">0.60</span></span></label>
+        <input type="range" id="x0" min="-2" max="2" step="0.01" value="0.6">
+      </div>
+      <div class="control-block">
+        <label>基点 <span>$y_0$ = <span id="y0Val">0.50</span></span></label>
+        <input type="range" id="y0" min="-2" max="2" step="0.01" value="0.5">
+      </div>
+      <div class="control-block">
+        <label>形变强度 <span>$s$ = <span id="warpVal">0.50</span></span></label>
+        <input type="range" id="warp" min="0" max="1" step="0.01" value="0.5">
+      </div>
+      <div class="control-block">
+        <label>圆半径 <span>$r$ = <span id="radVal">0.70</span></span></label>
+        <input type="range" id="rad" min="0.08" max="1.3" step="0.01" value="0.7">
+      </div>
+    </div>
+
+    <div class="panels-grid">
+      <figure class="interactive-figure">
+        <canvas id="inCanvas" width="440" height="400"></canvas>
+        <figcaption>输入空间。橙色圆及其两条彩色半径（即 $x$ 与 $y$ 方向）围绕可拖动的基点。</figcaption>
+      </figure>
+      <figure class="interactive-figure">
+        <canvas id="outCanvas" width="440" height="400"></canvas>
+        <figcaption>输出空间。橙色实线 = 圆的真实像；蓝色虚线 = 雅可比矩阵给出的椭圆；箭头是 $J$ 的各列。</figcaption>
+      </figure>
+    </div>
+
+    <div class="stat-strip">
+      <div class="matrix-card">
+        <span class="stat-label">雅可比矩阵 $J(x_0, y_0)$</span>
+        <div class="matrix-wrap">
+          <span class="matrix-bracket">[</span>
+          <div class="matrix-grid">
+            <span class="col0" id="j00">&mdash;</span><span class="col1" id="j01">&mdash;</span>
+            <span class="col0" id="j10">&mdash;</span><span class="col1" id="j11">&mdash;</span>
+          </div>
+          <span class="matrix-bracket">]</span>
+        </div>
+      </div>
+      <div class="stat-pill stat-pill--success">
+        <span class="stat-label">$\det J$（面积缩放因子）</span>
+        <span class="stat-value" id="detVal">&mdash;</span>
+      </div>
+      <div class="stat-pill stat-pill--warm">
+        <span class="stat-label">椭圆与真实像的差距</span>
+        <span class="stat-value" id="gapVal">&mdash;</span>
+      </div>
+    </div>
+
+    <div class="callout callout--warn">
+      <strong>留意差距的数值。</strong> 半径较大时，橙色实线闭合曲线
+      会向外鼓起、偏离蓝色椭圆&mdash;线性模型在远离
+      该点处是错的。将半径滑向零，差距便坍缩：真实像与
+      $J\cdot(\text{circle})$ 变得难以区分。雅可比矩阵就是该映射，但
+      仅在微小尺度上如此。
+    </div>
+  </section>
+
+  <section class="step-section" id="why">
+    <div class="step-badge">回报</div>
+    <h2>拉伸、旋转与链式法则</h2>
+    <p>
+      $J$ 的两列就是单位 $x$ 与 $y$ 向量所落之处&mdash;即
+      右侧的橙色与蓝色箭头。它们张成该椭圆。它们的
+      行列式是 $J$ 缩放面积的因子：$|\det J| > 1$ 表示扩张，
+      $< 1$ 表示收缩，而 $\det J = 0$ 把椭圆坍缩成一条直线（映射
+      发生折叠，且局部不可逆）。
+    </p>
+    <div class="math-block">
+      $$\underbrace{F \circ G}_{\text{compose maps}} \;\Longrightarrow\;
+        J_{F\circ G}(x) = J_F\big(G(x)\big)\, J_G(x)
+        \quad\text{(chain rule = matrix product).}$$
+    </div>
+    <ul>
+      <li><strong>反向传播就是雅可比矩阵的乘积。</strong> 深度网络是映射的一长串复合；其整体雅可比矩阵是各层雅可比矩阵的乘积。反向模式自动微分只是把这些矩阵自右向左相乘，复用向量而非构造完整的矩阵。</li>
+      <li><strong>圆变成椭圆正是奇异值的故事。</strong> 椭圆各轴的长度就是 $J$ 的奇异值。当某个奇异值很小时，穿过该层的梯度几乎消失；当某个很大时，梯度会爆炸。同样的图景，不同的利害。</li>
+      <li><strong>它就是升格后的 $f'$。</strong> 单输入、单输出时：$J$ 就是数 $f'(x_0)$。输入与输出维度相同时：$J$ 是一个方阵。定义从未改变&mdash;改变的只有形状。</li>
+    </ul>
+    <div class="callout callout--think">
+      <strong>工具箱，集齐了。</strong> 导数是局部的直线；梯度
+      把各个偏斜率汇成最陡方向；雅可比矩阵则把整个
+      梯度汇成一个局部线性映射。每一个都是同一招&mdash;用
+      最佳直线取代曲线&mdash;而它们合在一起，正是使
+      基于梯度的学习成为可能的微积分。
+    </div>
+  </section>
+
+  <footer>ES 667 深度学习讲解系列之一 &middot; 第 3 讲：微积分工具箱</footer>
+</article>
+
+<script>
+/* ===================== maps ===================== */
+const MAPS = {
+  fold: (x, y, s) => [x + s * y * y, y + s * x * x],
+  swirl: (x, y, s) => {
+    const r = Math.hypot(x, y), a = s * 1.6 * r;
+    const c = Math.cos(a), sn = Math.sin(a);
+    return [x * c - y * sn, x * sn + y * c];
+  }
+};
+let mapKey = 'fold';
+const Fmap = (x, y, s) => MAPS[mapKey](x, y, s);
+
+/* numeric Jacobian via central differences */
+function jacobian(x, y, s) {
+  const e = 1e-4;
+  const px = Fmap(x+e, y, s), mx = Fmap(x-e, y, s);
+  const py = Fmap(x, y+e, s), my = Fmap(x, y-e, s);
+  return [
+    [(px[0]-mx[0])/(2*e), (py[0]-my[0])/(2*e)],
+    [(px[1]-mx[1])/(2*e), (py[1]-my[1])/(2*e)]
+  ];
+}
+
+/* ===================== elements ===================== */
+const x0El = document.getElementById('x0');
+const y0El = document.getElementById('y0');
+const warpEl = document.getElementById('warp');
+const radEl = document.getElementById('rad');
+const getX0 = () => parseFloat(x0El.value);
+const getY0 = () => parseFloat(y0El.value);
+const getS  = () => parseFloat(warpEl.value);
+const getR  = () => parseFloat(radEl.value);
+
+const W = 2.6;   // world half-width shown in each panel
+
+/* ===================== helpers ===================== */
+function fitCanvas(canvas) {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { ctx, w: rect.width, h: rect.height };
+}
+function fmtM(v) {
+  if (Math.abs(v) < 0.0005) return '0.00';
+  return v.toFixed(2);
+}
+function drawArrow(ctx, x1, y1, x2, y2, color, width) {
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = width;
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  const ang = Math.atan2(y2 - y1, x2 - x1), ah = 9;
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - ah*Math.cos(ang - 0.4), y2 - ah*Math.sin(ang - 0.4));
+  ctx.lineTo(x2 - ah*Math.cos(ang + 0.4), y2 - ah*Math.sin(ang + 0.4));
+  ctx.closePath(); ctx.fill();
+}
+function grid(ctx, w, h, cx, cy, pp, label) {
+  const SX = wx => w/2 + (wx - cx) * pp;
+  const SY = wy => h/2 - (wy - cy) * pp;
+  const halfWx = (w/2) / pp, halfWy = (h/2) / pp;
+  ctx.lineWidth = 1;
+  const start = Math.ceil((cx - halfWx) / 0.5) * 0.5;
+  for (let gx = start; gx <= cx + halfWx; gx += 0.5) {
+    const isAxis = Math.abs(gx) < 0.25;
+    ctx.strokeStyle = isAxis ? 'rgba(47,42,34,0.30)' : 'rgba(47,42,34,0.06)';
+    ctx.beginPath(); ctx.moveTo(SX(gx), 0); ctx.lineTo(SX(gx), h); ctx.stroke();
+  }
+  const starty = Math.ceil((cy - halfWy) / 0.5) * 0.5;
+  for (let gy = starty; gy <= cy + halfWy; gy += 0.5) {
+    const isAxis = Math.abs(gy) < 0.25;
+    ctx.strokeStyle = isAxis ? 'rgba(47,42,34,0.30)' : 'rgba(47,42,34,0.06)';
+    ctx.beginPath(); ctx.moveTo(0, SY(gy)); ctx.lineTo(w, SY(gy)); ctx.stroke();
+  }
+  ctx.fillStyle = '#8a8072'; ctx.font = '600 11px Manrope, sans-serif';
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillText(label, 10, 8);
+}
+
+/* ===================== main draw ===================== */
+let inPlot = null;
+function draw() {
+  const s = getS(), x0 = getX0(), y0 = getY0(), r = getR();
+  const F0 = Fmap(x0, y0, s);
+  const J = jacobian(x0, y0, s);
+
+  /* ----- INPUT panel ----- */
+  const inC = fitCanvas(document.getElementById('inCanvas'));
+  const ppIn = (inC.w / 2) / W;
+  inPlot = { w: inC.w, h: inC.h, cx: 0, cy: 0, pp: ppIn };
+  {
+    const { ctx, w, h } = inC;
+    ctx.clearRect(0, 0, w, h);
+    grid(ctx, w, h, 0, 0, ppIn, 'input space');
+    const SX = wx => w/2 + wx * ppIn;
+    const SY = wy => h/2 - wy * ppIn;
+    // circle
+    ctx.strokeStyle = '#d9622b'; ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    for (let i = 0; i <= 100; i++) {
+      const th = 2*Math.PI*i/100;
+      const sx = SX(x0 + r*Math.cos(th)), sy = SY(y0 + r*Math.sin(th));
+      if (i === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+    }
+    ctx.stroke();
+    // two radii (x-dir warm, y-dir blue)
+    drawArrow(ctx, SX(x0), SY(y0), SX(x0 + r), SY(y0), '#b04d1e', 2.4);
+    drawArrow(ctx, SX(x0), SY(y0), SX(x0), SY(y0 + r), '#2c6fb7', 2.4);
+    // base point
+    ctx.fillStyle = '#1a1815';
+    ctx.beginPath(); ctx.arc(SX(x0), SY(y0), 6, 0, 2*Math.PI); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5; ctx.stroke();
+    ctx.fillStyle = '#1a1815'; ctx.font = '700 12px Manrope, sans-serif';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+    ctx.fillText('(x₀, y₀)', SX(x0) + 9, SY(y0) - 8);
+  }
+
+  /* ----- OUTPUT panel ----- */
+  const outC = fitCanvas(document.getElementById('outCanvas'));
+  const ppOut = (outC.w / 2) / W;   // same scale as input
+  {
+    const { ctx, w, h } = outC;
+    ctx.clearRect(0, 0, w, h);
+    const cx = F0[0], cy = F0[1];
+    const SX = wx => w/2 + (wx - cx) * ppOut;
+    const SY = wy => h/2 - (wy - cy) * ppOut;
+
+    // mapped coordinate grid (faint) — warp of input gridlines
+    ctx.strokeStyle = 'rgba(47,42,34,0.10)'; ctx.lineWidth = 1;
+    for (let gx = -2.5; gx <= 2.5001; gx += 0.5) {
+      ctx.beginPath();
+      for (let k = 0; k <= 60; k++) {
+        const gy = -2.5 + 5*k/60;
+        const p = Fmap(gx, gy, s);
+        const sx = SX(p[0]), sy = SY(p[1]);
+        if (k === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+      }
+      ctx.stroke();
+    }
+    for (let gy = -2.5; gy <= 2.5001; gy += 0.5) {
+      ctx.beginPath();
+      for (let k = 0; k <= 60; k++) {
+        const gx = -2.5 + 5*k/60;
+        const p = Fmap(gx, gy, s);
+        const sx = SX(p[0]), sy = SY(p[1]);
+        if (k === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+      }
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#8a8072'; ctx.font = '600 11px Manrope, sans-serif';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    ctx.fillText('output space', 10, 8);
+
+    // Jacobian ellipse: F0 + J * (r cos, r sin)  (blue dashed)
+    let maxGap = 0;
+    ctx.strokeStyle = '#2c6fb7'; ctx.lineWidth = 2.4; ctx.setLineDash([7, 5]);
+    ctx.beginPath();
+    for (let i = 0; i <= 120; i++) {
+      const th = 2*Math.PI*i/120;
+      const dx = r*Math.cos(th), dy = r*Math.sin(th);
+      const ex = F0[0] + J[0][0]*dx + J[0][1]*dy;
+      const ey = F0[1] + J[1][0]*dx + J[1][1]*dy;
+      const sx = SX(ex), sy = SY(ey);
+      if (i === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+
+    // true mapped circle (solid orange) + track gap vs ellipse
+    ctx.strokeStyle = '#d9622b'; ctx.lineWidth = 2.6;
+    ctx.beginPath();
+    for (let i = 0; i <= 120; i++) {
+      const th = 2*Math.PI*i/120;
+      const dx = r*Math.cos(th), dy = r*Math.sin(th);
+      const p = Fmap(x0 + dx, y0 + dy, s);
+      const sx = SX(p[0]), sy = SY(p[1]);
+      if (i === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+      // world-space gap between true image and linear prediction
+      const lx = F0[0] + J[0][0]*dx + J[0][1]*dy;
+      const ly = F0[1] + J[1][0]*dx + J[1][1]*dy;
+      const gg = Math.hypot(p[0]-lx, p[1]-ly);
+      if (gg > maxGap) maxGap = gg;
+    }
+    ctx.stroke();
+
+    // Jacobian column arrows (images of the r-scaled x and y directions)
+    drawArrow(ctx, SX(F0[0]), SY(F0[1]),
+      SX(F0[0] + J[0][0]*r), SY(F0[1] + J[1][0]*r), '#b04d1e', 2.6);
+    drawArrow(ctx, SX(F0[0]), SY(F0[1]),
+      SX(F0[0] + J[0][1]*r), SY(F0[1] + J[1][1]*r), '#2c6fb7', 2.6);
+
+    // base image point
+    ctx.fillStyle = '#1a1815';
+    ctx.beginPath(); ctx.arc(SX(F0[0]), SY(F0[1]), 6, 0, 2*Math.PI); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5; ctx.stroke();
+
+    // legend
+    const lg = [['true F(circle)', '#d9622b'], ['J · circle (linear)', '#2c6fb7']];
+    ctx.font = '600 10.5px Manrope, sans-serif'; ctx.textBaseline = 'middle';
+    lg.forEach((row, i) => {
+      const ly = h - 30 + i * 16;
+      ctx.strokeStyle = row[1]; ctx.lineWidth = 3;
+      if (i === 1) ctx.setLineDash([5, 4]);
+      ctx.beginPath(); ctx.moveTo(12, ly); ctx.lineTo(34, ly); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#5a5247'; ctx.textAlign = 'left';
+      ctx.fillText(row[0], 40, ly);
+    });
+
+    document.getElementById('gapVal').textContent = maxGap.toFixed(3);
+  }
+
+  /* ----- readouts ----- */
+  document.getElementById('j00').textContent = fmtM(J[0][0]);
+  document.getElementById('j01').textContent = fmtM(J[0][1]);
+  document.getElementById('j10').textContent = fmtM(J[1][0]);
+  document.getElementById('j11').textContent = fmtM(J[1][1]);
+  const det = J[0][0]*J[1][1] - J[0][1]*J[1][0];
+  document.getElementById('detVal').textContent = det.toFixed(3);
+}
+
+/* ===================== drag base point on input ===================== */
+const inCanvas = document.getElementById('inCanvas');
+let dragging = false;
+function setFromEvent(e) {
+  if (!inPlot) return;
+  const rect = inCanvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  let wx = (mx - inPlot.w/2) / inPlot.pp;
+  let wy = -(my - inPlot.h/2) / inPlot.pp;
+  wx = Math.max(-2, Math.min(2, wx));
+  wy = Math.max(-2, Math.min(2, wy));
+  x0El.value = wx; y0El.value = wy;
+  document.getElementById('x0Val').textContent = wx.toFixed(2);
+  document.getElementById('y0Val').textContent = wy.toFixed(2);
+  draw();
+}
+inCanvas.addEventListener('pointerdown', e => { dragging = true; setFromEvent(e); });
+window.addEventListener('pointermove', e => { if (dragging) setFromEvent(e); });
+window.addEventListener('pointerup', () => { dragging = false; });
+
+/* ===================== wiring ===================== */
+x0El.addEventListener('input', () => { document.getElementById('x0Val').textContent = getX0().toFixed(2); draw(); });
+y0El.addEventListener('input', () => { document.getElementById('y0Val').textContent = getY0().toFixed(2); draw(); });
+warpEl.addEventListener('input', () => { document.getElementById('warpVal').textContent = getS().toFixed(2); draw(); });
+radEl.addEventListener('input', () => { document.getElementById('radVal').textContent = getR().toFixed(2); draw(); });
+document.querySelectorAll('#map-row .mode-button').forEach(b =>
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#map-row .mode-button').forEach(x => x.classList.remove('is-active'));
+    b.classList.add('is-active');
+    mapKey = b.dataset.map;
+    draw();
+  }));
+
+window.addEventListener('load', draw);
+window.addEventListener('resize', draw);
+</script>
+
+
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

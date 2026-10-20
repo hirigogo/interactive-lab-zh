@@ -1,0 +1,25 @@
+{
+  "slug": "numerical-tricks",
+  "title": "数值计算的实用技巧",
+  "date": "2026-04-22",
+  "tagline": "Log-sum-exp、log-softmax、BCE-with-logits，以及让浮点计算保持可靠的若干修复",
+  "summary": "Float64 在 $e^{700}$ 处溢出。Float32 在 $e^{88}$ 处溢出。神经网络日常计算出的量常常越过这两个极限。本页以“朴素写法失效 / 稳定写法奏效”的并排对比，展示机器学习中最重要的四个数值技巧 &mdash; log-sum-exp、log-softmax、BCE-with-logits 以及 log1p/expm1。",
+  "readingTime": "14 min",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "order": 11,
+  "status": "published",
+  "tags": [
+    "数值稳定性",
+    "浮点数",
+    "深度学习",
+    "交互式"
+  ],
+  "highlights": [
+    "将单个 logit 滑块推至 700，观察朴素 softmax 算出 +Infinity，而稳定版本返回正确答案。",
+    "理解为何 log(softmax(x)) 是错误的复合写法，以及 log_softmax(x) 为何作为单一融合运算而存在。",
+    "观察 BCE-with-logits 在 logit 量级达 ±200 时仍保持有限，而朴素 BCE 返回 NaN。",
+    "将 x 拖至 1e-10，看 log(1 - exp(-x)) 丢失 6 位精度 &mdash; 由 log1p 与 expm1 挽救回来。",
+    "另有 10 项稳定性技巧的速查表：Welford 方差、lgamma、缩放 L2 范数等。"
+  ]
+}

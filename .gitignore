@@ -1,0 +1,23 @@
+# 上游英文原仓库：仅本地作为构建依赖与参照，不随本项目发布
+ia_src/
+
+# 本地化流水线的中间产物（可由 i18n/jobs 的译文重新生成）
+i18n/build/
+i18n/tmp/
+i18n/out/
+
+# Python 缓存
+__pycache__/
+*.py[cod]
+
+# Node 依赖
+node_modules/
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# 本地日志与临时文件
+*.log

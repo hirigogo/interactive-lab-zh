@@ -1,0 +1,23 @@
+{
+  "slug": "optimizer-race",
+  "title": "优化器竞速",
+  "date": "2026-04-12",
+  "tagline": "为何我们使用 Adam，而非纯粹的梯度下降",
+  "summary": "在四张损失曲面（沟壑、鞍点、高原、Rosenbrock）中的任意一张上放置起点，观察 SGD、Momentum 与 Adam 以实时的步数计数、损失计分板与对数尺度损失曲线竞相奔向极小值。",
+  "readingTime": "15 min",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "order": 6,
+  "status": "published",
+  "tags": [
+    "优化",
+    "深度学习",
+    "交互式",
+    "梯度下降"
+  ],
+  "highlights": [
+    "在四张诊断性曲面之间切换，每张都针对优化器的某一种弱点施加压力。",
+    "并排比较 SGD、Momentum 与 Adam，配有实时步数计数与对数尺度损失曲线。",
+    "调节学习率与最大步数，观察各方法何时发散或停滞。"
+  ]
+}

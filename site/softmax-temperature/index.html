@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Softmax 与温度</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+
+<style>
+:root {
+  --serif: 'Source Serif 4', Georgia, serif;
+  --sans: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+  --bg: #fdfcf9;
+  --paper: #ffffff;
+  --text: #2f2a22;
+  --muted: #6e665b;
+  --border: #e2d8c6;
+  --accent: #2c6fb7;
+  --warm: #d9622b;
+  --success: #1e7770;
+  --target: #d9622b;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; font-family: var(--serif); color: var(--text); background: var(--bg); line-height: 1.65; }
+
+.article { max-width: 980px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+.back-link { display: inline-block; margin-bottom: 1.5rem; color: var(--muted); text-decoration: none; font-family: var(--sans); font-size: 0.9rem; }
+.back-link:hover { color: var(--text); }
+.article-header { margin-bottom: 3rem; text-align: center; }
+.kicker { margin: 0 0 0.75rem; font-family: var(--sans); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); }
+h1 { margin: 0 auto 1rem; font-size: clamp(2.4rem, 5vw, 3.5rem); line-height: 1.1; letter-spacing: -0.02em; color: #1a1815; max-width: 18ch; }
+.abstract { margin: 0 auto 1rem; max-width: 62ch; font-size: 1.15rem; color: #4d463d; }
+.byline { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1.4rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-family: var(--sans); font-size: 0.92rem; }
+
+.step-section {
+  position: relative;
+  margin-top: 4rem;
+  padding: 3rem 2.5rem;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.03);
+}
+.step-badge {
+  position: absolute;
+  top: -16px;
+  left: 32px;
+  background: var(--accent);
+  color: white;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.4rem 1.2rem;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(44, 111, 183, 0.25);
+}
+h2 { margin: 0 0 1rem; font-size: clamp(1.6rem, 3.5vw, 2.2rem); line-height: 1.15; color: #1a1815; }
+h3 { margin-top: 2rem; margin-bottom: 0.8rem; font-size: 1.25rem; color: #1a1815; }
+p { max-width: 68ch; font-size: 1.1rem; }
+ul { max-width: 68ch; font-size: 1.1rem; padding-left: 1.4rem; }
+li { margin-bottom: 0.5rem; }
+.math-block { margin: 1.5rem 0; text-align: center; font-size: 1.05rem; }
+
+.control-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.4rem;
+  margin: 1.6rem 0;
+}
+.control-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.control-block label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.control-block label span {
+  font-family: var(--mono);
+  color: var(--warm);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid var(--paper);
+  box-shadow: 0 2px 6px rgba(44,111,183,0.4);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid var(--paper);
+}
+input[type="number"] {
+  font-family: var(--mono);
+  font-size: 1rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--text);
+  width: 100%;
+}
+
+.logit-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.8rem;
+  margin: 1rem 0 1.5rem;
+}
+.logit-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+.logit-cell .label {
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.button-row {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin: 1rem 0;
+}
+.mode-button {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--paper);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.mode-button:hover { border-color: var(--accent); }
+.mode-button.is-active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.action-btn {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.7rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.01em;
+}
+.action-btn--primary {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 2px 8px rgba(44,111,183,0.3);
+}
+.action-btn--primary:hover { background: #2461a3; transform: translateY(-1px); }
+.action-btn--ghost {
+  background: var(--paper);
+  color: var(--text);
+  border: 1.5px solid var(--border);
+}
+.action-btn--ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+.interactive-figure {
+  margin: 1.5rem 0;
+}
+.interactive-figure canvas {
+  display: block;
+  width: 100%;
+  background: #fbfaf6;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.interactive-figure figcaption {
+  margin-top: 0.7rem;
+  font-size: 0.92rem;
+  color: var(--muted);
+  text-align: center;
+  font-style: italic;
+}
+
+.stat-strip {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: 1.5rem 0;
+}
+.stat-pill {
+  flex: 1 1 140px;
+  min-width: 140px;
+  background: var(--paper);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 0.9rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  text-align: left;
+}
+.stat-pill .stat-label {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+}
+.stat-pill .stat-value {
+  font-family: var(--mono);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.stat-pill--accent { border-color: var(--accent); }
+.stat-pill--accent .stat-value { color: var(--accent); }
+.stat-pill--warm { border-color: var(--warm); }
+.stat-pill--warm .stat-value { color: var(--warm); }
+
+.callout {
+  margin: 2rem 0 0.5rem;
+  padding: 1.2rem 1.5rem;
+  border-radius: 12px;
+  border-left: 4px solid var(--accent);
+  background: rgba(44,111,183,0.05);
+  font-size: 1.02rem;
+}
+.callout strong { color: var(--accent); }
+.callout--think { border-left-color: var(--success); background: rgba(30,119,112,0.06); }
+.callout--think strong { color: var(--success); }
+.callout--warn { border-left-color: var(--warm); background: rgba(217,98,43,0.06); }
+.callout--warn strong { color: var(--warm); }
+
+.misconception-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.2rem;
+  margin: 1.5rem 0;
+}
+.misconception-card {
+  padding: 1.2rem 1.4rem;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  background: var(--paper);
+}
+.misconception-icon {
+  display: inline-block;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 0.7rem;
+  color: var(--warm);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: rgba(217,98,43,0.1);
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  margin-bottom: 0.6rem;
+}
+.misconception-card p { font-size: 0.95rem; max-width: none; }
+
+.examples-table-wrap { overflow-x: auto; margin: 1.5rem 0; }
+.examples-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+.examples-table th, .examples-table td {
+  text-align: left;
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid var(--border);
+}
+.examples-table th {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  background: #faf8f3;
+}
+.examples-table td:first-child { font-weight: 600; }
+
+footer {
+  margin-top: 4rem;
+  text-align: center;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+@media (max-width: 640px) {
+  .step-section { padding: 2rem 1.4rem; }
+  .logit-grid { grid-template-columns: repeat(5, 1fr); gap: 0.4rem; }
+  .logit-cell .label { font-size: 0.65rem; }
+  input[type="number"] { font-size: 0.85rem; padding: 0.3rem 0.4rem; }
+  .stat-pill .stat-value { font-size: 1.2rem; }
+}
+</style>
+</head>
+<body>
+
+<article class="article">
+  <header class="article-header">
+    <a class="back-link" href="../">← 讲解库</a>
+    <p class="kicker">交互式讲解</p>
+    <h1>Softmax &amp; 温度</h1>
+    <p class="abstract">
+      softmax 函数将原始分数转化为概率。温度旋钮 $T$ 控制该分布的尖锐或平坦程度 &mdash;&mdash; 它与驱动大语言模型创造力以及蒸馏中知识传递的是同一个旋钮。本页通过实时公式、实时采样与实时熵，帮你建立起直觉。
+    </p>
+    <div class="byline">
+      <span>约 12 分钟</span>
+      <span>深度学习 &middot; 损失函数 &middot; 采样</span>
+    </div>
+  </header>
+
+  <!-- ─── 前言 ─── -->
+  <section class="step-section" id="prelude">
+    <div class="step-badge">前言</div>
+    <h2>softmax 为何存在</h2>
+    <p>
+      你网络的最后一层输出 <em>logit</em>：$K$ 个类别上的原始实值分数 $z_1, z_2, \ldots, z_K$。它们可以为负，可以大于 1，可以是任何值。但要进行分类或从模型中采样，你需要一个 <em>概率分布</em>：即和为 1 的、位于 $[0,1]$ 中的数。
+    </p>
+    <p>
+      你大可直接归一化：$p_k = z_k / \sum_j z_j$。但只要有任何一个 $z_k$ 为负，这就会失败。你也可以先平移再归一化。但为何偏偏选那个平移量？softmax 才是更有原理依据的答案：它自然地由最大似然框架导出，并且具有一个漂亮的梯度。
+    </p>
+    <div class="math-block">
+      $$p_k = \mathrm{softmax}(\mathbf{z})_k = \dfrac{e^{z_k}}{\sum_{j=1}^{K} e^{z_j}}$$
+    </div>
+    <p>
+      取指数保证了正值。除以总和保证了它们加起来为 1。我们将在第 2 步遇到的「温度」版本，在取指数之前对 logit 进行缩放 &mdash;&mdash; 随之而来的是现代深度学习中最有用的旋钮之一。
+    </p>
+  </section>
+
+  <!-- ─── 第 1 步 ─── -->
+  <section class="step-section" id="step-1">
+    <div class="step-badge">第 1 步</div>
+    <h2>从 logit 到概率</h2>
+    <p>
+      编辑下面这五个 logit 值。右侧的柱状图显示在温度 $T = 1$ 下由此得到的 softmax 概率。注意 <em>相对次序</em> 如何被保留：最大的 logit 成为最大的概率。还要注意取指数如何放大了差异 &mdash;&mdash; 一个为 2 的 logit 差距会变成 $e^2 \approx 7.4$ 的概率比。
+    </p>
+
+    <div class="button-row" id="scenario-selector" style="margin-bottom:1rem">
+      <button class="mode-button is-active" data-scenario="generic">通用分数</button>
+      <button class="mode-button" data-scenario="llm">LLM 下一词元 ·「the sky is...」</button>
+      <button class="mode-button" data-scenario="ambig">图像 · 歧义（猫 / 狐狸 / 狗）</button>
+      <button class="mode-button" data-scenario="confident">图像 · 自信（一个类别）</button>
+    </div>
+
+    <div class="logit-grid">
+      <div class="logit-cell"><div class="label" id="step1-l0">$z_1$</div><input type="number" id="step1-z0" step="0.1" value="2.0"></div>
+      <div class="logit-cell"><div class="label" id="step1-l1">$z_2$</div><input type="number" id="step1-z1" step="0.1" value="1.0"></div>
+      <div class="logit-cell"><div class="label" id="step1-l2">$z_3$</div><input type="number" id="step1-z2" step="0.1" value="0.5"></div>
+      <div class="logit-cell"><div class="label" id="step1-l3">$z_4$</div><input type="number" id="step1-z3" step="0.1" value="-0.5"></div>
+      <div class="logit-cell"><div class="label" id="step1-l4">$z_5$</div><input type="number" id="step1-z4" step="0.1" value="-1.0"></div>
+    </div>
+    <script>
+      (function() {
+        const SCENARIOS = {
+          generic: { labels: ['$z_1$', '$z_2$', '$z_3$', '$z_4$', '$z_5$'], logits: [2.0, 1.0, 0.5, -0.5, -1.0] },
+          llm:     { labels: ['blue', 'bright', 'falling', 'overcast', 'a'], logits: [3.2, 2.5, -1.0, 0.5, 1.8] },
+          ambig:   { labels: ['cat', 'fox', 'dog', 'rabbit', 'wolf'], logits: [1.4, 1.3, 1.0, -0.5, 0.3] },
+          confident: { labels: ['cat', 'fox', 'dog', 'rabbit', 'wolf'], logits: [5.0, 0.5, 0.2, -0.3, -0.8] }
+        };
+        function applyScenario(key) {
+          const s = SCENARIOS[key];
+          for (let i = 0; i < 5; i++) {
+            const inp = document.getElementById('step1-z' + i);
+            inp.value = s.logits[i];
+            inp.dispatchEvent(new Event('input', { bubbles: true }));
+            const lbl = document.getElementById('step1-l' + i);
+            if (lbl) lbl.textContent = s.labels[i];
+          }
+        }
+        document.querySelectorAll('#scenario-selector .mode-button').forEach(b =>
+          b.addEventListener('click', () => {
+            document.querySelectorAll('#scenario-selector .mode-button').forEach(x => x.classList.remove('is-active'));
+            b.classList.add('is-active');
+            applyScenario(b.dataset.scenario);
+          })
+        );
+      })();
+    </script>
+
+    <figure class="interactive-figure">
+      <canvas id="step1Canvas" width="900" height="320"></canvas>
+      <figcaption>柱形显示在 $T = 1$ 下的 softmax 概率 $p_k$。每个柱上方的数字是概率值。</figcaption>
+    </figure>
+
+    <div class="callout callout--think">
+      <strong>动手试试。</strong>
+      将五个 logit 都设为相同的值（例如对所有 $k$ 令 $z_k = 0$）。会发生什么？你得到一个均匀分布 &mdash;&mdash; 当分数相等时 softmax 没有偏好。现在把 $z_1$ 设得很大（比如 $10$）。概率质量会坍缩到类别 1 上。这就是该函数得名的「软 argmax」行为。
+    </div>
+  </section>
+
+  <!-- ─── 第 2 步 ─── -->
+  <section class="step-section" id="step-2">
+    <div class="step-badge">第 2 步</div>
+    <h2>温度旋钮</h2>
+    <p>
+      现在我们加入一个旋钮。在取 softmax 之前，将每个 logit 除以一个正数 $T$：
+    </p>
+    <div class="math-block">
+      $$p_k = \dfrac{e^{z_k / T}}{\sum_{j=1}^{K} e^{z_j / T}}$$
+    </div>
+    <ul>
+      <li><strong>$T \to 0$：</strong> 最大的 logit 占主导。分布变为独热（argmax）。</li>
+      <li><strong>$T = 1$：</strong> 标准 softmax。</li>
+      <li><strong>$T \to \infty$：</strong> 所有 logit 都变为 $\approx 0$。分布变为均匀分布。</li>
+    </ul>
+    <p>
+      因此 $T$ 在「总是挑选最好的」与「均匀随机地挑选」之间平滑地插值。滑动下面的温度，实时观察分布的变化。
+    </p>
+
+    <div class="control-row">
+      <div class="control-block">
+        <label>Temperature <span>$T$ = <span id="tempVal">1.00</span></span></label>
+        <input type="range" id="tempSlider" min="0.05" max="5.0" step="0.01" value="1.0">
+      </div>
+    </div>
+
+    <figure class="interactive-figure">
+      <canvas id="step2Canvas" width="900" height="320"></canvas>
+      <figcaption>与第 1 步相同的 logit，现在按 $1/T$ 缩放。拖动滑块，观察分布如何从尖锐变为均匀。</figcaption>
+    </figure>
+
+    <div class="stat-strip">
+      <div class="stat-pill stat-pill--accent">
+        <span class="stat-label">熵 $H = -\sum p \log p$</span>
+        <span class="stat-value" id="entropyVal">—</span>
+      </div>
+      <div class="stat-pill stat-pill--warm">
+        <span class="stat-label">可能的最大值（均匀）</span>
+        <span class="stat-value" id="maxEntropyVal">—</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-label">置信度（最高概率）</span>
+        <span class="stat-value" id="topProbVal">—</span>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>与熵的联系。</strong>
+      随着 $T$ 增大，分布变得平坦，其熵 $H$ 上升趋向 $\log K$（均匀分布的熵）。当 $T \to 0$ 时，$H \to 0$。温度实际上就是输出分布之熵上的一个旋钮。
+    </div>
+  </section>
+
+  <!-- ─── 第 3 步 ─── -->
+  <section class="step-section" id="step-3">
+    <div class="step-badge">第 3 步</div>
+    <h2>采样：把概率转化为抽取</h2>
+    <p>
+      一个概率分布不过是一份产生随机性的配方。要从 softmax 中 <em>采样</em>，你抽取一个均匀随机数 $u \in [0,1]$，然后沿累积概率前进，直到超过 $u$。
+    </p>
+    <div class="math-block">
+      $$\text{Pick class } k \text{ if } \sum_{j < k} p_j \le u < \sum_{j \le k} p_j$$
+    </div>
+    <p>
+      点击下面的 <strong>抽取一个样本</strong>。一条橙色竖线在位置 $u$ 处落到累积条上，它落入的类别即为抽中结果。试几次。现在把温度调高 &mdash;&mdash; 你会看到每个类别有时都会被抽中。把它调低 &mdash;&mdash; 总是同一个类别。
+    </p>
+
+    <div class="control-row">
+      <div class="control-block">
+        <label>Temperature <span>$T$ = <span id="step3TempVal">1.00</span></span></label>
+        <input type="range" id="step3TempSlider" min="0.05" max="5.0" step="0.01" value="1.0">
+      </div>
+    </div>
+
+    <div class="button-row">
+      <button class="action-btn action-btn--primary" id="btn-draw-one">抽取一个样本</button>
+      <button class="action-btn action-btn--ghost" id="btn-clear-samples">清除</button>
+    </div>
+
+    <figure class="interactive-figure">
+      <canvas id="step3Canvas" width="900" height="260"></canvas>
+      <figcaption>顶部横条：各类别的累积概率（每个彩色分段的宽度为 $p_k$）。橙色标记：随机数 $u$ 的值。下方：最近若干次抽取的计数。</figcaption>
+    </figure>
+
+    <div class="callout callout--think">
+      <strong>为何这很重要。</strong>
+      当一个 LLM「写出下一个词」时，发生的正是这件事：模型输出词表上的 logit，softmax 将其转化为概率，然后采样出下一个词元。低 $T$ &rarr; 稳妥、重复的文本。高 $T$ &rarr; 有创意但有时不连贯。你刚刚操控的正是 ChatGPT 作为「temperature」暴露出来的那个旋钮。
+    </div>
+  </section>
+
+  <!-- ─── 第 4 步 ─── -->
+  <section class="step-section" id="step-4">
+    <div class="step-badge">第 4 步</div>
+    <h2>大规模采样：大数定律</h2>
+    <p>
+      单个样本是随机的。一千个样本应当看起来像其背后的分布。点击 <strong>抽取 1000 个</strong>，观察经验直方图（实心）收敛到真实的 softmax 概率（轮廓）。
+    </p>
+    <p>
+      这是最简洁的合理性检验，说明 softmax 确实计算出了一个合法的概率分布 &mdash;&mdash; 长期频率相符。
+    </p>
+
+    <div class="control-row">
+      <div class="control-block">
+        <label>温度 <span>$T$ = <span id="step4TempVal">1.00</span></span></label>
+        <input type="range" id="step4TempSlider" min="0.05" max="5.0" step="0.01" value="1.0">
+      </div>
+      <div class="control-block">
+        <label>样本数量 <span><span id="sampleCountVal">1000</span></span></label>
+        <input type="range" id="sampleCountSlider" min="10" max="10000" step="10" value="1000">
+      </div>
+    </div>
+
+    <div class="button-row">
+      <button class="action-btn action-btn--primary" id="btn-draw-many">抽取 <span id="btn-draw-many-n">1000</span></button>
+      <button class="action-btn action-btn--ghost" id="btn-clear-many">清除直方图</button>
+    </div>
+
+    <figure class="interactive-figure">
+      <canvas id="step4Canvas" width="900" height="340"></canvas>
+      <figcaption>实心柱：来自你样本的经验频率。轮廓柱：精确的 softmax 概率。随着 $N$ 增大，二者收敛。</figcaption>
+    </figure>
+
+    <div class="stat-strip">
+      <div class="stat-pill">
+        <span class="stat-label">已抽取样本总数</span>
+        <span class="stat-value" id="totalSamplesVal">0</span>
+      </div>
+      <div class="stat-pill stat-pill--accent">
+        <span class="stat-label">最大绝对误差</span>
+        <span class="stat-value" id="maxErrorVal">—</span>
+      </div>
+    </div>
+
+    <div class="callout callout--warn">
+      <strong>动手试试。</strong>
+      先抽取 100 个样本，再抽 1,000 个，然后抽 10,000 个（使用滑块）。实心柱每次都应更贴近轮廓。误差以 $1/\sqrt{N}$ 的速率缩小 &mdash;&mdash; 经典的蒙特卡洛收敛。
+    </div>
+  </section>
+
+  <!-- ─── 第 5 步 ─── -->
+  <section class="step-section" id="step-5">
+    <div class="step-badge">第 5 步</div>
+    <h2>温度在实践中的出现场合</h2>
+    <div class="examples-table-wrap">
+      <table class="examples-table">
+        <thead>
+          <tr>
+            <th>场景</th>
+            <th>$T$ 的作用</th>
+            <th>典型取值</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>LLM 文本生成</td>
+            <td>控制生成词元的创造力与连贯性之间的权衡</td>
+            <td>0.7 &ndash; 1.0（有创意），0.0 &ndash; 0.3（确定性）</td>
+          </tr>
+          <tr>
+            <td>知识蒸馏</td>
+            <td>较高的 $T$ 揭示教师模型软 logit 中的「暗知识」</td>
+            <td>$T \approx 4$（Hinton 等，2015）</td>
+          </tr>
+          <tr>
+            <td>扩散模型的无分类器引导</td>
+            <td>扮演类似的角色：以保真度换取多样性</td>
+            <td>引导尺度 $w \approx 3-7$</td>
+          </tr>
+          <tr>
+            <td>强化学习（玻尔兹曼探索）</td>
+            <td>选择动作：高 $T$ 探索，低 $T$ 利用</td>
+            <td>从高到低退火</td>
+          </tr>
+          <tr>
+            <td>校准</td>
+            <td>单个学得的 $T$ 对过度自信的模型输出进行重新缩放</td>
+            <td>通常 $T &gt; 1$（温度缩放）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      同一条一行的公式 &mdash;&mdash; 在 softmax 之前将 logit 除以 $T$ &mdash;&mdash; 贯穿于上述所有场景。一旦你理解了上面的柱状图，你就理解了它们全部。
+    </p>
+  </section>
+
+  <!-- ─── 第 6 步 ─── -->
+  <section class="step-section" id="step-6">
+    <div class="step-badge">第 6 步</div>
+    <h2>人们对 softmax 常犯的三个错误</h2>
+    <div class="misconception-grid">
+      <div class="misconception-card">
+        <span class="misconception-icon">误区</span>
+        <p><strong>「softmax 的输出就是校准良好的概率。」</strong><br>
+          它们之和为 1，所以看起来像概率。但现代深度网络通常 <em>过度自信</em> &mdash;&mdash; 最大的 softmax 值远高于模型在这些样本上的真实准确率。校准（如学得的温度缩放）可以修正这一点。</p>
+      </div>
+      <div class="misconception-card">
+        <span class="misconception-icon">误区</span>
+        <p><strong>「你应该先应用 softmax，再用交叉熵损失。」</strong><br>
+          并非如此。PyTorch 的 <code>CrossEntropyLoss</code> 会在内部施加 softmax，计算两次会得到错误的梯度。请直接传入原始 logit。</p>
+      </div>
+      <div class="misconception-card">
+        <span class="misconception-icon">误区</span>
+        <p><strong>「温度越低总是越准确。」</strong><br>
+          对于贪心解码（$T=0$），确实如此 &mdash;&mdash; 但若要在整个分布上评估，校准良好的概率（$T \approx 1$）能给出更好的不确定性估计，以及更好的下游流水线行为。</p>
+      </div>
+    </div>
+
+    <div class="callout callout--warn" style="margin-top: 2rem;">
+      <strong>最终总结。</strong>
+      softmax 是将无界分数转化为概率分布的典范方式。温度参数 $T$ 通过重塑该分布的熵，在确定性于多样性之间平滑权衡。你现在知道了每个 LLM API 里的那个滑块究竟在做什么。
+    </div>
+  </section>
+
+  <section class="step-section">
+    <div class="step-badge">附赠</div>
+    <h2>数值稳定性 —— 减去最大值的技巧</h2>
+    <p>
+      朴素的 softmax $e^{z_i} / \sum e^{z_j}$ 在 $z_i \gtrsim 700$（float64）和 $\gtrsim 88$（float32）时会溢出。每一个生产级实现都会在取指数之前减去最大的 logit：
+    </p>
+    <p style="text-align:center; font-family:'IBM Plex Mono', monospace; font-size:15px;">
+      softmax(z)<sub>i</sub> = exp(z<sub>i</sub> &minus; max(z)) / Σ<sub>j</sub> exp(z<sub>j</sub> &minus; max(z))
+    </p>
+    <p>
+      数学结果完全相同（常数被抵消），但现在最大的指数恰好为 0，因此总和介于 1 与 $n$ 之间，永不溢出。在 torch.softmax / numpy.softmax 内部已经为你做好了这件事；如果你要从头编写 softmax（例如一个自定义 CUDA 核），这是你需要做的第一件事。
+    </p>
+    <p>
+      同样的技巧给出 <code>logsumexp(z) = max(z) + log Σ exp(z &minus; max(z))</code>，它是稳定的交叉熵与对数概率计算的基本构件。
+    </p>
+  </section>
+
+  <section class="step-section">
+    <div class="step-badge">附赠</div>
+    <h2>softmax 的替代方案 —— sparsemax、entmax、Gumbel</h2>
+    <ul>
+      <li><strong>Sparsemax</strong>（Martins &amp; Astudillo，2016）。将 logit 投影到单纯形上 —— 产生一个含若干精确零值的稀疏概率向量。在你需要硬性且可解释的选择的注意力头中很有用。</li>
+      <li><strong>Entmax-α</strong>（Peters 等，2019）。在 softmax（$\alpha = 1$）与 sparsemax（$\alpha = 2$）之间插值。是一个单参数族。</li>
+      <li><strong>Gumbel-softmax</strong>（Jang 等，2017；Maddison 等，2017）。向 logit 加入 Gumbel 噪声，再以低温度做 softmax —— 产生近似独热的、且 <em>可微</em> 的样本。是离散隐变量的标准重参数化技巧。</li>
+      <li><strong>Top-k / 核采样（top-p）。</strong> 在采样前将 softmax 的支撑集限制在前 $k$ 个词元（或和为 $p$ 的最小集合）。是现代 LLM 文本生成中的标准做法。</li>
+    </ul>
+  </section>
+
+  <section class="step-section">
+    <div class="step-badge">延伸阅读</div>
+    <h2>阅读清单</h2>
+    <ul>
+      <li>Bridle（1990）—— 首次将「softmax」用于神经网络输出归一化。</li>
+      <li>Hinton, Vinyals, Dean（2015）—— 知识蒸馏，使温度参数广为流行。</li>
+      <li>Holtzman 等（2020）—— <em>The Curious Case of Neural Text Degeneration。</em> 核采样。</li>
+      <li>Jang, Gu, Poole（2017）—— Gumbel-Softmax。</li>
+      <li>Martins &amp; Astudillo（2016）—— sparsemax。</li>
+    </ul>
+  </section>
+</article>
+
+<script>
+/* ───────────────────── Math helpers ───────────────────── */
+function softmax(logits, T) {
+  const scaled = logits.map(z => z / T);
+  const m = Math.max(...scaled);
+  const exps = scaled.map(s => Math.exp(s - m));
+  const Z = exps.reduce((a,b) => a+b, 0);
+  return exps.map(e => e / Z);
+}
+function entropyNats(p) {
+  let h = 0;
+  for (const pi of p) if (pi > 1e-12) h -= pi * Math.log(pi);
+  return h;
+}
+function sampleFromDist(p) {
+  const u = Math.random();
+  let acc = 0;
+  for (let i = 0; i < p.length; i++) {
+    acc += p[i];
+    if (u < acc) return i;
+  }
+  return p.length - 1;
+}
+
+/* ───────────────────── Constants ───────────────────── */
+const K = 5;
+const CLASS_LABELS = ['Class 1','Class 2','Class 3','Class 4','Class 5'];
+const COLORS = ['#2c6fb7', '#3f8ed1', '#5fa9d9', '#d9622b', '#e8944c'];
+
+/* ───────────────────── DPI helpers ───────────────────── */
+function fitCanvas(canvas) {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { ctx, w: rect.width, h: rect.height };
+}
+function roundRect(ctx, x, y, w, h, r) {
+  if (h <= 0) return;
+  r = Math.min(r, w/2, h/2);
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y, x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x, y+h, r);
+  ctx.arcTo(x, y+h, x, y, r);
+  ctx.arcTo(x, y, x+w, y, r);
+  ctx.closePath();
+}
+
+/* ───────────────────── 第 1 步: Static softmax bars ───────────────────── */
+function getStep1Logits() {
+  return [0,1,2,3,4].map(i => parseFloat(document.getElementById('step1-z'+i).value) || 0);
+}
+function drawBars(canvas, probs, opts = {}) {
+  const { ctx, w, h } = fitCanvas(canvas);
+  ctx.clearRect(0, 0, w, h);
+  const padL = 50, padR = 24, padT = 30, padB = 56;
+  const cw = w - padL - padR;
+  const ch = h - padT - padB;
+
+  // gridlines
+  ctx.font = '500 11px Manrope, sans-serif';
+  ctx.fillStyle = '#7a7265';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  for (let t = 0; t <= 1.0; t += 0.2) {
+    const y = padT + ch * (1 - t);
+    ctx.strokeStyle = t === 0 ? 'rgba(47,42,34,0.18)' : 'rgba(47,42,34,0.07)';
+    ctx.lineWidth = t === 0 ? 1.2 : 1;
+    ctx.beginPath();
+    ctx.moveTo(padL - 4, y);
+    ctx.lineTo(padL + cw, y);
+    ctx.stroke();
+    ctx.fillText(t.toFixed(1), padL - 8, y);
+  }
+
+  const n = probs.length;
+  const barGap = Math.min(cw * 0.04, 16);
+  const barW = (cw - barGap * (n + 1)) / n;
+
+  for (let i = 0; i < n; i++) {
+    const p = probs[i];
+    const barH = p * ch;
+    const x = padL + barGap + i * (barW + barGap);
+    const y = padT + ch - barH;
+
+    const grad = ctx.createLinearGradient(x, y, x, y + barH);
+    grad.addColorStop(0, COLORS[i]);
+    grad.addColorStop(1, shade(COLORS[i], -18));
+    ctx.fillStyle = grad;
+    roundRect(ctx, x, y, barW, barH, 5);
+    ctx.fill();
+
+    // value above
+    ctx.fillStyle = '#2f2a22';
+    ctx.font = '700 13px Manrope, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(p.toFixed(3), x + barW / 2, y - 4);
+
+    // label below
+    ctx.fillStyle = '#6e665b';
+    ctx.font = '600 11px Manrope, sans-serif';
+    ctx.textBaseline = 'top';
+    ctx.fillText(CLASS_LABELS[i], x + barW / 2, padT + ch + 6);
+  }
+
+  // y-axis title
+  ctx.save();
+  ctx.translate(14, padT + ch / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillStyle = '#6e665b';
+  ctx.font = '600 11px Manrope, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('probability', 0, 0);
+  ctx.restore();
+}
+function shade(hex, percent) {
+  const c = parseInt(hex.slice(1), 16);
+  const r = Math.max(0, Math.min(255, ((c >> 16) & 0xff) + percent));
+  const g = Math.max(0, Math.min(255, ((c >> 8) & 0xff) + percent));
+  const b = Math.max(0, Math.min(255, (c & 0xff) + percent));
+  return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
+}
+
+const step1Canvas = document.getElementById('step1Canvas');
+function updateStep1() {
+  const z = getStep1Logits();
+  const p = softmax(z, 1.0);
+  drawBars(step1Canvas, p);
+}
+[0,1,2,3,4].forEach(i => {
+  document.getElementById('step1-z'+i).addEventListener('input', () => {
+    updateStep1();
+    updateStep2();   // share the same logits
+    updateStep3();
+    updateStep4();
+  });
+});
+
+/* ───────────────────── 第 2 步: Temperature ───────────────────── */
+const step2Canvas = document.getElementById('step2Canvas');
+const tempSlider = document.getElementById('tempSlider');
+const tempVal = document.getElementById('tempVal');
+const entropyVal = document.getElementById('entropyVal');
+const maxEntropyVal = document.getElementById('maxEntropyVal');
+const topProbVal = document.getElementById('topProbVal');
+
+let displayProbs2 = Array(K).fill(1/K);
+let targetProbs2 = Array(K).fill(1/K);
+
+function updateStep2() {
+  const z = getStep1Logits();
+  const T = parseFloat(tempSlider.value);
+  targetProbs2 = softmax(z, T);
+  tempVal.textContent = T.toFixed(2);
+  const H = entropyNats(targetProbs2);
+  entropyVal.textContent = H.toFixed(3) + ' nats';
+  maxEntropyVal.textContent = Math.log(K).toFixed(3) + ' nats';
+  topProbVal.textContent = Math.max(...targetProbs2).toFixed(3);
+}
+tempSlider.addEventListener('input', updateStep2);
+
+function animate2() {
+  const lerp = 0.18;
+  let dirty = false;
+  for (let i = 0; i < K; i++) {
+    const d = targetProbs2[i] - displayProbs2[i];
+    if (Math.abs(d) > 0.001) { displayProbs2[i] += d * lerp; dirty = true; }
+    else displayProbs2[i] = targetProbs2[i];
+  }
+  drawBars(step2Canvas, displayProbs2);
+  requestAnimationFrame(animate2);
+}
+
+/* ───────────────────── 第 3 步: Single sampling ───────────────────── */
+const step3Canvas = document.getElementById('step3Canvas');
+const step3TempSlider = document.getElementById('step3TempSlider');
+const step3TempVal = document.getElementById('step3TempVal');
+let recentSamples = [];   // last few sample picks
+let lastU = null;          // most recent random number drawn
+
+function step3Probs() {
+  const z = getStep1Logits();
+  const T = parseFloat(step3TempSlider.value);
+  return softmax(z, T);
+}
+function updateStep3() {
+  step3TempVal.textContent = parseFloat(step3TempSlider.value).toFixed(2);
+  drawStep3();
+}
+step3TempSlider.addEventListener('input', updateStep3);
+
+function drawStep3() {
+  const { ctx, w, h } = fitCanvas(step3Canvas);
+  ctx.clearRect(0, 0, w, h);
+  const probs = step3Probs();
+
+  // top: cumulative bar (one big segmented row)
+  const padL = 40, padR = 40, padT = 36;
+  const barH = 56;
+  const barW = w - padL - padR;
+  const y = padT;
+
+  // Draw segmented cumulative bar
+  let cum = 0;
+  for (let i = 0; i < K; i++) {
+    const segW = probs[i] * barW;
+    const x = padL + cum * barW;
+    const grad = ctx.createLinearGradient(x, y, x, y + barH);
+    grad.addColorStop(0, COLORS[i]);
+    grad.addColorStop(1, shade(COLORS[i], -18));
+    ctx.fillStyle = grad;
+    ctx.fillRect(x, y, segW, barH);
+
+    // segment label inside if wide enough
+    if (segW > 40) {
+      ctx.fillStyle = '#fff';
+      ctx.font = '700 11px Manrope, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(CLASS_LABELS[i] + ' (' + probs[i].toFixed(2) + ')', x + segW / 2, y + barH / 2);
+    }
+    cum += probs[i];
+  }
+  // border
+  ctx.strokeStyle = 'rgba(47,42,34,0.2)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(padL, y, barW, barH);
+
+  // Top axis (0 to 1)
+  ctx.fillStyle = '#6e665b';
+  ctx.font = '500 11px Manrope, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  for (let t = 0; t <= 1.001; t += 0.25) {
+    const tx = padL + t * barW;
+    ctx.fillText(t.toFixed(2), tx, y - 6);
+    ctx.strokeStyle = 'rgba(47,42,34,0.25)';
+    ctx.beginPath();
+    ctx.moveTo(tx, y - 4);
+    ctx.lineTo(tx, y);
+    ctx.stroke();
+  }
+
+  // Last drawn u marker
+  if (lastU !== null) {
+    const ux = padL + lastU * barW;
+    ctx.strokeStyle = '#d9622b';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(ux, y - 12);
+    ctx.lineTo(ux, y + barH + 14);
+    ctx.stroke();
+    // arrow
+    ctx.fillStyle = '#d9622b';
+    ctx.beginPath();
+    ctx.moveTo(ux - 5, y + barH + 14);
+    ctx.lineTo(ux + 5, y + barH + 14);
+    ctx.lineTo(ux, y + barH + 22);
+    ctx.closePath();
+    ctx.fill();
+    // u label
+    ctx.font = '700 12px Manrope, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText('u = ' + lastU.toFixed(3), ux, y + barH + 24);
+  }
+
+  // Recent picks tally beneath
+  const tallyY = y + barH + 60;
+  ctx.fillStyle = '#2f2a22';
+  ctx.font = '600 12px Manrope, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText('Recent picks:', padL, tallyY);
+
+  let xOff = padL + 110;
+  const lookback = recentSamples.slice(-30);
+  for (let i = 0; i < lookback.length; i++) {
+    const cls = lookback[i];
+    ctx.fillStyle = COLORS[cls];
+    ctx.beginPath();
+    ctx.arc(xOff, tallyY + 6, 8, 0, Math.PI * 2);
+    ctx.fill();
+    xOff += 20;
+  }
+  if (recentSamples.length === 0) {
+    ctx.fillStyle = '#a09787';
+    ctx.font = 'italic 12px "Source Serif 4", serif';
+    ctx.fillText('(none yet — click "抽取一个样本")', xOff, tallyY);
+  }
+}
+
+document.getElementById('btn-draw-one').addEventListener('click', () => {
+  const probs = step3Probs();
+  const u = Math.random();
+  lastU = u;
+  let acc = 0, picked = K - 1;
+  for (let i = 0; i < K; i++) {
+    acc += probs[i];
+    if (u < acc) { picked = i; break; }
+  }
+  recentSamples.push(picked);
+  drawStep3();
+});
+document.getElementById('btn-clear-samples').addEventListener('click', () => {
+  recentSamples = [];
+  lastU = null;
+  drawStep3();
+});
+
+/* ───────────────────── 第 4 步: Bulk sampling histogram ───────────────────── */
+const step4Canvas = document.getElementById('step4Canvas');
+const step4TempSlider = document.getElementById('step4TempSlider');
+const step4TempVal = document.getElementById('step4TempVal');
+const sampleCountSlider = document.getElementById('sampleCountSlider');
+const sampleCountVal = document.getElementById('sampleCountVal');
+const btnDrawManyN = document.getElementById('btn-draw-many-n');
+const totalSamplesVal = document.getElementById('totalSamplesVal');
+const maxErrorVal = document.getElementById('maxErrorVal');
+
+let histogram = Array(K).fill(0);
+let totalSamples = 0;
+
+function step4Probs() {
+  const z = getStep1Logits();
+  const T = parseFloat(step4TempSlider.value);
+  return softmax(z, T);
+}
+function updateStep4() {
+  step4TempVal.textContent = parseFloat(step4TempSlider.value).toFixed(2);
+  // when temperature changes, the histogram is no longer matching → reset
+  histogram = Array(K).fill(0);
+  totalSamples = 0;
+  totalSamplesVal.textContent = '0';
+  maxErrorVal.textContent = '—';
+  drawStep4();
+}
+step4TempSlider.addEventListener('input', updateStep4);
+sampleCountSlider.addEventListener('input', () => {
+  const n = parseInt(sampleCountSlider.value);
+  sampleCountVal.textContent = n;
+  btnDrawManyN.textContent = n;
+});
+
+function drawStep4() {
+  const { ctx, w, h } = fitCanvas(step4Canvas);
+  ctx.clearRect(0, 0, w, h);
+  const probs = step4Probs();
+  const padL = 50, padR = 24, padT = 30, padB = 60;
+  const cw = w - padL - padR;
+  const ch = h - padT - padB;
+
+  // gridlines
+  const yMax = Math.max(0.4, Math.max(...probs) * 1.25);
+  ctx.font = '500 11px Manrope, sans-serif';
+  ctx.fillStyle = '#7a7265';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  const ticks = 5;
+  for (let i = 0; i <= ticks; i++) {
+    const t = (i / ticks) * yMax;
+    const y = padT + ch * (1 - i / ticks);
+    ctx.strokeStyle = i === 0 ? 'rgba(47,42,34,0.18)' : 'rgba(47,42,34,0.07)';
+    ctx.lineWidth = i === 0 ? 1.2 : 1;
+    ctx.beginPath();
+    ctx.moveTo(padL - 4, y);
+    ctx.lineTo(padL + cw, y);
+    ctx.stroke();
+    ctx.fillText(t.toFixed(2), padL - 8, y);
+  }
+
+  const barGap = Math.min(cw * 0.04, 16);
+  const barW = (cw - barGap * (K + 1)) / K;
+
+  // empirical filled bars + true outlines
+  let maxErr = 0;
+  for (let i = 0; i < K; i++) {
+    const empirical = totalSamples > 0 ? histogram[i] / totalSamples : 0;
+    const x = padL + barGap + i * (barW + barGap);
+    // true outline (faint)
+    const trueH = (probs[i] / yMax) * ch;
+    const trueY = padT + ch - trueH;
+    ctx.strokeStyle = COLORS[i];
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 4]);
+    ctx.strokeRect(x, trueY, barW, trueH);
+    ctx.setLineDash([]);
+    // empirical filled
+    const empH = (empirical / yMax) * ch;
+    const empY = padT + ch - empH;
+    const grad = ctx.createLinearGradient(x, empY, x, empY + empH);
+    grad.addColorStop(0, COLORS[i] + 'dd');
+    grad.addColorStop(1, shade(COLORS[i], -22) + 'cc');
+    ctx.fillStyle = grad;
+    if (empH > 0) {
+      roundRect(ctx, x, empY, barW, empH, 4);
+      ctx.fill();
+    }
+    // labels below
+    ctx.fillStyle = '#6e665b';
+    ctx.font = '600 11px Manrope, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(CLASS_LABELS[i], x + barW / 2, padT + ch + 6);
+    ctx.font = '500 10px IBM Plex Mono, monospace';
+    ctx.fillStyle = '#a09787';
+    ctx.fillText('p=' + probs[i].toFixed(3), x + barW / 2, padT + ch + 22);
+    if (totalSamples > 0) {
+      ctx.fillStyle = COLORS[i];
+      ctx.fillText('emp=' + empirical.toFixed(3), x + barW / 2, padT + ch + 36);
+      const err = Math.abs(empirical - probs[i]);
+      if (err > maxErr) maxErr = err;
+    }
+  }
+
+  // legend
+  ctx.font = '500 11px Manrope, sans-serif';
+  ctx.fillStyle = '#6e665b';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  // dashed swatch
+  ctx.strokeStyle = '#6e665b';
+  ctx.setLineDash([5, 4]);
+  ctx.strokeRect(padL, padT - 20, 18, 12);
+  ctx.setLineDash([]);
+  ctx.fillText('true probability', padL + 24, padT - 18);
+  // filled swatch
+  ctx.fillStyle = '#6e665bcc';
+  ctx.fillRect(padL + 150, padT - 20, 18, 12);
+  ctx.fillStyle = '#6e665b';
+  ctx.fillText('empirical frequency', padL + 174, padT - 18);
+
+  if (totalSamples > 0) {
+    maxErrorVal.textContent = maxErr.toFixed(4);
+  }
+}
+
+document.getElementById('btn-draw-many').addEventListener('click', () => {
+  const probs = step4Probs();
+  const n = parseInt(sampleCountSlider.value);
+  for (let i = 0; i < n; i++) {
+    const k = sampleFromDist(probs);
+    histogram[k]++;
+    totalSamples++;
+  }
+  totalSamplesVal.textContent = totalSamples;
+  drawStep4();
+});
+document.getElementById('btn-clear-many').addEventListener('click', () => {
+  histogram = Array(K).fill(0);
+  totalSamples = 0;
+  totalSamplesVal.textContent = '0';
+  maxErrorVal.textContent = '—';
+  drawStep4();
+});
+
+/* ───────────────────── Init ───────────────────── */
+window.addEventListener('load', () => {
+  updateStep1();
+  updateStep2();
+  updateStep3();
+  updateStep4();
+  animate2();
+});
+window.addEventListener('resize', () => {
+  updateStep1();
+  drawStep3();
+  drawStep4();
+});
+</script>
+
+
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>知识蒸馏，实时演示</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <article class="article">
+      <header class="article-header">
+        <a class="back-link" href="../index.html">&larr; 讲解库</a>
+        <p class="kicker">交互式讲解</p>
+        <h1>知识蒸馏，实时演示</h1>
+        <p class="abstract">
+          一个在你的浏览器中训练的小型学生模型，通过 softmax 温度
+          吸收一个平滑的预训练教师模型。切换三种损失
+          配方，滑动温度，观察学生模型的决策边界如何
+          比单靠硬标签所允许的更快地贴合教师的边界。
+        </p>
+        <div class="byline">
+          <span>约 18 分钟</span>
+          <span>深度学习 &middot; 模型压缩 &middot; 教师-学生</span>
+        </div>
+      </header>
+
+      <!-- ─── 前言 ─── -->
+      <section class="step-section" id="prelude">
+        <div class="step-badge">前言</div>
+        <h2>为何小模型向大模型学习能胜过直接从数据学习</h2>
+        <p>
+          你有一个庞大而准确的教师模型。你想要一个又小又快、
+          能跑在手机、传感器节点或边缘 GPU 上的学生模型。朴素
+          配方：用相同数据从头训练学生。
+          更好的配方：训练学生去模仿教师
+          软化后的输出。学生往往大幅胜过仅用数据的
+          基线&mdash;在相同参数、相同数据集之下。
+        </p>
+        <p>
+          诀窍在于那些在硬标签中不可见的信息。
+          一张猫的图片具有硬标签「猫」，但教师的 softmax
+          却说「猫 0.93、猞猁 0.04、虎 0.02、狗 0.01」。这种排序
+          携带了 <strong>暗知识</strong> &mdash;即教师
+          关于各类别如何关联的看法。学生得以免费获得它。
+        </p>
+        <div class="callout callout--key">
+          <strong>Hinton 的一句话。</strong>
+          「软目标比硬标签揭示了更多关于数据结构的信息。」
+          一旦你看了本文的动画，这句话就会变得有意义。
+        </div>
+      </section>
+
+      <!-- ─── 第 1 步 ─── -->
+      <section class="step-section" id="step-1">
+        <div class="step-badge">第 1 步</div>
+        <h2>用温度软化</h2>
+        <p>
+          标准 softmax 将 logit $z_c$ 转换为概率
+          $p_c$。知识蒸馏引入一个温度 $T$：
+        </p>
+        <div class="math-block" id="math-soft"></div>
+        <p>
+          $T=1$ 即通常的 softmax。较大的 $T$ 会把
+          分布压平，从而暴露出更多的相对排序。当 $T
+          \to \infty$ 时一切都变为均匀；当 $T \to 0$ 时
+          则变为单热（one-hot）。整场博弈的关键就是选一个 $T$，使
+          那些未胜出的类别仍然携带有用的结构。
+        </p>
+        <div class="control-row" style="grid-template-columns: 1fr;">
+          <div class="control-block">
+            <label>温度 T &nbsp;<span id="t-val">4.0</span> <input type="range" id="t-slider" min="0.5" max="20" step="0.1" value="4"></label>
+          </div>
+        </div>
+        <div class="kd-figure">
+          <canvas id="t-canvas" width="880" height="240"></canvas>
+          <figcaption>同一组教师 logit 在四个温度下的情形。柱形表示 softmax 概率；数字是同一组 logit 按 1/T 缩放后的结果。</figcaption>
+        </div>
+      </section>
+
+      <!-- ─── 第 2 步 ─── -->
+      <section class="step-section" id="step-2">
+        <div class="step-badge">第 2 步</div>
+        <h2>两种损失，并排对比</h2>
+        <p>
+          学生获得两路监督信号：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>硬交叉熵</strong>，针对数据集的
+            标签 $y$。</li>
+          <li><strong>软 KL</strong>，从教师软化后的
+            概率 $p^{(T)}$ 到学生软化后的
+            概率 $q^{(T)}$，两者都在温度 $T$ 下。</li>
+        </ul>
+        <div class="math-block" id="math-loss"></div>
+        <p>
+          KD 项中的 $T^2$ 乘子使梯度在任意 $T$ 下都保持在
+          相同的量级（Hinton 等人，2015）。$\alpha$ 权衡
+          学生听数据与听教师的相对程度。
+        </p>
+      </section>
+
+      <!-- ─── 第 3 步 ─── -->
+      <section class="step-section" id="step-3">
+        <div class="step-badge">第 3 步</div>
+        <h2>观察学生模型的学习</h2>
+        <p>
+          下方的教师是一个在 二维平面上固定的高斯混合分类器：
+          平滑、准确，但在我们假定无法部署它的意义上显得「庞大」。
+          学生则是一个单层的线性层（仅 $2 \times K$ 个权重）&mdash;比
+          逻辑回归多不了什么。用三种方式训练它并加以比较。
+        </p>
+
+        <div class="train-controls">
+          <button class="action-btn" id="kd-toggle">开始训练</button>
+          <button class="action-btn action-btn--ghost" id="kd-reset">重新初始化学生</button>
+          <label>配方
+            <select id="kd-配方">
+              <option value="hard">仅硬 CE</option>
+              <option value="soft">纯 KD（仅教师）</option>
+              <option value="hybrid" selected>混合（KD + α·CE）</option>
+            </select>
+          </label>
+          <label>T &nbsp;<span id="kd-T-val">4.0</span> <input type="range" id="kd-T" min="0.5" max="20" step="0.1" value="4"></label>
+          <label>α &nbsp;<span id="kd-alpha-val">0.30</span> <input type="range" id="kd-alpha" min="0" max="1" step="0.05" value="0.3"></label>
+          <span class="train-stat">步数 <strong id="kd-step">0</strong></span>
+          <span class="train-stat">学生准确率 <strong id="kd-acc">—</strong></span>
+          <span class="train-stat">教师准确率 <strong id="kd-tacc">—</strong></span>
+        </div>
+
+        <div class="kd-grid">
+          <div class="kd-panel">
+            <div class="panel-label">教师决策区域</div>
+            <canvas id="kd-teacher-canvas" width="380" height="380"></canvas>
+          </div>
+          <div class="kd-panel">
+            <div class="panel-label">学生决策区域</div>
+            <canvas id="kd-student-canvas" width="380" height="380"></canvas>
+          </div>
+          <div class="kd-panel">
+            <div class="panel-label">损失曲线</div>
+            <canvas id="kd-loss-canvas" width="380" height="380"></canvas>
+          </div>
+        </div>
+
+        <div class="callout callout--think">
+          <strong>应当留意什么。</strong>
+          在<em>仅硬 CE</em>之下，学生的边界参差不齐
+          且收敛缓慢&mdash;对每个点它只有硬标签。在
+          <em>纯 KD</em> 于 $T=4$ 之下，学生在各处都继承了教师
+          平滑的置信度，包括没有训练点的区域。<em>混合</em> 通常取胜：数据
+          锚定标签，教师填补其余部分。试着把 $T=1$
+          以扼杀暗知识，观察蒸馏如何退化为
+          普通的交叉熵。
+        </div>
+      </section>
+
+      <!-- ─── 第 4 步 ─── -->
+      <section class="step-section" id="step-4">
+        <div class="step-badge">第 4 步</div>
+        <h2>收益从何而来？</h2>
+        <p>
+          对同一现象的三种视角：
+        </p>
+        <ul class="explanation-list">
+          <li><strong>加强版的标签平滑。</strong> 硬标签
+            是单热的。教师软化后的概率是一种
+            <em>针对每个输入</em>、取决于类别实际
+            几何形态的平滑。通用的标签平滑把
+            单热替换为一个固定的混合；KD 则把它替换为一个
+            了解你数据的、学习得到的混合。</li>
+          <li><strong>训练集之外的伪数据。</strong>
+            即使在学生从未见过标签的点上，教师也在回答学生的
+            问题&mdash;实际上是给了学生一个免费的、无穷大的数据集
+            （其真值恰好就是教师本身）。</li>
+          <li><strong>梯度更丰富。</strong> 单热目标给出的
+            梯度把一个 logit 推高，把（其余所有）等量地
+            压低。软化目标给出的梯度则以不同的幅度推动<em>每一个</em>
+            非胜出项&mdash;每次反向传播携带的信息远远更多。</li>
+        </ul>
+        <div class="kd-figure">
+          <canvas id="kd-richness-canvas" width="880" height="280"></canvas>
+          <figcaption>单个样本上各个类别的梯度幅度，硬目标与 $T=4$ 下的软目标对比。总信号量相同，只是被重新分配。</figcaption>
+        </div>
+      </section>
+
+      <!-- ─── 第 5 步 ─── -->
+      <section class="step-section" id="step-5">
+        <div class="step-badge">第 5 步</div>
+        <h2>你将在论文中遇到的变体</h2>
+        <ul class="explanation-list">
+          <li><strong>Logit / 响应蒸馏。</strong> 即上述的
+            经典配方。代价最低。效果出奇地好。</li>
+          <li><strong>特征蒸馏。</strong> 匹配中间层的
+            激活或注意力图（FitNets，Romero 等人；
+            注意力迁移，Zagoruyko &amp; Komodakis）。当
+            学生的容量瓶颈位于隐藏层而非
+            输出头时，这一点很有用。</li>
+          <li><strong>自蒸馏。</strong> 学生与教师
+            共享同一架构；学生从先前的一次训练结果
+            初始化。可以「免费」提升 1–3% 的准确率。</li>
+          <li><strong>在线 / 互蒸馏。</strong> 没有冻结的教师；
+            两个学生互相教学（Zhang 等人，2018）。
+            当你没有预训练好的大模型
+            作为起点时很有用。</li>
+          <li><strong>重生网络。</strong> 蒸馏到相同的
+            架构；迭代进行。每一「代」往往都有一点
+            增益（Furlanello 等人，2018）。</li>
+        </ul>
+      </section>
+
+      <!-- ─── 第 6 步 ─── -->
+      <section class="step-section" id="step-6">
+        <div class="step-badge">第 6 步</div>
+        <h2>需要记住的五点</h2>
+        <div class="misconception-grid">
+          <div class="misconception-card">
+            <span class="misconception-icon">提示</span>
+            <p><strong>按任务挑选 T，而非凭直觉。</strong> 在验证集上扫描
+              $T \in \{2, 4, 8, 16\}$。大词表模型
+              （LLM）往往需要 $T \le 2$；类别数较少的视觉
+              任务（如 CIFAR-10）在 $T=4$ 至 $8$ 之间表现良好。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">提示</span>
+            <p><strong>α 很重要。</strong> 纯 KD（$\alpha=0$）会
+              继承教师的错误。哪怕加回 $\alpha=0.1$ 的
+              硬 CE，也能让学生立足于真实标签。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">提示</span>
+            <p><strong>训练教师时<em>关闭</em>标签平滑。</strong> 经过平滑的教师
+              会丢弃使 KD 得以奏效的
+              暗知识（Müller 等人，2019）。
+              有违直觉，但确实如此。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">提示</span>
+            <p><strong>KD 是一种伪装的数据增强。</strong>
+              你可以在无标签数据上蒸馏&mdash;只需用
+              教师的软标签作为目标。往往仅此一招
+              就能胜过更复杂的半监督流程。</p>
+          </div>
+          <div class="misconception-card">
+            <span class="misconception-icon">提示</span>
+            <p><strong>在量化 / 剪枝<em>之前</em>先蒸馏。</strong>
+              KD 压缩信息；量化丢弃比特。
+              若次序颠倒，准确率会
+              惨不忍睹。</p>
+          </div>
+        </div>
+        <div class="callout callout--think">
+          <strong>最终要点。</strong>
+          蒸馏是压缩模型最廉价、最简单、最可靠的方式
+          &mdash;也是唯一能把大模型关于<em>不确定性</em>的
+          看法注入小模型的方式。在任何你部署小模型的
+          地方，教师都应参与其中。
+        </div>
+      </section>
+    </article>
+
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script type="module" src="main.js"></script>
+  
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

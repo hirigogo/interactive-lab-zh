@@ -1,0 +1,635 @@
+{
+ "slug": "kv-cache",
+ "units": {
+  "The KV-Cache, Made Concrete": {
+   "zh": "把 KV 缓存讲明白",
+   "src": "The KV-Cache, Made Concrete",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Every token an LLM generates re-reads every key and value from all previous\n      tokens. Caching them is mandatory &mdash; and the cache quickly dwarfs the\n      weights. Slide the model, the context, and the batch below and watch the\n      moment the KV-cache overtakes the parameters. This is why\n      &ldquo;LLM inference is memory-bound, not compute-bound.&rdquo;": {
+   "zh": "LLM 每生成一个词元，都要重新读取此前所有词元的 key 与 value。\n      将它们缓存起来是必需的——而缓存很快就会远超权重本身。\n      拖动下方的模型、上下文与批量滑块，观察 KV 缓存超过参数的那一瞬间。\n      这正是“LLM 推理受内存限制，而非受算力限制”的原因。",
+   "src": "Every token an LLM generates re-reads every key and value from all previous\n      tokens. Caching them is mandatory &mdash; and the cache quickly dwarfs the\n      weights. Slide the model, the context, and the batch below and watch the\n      moment the KV-cache overtakes the parameters. This is why\n      &ldquo;LLM inference is memory-bound, not compute-bound.&rdquo;",
+   "tags": []
+  },
+  "@@T0@@~11 min@@T1@@\n      @@T2@@Inference &middot; LLM systems@@T3@@": {
+   "zh": "@@T0@@约 11 分钟@@T1@@\n      @@T2@@推理 &middot; LLM 系统@@T3@@",
+   "src": "<span>~11 min</span>\n      <span>Inference &middot; LLM systems</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Why the cache has to exist": {
+   "zh": "缓存为何必须存在",
+   "src": "Why the cache has to exist",
+   "tags": []
+  },
+  "To predict token $t{+}1$, self-attention compares the current query against\n      the key of @@T0@@every@@T1@@ earlier token and mixes in their values:": {
+   "zh": "为预测词元 $t{+}1$，自注意力会把当前的 query 与此前@@T0@@每一个@@T1@@词元的\n      key 进行比较，并按权重混合它们的 value：",
+   "src": "To predict token $t{+}1$, self-attention compares the current query against\n      the key of <em>every</em> earlier token and mixes in their values:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The keys $k_i$ and values $v_i$ of past tokens never change. Recomputing them\n      at each step would make generation cost $\\mathcal{O}(n^2)$ in time for no\n      reason. So we @@T0@@cache@@T1@@ them: after a token is processed, its\n      $k$ and $v$ (in every layer, every head) are stored and re-used forever. That\n      trade &mdash; spend memory to save compute &mdash; is what makes autoregressive\n      decoding fast, and what makes it @@T2@@memory-bound@@T3@@. Every new token reads\n      the entire cache back out of HBM; the arithmetic is trivial next to the\n      bytes moved.": {
+   "zh": "过去词元的 key $k_i$ 与 value $v_i$ 永不改变。若在每一步都重新计算它们，\n      会使生成的时间代价无谓地变为 $\\mathcal{O}(n^2)$。因此我们把它们@@T0@@缓存@@T1@@起来：\n      一个词元处理完毕后，它的 $k$ 与 $v$（在每一层、每个注意力头中）就被存储并永久复用。\n      这种权衡——用内存换取算力——正是自回归解码得以快速的原因，\n      也正是它@@T2@@受内存限制@@T3@@的原因。每个新词元都要把整个缓存从 HBM 中读回；\n      相对于所搬运的字节数，其中的算术运算微不足道。",
+   "src": "The keys $k_i$ and values $v_i$ of past tokens never change. Recomputing them\n      at each step would make generation cost $\\mathcal{O}(n^2)$ in time for no\n      reason. So we <strong>cache</strong> them: after a token is processed, its\n      $k$ and $v$ (in every layer, every head) are stored and re-used forever. That\n      trade &mdash; spend memory to save compute &mdash; is what makes autoregressive\n      decoding fast, and what makes it <em>memory-bound</em>. Every new token reads\n      the entire cache back out of HBM; the arithmetic is trivial next to the\n      bytes moved.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "The one formula that governs everything": {
+   "zh": "支配一切的唯一公式",
+   "src": "The one formula that governs everything",
+   "tags": []
+  },
+  "For a single token, in a single layer, one attention head stores one key\n      vector and one value vector, each of dimension $d_h$. Multiply out over the\n      whole model and you get the size of the cache @@T0@@per token@@T1@@:": {
+   "zh": "对单个词元、在单层中而言，一个注意力头存储一个 key 向量与一个 value 向量，\n      其维度均为 $d_h$。在整个模型上相乘展开，就得到@@T0@@每个词元@@T1@@的缓存大小：",
+   "src": "For a single token, in a single layer, one attention head stores one key\n      vector and one value vector, each of dimension $d_h$. Multiply out over the\n      whole model and you get the size of the cache <em>per token</em>:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "$L$ &mdash; number of transformer layers (the cache is stored once per layer).": {
+   "zh": "$L$ &mdash; Transformer 层数（缓存按层存储一次）。",
+   "src": "$L$ &mdash; number of transformer layers (the cache is stored once per layer).",
+   "tags": []
+  },
+  "$n_{kv}$ &mdash; number of @@T0@@key/value@@T1@@ heads. Under multi-head attention this equals the query heads; grouped-query and multi-query attention shrink it.": {
+   "zh": "$n_{kv}$ &mdash; @@T0@@key/value@@T1@@ 注意力头数。在多头注意力下它等于 query 头数；\n      分组查询注意力与多查询注意力会把它缩小。",
+   "src": "$n_{kv}$ &mdash; number of <em>key/value</em> heads. Under multi-head attention this equals the query heads; grouped-query and multi-query attention shrink it.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "$d_h$ &mdash; dimension of each head.": {
+   "zh": "$d_h$ &mdash; 每个注意力头的维度。",
+   "src": "$d_h$ &mdash; dimension of each head.",
+   "tags": []
+  },
+  "$p$ &mdash; bytes per number (FP16 = 2, INT8 = 1).": {
+   "zh": "$p$ &mdash; 每个数值占用的字节数（FP16 = 2，INT8 = 1）。",
+   "src": "$p$ &mdash; bytes per number (FP16 = 2, INT8 = 1).",
+   "tags": []
+  },
+  "The factor $2$ is because we store both a key @@T0@@and@@T1@@ a value.": {
+   "zh": "系数 $2$ 是因为我们既存储 key@@T0@@又@@T1@@存储 value。",
+   "src": "The factor $2$ is because we store both a key <em>and</em> a value.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Multiply by the context length and the batch size (concurrent sequences) and\n      you have the total footprint:\n      $\\;\\text{bytes}_{\\text{total}} = \\text{bytes}_{\\text{token}} \\cdot \\text{context} \\cdot \\text{batch}.$\n      Nothing here depends on the size of the MLP or the vocabulary &mdash; the cache\n      is a pure function of the attention shape. Time to make it move.": {
+   "zh": "再乘以上下文长度与批量大小（并发序列数），就得到总占用：\n      $\\;\\text{bytes}_{\\text{total}} = \\text{bytes}_{\\text{token}} \\cdot \\text{context} \\cdot \\text{batch}.$\n      这里没有任何一项依赖于 MLP 的规模或词表大小——\n      缓存完全是注意力形状的纯函数。是时候让它动起来了。",
+   "src": "Multiply by the context length and the batch size (concurrent sequences) and\n      you have the total footprint:\n      $\\;\\text{bytes}_{\\text{total}} = \\text{bytes}_{\\text{token}} \\cdot \\text{context} \\cdot \\text{batch}.$\n      Nothing here depends on the size of the MLP or the vocabulary &mdash; the cache\n      is a pure function of the attention shape. Time to make it move.",
+   "tags": []
+  },
+  "The Lab": {
+   "zh": "实验台",
+   "src": "The Lab",
+   "tags": []
+  },
+  "The memory-cliff calculator": {
+   "zh": "内存悬崖计算器",
+   "src": "The memory-cliff calculator",
+   "tags": []
+  },
+  "Set a model with the sliders, or load a real one with a preset. The chart\n      plots two things against context length: the flat @@T0@@model weights@@T1@@\n      and the rising @@T2@@KV-cache@@T3@@. Where the cache line\n      overtakes the weights is the @@T4@@memory cliff@@T5@@ &mdash; past it,\n      your GPU is spending more on remembering the conversation than on the model itself.": {
+   "zh": "用滑块设定一个模型，或用预设加载一个真实模型。图表以上下文长度为横轴绘制两条曲线：\n      水平的@@T0@@模型权重@@T1@@与上升的@@T2@@KV 缓存@@T3@@。\n      缓存曲线超过权重之处即为@@T4@@内存悬崖@@T5@@——越过它之后，\n      你的 GPU 花在记住对话上的内存就超过了模型本身。",
+   "src": "Set a model with the sliders, or load a real one with a preset. The chart\n      plots two things against context length: the flat <span style=\"color:var(--accent);font-weight:600\">model weights</span>\n      and the rising <span style=\"color:var(--warm);font-weight:600\">KV-cache</span>. Where the cache line\n      overtakes the weights is the <strong>memory cliff</strong> &mdash; past it,\n      your GPU is spending more on remembering the conversation than on the model itself.",
+   "tags": [
+    "<span style=\"color:var(--accent);font-weight:600\">",
+    "</span>",
+    "<span style=\"color:var(--warm);font-weight:600\">",
+    "</span>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Llama-3 8B": {
+   "zh": "Llama-3 8B（80 亿参数）",
+   "src": "Llama-3 8B",
+   "tags": []
+  },
+  "Llama-3 70B": {
+   "zh": "Llama-3 70B（700 亿参数）",
+   "src": "Llama-3 70B",
+   "tags": []
+  },
+  "Llama-2 70B (MHA)": {
+   "zh": "Llama-2 70B（MHA）",
+   "src": "Llama-2 70B (MHA)",
+   "tags": []
+  },
+  "Mistral 7B": {
+   "zh": "Mistral 7B（70 亿参数）",
+   "src": "Mistral 7B",
+   "tags": []
+  },
+  "GPT-3 175B": {
+   "zh": "GPT-3 175B（1750 亿参数）",
+   "src": "GPT-3 175B",
+   "tags": []
+  },
+  "Model shape": {
+   "zh": "模型形状",
+   "src": "Model shape",
+   "tags": []
+  },
+  "Layers $L$ @@T0@@80@@T1@@": {
+   "zh": "层数 $L$ @@T0@@80@@T1@@",
+   "src": "Layers $L$ <span id=\"LVal\">80</span>",
+   "tags": [
+    "<span id=\"LVal\">",
+    "</span>"
+   ]
+  },
+  "Query heads $n_h$ @@T0@@64@@T1@@": {
+   "zh": "查询头数 $n_h$ @@T0@@64@@T1@@",
+   "src": "Query heads $n_h$ <span id=\"nhVal\">64</span>",
+   "tags": [
+    "<span id=\"nhVal\">",
+    "</span>"
+   ]
+  },
+  "Head dim $d_h$ @@T0@@128@@T1@@": {
+   "zh": "注意力头维度 $d_h$ @@T0@@128@@T1@@",
+   "src": "Head dim $d_h$ <span id=\"dhVal\">128</span>",
+   "tags": [
+    "<span id=\"dhVal\">",
+    "</span>"
+   ]
+  },
+  "Attention type &rarr; sets KV heads $n_{kv}$": {
+   "zh": "注意力类型 &rarr; 决定 KV 头数 $n_{kv}$",
+   "src": "Attention type &rarr; sets KV heads $n_{kv}$",
+   "tags": []
+  },
+  "MHA@@T0@@n@@T1@@kv@@T2@@ = n@@T3@@h@@T4@@@@T5@@": {
+   "zh": "MHA@@T0@@n@@T1@@kv@@T2@@ = n@@T3@@h@@T4@@@@T5@@（KV 头数等于查询头数）",
+   "src": "MHA<small>n<sub>kv</sub> = n<sub>h</sub></small>",
+   "tags": [
+    "<small>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "</small>"
+   ]
+  },
+  "GQA@@T0@@a few groups@@T1@@": {
+   "zh": "GQA@@T0@@少数几组@@T1@@",
+   "src": "GQA<small>a few groups</small>",
+   "tags": [
+    "<small>",
+    "</small>"
+   ]
+  },
+  "MQA@@T0@@n@@T1@@kv@@T2@@ = 1@@T3@@": {
+   "zh": "MQA@@T0@@n@@T1@@kv@@T2@@ = 1@@T3@@（KV 头数为 1）",
+   "src": "MQA<small>n<sub>kv</sub> = 1</small>",
+   "tags": [
+    "<small>",
+    "<sub>",
+    "</sub>",
+    "</small>"
+   ]
+  },
+  "GQA key/value heads @@T0@@8@@T1@@": {
+   "zh": "GQA 的 key/value 头数 @@T0@@8@@T1@@",
+   "src": "GQA key/value heads <span id=\"gqaVal\">8</span>",
+   "tags": [
+    "<span id=\"gqaVal\">",
+    "</span>"
+   ]
+  },
+  "KV-cache dtype &rarr; bytes per number $p$": {
+   "zh": "KV 缓存数据类型 &rarr; 每个数值的字节数 $p$",
+   "src": "KV-cache dtype &rarr; bytes per number $p$",
+   "tags": []
+  },
+  "FP32@@T0@@4 bytes@@T1@@": {
+   "zh": "FP32@@T0@@4 字节@@T1@@",
+   "src": "FP32<small>4 bytes</small>",
+   "tags": [
+    "<small>",
+    "</small>"
+   ]
+  },
+  "FP16 / BF16@@T0@@2 bytes@@T1@@": {
+   "zh": "FP16 / BF16@@T0@@2 字节@@T1@@",
+   "src": "FP16 / BF16<small>2 bytes</small>",
+   "tags": [
+    "<small>",
+    "</small>"
+   ]
+  },
+  "INT8@@T0@@1 byte@@T1@@": {
+   "zh": "INT8@@T0@@1 字节@@T1@@",
+   "src": "INT8<small>1 byte</small>",
+   "tags": [
+    "<small>",
+    "</small>"
+   ]
+  },
+  "Effective KV heads: @@T0@@8@@T1@@\n            &mdash; @@T2@@each shared by 8 query heads@@T3@@.": {
+   "zh": "有效 KV 头数：@@T0@@8@@T1@@\n            &mdash; @@T2@@每个由 8 个查询头共享@@T3@@。",
+   "src": "Effective KV heads: <strong id=\"nkvReadout\" style=\"color:var(--warm)\">8</strong>\n            &mdash; <span id=\"shareReadout\">each shared by 8 query heads</span>.",
+   "tags": [
+    "<strong id=\"nkvReadout\" style=\"color:var(--warm)\">",
+    "</strong>",
+    "<span id=\"shareReadout\">",
+    "</span>"
+   ]
+  },
+  "Context length @@T0@@8,192 tok@@T1@@": {
+   "zh": "上下文长度 @@T0@@8,192 tok@@T1@@",
+   "src": "Context length <span id=\"ctxVal\">8,192 tok</span>",
+   "tags": [
+    "<span id=\"ctxVal\">",
+    "</span>"
+   ]
+  },
+  "Batch size (concurrent users) @@T0@@8@@T1@@": {
+   "zh": "批量大小（并发用户数）@@T0@@8@@T1@@",
+   "src": "Batch size (concurrent users) <span id=\"batchVal\">8</span>",
+   "tags": [
+    "<span id=\"batchVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Per token@@T1@@\n        @@T2@@&mdash;@@T3@@\n        @@T4@@all layers &amp; KV heads@@T5@@": {
+   "zh": "@@T0@@每个词元@@T1@@\n        @@T2@@&mdash;@@T3@@\n        @@T4@@所有层与 KV 头@@T5@@",
+   "src": "<span class=\"stat-label\">Per token</span>\n        <span class=\"stat-value\" id=\"perTokVal\">&mdash;</span>\n        <span class=\"stat-sub\">all layers &amp; KV heads</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"perTokVal\">",
+    "</span>",
+    "<span class=\"stat-sub\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Total KV-cache@@T1@@\n        @@T2@@&mdash;@@T3@@\n        @@T4@@context &times; batch@@T5@@": {
+   "zh": "@@T0@@KV 缓存总量@@T1@@\n        @@T2@@&mdash;@@T3@@\n        @@T4@@上下文 &times; 批量@@T5@@",
+   "src": "<span class=\"stat-label\">Total KV-cache</span>\n        <span class=\"stat-value\" id=\"totalKVVal\">&mdash;</span>\n        <span class=\"stat-sub\" id=\"totalKVSub\">context &times; batch</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"totalKVVal\">",
+    "</span>",
+    "<span class=\"stat-sub\" id=\"totalKVSub\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Model weights@@T1@@\n        @@T2@@&mdash;@@T3@@\n        @@T4@@&mdash; params, FP16@@T5@@": {
+   "zh": "@@T0@@模型权重@@T1@@\n        @@T2@@&mdash;@@T3@@\n        @@T4@@&mdash; 参数量，FP16@@T5@@",
+   "src": "<span class=\"stat-label\">Model weights</span>\n        <span class=\"stat-value\" id=\"weightVal\">&mdash;</span>\n        <span class=\"stat-sub\" id=\"paramSub\">&mdash; params, FP16</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"weightVal\">",
+    "</span>",
+    "<span class=\"stat-sub\" id=\"paramSub\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@KV &divide; weights@@T1@@\n        @@T2@@&mdash;@@T3@@\n        @@T4@@&mdash;@@T5@@": {
+   "zh": "@@T0@@KV &divide; 权重@@T1@@\n        @@T2@@&mdash;@@T3@@\n        @@T4@@&mdash;@@T5@@",
+   "src": "<span class=\"stat-label\">KV &divide; weights</span>\n        <span class=\"stat-value\" id=\"ratioVal\">&mdash;</span>\n        <span class=\"stat-sub\" id=\"ratioSub\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"ratioVal\">",
+    "</span>",
+    "<span class=\"stat-sub\" id=\"ratioSub\">",
+    "</span>"
+   ]
+  },
+  "Flat blue band: model weights (fixed). Orange area: KV-cache, growing linearly with context at the current batch.\n        The dashed vertical line is the @@T0@@cliff@@T1@@ where they are equal; the solid orange line marks your current context.\n        Horizontal dashes are 80&nbsp;GB GPU increments.": {
+   "zh": "水平蓝色条带：模型权重（固定）。橙色区域：KV 缓存，在当前批量下随上下文线性增长。\n        竖直虚线即二者相等处的@@T0@@悬崖@@T1@@；橙色实线标记你当前的上下文长度。\n        水平虚线为 80&nbsp;GB 的 GPU 容量刻度。",
+   "src": "Flat blue band: model weights (fixed). Orange area: KV-cache, growing linearly with context at the current batch.\n        The dashed vertical line is the <em>cliff</em> where they are equal; the solid orange line marks your current context.\n        Horizontal dashes are 80&nbsp;GB GPU increments.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Total footprint (weights + current KV-cache) laid against 80&nbsp;GB GPU boundaries.": {
+   "zh": "总占用（权重 + 当前 KV 缓存）与 80&nbsp;GB GPU 容量界限的对照。",
+   "src": "Total footprint (weights + current KV-cache) laid against 80&nbsp;GB GPU boundaries.",
+   "tags": []
+  },
+  "@@T0@@Try this.@@T1@@ Load @@T2@@Llama-3 70B@@T3@@, then drag @@T4@@batch size@@T5@@\n      up from 1. At batch 1 the cache is a footnote next to the 130&nbsp;GB of weights.\n      But KV scales with @@T6@@every@@T7@@ concurrent user, so by batch 32 the orange\n      area has climbed past the blue band &mdash; the same model now needs multiple\n      GPUs just to hold conversations in flight. Now switch the same model to\n      @@T8@@MHA@@T9@@: with $n_{kv}$ jumping from 8 to 64, the cliff arrives $8\\times$\n      sooner. That single design choice is why every modern model uses GQA.": {
+   "zh": "@@T0@@试试这个。@@T1@@ 加载 @@T2@@Llama-3 70B@@T3@@，然后把 @@T4@@批量大小@@T5@@\n      从 1 往上拖。在批量为 1 时，相对于 130&nbsp;GB 的权重，缓存只是脚注。\n      但 KV 随@@T6@@每一个@@T7@@并发用户增长，所以到批量 32 时，橙色\n      区域已越过蓝色条带——同一个模型此时需要多块\n      GPU 才能承载进行中的对话。现在把同一模型切换到\n      @@T8@@MHA@@T9@@：当 $n_{kv}$ 从 8 跳到 64 时，悬崖会提前 $8\\times$\n      出现。正是这一设计选择，使所有现代模型都采用 GQA。",
+   "src": "<strong>Try this.</strong> Load <em>Llama-3 70B</em>, then drag <em>batch size</em>\n      up from 1. At batch 1 the cache is a footnote next to the 130&nbsp;GB of weights.\n      But KV scales with <em>every</em> concurrent user, so by batch 32 the orange\n      area has climbed past the blue band &mdash; the same model now needs multiple\n      GPUs just to hold conversations in flight. Now switch the same model to\n      <em>MHA</em>: with $n_{kv}$ jumping from 8 to 64, the cliff arrives $8\\times$\n      sooner. That single design choice is why every modern model uses GQA.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "PagedAttention: stop reserving what you don't use": {
+   "zh": "PagedAttention：不要再预留你用不到的内存",
+   "src": "PagedAttention: stop reserving what you don't use",
+   "tags": []
+  },
+  "There is a second, subtler waste. A naive server does not know how long a\n      reply will be, so it @@T0@@reserves@@T1@@ a contiguous buffer for the maximum\n      context of every sequence up front. Most replies are short, so most of that\n      buffer sits empty &mdash; @@T2@@internal fragmentation@@T3@@. vLLM's\n      PagedAttention borrows the operating-system trick of paging: memory is a pool\n      of small fixed @@T4@@blocks@@T5@@, and a sequence grabs blocks only as it grows.\n      Toggle between the two and watch the wasted (hatched) memory collapse.": {
+   "zh": "还有第二重更隐蔽的浪费。朴素的服务器不知道回复会有多长，\n      于是会为每条序列的事先按最大上下文@@T0@@预留@@T1@@一块连续缓冲区。\n      多数回复都很短，因此这块缓冲区大部分都空着——即@@T2@@内部碎片@@T3@@。\n      vLLM 的 PagedAttention 借用了操作系统的分页思路：内存是\n      一池固定大小的@@T4@@块@@T5@@，序列只在增长时才抓取新的块。\n      在两种方式之间切换，观察被浪费（斜线填充）的内存如何坍缩。",
+   "src": "There is a second, subtler waste. A naive server does not know how long a\n      reply will be, so it <em>reserves</em> a contiguous buffer for the maximum\n      context of every sequence up front. Most replies are short, so most of that\n      buffer sits empty &mdash; <strong>internal fragmentation</strong>. vLLM's\n      PagedAttention borrows the operating-system trick of paging: memory is a pool\n      of small fixed <em>blocks</em>, and a sequence grabs blocks only as it grows.\n      Toggle between the two and watch the wasted (hatched) memory collapse.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Allocation strategy": {
+   "zh": "分配策略",
+   "src": "Allocation strategy",
+   "tags": []
+  },
+  "Naive contiguous": {
+   "zh": "朴素连续分配",
+   "src": "Naive contiguous",
+   "tags": []
+  },
+  "PagedAttention": {
+   "zh": "PagedAttention（分页注意力）",
+   "src": "PagedAttention",
+   "tags": []
+  },
+  "Concurrent sequences @@T0@@6@@T1@@": {
+   "zh": "并发序列数 @@T0@@6@@T1@@",
+   "src": "Concurrent sequences <span id=\"seqNVal\">6</span>",
+   "tags": [
+    "<span id=\"seqNVal\">",
+    "</span>"
+   ]
+  },
+  "Block size @@T0@@128 tok@@T1@@": {
+   "zh": "块大小 @@T0@@128 tok@@T1@@",
+   "src": "Block size <span id=\"blkVal\">128 tok</span>",
+   "tags": [
+    "<span id=\"blkVal\">",
+    "</span>"
+   ]
+  },
+  "Each cell is one block. Solid = tokens actually stored; hatched = reserved but empty.": {
+   "zh": "每个单元格为一个块。实心 = 实际存储的词元；斜线填充 = 已预留但为空。",
+   "src": "Each cell is one block. Solid = tokens actually stored; hatched = reserved but empty.",
+   "tags": []
+  },
+  "@@T0@@@@T1@@@@T2@@ stored tokens@@T3@@\n      @@T4@@@@T5@@@@T6@@ reserved &amp; wasted@@T7@@": {
+   "zh": "@@T0@@@@T1@@@@T2@@ 已存储词元@@T3@@\n      @@T4@@@@T5@@@@T6@@ 已预留且浪费@@T7@@",
+   "src": "<span><i style=\"background:#2c6fb7\"></i> stored tokens</span>\n      <span><i style=\"background:repeating-linear-gradient(45deg,#d9d2c4,#d9d2c4 3px,#efe9dd 3px,#efe9dd 6px)\"></i> reserved &amp; wasted</span>",
+   "tags": [
+    "<span>",
+    "<i style=\"background:#2c6fb7\">",
+    "</i>",
+    "</span>",
+    "<span>",
+    "<i style=\"background:repeating-linear-gradient(45deg,#d9d2c4,#d9d2c4 3px,#efe9dd 3px,#efe9dd 6px)\">",
+    "</i>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Memory used@@T1@@\n        @@T2@@&mdash;@@T3@@\n        @@T4@@blocks holding real tokens@@T5@@": {
+   "zh": "@@T0@@已用内存@@T1@@\n        @@T2@@&mdash;@@T3@@\n        @@T4@@承载真实词元的块@@T5@@",
+   "src": "<span class=\"stat-label\">Memory used</span>\n        <span class=\"stat-value\" id=\"pagedUsedVal\">&mdash;</span>\n        <span class=\"stat-sub\">blocks holding real tokens</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"pagedUsedVal\">",
+    "</span>",
+    "<span class=\"stat-sub\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Reserved total@@T1@@\n        @@T2@@&mdash;@@T3@@\n        @@T4@@blocks paid for@@T5@@": {
+   "zh": "@@T0@@预留总量@@T1@@\n        @@T2@@&mdash;@@T3@@\n        @@T4@@为之付出代价的块@@T5@@",
+   "src": "<span class=\"stat-label\">Reserved total</span>\n        <span class=\"stat-value\" id=\"pagedReservedVal\">&mdash;</span>\n        <span class=\"stat-sub\">blocks paid for</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"pagedReservedVal\">",
+    "</span>",
+    "<span class=\"stat-sub\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Utilisation@@T1@@\n        @@T2@@&mdash;@@T3@@\n        @@T4@@used &divide; reserved@@T5@@": {
+   "zh": "@@T0@@利用率@@T1@@\n        @@T2@@&mdash;@@T3@@\n        @@T4@@已用 &divide; 已预留@@T5@@",
+   "src": "<span class=\"stat-label\">Utilisation</span>\n        <span class=\"stat-value\" id=\"pagedUtilVal\">&mdash;</span>\n        <span class=\"stat-sub\" id=\"pagedUtilSub\">used &divide; reserved</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"pagedUtilVal\">",
+    "</span>",
+    "<span class=\"stat-sub\" id=\"pagedUtilSub\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Why it matters.@@T1@@ Naive reservation routinely wastes\n      60&ndash;80% of KV memory. By paging, vLLM keeps utilisation near\n      100%, which means far more sequences fit on the same card &mdash; higher\n      throughput from the exact same hardware. Smaller blocks waste less at the tail\n      but add bookkeeping; 16&ndash;128 tokens per block is the usual sweet spot.": {
+   "zh": "@@T0@@为何重要。@@T1@@ 朴素预留常常浪费\n      60&ndash;80% 的 KV 内存。通过分页，vLLM 把利用率保持在接近\n      100%，这意味着同一块显卡上能容纳远更多的序列——\n      在完全相同的硬件上获得更高吞吐。更小的块在尾部浪费更少，\n      但会增加记账开销；每块 16&ndash;128 个词元通常是最佳折中。",
+   "src": "<strong>Why it matters.</strong> Naive reservation routinely wastes\n      60&ndash;80% of KV memory. By paging, vLLM keeps utilisation near\n      100%, which means far more sequences fit on the same card &mdash; higher\n      throughput from the exact same hardware. Smaller blocks waste less at the tail\n      but add bookkeeping; 16&ndash;128 tokens per block is the usual sweet spot.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "The three escape hatches": {
+   "zh": "三条逃生出口",
+   "src": "The three escape hatches",
+   "tags": []
+  },
+  "Every term in $2 \\cdot L \\cdot n_{kv} \\cdot d_h \\cdot p$ is a lever, and the\n      field has pulled each of them:": {
+   "zh": "$2 \\cdot L \\cdot n_{kv} \\cdot d_h \\cdot p$ 中的每一项都是一个杠杆，\n      而该领域已经把每一个都拉动过：",
+   "src": "Every term in $2 \\cdot L \\cdot n_{kv} \\cdot d_h \\cdot p$ is a lever, and the\n      field has pulled each of them:",
+   "tags": []
+  },
+  "@@T0@@shrink n_kv@@T1@@": {
+   "zh": "@@T0@@缩小 n_kv@@T1@@",
+   "src": "<span class=\"escape-tag\">shrink n_kv</span>",
+   "tags": [
+    "<span class=\"escape-tag\">",
+    "</span>"
+   ]
+  },
+  "Grouped-query attention": {
+   "zh": "分组查询注意力",
+   "src": "Grouped-query attention",
+   "tags": []
+  },
+  "Let several query heads share one key/value head. GQA(8) cuts $n_{kv}$\n        from 64 to 8 &mdash; an $8\\times$ smaller cache with negligible quality loss.\n        MQA takes it to the extreme with a single KV head.": {
+   "zh": "让若干个查询头共享一个 key/value 头。GQA(8) 把 $n_{kv}$\n        从 64 降到 8——缓存缩小 $8\\times$，而质量损失可忽略不计。\n        MQA 则以单个 KV 头把它推向极致。",
+   "src": "Let several query heads share one key/value head. GQA(8) cuts $n_{kv}$\n        from 64 to 8 &mdash; an $8\\times$ smaller cache with negligible quality loss.\n        MQA takes it to the extreme with a single KV head.",
+   "tags": []
+  },
+  "@@T0@@shrink p@@T1@@": {
+   "zh": "@@T0@@缩小 p@@T1@@",
+   "src": "<span class=\"escape-tag\">shrink p</span>",
+   "tags": [
+    "<span class=\"escape-tag\">",
+    "</span>"
+   ]
+  },
+  "INT8 / FP8 KV-cache": {
+   "zh": "INT8 / FP8 KV 缓存",
+   "src": "INT8 / FP8 KV-cache",
+   "tags": []
+  },
+  "Store keys and values in 8 bits instead of 16. Halves the bytes, often\n        for free; occasionally a small accuracy nudge. Toggle it in the Lab and the\n        cliff moves twice as far right.": {
+   "zh": "把 key 与 value 用 8 位而非 16 位存储。字节数减半，\n        通常无需付出代价；偶尔会有轻微精度波动。在实验台中切换它，\n        悬崖会向右移动两倍远。",
+   "src": "Store keys and values in 8 bits instead of 16. Halves the bytes, often\n        for free; occasionally a small accuracy nudge. Toggle it in the Lab and the\n        cliff moves twice as far right.",
+   "tags": []
+  },
+  "@@T0@@stop wasting@@T1@@": {
+   "zh": "@@T0@@停止浪费@@T1@@",
+   "src": "<span class=\"escape-tag\">stop wasting</span>",
+   "tags": [
+    "<span class=\"escape-tag\">",
+    "</span>"
+   ]
+  },
+  "Allocate KV in fixed blocks instead of one giant contiguous buffer per\n        sequence. No fragmentation, no over-reservation &mdash; the trick at the\n        heart of vLLM's throughput.": {
+   "zh": "以固定大小的块分配 KV，而非为每条序列分配一整块连续缓冲区。\n        没有碎片，没有超额预留——这正是 vLLM 高吞吐的核心技巧。",
+   "src": "Allocate KV in fixed blocks instead of one giant contiguous buffer per\n        sequence. No fragmentation, no over-reservation &mdash; the trick at the\n        heart of vLLM's throughput.",
+   "tags": []
+  },
+  "Where each model lands": {
+   "zh": "各模型的情况",
+   "src": "Where each model lands",
+   "tags": []
+  },
+  "Model": {
+   "zh": "模型",
+   "src": "Model",
+   "tags": []
+  },
+  "Attention": {
+   "zh": "注意力类型",
+   "src": "Attention",
+   "tags": []
+  },
+  "KV heads": {
+   "zh": "KV 头数",
+   "src": "KV heads",
+   "tags": []
+  },
+  "KV / token (FP16)": {
+   "zh": "每词元 KV（FP16）",
+   "src": "KV / token (FP16)",
+   "tags": []
+  },
+  "Llama-2 70B": {
+   "zh": "Llama-2 70B（700 亿参数）",
+   "src": "Llama-2 70B",
+   "tags": []
+  },
+  "MHA": {
+   "zh": "MHA（多头注意力）",
+   "src": "MHA",
+   "tags": []
+  },
+  "GQA": {
+   "zh": "GQA（分组查询注意力）",
+   "src": "GQA",
+   "tags": []
+  },
+  "Multi-query (MQA)": {
+   "zh": "多查询（MQA）",
+   "src": "Multi-query (MQA)",
+   "tags": []
+  },
+  "MQA": {
+   "zh": "MQA（多查询注意力）",
+   "src": "MQA",
+   "tags": []
+  },
+  "@@T0@@Takeaway.@@T1@@ The KV-cache is the hidden tax on long context and\n      high concurrency. Its size is set entirely by the attention shape &mdash;\n      $2 \\cdot L \\cdot n_{kv} \\cdot d_h \\cdot p$ &mdash; and it grows with both the\n      length of each conversation and the number of them at once. Serving LLMs at\n      scale is, to a first approximation, the art of keeping this number small.": {
+   "zh": "@@T0@@要点。@@T1@@ KV 缓存是长上下文与高并发所隐含的代价。\n      其规模完全由注意力形状决定 &mdash;\n      $2 \\cdot L \\cdot n_{kv} \\cdot d_h \\cdot p$ &mdash; 且它既随每段对话的长度增长，\n      也随同时进行的对话数量增长。大规模部署 LLM，粗略地说，\n      就是把这一个数字压小的艺术。",
+   "src": "<strong>Takeaway.</strong> The KV-cache is the hidden tax on long context and\n      high concurrency. Its size is set entirely by the attention shape &mdash;\n      $2 \\cdot L \\cdot n_{kv} \\cdot d_h \\cdot p$ &mdash; and it grows with both the\n      length of each conversation and the number of them at once. Serving LLMs at\n      scale is, to a first approximation, the art of keeping this number small.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; LLM inference systems": {
+   "zh": "ES 667 深度学习讲解系列之一 &middot; LLM 推理系统",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; LLM inference systems",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "把 KV 缓存讲明白",
+  "tagline": "LLM 推理为何受内存限制——以每个词元的兆字节数来衡量。",
+  "summary": "为什么一个 70B 的 LLM 即使批量为 1 也需要 80GB 的 GPU？不是权重，而是 KV 缓存。拖动模型规模、上下文长度、批量大小与头共享方式（GQA），观察缓存规模如何占据主导。再切换 PagedAttention，看 vLLM 如何夺回容量。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "参数量、层数、上下文、批量的滑块——实时显示 KV 缓存的总 GB 数。",
+   "在 MHA、GQA(8) 与 MQA 之间切换——观察各自的内存悬崖。",
+   "PagedAttention 演示：连续分配与分页分配对比，碎片回收。"
+  ],
+  "tags": [
+   "LLM",
+   "推理",
+   "KV-Cache",
+   "GQA",
+   "vLLM",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

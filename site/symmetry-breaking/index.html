@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A deterministic XOR experiment showing why identical hidden neurons remain identical under gradient descent.">
+  <title>对称性破缺实验室</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23232b32'/%3E%3Cpath d='M7 8l18 16M25 8L7 24' stroke='%23fff' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="main.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#workspace">跳至实验输出</a>
+
+  <header class="topbar">
+    <a class="back-link" href="../" aria-label="返回全部交互式文章">全部交互式文章</a>
+    <div class="course-mark">
+      <span>深度学习 · 第 6 讲</span>
+      <strong>对称性破缺实验室</strong>
+    </div>
+    <nav class="top-links" aria-label="相关课程材料">
+      <a href="../vanishing-gradients/">梯度探索器</a>
+      <a href="https://nipunbatra.github.io/dl-teaching/slides-pdf/L6.pdf">讲义幻灯片</a>
+    </nav>
+  </header>
+
+  <main class="app">
+    <section class="intro" aria-labelledby="pageTitle">
+      <div>
+        <p class="eyebrow">纸面上的宽度 ≠ 实际使用的宽度</p>
+        <h1 id="pageTitle">四个神经元可以表现得像一个。</h1>
+        <p class="lead">在均衡 XOR 上训练同一个 2 → 4 ReLU → 1 网络。只改变其四个隐藏神经元的起始方式，然后观察它们的决策折线与测得的特征秩。</p>
+      </div>
+      <aside class="equation-card" aria-label="对称性论证">
+        <p class="card-label">不变量</p>
+        <p class="equation">h<sub>j</sub> = ReLU(w<sub>j</sub><sup>T</sup>x + b<sub>j</sub>)</p>
+        <p class="equation">z = c + Σ<sub>j=1</sub><sup>4</sup> v<sub>j</sub>h<sub>j</sub></p>
+        <p>若两个神经元具有相同的 <i>w</i>、<i>b</i> 与 <i>v</i>，则它们收到相同的全批量梯度。梯度下降会在下一步中使它们保持相同。</p>
+      </aside>
+    </section>
+
+    <section class="lab-shell">
+      <aside class="controls" aria-label="实验控件">
+        <section class="control-group">
+          <div class="section-heading"><span>1</span><h2>选择初始化方式</h2></div>
+          <div class="mode-list" role="group" aria-label="隐藏神经元初始化">
+            <button class="mode-button is-active" type="button" data-mode="identical" aria-pressed="true">
+              <strong>完全相同</strong><small>四份精确副本</small>
+            </button>
+            <button class="mode-button" type="button" data-mode="perturbed" aria-pressed="false">
+              <strong>轻微扰动</strong><small>副本 + 小偏移</small>
+            </button>
+            <button class="mode-button" type="button" data-mode="independent" aria-pressed="false">
+              <strong>相互独立</strong><small>确定性随机种子 12</small>
+            </button>
+          </div>
+          <p class="helper" id="modeHelp">全部四个参数槽包含相同的数值。它们是各自独立的数组，而非共享权重。</p>
+        </section>
+
+        <section class="control-group">
+          <div class="section-heading"><span>2</span><h2>应用梯度下降</h2></div>
+          <div class="action-row">
+            <button class="primary-button" id="runBtn" type="button" aria-pressed="false">运行</button>
+            <button id="stepBtn" type="button">单步</button>
+            <button id="resetBtn" type="button">重置</button>
+          </div>
+          <dl class="run-facts">
+            <div><dt>步数</dt><dd id="stepValue">0</dd></div>
+            <div><dt>学习率</dt><dd>0.20</dd></div>
+            <div><dt>更新方式</dt><dd>全批量</dd></div>
+          </dl>
+          <p class="status" id="statusText" role="status" aria-live="polite">已载入完全相同的初始化。预测一步之后什么会发生变化。</p>
+        </section>
+
+        <section class="control-group takeaway-card">
+          <p class="card-label">待检验的预测</p>
+          <p>精确副本仍是精确副本。该模型具有 <strong>名义宽度 4</strong>，但实际只有 <strong>有效宽度 1</strong>。</p>
+        </section>
+      </aside>
+
+      <section class="workspace" id="workspace" aria-label="实验输出">
+        <header class="workspace-head">
+          <div>
+            <p class="eyebrow" id="workspaceEyebrow">完全相同的初始化</p>
+            <h2 id="workspaceTitle">四条重叠的折线能解 XOR 吗？</h2>
+          </div>
+          <span class="dataset-badge">100 个固定点 · 每个象限 25 个</span>
+        </header>
+
+        <div class="metric-strip" aria-live="polite">
+          <div class="metric"><span>二元交叉熵</span><strong id="lossValue">—</strong><small>100 个点的均值</small></div>
+          <div class="metric metric-key"><span>准确率</span><strong id="accuracyValue">—</strong><small id="accuracyNote">均衡 XOR</small></div>
+          <div class="metric"><span>神经元最大间距</span><strong id="spreadValue">—</strong><small>max ‖(w,b)<sub>i</sub> − (w,b)<sub>j</sub>‖</small></div>
+          <div class="metric"><span>隐藏特征秩</span><strong id="rankValue">—</strong><small>100 × 4 激活矩阵的秩</small></div>
+        </div>
+
+        <div class="plot-grid">
+          <section class="plot-panel" aria-labelledby="surfaceTitle">
+            <div class="panel-head">
+              <div><p class="eyebrow">模型输出</p><h3 id="surfaceTitle">决策曲面</h3></div>
+              <span class="compact-value" id="surfaceSummary">—</span>
+            </div>
+            <canvas id="surfaceCanvas" role="img" tabindex="0" aria-describedby="surfaceHelp" aria-label="当前的 XOR 决策曲面与固定训练点">你的浏览器不支持决策曲面画布。</canvas>
+            <div class="legend" aria-label="决策曲面图例">
+              <span><i class="swatch class-zero"></i>类别 0</span>
+              <span><i class="swatch class-one"></i>类别 1</span>
+              <span><i class="point-key"></i>训练点</span>
+            </div>
+            <p class="plot-help" id="surfaceHelp">背景颜色表示模型概率。带轮廓的点是均衡训练集。</p>
+          </section>
+
+          <section class="plot-panel" aria-labelledby="hingeTitle">
+            <div class="panel-head">
+              <div><p class="eyebrow">隐藏层</p><h3 id="hingeTitle">四条 ReLU 折线与激活方向</h3></div>
+              <span class="compact-value" id="hingeSummary">—</span>
+            </div>
+            <canvas id="hingeCanvas" role="img" tabindex="0" aria-describedby="hingeHelp" aria-label="当前隐藏层 ReLU 折线与激活方向">你的浏览器不支持隐藏折线画布。</canvas>
+            <div class="neuron-legend" id="neuronLegend" aria-label="隐藏神经元参数"></div>
+            <p class="plot-help" id="hingeHelp">每条直线为 w<sub>j</sub><sup>T</sup>x + b<sub>j</sub> = 0。其箭头指向该 ReLU 处于激活状态的半平面。</p>
+          </section>
+        </div>
+
+        <section class="explanation" aria-labelledby="whyTitle">
+          <div>
+            <p class="eyebrow">这些指标的含义</p>
+            <h2 id="whyTitle">问题在于表征能力的丧失。</h2>
+          </div>
+          <div class="explanation-grid">
+            <article>
+              <span class="explanation-index">A</span>
+              <h3>完全相同</h3>
+              <p>全部四个激活都是同一列。秩始终为 1，间距始终为 0，因此输出仅是一个 ReLU 特征的缩放副本。在这个 XOR 集合上，它通常稳定在 75% 附近：有一个象限始终错误。</p>
+            </article>
+            <article>
+              <span class="explanation-index">B</span>
+              <h3>轻微扰动</h3>
+              <p>相等约束消失了。彩色的折线得以分开，特征秩升到 1 以上。打破对称性是必要的；但它并不保证这个特定的起点一定能找到最优的 XOR 解。</p>
+            </article>
+            <article>
+              <span class="explanation-index">C</span>
+              <h3>相互独立</h3>
+              <p>各不相同的起始方向使梯度下降能够组合多个半平面。在此处的固定种子下，四个交替的 XOR 区域都被学到，测得的准确率达到 100%。</p>
+            </article>
+          </div>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>2 → 4 ReLU → 1 logit · 确定性全批量梯度下降 · 计算全部留在本页内</span>
+    <a href="../vanishing-gradients/">继续了解信号传播 →</a>
+  </footer>
+
+    <!-- katex-auto-render -->
+    <script defer src="../vendor/katex/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var go = function () {
+          if (!window.renderMathInElement) { setTimeout(go, 50); return; }
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false,
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+          });
+        };
+        go();
+      });
+    </script>
+  </body>
+</html>

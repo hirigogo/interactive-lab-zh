@@ -1,0 +1,571 @@
+{
+ "slug": "unet",
+ "units": {
+  "U-Net, Section by Section": {
+   "zh": "逐节剖析 U-Net",
+   "src": "U-Net, Section by Section",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Watch a synthetic image flow down an encoder, lose 16× of its\n          spatial resolution at the bottleneck, and climb back up. Toggle\n          skip connections at any scale and watch the predicted mask\n          turn from a blurry blob to crisp segmentation. Then meet the\n          same U inside diffusion models.": {
+   "zh": "观察一张合成图像沿编码器向下流动，在瓶颈处损失 16 倍的空间分辨率，再向上回升。在任意尺度上切换跳跃连接，观察预测出的掩码如何从模糊的一团变为清晰的分割。随后你将见到嵌入扩散模型中的同一个 U 形结构。",
+   "src": "Watch a synthetic image flow down an encoder, lose 16× of its\n          spatial resolution at the bottleneck, and climb back up. Toggle\n          skip connections at any scale and watch the predicted mask\n          turn from a blurry blob to crisp segmentation. Then meet the\n          same U inside diffusion models.",
+   "tags": []
+  },
+  "@@T0@@~18 min@@T1@@\n          @@T2@@Deep Learning &middot; Segmentation &middot; Vision@@T3@@": {
+   "zh": "@@T0@@约 18 分钟@@T1@@\n          @@T2@@深度学习 &middot; 分割 &middot; 视觉@@T3@@",
+   "src": "<span>~18 min</span>\n          <span>Deep Learning &middot; Segmentation &middot; Vision</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "The shape problem": {
+   "zh": "形状问题",
+   "src": "The shape problem",
+   "tags": []
+  },
+  "Many vision tasks need a per-pixel output, not a single class\n          per image: medical image segmentation, satellite land-cover\n          parsing, depth estimation, and most recently denoising in\n          diffusion models. The output has the same spatial size as the\n          input.": {
+   "zh": "许多视觉任务需要逐像素的输出，而非每张图像一个类别标签：医学图像分割、卫星土地覆盖解析、深度估计，以及近来扩散模型中的去噪。其输出与输入具有相同的空间尺寸。",
+   "src": "Many vision tasks need a per-pixel output, not a single class\n          per image: medical image segmentation, satellite land-cover\n          parsing, depth estimation, and most recently denoising in\n          diffusion models. The output has the same spatial size as the\n          input.",
+   "tags": []
+  },
+  "A pure CNN classifier squashes spatial resolution down to a\n          tiny feature map (good for \"is this a cat?\"). To produce a\n          full-resolution mask you have to @@T0@@get the resolution\n          back@@T1@@ &mdash; and the only honest way to do that is to\n          have remembered it on the way down.": {
+   "zh": "纯粹的 CNN 分类器会将空间分辨率压缩为一张极小的特征图（适用于回答「这是猫吗？」）。若要生成全分辨率的掩码，你必须@@T0@@把分辨率找回来@@T1@@ &mdash; 而唯一诚实的做法，是在下行的过程中就把它记住。",
+   "src": "A pure CNN classifier squashes spatial resolution down to a\n          tiny feature map (good for \"is this a cat?\"). To produce a\n          full-resolution mask you have to <em>get the resolution\n          back</em> &mdash; and the only honest way to do that is to\n          have remembered it on the way down.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@U-Net's idea, in one line.@@T1@@\n          Encoder $\\to$ bottleneck $\\to$ decoder, with a\n          @@T2@@skip connection@@T3@@ at every scale that hands the\n          encoder's high-resolution feature map directly to the matching\n          decoder block. The output mask gets coarse semantic context\n          from deep in the U @@T4@@and@@T5@@ sharp pixel-level structure\n          from the early skips.": {
+   "zh": "@@T0@@U-Net 的核心思想，一句话概括。@@T1@@\n          编码器 $\\to$ 瓶颈 $\\to$ 解码器，并在每个尺度上设置一条@@T2@@跳跃连接@@T3@@，将编码器的高分辨率特征图直接交给对应的解码器模块。输出掩码既从 U 形结构的深处获得粗粒度的语义上下文，@@T4@@又@@T5@@从浅层的跳跃连接获得锐利的像素级结构。",
+   "src": "<strong>U-Net's idea, in one line.</strong>\n          Encoder $\\to$ bottleneck $\\to$ decoder, with a\n          <em>skip connection</em> at every scale that hands the\n          encoder's high-resolution feature map directly to the matching\n          decoder block. The output mask gets coarse semantic context\n          from deep in the U <em>and</em> sharp pixel-level structure\n          from the early skips.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "The architecture, drawn to scale": {
+   "zh": "按比例绘制的架构",
+   "src": "The architecture, drawn to scale",
+   "tags": []
+  },
+  "A 4-level U-Net: 4 encoder blocks (each halves spatial size\n          and doubles channels), one bottleneck, 4 decoder blocks (each\n          doubles spatial size, halves channels, and concatenates the\n          matching encoder feature). For a 64×64 input the bottleneck\n          is 4×4. That's 16× spatial compression in two dimensions, or\n          256× total &mdash; enormous information loss without skips.": {
+   "zh": "一个 4 层 U-Net：4 个编码器模块（各自将空间尺寸减半并将通道数加倍）、一个瓶颈、4 个解码器模块（各自将空间尺寸加倍、通道数减半，并拼接对应的编码器特征）。对于 64×64 的输入，瓶颈处为 4×4。这在两个维度上是 16 倍的空间压缩，合计达 256 倍 &mdash; 若无跳跃连接，将造成巨大的信息损失。",
+   "src": "A 4-level U-Net: 4 encoder blocks (each halves spatial size\n          and doubles channels), one bottleneck, 4 decoder blocks (each\n          doubles spatial size, halves channels, and concatenates the\n          matching encoder feature). For a 64×64 input the bottleneck\n          is 4×4. That's 16× spatial compression in two dimensions, or\n          256× total &mdash; enormous information loss without skips.",
+   "tags": []
+  },
+  "The U. Boxes are feature maps; numbers above are H × W; numbers below are channel count.": {
+   "zh": "U 形结构。方块代表特征图；上方数字为 H × W；下方数字为通道数。",
+   "src": "The U. Boxes are feature maps; numbers above are H × W; numbers below are channel count.",
+   "tags": []
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Forward pass on a real synthetic image": {
+   "zh": "在真实合成图像上的前向传播",
+   "src": "Forward pass on a real synthetic image",
+   "tags": []
+  },
+  "We synthesise an input: two coloured ellipses on noise. The\n          target mask labels which pixels belong to ellipse 1 vs\n          ellipse 2 vs background. A small U-Net (random weights;\n          we hand-craft the conv kernels for visibility) processes the\n          image. Inspect the feature map at each scale:": {
+   "zh": "我们合成一个输入：噪声背景上的两个彩色椭圆。目标掩码标注了哪些像素属于椭圆 1、椭圆 2 或背景。一个小型 U-Net（随机权重；为使效果可见，卷积核由手工设定）处理该图像。请逐尺度检视特征图：",
+   "src": "We synthesise an input: two coloured ellipses on noise. The\n          target mask labels which pixels belong to ellipse 1 vs\n          ellipse 2 vs background. A small U-Net (random weights;\n          we hand-craft the conv kernels for visibility) processes the\n          image. Inspect the feature map at each scale:",
+   "tags": []
+  },
+  "New random image": {
+   "zh": "新的随机图像",
+   "src": "New random image",
+   "tags": []
+  },
+  "@@T0@@resolution at bottleneck: @@T1@@—@@T2@@@@T3@@": {
+   "zh": "@@T0@@瓶颈处的分辨率：@@T1@@—@@T2@@@@T3@@",
+   "src": "<span class=\"train-stat\">resolution at bottleneck: <strong id=\"bottleneck-res\">—</strong></span>",
+   "tags": [
+    "<span class=\"train-stat\">",
+    "<strong id=\"bottleneck-res\">",
+    "</strong>",
+    "</span>"
+   ]
+  },
+  "input 64×64": {
+   "zh": "输入 64×64",
+   "src": "input 64×64",
+   "tags": []
+  },
+  "enc 1 · 32×32": {
+   "zh": "编码 1 · 32×32",
+   "src": "enc 1 · 32×32",
+   "tags": []
+  },
+  "enc 2 · 16×16": {
+   "zh": "编码 2 · 16×16",
+   "src": "enc 2 · 16×16",
+   "tags": []
+  },
+  "enc 3 · 8×8": {
+   "zh": "编码 3 · 8×8",
+   "src": "enc 3 · 8×8",
+   "tags": []
+  },
+  "bottleneck · 4×4": {
+   "zh": "瓶颈 · 4×4",
+   "src": "bottleneck · 4×4",
+   "tags": []
+  },
+  "dec 3 · 8×8 (← bot)": {
+   "zh": "解码 3 · 8×8（← 瓶颈）",
+   "src": "dec 3 · 8×8 (← bot)",
+   "tags": []
+  },
+  "dec 2 · 16×16": {
+   "zh": "解码 2 · 16×16",
+   "src": "dec 2 · 16×16",
+   "tags": []
+  },
+  "dec 1 · 32×32": {
+   "zh": "解码 1 · 32×32",
+   "src": "dec 1 · 32×32",
+   "tags": []
+  },
+  "output 64×64": {
+   "zh": "输出 64×64",
+   "src": "output 64×64",
+   "tags": []
+  },
+  "target 64×64": {
+   "zh": "目标 64×64",
+   "src": "target 64×64",
+   "tags": []
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Toggle the skips, watch detail die": {
+   "zh": "切换跳跃连接，观察细节消失",
+   "src": "Toggle the skips, watch detail die",
+   "tags": []
+  },
+  "Each skip connection at level $\\ell$ concatenates the\n          encoder's level-$\\ell$ feature map onto the decoder's input\n          at the same level. Turn one off and the corresponding scale\n          of detail goes missing. Turn them all off and you've built a\n          plain encoder-decoder, which is exactly the architecture\n          U-Net was invented to beat.": {
+   "zh": "第 $\\ell$ 层的每条跳跃连接将编码器第 $\\ell$ 层的特征图拼接到同一层解码器的输入上。关闭其中一条，相应尺度的细节便会缺失。若全部关闭，你就构建了一个普通的编码器-解码器，而这正是 U-Net 当初被发明出来要超越的架构。",
+   "src": "Each skip connection at level $\\ell$ concatenates the\n          encoder's level-$\\ell$ feature map onto the decoder's input\n          at the same level. Turn one off and the corresponding scale\n          of detail goes missing. Turn them all off and you've built a\n          plain encoder-decoder, which is exactly the architecture\n          U-Net was invented to beat.",
+   "tags": []
+  },
+  "skip @ 32×32 (level 1)": {
+   "zh": "跳跃 @ 32×32（第 1 层）",
+   "src": "skip @ 32×32 (level 1)",
+   "tags": []
+  },
+  "skip @ 16×16 (level 2)": {
+   "zh": "跳跃 @ 16×16（第 2 层）",
+   "src": "skip @ 16×16 (level 2)",
+   "tags": []
+  },
+  "skip @ 8×8 (level 3)": {
+   "zh": "跳跃 @ 8×8（第 3 层）",
+   "src": "skip @ 8×8 (level 3)",
+   "tags": []
+  },
+  "predicted mask": {
+   "zh": "预测掩码",
+   "src": "predicted mask",
+   "tags": []
+  },
+  "target mask": {
+   "zh": "目标掩码",
+   "src": "target mask",
+   "tags": []
+  },
+  "diff (RMSE)": {
+   "zh": "差异（RMSE）",
+   "src": "diff (RMSE)",
+   "tags": []
+  },
+  "@@T0@@What you should see.@@T1@@\n          With all three skips on, the predicted mask hugs the ellipse\n          boundaries. Disable level 1 (highest resolution) and the\n          outline blurs. Disable level 3 (deepest skip) and the mask\n          can still localise but loses semantic shape. All skips off\n          → the mask collapses to a low-resolution rectangle.": {
+   "zh": "@@T0@@你应当看到的现象。@@T1@@\n          三条跳跃连接全部开启时，预测掩码紧贴椭圆边界。关闭第 1 层（最高分辨率）后轮廓变模糊。关闭第 3 层（最深的跳跃连接）后，掩码仍能定位，但会丢失语义形状。全部关闭\n          → 掩码退化为一个低分辨率的矩形。",
+   "src": "<strong>What you should see.</strong>\n          With all three skips on, the predicted mask hugs the ellipse\n          boundaries. Disable level 1 (highest resolution) and the\n          outline blurs. Disable level 3 (deepest skip) and the mask\n          can still localise but loses semantic shape. All skips off\n          → the mask collapses to a low-resolution rectangle.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Why concatenate, not add?": {
+   "zh": "为何用拼接而非相加？",
+   "src": "Why concatenate, not add?",
+   "tags": []
+  },
+  "ResNet adds: $y = F(x) + x$. U-Net @@T0@@concatenates@@T1@@:\n          $y = [F(x); \\text{skip}]$. The reason is information\n          preservation. The encoder feature carries spatial detail\n          the bottleneck has discarded. Adding a vector with very\n          different statistics into the bottleneck output would\n          interfere with the decoder's learning. Concatenation lets\n          the decoder freely choose which channels to read.": {
+   "zh": "ResNet 采用相加：$y = F(x) + x$。U-Net 则@@T0@@拼接@@T1@@：$y = [F(x); \\text{skip}]$。原因是保存信息。编码器特征携带着瓶颈处已丢弃的空间细节。把一个统计特性差异极大的向量加到瓶颈输出上，会干扰解码器的学习。而拼接则让解码器自由选择读取哪些通道。",
+   "src": "ResNet adds: $y = F(x) + x$. U-Net <em>concatenates</em>:\n          $y = [F(x); \\text{skip}]$. The reason is information\n          preservation. The encoder feature carries spatial detail\n          the bottleneck has discarded. Adding a vector with very\n          different statistics into the bottleneck output would\n          interfere with the decoder's learning. Concatenation lets\n          the decoder freely choose which channels to read.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "This costs more channels in the decoder convolutions, but\n          for dense prediction tasks it's worth it. Modern U-Nets\n          (and diffusion U-Nets, see Step 5) sometimes mix &mdash;\n          add for residuals within a block, concatenate for skips\n          across the U.": {
+   "zh": "这会增加解码器卷积中的通道数，但对于稠密预测任务而言是值得的。现代 U-Net（以及扩散 U-Net，见第 5 步）有时会混合使用两种方式 &mdash; 模块内部用相加实现残差，跨 U 形结构用拼接实现跳跃。",
+   "src": "This costs more channels in the decoder convolutions, but\n          for dense prediction tasks it's worth it. Modern U-Nets\n          (and diffusion U-Nets, see Step 5) sometimes mix &mdash;\n          add for residuals within a block, concatenate for skips\n          across the U.",
+   "tags": []
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "The U inside diffusion": {
+   "zh": "扩散模型中的 U 形结构",
+   "src": "The U inside diffusion",
+   "tags": []
+  },
+  "Stable Diffusion, Imagen, every modern image-diffusion\n          backbone is a U-Net. The denoiser takes a noisy image and\n          predicts the noise it has to remove. That's a per-pixel\n          regression problem &mdash; same shape, same downsampling\n          and upsampling story, plus three additions:": {
+   "zh": "Stable Diffusion、Imagen，每一个现代图像扩散骨干网络都是 U-Net。去噪器接收一张含噪图像，并预测需要去除的噪声。这是一个逐像素的回归问题 &mdash; 形状相同、下采样与上采样的思路也相同，只是额外增加了三点：",
+   "src": "Stable Diffusion, Imagen, every modern image-diffusion\n          backbone is a U-Net. The denoiser takes a noisy image and\n          predicts the noise it has to remove. That's a per-pixel\n          regression problem &mdash; same shape, same downsampling\n          and upsampling story, plus three additions:",
+   "tags": []
+  },
+  "@@T0@@Time-step conditioning.@@T1@@ The current noise\n            level $t$ is fed into every block via a sinusoidal\n            embedding (see the\n            @@T2@@\n            positional encoding section in the attention article@@T3@@\n            for the recipe).": {
+   "zh": "@@T0@@时间步条件化。@@T1@@ 当前的噪声水平 $t$ 通过正弦嵌入注入每个模块（具体做法参见@@T2@@注意力机制一文中的位置编码部分@@T3@@）。",
+   "src": "<strong>Time-step conditioning.</strong> The current noise\n            level $t$ is fed into every block via a sinusoidal\n            embedding (see the\n            <a href=\"../attention/index.html#step-positional\">\n            positional encoding section in the attention article</a>\n            for the recipe).",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<a href=\"../attention/index.html#step-positional\">",
+    "</a>"
+   ]
+  },
+  "@@T0@@Cross-attention to text.@@T1@@ Inside each\n            decoder block the U-Net does cross-attention into a\n            CLIP-encoded prompt, so generation is text-conditional.": {
+   "zh": "@@T0@@对文本的交叉注意力。@@T1@@ 在每个解码器模块内部，U-Net 对经 CLIP 编码的提示进行交叉注意力，从而使生成过程以文本为条件。",
+   "src": "<strong>Cross-attention to text.</strong> Inside each\n            decoder block the U-Net does cross-attention into a\n            CLIP-encoded prompt, so generation is text-conditional.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Self-attention at the bottleneck.@@T1@@ After\n            spatial resolution is small (8×8 ish), self-attention\n            connects far-apart features &mdash; locality bias\n            disappears.": {
+   "zh": "@@T0@@瓶颈处的自注意力。@@T1@@ 当空间分辨率变得很小（约 8×8）之后，自注意力将相距遥远的特征联系起来 &mdash; 局部性偏置随之消失。",
+   "src": "<strong>Self-attention at the bottleneck.</strong> After\n            spatial resolution is small (8×8 ish), self-attention\n            connects far-apart features &mdash; locality bias\n            disappears.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The skips do the same job they always did: they preserve\n          high-frequency detail that the encoder has thrown away.\n          That's why diffusion outputs have crisp edges instead of\n          looking like JPEG-compressed dreams.": {
+   "zh": "跳跃连接一如既往地发挥其作用：保存编码器所丢弃的高频细节。这正是扩散模型输出具有锐利边缘、而不像被 JPEG 压缩过的梦境的缘故。",
+   "src": "The skips do the same job they always did: they preserve\n          high-frequency detail that the encoder has thrown away.\n          That's why diffusion outputs have crisp edges instead of\n          looking like JPEG-compressed dreams.",
+   "tags": []
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "The variants worth knowing": {
+   "zh": "值得了解的变体",
+   "src": "The variants worth knowing",
+   "tags": []
+  },
+  "@@T0@@U-Net (original).@@T1@@ Ronneberger et al.,\n            2015. Built for biomedical segmentation; trained on a few\n            hundred labelled cells. Still the baseline 10 years later.": {
+   "zh": "@@T0@@U-Net（原始版）。@@T1@@ Ronneberger 等，\n            2015。为生物医学分割而设计；在数百个标注细胞上训练。十年之后仍是基线方法。",
+   "src": "<strong>U-Net (original).</strong> Ronneberger et al.,\n            2015. Built for biomedical segmentation; trained on a few\n            hundred labelled cells. Still the baseline 10 years later.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@nnU-Net.@@T1@@ Self-configuring U-Net;\n            specifies preprocessing, architecture, and training\n            schedule from the dataset. Auto-tunes for your modality.\n            The thing to use first on any segmentation task.": {
+   "zh": "@@T0@@nnU-Net。@@T1@@ 自配置的 U-Net；\n            根据数据集自动确定预处理、架构与训练计划。会针对你的模态自动调优。在任何分割任务上都应首先尝试。",
+   "src": "<strong>nnU-Net.</strong> Self-configuring U-Net;\n            specifies preprocessing, architecture, and training\n            schedule from the dataset. Auto-tunes for your modality.\n            The thing to use first on any segmentation task.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@3-D U-Net.@@T1@@ Same architecture with 3-D\n            convolutions; volumetric medical (CT, MRI), satellite\n            time-cubes, point-cloud voxelisations.": {
+   "zh": "@@T0@@3-D U-Net。@@T1@@ 采用三维卷积的相同架构；\n            适用于体数据的医学影像（CT、MRI）、卫星时间立方体、点云体素化。",
+   "src": "<strong>3-D U-Net.</strong> Same architecture with 3-D\n            convolutions; volumetric medical (CT, MRI), satellite\n            time-cubes, point-cloud voxelisations.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Attention U-Net.@@T1@@ Gates each skip\n            connection by a learned attention mask. Helps when the\n            image has many small targets.": {
+   "zh": "@@T0@@Attention U-Net。@@T1@@ 通过一个学习得到的注意力掩码对每条跳跃连接进行门控。当图像中存在大量小目标时尤为有用。",
+   "src": "<strong>Attention U-Net.</strong> Gates each skip\n            connection by a learned attention mask. Helps when the\n            image has many small targets.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@TransUNet / Swin-UNet.@@T1@@ Swap the encoder\n            for a Vision Transformer; keeps the U for resolution\n            recovery. The standard recipe for medical image\n            segmentation in 2024+.": {
+   "zh": "@@T0@@TransUNet / Swin-UNet。@@T1@@ 将编码器替换为视觉 Transformer；\n            保留 U 形结构以恢复分辨率。2024 年以来医学图像分割的标准方案。",
+   "src": "<strong>TransUNet / Swin-UNet.</strong> Swap the encoder\n            for a Vision Transformer; keeps the U for resolution\n            recovery. The standard recipe for medical image\n            segmentation in 2024+.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@U-Net++ (NestedU-Net).@@T1@@ Extra dense\n            skips at every intermediate scale. Slightly stronger,\n            slower.": {
+   "zh": "@@T0@@U-Net++（NestedU-Net）。@@T1@@ 在每个中间尺度上增设密集跳跃连接。效果略强，速度略慢。",
+   "src": "<strong>U-Net++ (NestedU-Net).</strong> Extra dense\n            skips at every intermediate scale. Slightly stronger,\n            slower.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Diffusion U-Net (DDPM, Stable Diffusion).@@T1@@\n            U-Net + time-step embedding + cross-attention to text.\n            Same skips as in 2015.": {
+   "zh": "@@T0@@扩散 U-Net（DDPM、Stable Diffusion）。@@T1@@\n            U-Net + 时间步嵌入 + 对文本的交叉注意力。跳跃连接与 2015 年如出一辙。",
+   "src": "<strong>Diffusion U-Net (DDPM, Stable Diffusion).</strong>\n            U-Net + time-step embedding + cross-attention to text.\n            Same skips as in 2015.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          U-Net is the second piece of pre-2018 deep learning that\n          refused to be obsoleted &mdash; ResNet's residual is the\n          first. Whenever you need a per-pixel output and you don't\n          have unlimited training data, the U is still the best\n          default. The reason is the picture above: the encoder\n          discards detail and the decoder can't invent it back, so\n          you have to remember it via skips.": {
+   "zh": "@@T0@@最终结论。@@T1@@\n          U-Net 是 2018 年之前的深度学习成果中第二个拒绝被淘汰的设计 &mdash; 第一个是 ResNet 的残差。每当你需要逐像素输出而又没有无限的训练数据时，U 形结构仍是最佳默认选择。原因正如上图所示：编码器丢弃了细节，解码器无法凭空将其还原，因此你必须通过跳跃连接把它记住。",
+   "src": "<strong>Final takeaway.</strong>\n          U-Net is the second piece of pre-2018 deep learning that\n          refused to be obsoleted &mdash; ResNet's residual is the\n          first. Whenever you need a per-pixel output and you don't\n          have unlimited training data, the U is still the best\n          default. The reason is the picture above: the encoder\n          discards detail and the decoder can't invent it back, so\n          you have to remember it via skips.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 7": {
+   "zh": "第 7 步",
+   "src": "Step 7",
+   "tags": []
+  },
+  "Diffusion's U-Net — why an old architecture won the generative race": {
+   "zh": "扩散模型的 U-Net — 一个旧架构为何能在生成竞赛中胜出",
+   "src": "Diffusion's U-Net — why an old architecture won the generative race",
+   "tags": []
+  },
+  "Every Stable Diffusion checkpoint is a U-Net, lightly modernised: the encoder + bottleneck + decoder structure is the original 2015 design, with three additions:": {
+   "zh": "每一个 Stable Diffusion 检查点都是一个轻度现代化的 U-Net：编码器 + 瓶颈 + 解码器的结构仍是最初 2015 年的设计，仅额外增加了三点：",
+   "src": "Every Stable Diffusion checkpoint is a U-Net, lightly modernised: the encoder + bottleneck + decoder structure is the original 2015 design, with three additions:",
+   "tags": []
+  },
+  "@@T0@@Time-step embedding.@@T1@@ A sinusoidal time embedding $t$ is mapped to a per-layer scale + bias (FiLM-style). The same network does denoising at all noise levels by reading $t$.": {
+   "zh": "@@T0@@时间步嵌入。@@T1@@ 将正弦时间嵌入 $t$ 映射为逐层的缩放 + 偏置（FiLM 式）。同一网络通过读取 $t$，即可在所有噪声水平上完成去噪。",
+   "src": "<strong>Time-step embedding.</strong> A sinusoidal time embedding $t$ is mapped to a per-layer scale + bias (FiLM-style). The same network does denoising at all noise levels by reading $t$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Cross-attention to a text condition.@@T1@@ At a few mid-resolution layers, the spatial feature map attends to a tokenised text prompt's embeddings. This is where \"prompt steering\" actually happens.": {
+   "zh": "@@T0@@对文本条件的交叉注意力。@@T1@@ 在少数中等分辨率的层上，空间特征图会关注经分词后的文本提示嵌入。「提示引导」实际上就发生在这一环节。",
+   "src": "<strong>Cross-attention to a text condition.</strong> At a few mid-resolution layers, the spatial feature map attends to a tokenised text prompt's embeddings. This is where \"prompt steering\" actually happens.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Self-attention blocks at low resolution.@@T1@@ The U's bottleneck has full self-attention over the spatial grid (cheap because grid is small there); high-resolution layers stay purely convolutional.": {
+   "zh": "@@T0@@低分辨率处的自注意力模块。@@T1@@ U 形结构的瓶颈处对整个空间网格执行完整的自注意力（由于该处网格很小，代价低廉）；高分辨率的层则保持纯卷积。",
+   "src": "<strong>Self-attention blocks at low resolution.</strong> The U's bottleneck has full self-attention over the spatial grid (cheap because grid is small there); high-resolution layers stay purely convolutional.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "In 2024–2026 the field has moved partially toward @@T0@@DiT (Diffusion Transformers)@@T1@@ — pure transformer backbones with no U-Net skips. DiTs scale better past ~2B parameters; U-Nets still dominate sub-1B image-generation models because they're much more parameter-efficient on small data.": {
+   "zh": "2024–2026 年间，该领域已部分转向@@T0@@DiT（Diffusion Transformer）@@T1@@ — 不含 U-Net 跳跃连接的纯 Transformer 骨干网络。DiT 在参数量超过约 2B 后扩展性更好；而 U-Net 在参数量低于 1B 的图像生成模型中仍占主导，因为在小数据上其参数效率要高得多。",
+   "src": "In 2024–2026 the field has moved partially toward <strong>DiT (Diffusion Transformers)</strong> — pure transformer backbones with no U-Net skips. DiTs scale better past ~2B parameters; U-Nets still dominate sub-1B image-generation models because they're much more parameter-efficient on small data.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 8": {
+   "zh": "第 8 步",
+   "src": "Step 8",
+   "tags": []
+  },
+  "Practical implementation notes": {
+   "zh": "实用实现要点",
+   "src": "Practical implementation notes",
+   "tags": []
+  },
+  "@@T0@@Input size must be divisible by $2^D$@@T1@@ where $D$ is the depth. A 4-stage U-Net needs inputs of $H, W$ divisible by 16. Pad before, crop after.": {
+   "zh": "@@T0@@输入尺寸必须能被 $2^D$ 整除@@T1@@，其中 $D$ 为深度。4 个阶段的 U-Net 要求输入 $H, W$ 均能被 16 整除。可先填充，之后再裁剪。",
+   "src": "<strong>Input size must be divisible by $2^D$</strong> where $D$ is the depth. A 4-stage U-Net needs inputs of $H, W$ divisible by 16. Pad before, crop after.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Padding choices.@@T1@@ Original used \"valid\" (no padding); modern implementations use \"same\" with reflection or zero padding to keep spatial dimensions stable through skips. Reflection padding usually gives slightly cleaner edges.": {
+   "zh": "@@T0@@填充方式的选择。@@T1@@ 原始实现使用「valid」（不填充）；现代实现使用「same」配合反射填充或零填充，以在跳跃连接之间保持空间尺寸稳定。反射填充通常能得到略更干净的边缘。",
+   "src": "<strong>Padding choices.</strong> Original used \"valid\" (no padding); modern implementations use \"same\" with reflection or zero padding to keep spatial dimensions stable through skips. Reflection padding usually gives slightly cleaner edges.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Upsampling: ConvTranspose vs interpolate-then-conv.@@T1@@ ConvTranspose can produce checkerboard artefacts at certain stride / kernel ratios. Most modern U-Nets use bilinear / nearest-neighbour upsampling followed by a 3×3 conv — visually cleaner.": {
+   "zh": "@@T0@@上采样：转置卷积与先插值后卷积。@@T1@@ 在某些步长 / 卷积核比例下，转置卷积会产生棋盘状伪影。大多数现代 U-Net 采用双线性 / 最近邻上采样后接一个 3×3 卷积 — 视觉上更干净。",
+   "src": "<strong>Upsampling: ConvTranspose vs interpolate-then-conv.</strong> ConvTranspose can produce checkerboard artefacts at certain stride / kernel ratios. Most modern U-Nets use bilinear / nearest-neighbour upsampling followed by a 3×3 conv — visually cleaner.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Number of stages.@@T1@@ 4–5 stages cover most natural-image tasks. Deeper U's need wider channels (the bottleneck width controls capacity).": {
+   "zh": "@@T0@@阶段数。@@T1@@ 4–5 个阶段即可覆盖大多数自然图像任务。更深的 U 形结构需要更宽的通道（瓶颈宽度决定容量）。",
+   "src": "<strong>Number of stages.</strong> 4–5 stages cover most natural-image tasks. Deeper U's need wider channels (the bottleneck width controls capacity).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Loss.@@T1@@ Cross-entropy + Dice for medical / class-imbalanced segmentation; MSE for diffusion denoising; perceptual losses (VGG features) for image-to-image translation.": {
+   "zh": "@@T0@@损失函数。@@T1@@ 医学 / 类别不平衡分割用交叉熵 + Dice；扩散去噪用 MSE；图像到图像的转换用感知损失（VGG 特征）。",
+   "src": "<strong>Loss.</strong> Cross-entropy + Dice for medical / class-imbalanced segmentation; MSE for diffusion denoising; perceptual losses (VGG features) for image-to-image translation.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 9": {
+   "zh": "第 9 步",
+   "src": "Step 9",
+   "tags": []
+  },
+  "Reading list": {
+   "zh": "阅读清单",
+   "src": "Reading list",
+   "tags": []
+  },
+  "@@T0@@Ronneberger, Fischer, Brox (2015)@@T1@@ &mdash; @@T2@@U-Net.@@T3@@ The original.": {
+   "zh": "@@T0@@Ronneberger, Fischer, Brox (2015)@@T1@@ &mdash; @@T2@@U-Net。@@T3@@ 原始论文。",
+   "src": "<strong>Ronneberger, Fischer, Brox (2015)</strong> &mdash; <em>U-Net.</em> The original.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Çiçek et&nbsp;al. (2016)@@T1@@ &mdash; @@T2@@3D U-Net.@@T3@@": {
+   "zh": "@@T0@@Çiçek 等 (2016)@@T1@@ &mdash; @@T2@@3D U-Net。@@T3@@",
+   "src": "<strong>Çiçek et&nbsp;al. (2016)</strong> &mdash; <em>3D U-Net.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Oktay et&nbsp;al. (2018)@@T1@@ &mdash; @@T2@@Attention U-Net.@@T3@@": {
+   "zh": "@@T0@@Oktay 等 (2018)@@T1@@ &mdash; @@T2@@Attention U-Net。@@T3@@",
+   "src": "<strong>Oktay et&nbsp;al. (2018)</strong> &mdash; <em>Attention U-Net.</em>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Isensee, Jaeger, Kohl, Petersen, Maier-Hein (2021)@@T1@@ &mdash; @@T2@@nnU-Net.@@T3@@ Self-configuring U-Net for medical segmentation.": {
+   "zh": "@@T0@@Isensee, Jaeger, Kohl, Petersen, Maier-Hein (2021)@@T1@@ &mdash; @@T2@@nnU-Net。@@T3@@ 用于医学分割的自配置 U-Net。",
+   "src": "<strong>Isensee, Jaeger, Kohl, Petersen, Maier-Hein (2021)</strong> &mdash; <em>nnU-Net.</em> Self-configuring U-Net for medical segmentation.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Ho, Jain, Abbeel (2020)@@T1@@ &mdash; @@T2@@Denoising Diffusion Probabilistic Models.@@T3@@ The U-Net inside diffusion.": {
+   "zh": "@@T0@@Ho, Jain, Abbeel (2020)@@T1@@ &mdash; @@T2@@Denoising Diffusion Probabilistic Models。@@T3@@ 扩散模型中的 U-Net。",
+   "src": "<strong>Ho, Jain, Abbeel (2020)</strong> &mdash; <em>Denoising Diffusion Probabilistic Models.</em> The U-Net inside diffusion.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Peebles &amp; Xie (2022)@@T1@@ &mdash; @@T2@@Scalable Diffusion Models with Transformers (DiT).@@T3@@ The eventual transformer-based successor.": {
+   "zh": "@@T0@@Peebles &amp; Xie (2022)@@T1@@ &mdash; @@T2@@Scalable Diffusion Models with Transformers (DiT)。@@T3@@ 最终基于 Transformer 的继任者。",
+   "src": "<strong>Peebles &amp; Xie (2022)</strong> &mdash; <em>Scalable Diffusion Models with Transformers (DiT).</em> The eventual transformer-based successor.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "逐节剖析 U-Net",
+  "tagline": "同一架构为何能在生物医学分割、卫星解析与现代扩散模型中屡屡取胜",
+  "summary": "观察一张合成图像流经编码器、损失 16 倍空间分辨率，再向上回升 — 一次在每个尺度上都带跳跃连接，一次完全不带。在解码过程中关闭跳跃连接，观察分割掩码如何变模糊。随后一窥 Stable Diffusion 去噪器中同一个 U 形结构。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "在合成形状上实时运行编码器-解码器前向传播；可在任意尺度切换跳跃连接。",
+   "并排对比：带与不带跳跃连接时的预测掩码 — 二者差距恰是编码器丢弃的空间细节。",
+   "逐尺度特征缩略图，让你看清结构在 U 形结构中的位置。",
+   "拉远视角：Stable Diffusion 内部同一个 U 形去噪器。"
+  ],
+  "tags": [
+   "U-Net",
+   "分割",
+   "扩散模型",
+   "跳跃连接",
+   "计算机视觉",
+   "交互式"
+  ]
+ },
+ "js": {
+  "encoder ↓": {
+   "zh": "编码器 ↓",
+   "exprs": [],
+   "tags": [],
+   "src": "encoder ↓"
+  },
+  "decoder ↑": {
+   "zh": "解码器 ↑",
+   "exprs": [],
+   "tags": [],
+   "src": "decoder ↑"
+  }
+ }
+}

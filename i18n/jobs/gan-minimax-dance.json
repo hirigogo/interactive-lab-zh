@@ -1,0 +1,826 @@
+{
+ "slug": "gan-minimax-dance",
+ "units": {
+  "Feeling GAN training through the forger-and-detective game": {
+   "zh": "通过造假者与侦探的博弈感受 GAN 训练",
+   "src": "Feeling GAN training through the forger-and-detective game",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Forget the loss function for a moment. Start with a counterfeiter and a detective,\n          give them paint and magnifying glasses, and watch a generative model emerge\n          as a pencil-and-paper game&mdash;no black box, no hand-waving.": {
+   "zh": "暂时忘掉损失函数。先从一名造假者与一名侦探说起，\n          给他们颜料与放大镜，看一个生成模型如何作为一场\n          纸笔博弈浮现出来&mdash;没有黑箱，没有含糊其辞。",
+   "src": "Forget the loss function for a moment. Start with a counterfeiter and a detective,\n          give them paint and magnifying glasses, and watch a generative model emerge\n          as a pencil-and-paper game&mdash;no black box, no hand-waving.",
+   "tags": []
+  },
+  "@@T0@@~12 min@@T1@@\n          @@T2@@Deep Learning · GAN · Minimax · Generative@@T3@@": {
+   "zh": "@@T0@@约 12 分钟@@T1@@\n          @@T2@@深度学习 · GAN · 极小极大 · 生成式@@T3@@",
+   "src": "<span>~12 min</span>\n          <span>Deep Learning · GAN · Minimax · Generative</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "The counterfeiter and the detective": {
+   "zh": "造假者与侦探",
+   "src": "The counterfeiter and the detective",
+   "tags": []
+  },
+  "A counterfeiter prints fake banknotes. A detective inspects every bill that passes through a bank. At first, the counterfeiter is bad — the fakes look like kindergarten art, and the detective catches them instantly. The detective looks smart. The counterfeiter looks ridiculous.": {
+   "zh": "造假者印制假钞。侦探检查每一张经过银行的钞票。起初，造假者水平很差——假钞如同幼儿涂鸦，侦探一眼就能识破。侦探显得很聪明。造假者显得很可笑。",
+   "src": "A counterfeiter prints fake banknotes. A detective inspects every bill that passes through a bank. At first, the counterfeiter is bad — the fakes look like kindergarten art, and the detective catches them instantly. The detective looks smart. The counterfeiter looks ridiculous.",
+   "tags": []
+  },
+  "But the counterfeiter learns. Every time a fake is caught, she asks the detective: @@T0@@\"What tipped you off?\"@@T1@@ She fixes that flaw. A few hundred iterations later the fakes pass muster on the old tests — the detective must find new ones. A few thousand iterations later the detective's \"tests\" are splitting hairs of the paper fiber.": {
+   "zh": "但造假者会学习。每当一张假钞被识破，她便问侦探：@@T0@@「你从哪里看出破绽的？」@@T1@@ 她修正那处缺陷。几百次迭代之后，假钞已能通过旧的检查——侦探必须找出新的破绽。几千次迭代之后，侦探的「检查」已细到分辨纸张纤维的毛糙。",
+   "src": "But the counterfeiter learns. Every time a fake is caught, she asks the detective: <em>\"What tipped you off?\"</em> She fixes that flaw. A few hundred iterations later the fakes pass muster on the old tests — the detective must find new ones. A few thousand iterations later the detective's \"tests\" are splitting hairs of the paper fiber.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "At the limit, the counterfeiter's bills are indistinguishable from real ones. The detective is left flipping coins. A GAN is this game, with two neural networks as the players and probability distributions as the bills.": {
+   "zh": "在极限处，造假者的钞票与真钞已无法区分。侦探只能靠掷硬币。GAN 就是这场博弈，两名参与者是两个神经网络，而钞票是概率分布。",
+   "src": "At the limit, the counterfeiter's bills are indistinguishable from real ones. The detective is left flipping coins. A GAN is this game, with two neural networks as the players and probability distributions as the bills.",
+   "tags": []
+  },
+  "@@T0@@By the end of this page@@T1@@, you will have driven both sides of this game yourself — you'll see what the detective's decision curve looks like, watch the counterfeiter's distribution glide onto the target, and understand precisely what \"Nash equilibrium\" means for two neural networks.": {
+   "zh": "@@T0@@读完本页时@@T1@@，你已亲手驱动了这场博弈的双方——你将看到侦探的决策曲线是什么样子，观察造假者的分布滑向目标，并精确理解「纳什均衡」对两个神经网络而言意味着什么。",
+   "src": "<strong>By the end of this page</strong>, you will have driven both sides of this game yourself — you'll see what the detective's decision curve looks like, watch the counterfeiter's distribution glide onto the target, and understand precisely what \"Nash equilibrium\" means for two neural networks.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "Pick a target distribution": {
+   "zh": "选择一个目标分布",
+   "src": "Pick a target distribution",
+   "tags": []
+  },
+  "Before any training, fix what the real data looks like. In a real GAN this is a dataset of images; here it's a 1D probability density we can plot. Three shapes come up in GAN debugging discussions:": {
+   "zh": "在训练之前，先固定真实数据的样子。在真实的 GAN 中，这是一个图像数据集；这里则是一个可以绘制的 一维概率密度。在 GAN 调试讨论中常出现三种形状：",
+   "src": "Before any training, fix what the real data looks like. In a real GAN this is a dataset of images; here it's a 1D probability density we can plot. Three shapes come up in GAN debugging discussions:",
+   "tags": []
+  },
+  "Two-mode Gaussian": {
+   "zh": "双峰高斯",
+   "src": "Two-mode Gaussian",
+   "tags": []
+  },
+  "Skewed single peak": {
+   "zh": "偏斜的单峰",
+   "src": "Skewed single peak",
+   "tags": []
+  },
+  "Three-mode mixture": {
+   "zh": "三峰混合",
+   "src": "Three-mode mixture",
+   "tags": []
+  },
+  "Two symmetric Gaussians &mdash; think \"heights of adult men and women mixed together.\"": {
+   "zh": "两个对称的高斯分布 &mdash; 想象「成年男性与女性身高混合在一起」。",
+   "src": "Two symmetric Gaussians &mdash; think \"heights of adult men and women mixed together.\"",
+   "tags": []
+  },
+  "@@T0@@Real data distribution p@@T1@@data@@T2@@(x).@@T3@@ We'll keep this fixed; the generator tries to learn it.": {
+   "zh": "@@T0@@真实数据分布 p@@T1@@data@@T2@@(x)。@@T3@@ 我们将保持其固定；生成器试图学习它。",
+   "src": "<strong>Real data distribution p<sub>data</sub>(x).</strong> We'll keep this fixed; the generator tries to learn it.",
+   "tags": [
+    "<strong>",
+    "<sub>",
+    "</sub>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Pause and think.@@T1@@ If you'd never seen this density, how would you try to reproduce it? You could fit a parametric family (Gaussian mixture) — but what if the true shape isn't a mixture? A GAN skips that choice: the generator is a neural network, free to take any form. The @@T2@@training loss@@T3@@ steers it toward p@@T4@@data@@T5@@ without ever assuming what shape it is.": {
+   "zh": "@@T0@@暂停思考。@@T1@@ 若你从未见过这个密度，你会如何尝试重现它？你可以拟合一个参数族（高斯混合）——但如果真实形状并非混合呢？GAN 跳过了这一选择：生成器是一个神经网络，可自由取任何形式。@@T2@@训练损失@@T3@@ 将它引向 p@@T4@@data@@T5@@，而无需事先假定其形状。",
+   "src": "<strong>Pause and think.</strong> If you'd never seen this density, how would you try to reproduce it? You could fit a parametric family (Gaussian mixture) — but what if the true shape isn't a mixture? A GAN skips that choice: the generator is a neural network, free to take any form. The <em>training loss</em> steers it toward p<sub>data</sub> without ever assuming what shape it is.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "What does a \"bad\" discriminator look like?": {
+   "zh": "「糟糕的」判别器是什么样子？",
+   "src": "What does a \"bad\" discriminator look like?",
+   "tags": []
+  },
+  "The detective — the @@T0@@discriminator@@T1@@ D(x) — takes a point x and outputs a probability: @@T2@@\"how confident am I this came from real data, not the generator?\"@@T3@@. A perfect D outputs 1 for real, 0 for fake.": {
+   "zh": "侦探&mdash;即 @@T0@@判别器@@T1@@ D(x)&mdash;接收一个点 x 并输出一个概率：@@T2@@「我有多确信它来自真实数据而非生成器？」@@T3@@。完美的 D 对真实样本输出 1，对伪造样本输出 0。",
+   "src": "The detective — the <strong>discriminator</strong> D(x) — takes a point x and outputs a probability: <em>\"how confident am I this came from real data, not the generator?\"</em>. A perfect D outputs 1 for real, 0 for fake.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Drag the slider below to build a manual linear discriminator: a simple threshold and slope. Watch how its accuracy (fraction correctly classified) changes when you move it around. The generator's distribution here is fixed at @@T0@@N(0, 1.5²)@@T1@@ — the dumb initialization before training.": {
+   "zh": "拖动下方滑块构建一个手动线性判别器：一个简单的阈值与斜率。移动它时，观察其准确率（正确分类的比例）如何变化。此处的生成器分布固定为 @@T0@@N(0, 1.5²)@@T1@@ &mdash; 即训练前那个未经训练的初始化。",
+   "src": "Drag the slider below to build a manual linear discriminator: a simple threshold and slope. Watch how its accuracy (fraction correctly classified) changes when you move it around. The generator's distribution here is fixed at <code>N(0, 1.5²)</code> — the dumb initialization before training.",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "Decision centre:": {
+   "zh": "决策中心：",
+   "src": "Decision centre:",
+   "tags": []
+  },
+  "Steepness:": {
+   "zh": "陡峭程度：",
+   "src": "Steepness:",
+   "tags": []
+  },
+  "@@T0@@Real detected correctly@@T1@@\n              @@T2@@–@@T3@@": {
+   "zh": "@@T0@@真实样本被正确检出@@T1@@\n              @@T2@@–@@T3@@",
+   "src": "<span class=\"stat-label\">Real detected correctly</span>\n              <span class=\"stat-value\" id=\"d-acc-real\">–</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"d-acc-real\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Fake detected correctly@@T1@@\n              @@T2@@–@@T3@@": {
+   "zh": "@@T0@@伪造样本被正确检出@@T1@@\n              @@T2@@–@@T3@@",
+   "src": "<span class=\"stat-label\">Fake detected correctly</span>\n              <span class=\"stat-value\" id=\"d-acc-fake\">–</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"d-acc-fake\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Discriminator loss@@T1@@\n              @@T2@@–@@T3@@": {
+   "zh": "@@T0@@判别器损失@@T1@@\n              @@T2@@–@@T3@@",
+   "src": "<span class=\"stat-label\">Discriminator loss</span>\n              <span class=\"stat-value\" id=\"d-loss-val\">–</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"d-loss-val\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@What the loss measures.@@T1@@ A discriminator's loss is a @@T2@@classification@@T3@@ loss — binary cross-entropy:": {
+   "zh": "@@T0@@该损失衡量什么。@@T1@@ 判别器的损失是一种@@T2@@分类@@T3@@损失&mdash;二元交叉熵：",
+   "src": "<strong>What the loss measures.</strong> A discriminator's loss is a <em>classification</em> loss — binary cross-entropy:",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Low loss means D splits real from fake cleanly. By moving the slider you can see the loss drop when you align the decision boundary with where real and fake differ the most.": {
+   "zh": "损失低意味着 D 能干净地把真实与伪造区分开。移动滑块，当你的决策边界与真实和伪造差异最大之处对齐时，你会看到损失下降。",
+   "src": "Low loss means D splits real from fake cleanly. By moving the slider you can see the loss drop when you align the decision boundary with where real and fake differ the most.",
+   "tags": []
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "What does the optimal discriminator look like?": {
+   "zh": "最优判别器是什么样子？",
+   "src": "What does the optimal discriminator look like?",
+   "tags": []
+  },
+  "Turns out there's a @@T0@@closed-form@@T1@@ answer. If the generator's distribution is fixed, the D that minimises the loss is exactly:": {
+   "zh": "事实证明存在一个@@T0@@闭式@@T1@@答案。若生成器的分布固定，则使损失最小的 D 恰好是：",
+   "src": "Turns out there's a <em>closed-form</em> answer. If the generator's distribution is fixed, the D that minimises the loss is exactly:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "In plain English: for every point x, the optimal detective answers \"probability this is real\" by computing the ratio of real-density to total-density. You can build this by hand without any training — if you know p@@T0@@data@@T1@@ and p@@T2@@G@@T3@@.": {
+   "zh": "通俗地说：对每个点 x，最优侦探通过计算真实密度与总密度之比来回答「它为真的概率」。若你知道 p@@T0@@data@@T1@@ 与 p@@T2@@G@@T3@@，你无需任何训练就能手工构建它。",
+   "src": "In plain English: for every point x, the optimal detective answers \"probability this is real\" by computing the ratio of real-density to total-density. You can build this by hand without any training — if you know p<sub>data</sub> and p<sub>G</sub>.",
+   "tags": [
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "@@T0@@Densities and the optimal D@@T1@@&lowast;@@T2@@(x).@@T3@@ Move the slider to change the generator's standard deviation and watch D@@T4@@&lowast;@@T5@@ re-shape itself — a better generator makes D@@T6@@&lowast;@@T7@@ flatter.": {
+   "zh": "@@T0@@密度与最优 D@@T1@@&lowast;@@T2@@(x)。@@T3@@ 移动滑块改变生成器的标准差，观察 D@@T4@@&lowast;@@T5@@ 如何重新塑形&mdash;生成器越好，D@@T6@@&lowast;@@T7@@ 越平坦。",
+   "src": "<strong>Densities and the optimal D<sup>&lowast;</sup>(x).</strong> Move the slider to change the generator's standard deviation and watch D<sup>&lowast;</sup> re-shape itself — a better generator makes D<sup>&lowast;</sup> flatter.",
+   "tags": [
+    "<strong>",
+    "<sup>",
+    "</sup>",
+    "</strong>",
+    "<sup>",
+    "</sup>",
+    "<sup>",
+    "</sup>"
+   ]
+  },
+  "Generator σ:": {
+   "zh": "生成器 σ：",
+   "src": "Generator σ:",
+   "tags": []
+  },
+  "@@T0@@@@T1@@@@T2@@real p@@T3@@data@@T4@@(x)@@T5@@\n            @@T6@@@@T7@@@@T8@@generator p@@T9@@G@@T10@@(x)@@T11@@\n            @@T12@@@@T13@@@@T14@@optimal D@@T15@@&lowast;@@T16@@(x)@@T17@@": {
+   "zh": "@@T0@@@@T1@@@@T2@@真实 p@@T3@@data@@T4@@(x)@@T5@@\n            @@T6@@@@T7@@@@T8@@生成器 p@@T9@@G@@T10@@(x)@@T11@@\n            @@T12@@@@T13@@@@T14@@最优 D@@T15@@&lowast;@@T16@@(x)@@T17@@",
+   "src": "<span><span class=\"swatch\" style=\"background:#7b9e89\"></span>real p<sub>data</sub>(x)</span>\n            <span><span class=\"swatch\" style=\"background:#d9622b\"></span>generator p<sub>G</sub>(x)</span>\n            <span><span class=\"swatch\" style=\"background:#4a6670;height:0;border-top:2px dashed #4a6670\"></span>optimal D<sup>&lowast;</sup>(x)</span>",
+   "tags": [
+    "<span>",
+    "<span class=\"swatch\" style=\"background:#7b9e89\">",
+    "</span>",
+    "<sub>",
+    "</sub>",
+    "</span>",
+    "<span>",
+    "<span class=\"swatch\" style=\"background:#d9622b\">",
+    "</span>",
+    "<sub>",
+    "</sub>",
+    "</span>",
+    "<span>",
+    "<span class=\"swatch\" style=\"background:#4a6670;height:0;border-top:2px dashed #4a6670\">",
+    "</span>",
+    "<sup>",
+    "</sup>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Read this carefully.@@T1@@ When p@@T2@@G@@T3@@ exactly equals p@@T4@@data@@T5@@, the ratio is @@T6@@p/(p+p) = 0.5@@T7@@ everywhere. The optimal discriminator is a horizontal line at 0.5 — it gives up. @@T8@@That flat line is the target of GAN training.@@T9@@": {
+   "zh": "@@T0@@请仔细阅读。@@T1@@ 当 p@@T2@@G@@T3@@ 恰好等于 p@@T4@@data@@T5@@ 时，该比值处处为 @@T6@@p/(p+p) = 0.5@@T7@@。最优判别器是一条位于 0.5 的水平线&mdash;它放弃了。@@T8@@那条平坦的直线正是 GAN 训练的目标。@@T9@@",
+   "src": "<strong>Read this carefully.</strong> When p<sub>G</sub> exactly equals p<sub>data</sub>, the ratio is <code>p/(p+p) = 0.5</code> everywhere. The optimal discriminator is a horizontal line at 0.5 — it gives up. <strong>That flat line is the target of GAN training.</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<code>",
+    "</code>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Common confusion:@@T1@@ \"But we never actually compute D@@T2@@&lowast;@@T3@@ because we don't know p@@T4@@G@@T5@@.\" True. The @@T6@@training process@@T7@@ approximates this optimum by gradient descent on the BCE loss. Each step of D training nudges D closer to D@@T8@@&lowast;@@T9@@ for the current G.": {
+   "zh": "@@T0@@常见困惑：@@T1@@ 「但我们实际上从不计算 D@@T2@@&lowast;@@T3@@，因为我们不知道 p@@T4@@G@@T5@@。」确实如此。@@T6@@训练过程@@T7@@ 通过对 BCE 损失做梯度下降来逼近该最优解。D 训练的每一步都在把 D 推近当前 G 对应的 D@@T8@@&lowast;@@T9@@。",
+   "src": "<strong>Common confusion:</strong> \"But we never actually compute D<sup>&lowast;</sup> because we don't know p<sub>G</sub>.\" True. The <em>training process</em> approximates this optimum by gradient descent on the BCE loss. Each step of D training nudges D closer to D<sup>&lowast;</sup> for the current G.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<sup>",
+    "</sup>",
+    "<sub>",
+    "</sub>",
+    "<em>",
+    "</em>",
+    "<sup>",
+    "</sup>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "What does the generator do?": {
+   "zh": "生成器做什么？",
+   "src": "What does the generator do?",
+   "tags": []
+  },
+  "Given a discriminator, the generator's job is to @@T0@@fool it@@T1@@. If D thinks real points have high score and fakes have low score, G wants to push its output toward regions where D is high.": {
+   "zh": "给定一个判别器，生成器的任务就是@@T0@@骗过它@@T1@@。若 D 认为真实点的分数高、伪造点的分数低，则 G 希望把自己的输出推向 D 取值高的区域。",
+   "src": "Given a discriminator, the generator's job is to <em>fool it</em>. If D thinks real points have high score and fakes have low score, G wants to push its output toward regions where D is high.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "That's the gradient signal. At a sample @@T0@@x = G(z)@@T1@@, the generator receives:": {
+   "zh": "这就是梯度信号。在样本 @@T0@@x = G(z)@@T1@@ 处，生成器接收到：",
+   "src": "That's the gradient signal. At a sample <code>x = G(z)</code>, the generator receives:",
+   "tags": [
+    "<code>",
+    "</code>"
+   ]
+  },
+  "which points in the direction that @@T0@@raises@@T1@@ D at the generated point. Interpretation: \"take this sample and move it toward a place where the detective would have been more fooled.\"": {
+   "zh": "它指向在生成点处@@T0@@提高@@T1@@ D 的方向。解读：「取这个样本，把它移到侦探更会被骗的位置。」",
+   "src": "which points in the direction that <em>raises</em> D at the generated point. Interpretation: \"take this sample and move it toward a place where the detective would have been more fooled.\"",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@G's gradient field for a single sample.@@T1@@ Click anywhere on the x-axis to place a generated sample. The red arrow shows the direction G's gradient wants to push it.": {
+   "zh": "@@T0@@单个样本上 G 的梯度场。@@T1@@ 在 x 轴任意位置点击以放置一个生成样本。红色箭头显示 G 的梯度想要推动它的方向。",
+   "src": "<strong>G's gradient field for a single sample.</strong> Click anywhere on the x-axis to place a generated sample. The red arrow shows the direction G's gradient wants to push it.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Click anywhere on the x-axis to place a sample": {
+   "zh": "在 x 轴任意位置点击以放置一个样本",
+   "src": "Click anywhere on the x-axis to place a sample",
+   "tags": []
+  },
+  "@@T0@@Look at the arrows.@@T1@@ Samples sitting on the left mode of the real distribution get small arrows — they're already plausible. Samples sitting between modes (where @@T2@@p@@T3@@data@@T4@@@@T5@@ is low and D is low) get big arrows pointing toward the nearest real mode. That's the physical meaning of \"move toward more plausible space.\"": {
+   "zh": "@@T0@@看看这些箭头。@@T1@@ 位于真实分布左侧众峰上的样本得到小箭头&mdash;它们已经足够可信。位于众峰之间的样本（此处 @@T2@@p@@T3@@data@@T4@@@@T5@@ 低、D 也低）得到指向最近真实众峰的大箭头。这就是「移向更可信的空间」的物理含义。",
+   "src": "<strong>Look at the arrows.</strong> Samples sitting on the left mode of the real distribution get small arrows — they're already plausible. Samples sitting between modes (where <code>p<sub>data</sub></code> is low and D is low) get big arrows pointing toward the nearest real mode. That's the physical meaning of \"move toward more plausible space.\"",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "<sub>",
+    "</sub>",
+    "</code>"
+   ]
+  },
+  "@@T0@@Saturation warning.@@T1@@ If D is very confident (outputs 0.001 on this sample), log D &asymp; -6.9 — a huge negative number but a @@T2@@tiny@@T3@@ gradient because the log derivative @@T4@@1/D@@T5@@ becomes unstable. That's the vanishing-gradient problem Goodfellow's @@T6@@non-saturating loss@@T7@@ (maximize log D instead of minimize log(1-D)) was designed to fix.": {
+   "zh": "@@T0@@饱和警告。@@T1@@ 若 D 非常自信（对该样本输出 0.001），则 log D &asymp; -6.9&mdash;一个巨大的负数，但梯度@@T2@@极小@@T3@@，因为对数导数 @@T4@@1/D@@T5@@ 变得不稳定。这正是 Goodfellow 的@@T6@@非饱和损失@@T7@@（最大化 log D 而非最小化 log(1-D)）所要解决的问题。",
+   "src": "<strong>Saturation warning.</strong> If D is very confident (outputs 0.001 on this sample), log D &asymp; -6.9 — a huge negative number but a <em>tiny</em> gradient because the log derivative <code>1/D</code> becomes unstable. That's the vanishing-gradient problem Goodfellow's <em>non-saturating loss</em> (maximize log D instead of minimize log(1-D)) was designed to fix.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<code>",
+    "</code>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "The full dance": {
+   "zh": "完整的共舞",
+   "src": "The full dance",
+   "tags": []
+  },
+  "Now put both sides together. At every training step, we alternate:": {
+   "zh": "现在把双方结合起来。在每一个训练步骤中，我们交替进行：",
+   "src": "Now put both sides together. At every training step, we alternate:",
+   "tags": []
+  },
+  "Update @@T0@@D@@T1@@: nudge it toward D@@T2@@&lowast;@@T3@@ for the current G (via gradient descent on BCE loss).": {
+   "zh": "更新 @@T0@@D@@T1@@：把它推向当前 G 对应的 D@@T2@@&lowast;@@T3@@（通过对 BCE 损失做梯度下降）。",
+   "src": "Update <strong>D</strong>: nudge it toward D<sup>&lowast;</sup> for the current G (via gradient descent on BCE loss).",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<sup>",
+    "</sup>"
+   ]
+  },
+  "Update @@T0@@G@@T1@@: nudge it in the direction that raises D at its samples.": {
+   "zh": "更新 @@T0@@G@@T1@@：把它推向在其样本处提高 D 的方向。",
+   "src": "Update <strong>G</strong>: nudge it in the direction that raises D at its samples.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Scrub the training step slider below and watch the three curves evolve together. At step 0, G is noise; D quickly becomes peaky. As G improves, D's decision curve flattens until it's 0.5 everywhere.": {
+   "zh": "拖动下方的训练步数滑块，观察三条曲线如何一同演化。在第 0 步，G 是噪声；D 很快变得尖峭。随着 G 改进，D 的决策曲线逐渐平坦，直到处处为 0.5。",
+   "src": "Scrub the training step slider below and watch the three curves evolve together. At step 0, G is noise; D quickly becomes peaky. As G improves, D's decision curve flattens until it's 0.5 everywhere.",
+   "tags": []
+  },
+  "Training step:": {
+   "zh": "训练步数：",
+   "src": "Training step:",
+   "tags": []
+  },
+  "▶ Play": {
+   "zh": "▶ 播放",
+   "src": "▶ Play",
+   "tags": []
+  },
+  "Reset": {
+   "zh": "重置",
+   "src": "Reset",
+   "tags": []
+  },
+  "@@T0@@@@T1@@@@T2@@p@@T3@@data@@T4@@@@T5@@\n            @@T6@@@@T7@@@@T8@@p@@T9@@G@@T10@@@@T11@@\n            @@T12@@@@T13@@@@T14@@D(x)@@T15@@\n            @@T16@@@@T17@@@@T18@@D loss@@T19@@\n            @@T20@@@@T21@@@@T22@@G loss@@T23@@": {
+   "zh": "@@T0@@@@T1@@@@T2@@p@@T3@@data@@T4@@@@T5@@\n            @@T6@@@@T7@@@@T8@@p@@T9@@G@@T10@@@@T11@@\n            @@T12@@@@T13@@@@T14@@D(x)@@T15@@\n            @@T16@@@@T17@@@@T18@@D 损失@@T19@@\n            @@T20@@@@T21@@@@T22@@G 损失@@T23@@",
+   "src": "<span><span class=\"swatch\" style=\"background:#7b9e89\"></span>p<sub>data</sub></span>\n            <span><span class=\"swatch\" style=\"background:#d9622b\"></span>p<sub>G</sub></span>\n            <span><span class=\"swatch\" style=\"background:#4a6670;border-top:2px dashed #4a6670;height:0\"></span>D(x)</span>\n            <span><span class=\"swatch\" style=\"background:#4a6670\"></span>D loss</span>\n            <span><span class=\"swatch\" style=\"background:#a8324b\"></span>G loss</span>",
+   "tags": [
+    "<span>",
+    "<span class=\"swatch\" style=\"background:#7b9e89\">",
+    "</span>",
+    "<sub>",
+    "</sub>",
+    "</span>",
+    "<span>",
+    "<span class=\"swatch\" style=\"background:#d9622b\">",
+    "</span>",
+    "<sub>",
+    "</sub>",
+    "</span>",
+    "<span>",
+    "<span class=\"swatch\" style=\"background:#4a6670;border-top:2px dashed #4a6670;height:0\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"swatch\" style=\"background:#4a6670\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"swatch\" style=\"background:#a8324b\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@What the loss dynamics show.@@T1@@ The two losses @@T2@@oscillate@@T3@@, not monotonically decrease. This is @@T4@@expected@@T5@@ — when G improves, D's job gets harder; when D adjusts, G's gradient shifts. The oscillation is the dance. At convergence both losses settle around a fixed point (log 4 ≈ 1.38 for the DPPM-like minimax objective).": {
+   "zh": "@@T0@@损失动态说明了什么。@@T1@@ 两个损失是@@T2@@振荡@@T3@@的，而非单调下降。这是@@T4@@意料之中@@T5@@的&mdash;当 G 改进时，D 的任务变难；当 D 调整时，G 的梯度随之改变。这种振荡就是共舞。在收敛时，两个损失都稳定在一个不动点附近（对类 DPPM 的极小极大目标而言约为 log 4 ≈ 1.38）。",
+   "src": "<strong>What the loss dynamics show.</strong> The two losses <em>oscillate</em>, not monotonically decrease. This is <em>expected</em> — when G improves, D's job gets harder; when D adjusts, G's gradient shifts. The oscillation is the dance. At convergence both losses settle around a fixed point (log 4 ≈ 1.38 for the DPPM-like minimax objective).",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "Mode collapse · when the dance breaks down": {
+   "zh": "模式崩塌 · 当共舞瓦解时",
+   "src": "Mode collapse · when the dance breaks down",
+   "tags": []
+  },
+  "In the ideal trajectory above, G learns the full distribution. In practice, G often takes a shortcut: it discovers that one particular output fools D well, and produces @@T0@@only that output@@T1@@ for every input. Diversity is lost — @@T2@@mode collapse@@T3@@.": {
+   "zh": "在上述理想轨迹中，G 学到了完整的分布。实践中，G 常常走捷径：它发现某一个特定的输出能很好地骗过 D，于是对每个输入都只产生@@T0@@那一个输出@@T1@@。多样性丧失&mdash;这便是@@T2@@模式崩塌@@T3@@。",
+   "src": "In the ideal trajectory above, G learns the full distribution. In practice, G often takes a shortcut: it discovers that one particular output fools D well, and produces <em>only that output</em> for every input. Diversity is lost — <strong>mode collapse</strong>.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Mode-collapse demonstration@@T1@@. Toggle the scenario and watch the generator fixate on just one mode of a bimodal target, even as training proceeds.": {
+   "zh": "@@T0@@模式崩塌演示@@T1@@。切换情景，观察生成器如何在训练推进的过程中仍执拗于双峰目标中的单一个众峰。",
+   "src": "<strong>Mode-collapse demonstration</strong>. Toggle the scenario and watch the generator fixate on just one mode of a bimodal target, even as training proceeds.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Toggle: healthy ↔ collapsed": {
+   "zh": "切换：健康 ↔ 崩塌",
+   "src": "Toggle: healthy ↔ collapsed",
+   "tags": []
+  },
+  "@@T0@@Currently: healthy trajectory@@T1@@": {
+   "zh": "@@T0@@当前：健康轨迹@@T1@@",
+   "src": "<span id=\"collapse-label\" style=\"font-family:var(--sans);font-size:0.9rem;color:var(--muted);\">Currently: healthy trajectory</span>",
+   "tags": [
+    "<span id=\"collapse-label\" style=\"font-family:var(--sans);font-size:0.9rem;color:var(--muted);\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Why collapse happens.@@T1@@ If G's output at some point fools D with confidence 0.49, the gradient signal is weak. If another point fools D with confidence 0.49 too, G has no reason to produce both — it converges on the easier one. Preventing collapse needs extra tricks: minibatch discrimination, WGAN's earth-mover distance, spectral normalization, or just careful hyperparameter tuning.": {
+   "zh": "@@T0@@崩塌为何发生。@@T1@@ 若 G 在某点的输出以 0.49 的置信度骗过 D，梯度信号便很弱。若另一点也以 0.49 的置信度骗过 D，G 就没有理由同时产生两者&mdash;它会收敛到更容易的那一个。防止崩塌需要额外的技巧：小批量判别、WGAN 的推土机距离、谱归一化，或仅仅是用心地调参。",
+   "src": "<strong>Why collapse happens.</strong> If G's output at some point fools D with confidence 0.49, the gradient signal is weak. If another point fools D with confidence 0.49 too, G has no reason to produce both — it converges on the easier one. Preventing collapse needs extra tricks: minibatch discrimination, WGAN's earth-mover distance, spectral normalization, or just careful hyperparameter tuning.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 7": {
+   "zh": "第 7 步",
+   "src": "Step 7",
+   "tags": []
+  },
+  "Three things a GAN is @@T0@@not@@T1@@": {
+   "zh": "GAN@@T0@@不是@@T1@@的三件事",
+   "src": "Three things a GAN is <em>not</em>",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@False@@T1@@": {
+   "zh": "@@T0@@错误说法@@T1@@",
+   "src": "<span class=\"misconception-icon\">False</span>",
+   "tags": [
+    "<span class=\"misconception-icon\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@\"GANs minimize a meaningful loss.\"@@T1@@@@T2@@\n              The @@T3@@minimax@@T4@@ objective doesn't admit a single \"loss goes down\" interpretation. D's loss going up might mean G got better; G's loss going up might mean D caught on. Monitoring losses alone is a terrible way to judge GAN progress — use sample quality + diversity metrics (FID, precision/recall).": {
+   "zh": "@@T0@@「GAN 最小化一个有意义的损失。」@@T1@@@@T2@@\n              @@T3@@极小极大@@T4@@目标并不允许一种单一的「损失下降」解读。D 的损失上升可能意味着 G 变好了；G 的损失上升可能意味着 D 识破了。仅凭监控损失来判断 GAN 的进展是非常糟糕的做法&mdash;应使用样本质量与多样性指标（FID、精确率/召回率）。",
+   "src": "<strong>\"GANs minimize a meaningful loss.\"</strong><br />\n              The <em>minimax</em> objective doesn't admit a single \"loss goes down\" interpretation. D's loss going up might mean G got better; G's loss going up might mean D caught on. Monitoring losses alone is a terrible way to judge GAN progress — use sample quality + diversity metrics (FID, precision/recall).",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@\"The generator learns p@@T1@@data@@T2@@.\"@@T3@@@@T4@@\n              Only approximately, and only at the idealised Nash equilibrium. In practice, G often learns a good-looking @@T5@@subset@@T6@@ of p@@T7@@data@@T8@@. This is why WGAN, Wasserstein distance, and regularisers matter — they push the model closer to the full distribution.": {
+   "zh": "@@T0@@「生成器学到了 p@@T1@@data@@T2@@。」@@T3@@@@T4@@\n              只是近似地学到，且仅在理想化的纳什均衡处。实践中，G 常常只学到 p@@T7@@data@@T8@@ 的一个看起来不错的@@T5@@子集@@T6@@。这正是 WGAN、Wasserstein 距离与正则化方法重要的原因&mdash;它们把模型推向更完整的分布。",
+   "src": "<strong>\"The generator learns p<sub>data</sub>.\"</strong><br />\n              Only approximately, and only at the idealised Nash equilibrium. In practice, G often learns a good-looking <em>subset</em> of p<sub>data</sub>. This is why WGAN, Wasserstein distance, and regularisers matter — they push the model closer to the full distribution.",
+   "tags": [
+    "<strong>",
+    "<sub>",
+    "</sub>",
+    "</strong>",
+    "<br />",
+    "<em>",
+    "</em>",
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "@@T0@@\"You should train D to convergence before updating G.\"@@T1@@@@T2@@\n              The original paper suggested this; in practice it kills G's gradient (the stronger D gets, the more it saturates, the smaller G's gradient). Most GAN recipes alternate one step of each, or use the non-saturating G loss to stay robust.": {
+   "zh": "@@T0@@「在更新 G 之前应把 D 训练到收敛。」@@T1@@@@T2@@\n              原论文曾如此建议；但实践中这会扼杀 G 的梯度（D 越强，越饱和，G 的梯度就越小）。多数 GAN 配方交替各走一步，或使用非饱和的 G 损失以保持稳健。",
+   "src": "<strong>\"You should train D to convergence before updating G.\"</strong><br />\n              The original paper suggested this; in practice it kills G's gradient (the stronger D gets, the more it saturates, the smaller G's gradient). Most GAN recipes alternate one step of each, or use the non-saturating G loss to stay robust.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "Bonus": {
+   "zh": "附加",
+   "src": "Bonus",
+   "tags": []
+  },
+  "From minimax to Wasserstein · why training got easier": {
+   "zh": "从极小极大到 Wasserstein · 训练为何变得更容易",
+   "src": "From minimax to Wasserstein · why training got easier",
+   "tags": []
+  },
+  "The original GAN objective measures a Jensen-Shannon divergence between p@@T0@@data@@T1@@ and p@@T2@@G@@T3@@. The problem: JS is saturating — when the distributions barely overlap (early in training), JS &asymp; log 2 no matter how close or far they are. So the generator gets no useful gradient signal.": {
+   "zh": "原始 GAN 目标衡量的是 p@@T0@@data@@T1@@ 与 p@@T2@@G@@T3@@ 之间的 Jensen-Shannon 散度。问题在于：JS 会饱和&mdash;当两个分布几乎不重叠时（训练初期），无论它们相距多近或多远，JS &asymp; log 2。因此生成器得不到有用的梯度信号。",
+   "src": "The original GAN objective measures a Jensen-Shannon divergence between p<sub>data</sub> and p<sub>G</sub>. The problem: JS is saturating — when the distributions barely overlap (early in training), JS &asymp; log 2 no matter how close or far they are. So the generator gets no useful gradient signal.",
+   "tags": [
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>"
+   ]
+  },
+  "Arjovsky et al. 2017 (WGAN) replaced JS with the @@T0@@Wasserstein-1 (earth-mover) distance@@T1@@:": {
+   "zh": "Arjovsky 等人于 2017 年（WGAN）用 @@T0@@Wasserstein-1（推土机）距离@@T1@@ 取代了 JS：",
+   "src": "Arjovsky et al. 2017 (WGAN) replaced JS with the <strong>Wasserstein-1 (earth-mover) distance</strong>:",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Think of it as \"the minimum cost to physically move the mass of p@@T0@@G@@T1@@ onto p@@T2@@data@@T3@@.\" This distance shrinks @@T4@@continuously@@T5@@ as the distributions get closer — no saturation. Training is dramatically more stable.": {
+   "zh": "可以把它想成「把 p@@T0@@G@@T1@@ 的质量实际搬运到 p@@T2@@data@@T3@@ 上的最小代价」。随着分布彼此靠近，该距离@@T4@@连续地@@T5@@缩小&mdash;不会饱和。训练因而稳定得多。",
+   "src": "Think of it as \"the minimum cost to physically move the mass of p<sub>G</sub> onto p<sub>data</sub>.\" This distance shrinks <em>continuously</em> as the distributions get closer — no saturation. Training is dramatically more stable.",
+   "tags": [
+    "<sub>",
+    "</sub>",
+    "<sub>",
+    "</sub>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Comparing the three objectives": {
+   "zh": "比较三种目标",
+   "src": "Comparing the three objectives",
+   "tags": []
+  },
+  "Objective": {
+   "zh": "目标",
+   "src": "Objective",
+   "tags": []
+  },
+  "Gradient when distributions far apart": {
+   "zh": "分布相距较远时的梯度",
+   "src": "Gradient when distributions far apart",
+   "tags": []
+  },
+  "Training stability": {
+   "zh": "训练稳定性",
+   "src": "Training stability",
+   "tags": []
+  },
+  "@@T0@@Minimax (original, saturating)@@T1@@": {
+   "zh": "@@T0@@极小极大（原始，饱和）@@T1@@",
+   "src": "<strong>Minimax (original, saturating)</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Vanishing": {
+   "zh": "消失",
+   "src": "Vanishing",
+   "tags": []
+  },
+  "Poor": {
+   "zh": "差",
+   "src": "Poor",
+   "tags": []
+  },
+  "@@T0@@Non-saturating (log D)@@T1@@": {
+   "zh": "@@T0@@非饱和（log D）@@T1@@",
+   "src": "<strong>Non-saturating (log D)</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Healthy when G is bad": {
+   "zh": "当 G 较差时仍然健康",
+   "src": "Healthy when G is bad",
+   "tags": []
+  },
+  "Standard": {
+   "zh": "标准",
+   "src": "Standard",
+   "tags": []
+  },
+  "@@T0@@Wasserstein (WGAN / WGAN-GP)@@T1@@": {
+   "zh": "@@T0@@Wasserstein（WGAN / WGAN-GP）@@T1@@",
+   "src": "<strong>Wasserstein (WGAN / WGAN-GP)</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Healthy always (linear in distance)": {
+   "zh": "始终健康（随距离线性变化）",
+   "src": "Healthy always (linear in distance)",
+   "tags": []
+  },
+  "Best": {
+   "zh": "最佳",
+   "src": "Best",
+   "tags": []
+  },
+  "@@T0@@Connection to diffusion (L21-L22).@@T1@@ Diffusion models avoid the GAN problem entirely by never asking two distributions to match at once. They teach a single model to undo noise step by step, with a regression loss (MSE on predicted noise) — no adversarial game, no mode collapse, no minimax. That's the main reason diffusion displaced GANs for most practical image generation in 2022-23.": {
+   "zh": "@@T0@@与扩散模型的联系（L21-L22）。@@T1@@ 扩散模型完全避开了 GAN 的难题，因为它从不要求两个分布同时匹配。它教单个模型一步步消除噪声，使用回归损失（对预测噪声的均方误差）&mdash;没有对抗博弈，没有模式崩塌，没有极小极大。这正是扩散模型在 2022-23 年于多数实用图像生成任务中取代 GAN 的主要原因。",
+   "src": "<strong>Connection to diffusion (L21-L22).</strong> Diffusion models avoid the GAN problem entirely by never asking two distributions to match at once. They teach a single model to undo noise step by step, with a regression loss (MSE on predicted noise) — no adversarial game, no mode collapse, no minimax. That's the main reason diffusion displaced GANs for most practical image generation in 2022-23.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@ When someone says \"GAN training is unstable,\" they're describing the exact dynamics you just drove. The generator and discriminator are chasing each other around a saddle point in a 10⁹-dimensional space — the miracle is that it works at all. WGAN, spectral norm, and large-scale engineering (StyleGAN, BigGAN) made it work @@T2@@reliably@@T3@@, not because they found a new idea but because they tamed the dance above.": {
+   "zh": "@@T0@@最终要点。@@T1@@ 当有人说「GAN 训练不稳定」时，他们描述的正是你刚才驱动的那些动态。生成器与判别器在一个 10⁹ 维空间中彼此追逐，绕着鞍点打转&mdash;它居然能工作本身就是一个奇迹。WGAN、谱归一化以及大规模工程（StyleGAN、BigGAN）使其@@T2@@可靠地@@T3@@工作，并非因为他们发现了新思想，而是因为他们驯服了上述的共舞。",
+   "src": "<strong>Final takeaway.</strong> When someone says \"GAN training is unstable,\" they're describing the exact dynamics you just drove. The generator and discriminator are chasing each other around a saddle point in a 10⁹-dimensional space — the miracle is that it works at all. WGAN, spectral norm, and large-scale engineering (StyleGAN, BigGAN) made it work <em>reliably</em>, not because they found a new idea but because they tamed the dance above.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Choose target distribution": {
+   "zh": "选择目标分布",
+   "src": "Choose target distribution",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "通过造假者与侦探的博弈感受 GAN 训练",
+  "tagline": "走过对抗博弈的七个步骤 &mdash; 手动判别器、最优 D*、生成器梯度、模式崩塌、WGAN 的修正",
+  "summary": "一篇讲解 GAN 训练实际如何运作的教学文章。你将选择目标分布，用滑块调节一个手动判别器，手工推导最优 D*(x)，点击查看单个样本上生成器的梯度箭头，拖动训练步数观察纳什均衡如何浮现，在双峰数据上目睹模式崩塌，并以 Wasserstein 距离为何在 2017 年稳定了训练作结。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "第 1 步 · 选择一个目标：双峰 / 偏斜 / 三峰分布。",
+   "第 2 步 · 用中心与斜率滑块构建一个手动判别器；观察 BCE 损失如何响应。",
+   "第 3 步 · 滑动生成器 σ，观察最优 D*(x) = p/(p+p_G) 如何自我重塑。",
+   "第 4 步 · 在任意位置点击放下一个生成器样本，查看 G 的梯度箭头。",
+   "第 5 步 · 拖动训练步数；观察 G 的分布滑向真实分布、D(x) 变平至 0.5。",
+   "第 6 步 · 在健康与崩塌的生成器之间切换，感受模式崩塌。",
+   "三张误解卡片，外加一个 Wasserstein/扩散模型的附加对比。"
+  ],
+  "tags": [
+   "GAN",
+   "对抗",
+   "生成式",
+   "纳什均衡",
+   "Wasserstein",
+   "模式崩塌",
+   "交互式"
+  ]
+ },
+ "js": {
+  "sample at x = [[[0]]]   ·   D(x) = [[[1]]]   ·   gradient sign: [[[2]]]": {
+   "zh": "位于 x = [[[0]]] 的样本   ·   D(x) = [[[1]]]   ·   梯度符号：[[[2]]]",
+   "exprs": [
+    "${x.toFixed(2)}",
+    "${Dopt(x).toFixed(3)}",
+    "${grad > 0 ? \"→ right\" : \"← left\"}"
+   ],
+   "tags": [],
+   "src": "sample at x = ${x.toFixed(2)}   ·   D(x) = ${Dopt(x).toFixed(3)}   ·   gradient sign: ${grad > 0 ? \"→ right\" : \"← left\"}"
+  },
+  "training step [[[0]]]": {
+   "zh": "训练步数 [[[0]]]",
+   "exprs": [
+    "${step5Step}"
+   ],
+   "tags": [],
+   "src": "training step ${step5Step}"
+  },
+  "Two symmetric Gaussians — think \\\"heights of adult men and women mixed together.\\\"": {
+   "zh": "两个对称的高斯分布 — 想象「成年男性与女性身高混合在一起」。",
+   "exprs": [],
+   "tags": [],
+   "src": "Two symmetric Gaussians — think \\\"heights of adult men and women mixed together.\\\""
+  },
+  "A single skewed peak — think \\\"reaction times on a response test.\\\"": {
+   "zh": "单个偏斜的峰 — 想象「反应测试中的反应时间」。",
+   "exprs": [],
+   "tags": [],
+   "src": "A single skewed peak — think \\\"reaction times on a response test.\\\""
+  },
+  "Three modes — notoriously prone to mode collapse in GANs.": {
+   "zh": "三个众峰 — 在 GAN 中出了名地容易发生模式崩塌。",
+   "exprs": [],
+   "tags": [],
+   "src": "Three modes — notoriously prone to mode collapse in GANs."
+  },
+  "training step →": {
+   "zh": "训练步数 →",
+   "exprs": [],
+   "tags": [],
+   "src": "training step →"
+  },
+  "real data": {
+   "zh": "真实数据",
+   "exprs": [],
+   "tags": [],
+   "src": "real data"
+  },
+  "G has collapsed onto ONE mode": {
+   "zh": "G 已崩塌到单一众峰之上",
+   "exprs": [],
+   "tags": [],
+   "src": "G has collapsed onto ONE mode"
+  },
+  "G covers all real modes": {
+   "zh": "G 覆盖了全部真实众峰",
+   "exprs": [],
+   "tags": [],
+   "src": "G covers all real modes"
+  },
+  "Currently: mode collapse": {
+   "zh": "当前：模式崩塌",
+   "exprs": [],
+   "tags": [],
+   "src": "Currently: mode collapse"
+  },
+  "Currently: healthy trajectory": {
+   "zh": "当前：健康轨迹",
+   "exprs": [],
+   "tags": [],
+   "src": "Currently: healthy trajectory"
+  }
+ }
+}

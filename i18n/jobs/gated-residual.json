@@ -1,0 +1,277 @@
+{
+ "slug": "gated-residual",
+ "units": {
+  "A Gated Residual Block": {
+   "zh": "门控残差块",
+   "src": "A Gated Residual Block",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "This is the repeating unit inside WaveNet and modern Temporal Convolutional\n      Networks. One dilated causal convolution feeds @@T0@@two@@T1@@ branches &mdash; a\n      $\\tanh$ that proposes content and a $\\sigma$ that decides how much of it passes.\n      Their product is reshaped, then a @@T2@@skip@@T3@@ copy peels off while a\n      @@T4@@residual@@T5@@ copy adds back to the input. Step through it one stage\n      at a time and turn the gate knob to watch the valve open and close.": {
+   "zh": "这是 WaveNet 与现代时间卷积网络内部重复出现的单元。一次膨胀因果卷积馈入@@T0@@两条@@T1@@分支——一条 $\\tanh$ 提出内容，一条 $\\sigma$ 决定其中有多少可以通过。二者之积经过重塑，随后一份@@T2@@跳跃@@T3@@副本被剥离，而一份@@T4@@残差@@T5@@副本则加回输入。逐阶段地步进遍历它，并转动门控旋钮，观察阀门如何开启与闭合。",
+   "src": "This is the repeating unit inside WaveNet and modern Temporal Convolutional\n      Networks. One dilated causal convolution feeds <em>two</em> branches &mdash; a\n      $\\tanh$ that proposes content and a $\\sigma$ that decides how much of it passes.\n      Their product is reshaped, then a <strong>skip</strong> copy peels off while a\n      <strong>residual</strong> copy adds back to the input. Step through it one stage\n      at a time and turn the gate knob to watch the valve open and close.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@~9 min@@T1@@\n      @@T2@@Deep Learning &middot; Sequence Models &middot; TCN / WaveNet@@T3@@": {
+   "zh": "@@T0@@约 9 分钟@@T1@@\n      @@T2@@深度学习 &middot; 序列模型 &middot; TCN / WaveNet@@T3@@",
+   "src": "<span>~9 min</span>\n      <span>Deep Learning &middot; Sequence Models &middot; TCN / WaveNet</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Two branches, one product": {
+   "zh": "两条分支，一个乘积",
+   "src": "Two branches, one product",
+   "tags": []
+  },
+  "A plain convolution outputs a single pre-activation and squashes it. A\n      @@T0@@gated@@T1@@ block instead computes two projections of the same input and\n      lets one modulate the other. The $\\tanh$ branch proposes a signed value in\n      $(-1, 1)$ &mdash; the @@T2@@content@@T3@@. The $\\sigma$ branch produces a number\n      in $(0, 1)$ &mdash; a per-channel @@T4@@gate@@T5@@, or valve. Multiply them:": {
+   "zh": "普通卷积输出单个预激活值并将其压缩。而@@T0@@门控@@T1@@块则对同一输入计算两种投影，并让其中一种去调制另一种。$\\tanh$ 分支提出一个位于 $(-1, 1)$ 内的带符号数值——即@@T2@@内容@@T3@@。$\\sigma$ 分支产生一个位于 $(0, 1)$ 内的数值——即逐通道的@@T4@@门@@T5@@，或称阀门。将二者相乘：",
+   "src": "A plain convolution outputs a single pre-activation and squashes it. A\n      <em>gated</em> block instead computes two projections of the same input and\n      lets one modulate the other. The $\\tanh$ branch proposes a signed value in\n      $(-1, 1)$ &mdash; the <em>content</em>. The $\\sigma$ branch produces a number\n      in $(0, 1)$ &mdash; a per-channel <em>gate</em>, or valve. Multiply them:",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Where the gate is near $0$ the channel is shut off; near $1$ the content flows\n      through untouched. On top of this gate sit the two paths that make very deep\n      stacks trainable: a @@T0@@skip@@T1@@ connection that routes each block's\n      output straight to the final head, and a @@T2@@residual@@T3@@ connection\n      that adds the block's output back onto its input so gradients have a short,\n      unobstructed route home.": {
+   "zh": "当门接近 $0$ 时该通道被关闭；接近 $1$ 时内容畅通无阻地流过。在门之上还架着两条路径，正是它们使极深的堆叠得以训练：一条@@T0@@跳跃@@T1@@连接，将每个块的输出径直送往最终头部；以及一条@@T2@@残差@@T3@@连接，将块的输出加回其输入，从而让梯度拥有一条简短而无阻碍的归途。",
+   "src": "Where the gate is near $0$ the channel is shut off; near $1$ the content flows\n      through untouched. On top of this gate sit the two paths that make very deep\n      stacks trainable: a <strong>skip</strong> connection that routes each block's\n      output straight to the final head, and a <strong>residual</strong> connection\n      that adds the block's output back onto its input so gradients have a short,\n      unobstructed route home.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The Lab": {
+   "zh": "实验区",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Step through one block": {
+   "zh": "逐步遍历一个块",
+   "src": "Step through one block",
+   "tags": []
+  },
+  "Press @@T0@@Step@@T1@@ to reveal the dataflow one stage at a time, from the\n      input $x$ all the way to the residual add that feeds the next block. Each box\n      shows a $4$-channel activation as signed bars. Then drag the @@T2@@gate bias@@T3@@\n      &mdash; it slides the $\\sigma$ branch toward shut ($0$) or open ($1$) and you\n      can watch the product $z$ shrink or grow, channel by channel.": {
+   "zh": "按下 @@T0@@步进@@T1@@ 以逐阶段地展示数据流，从输入 $x$ 一路直到馈入下一个块的残差相加。每个方框以一个 $4$ 通道的激活值以带符号柱形显示。随后拖动 @@T2@@门控偏置@@T3@@——它将 $\\sigma$ 分支滑向闭合（$0$）或开启（$1$），你便能逐通道地观察乘积 $z$ 如何收缩或增长。",
+   "src": "Press <strong>Step</strong> to reveal the dataflow one stage at a time, from the\n      input $x$ all the way to the residual add that feeds the next block. Each box\n      shows a $4$-channel activation as signed bars. Then drag the <em>gate bias</em>\n      &mdash; it slides the $\\sigma$ branch toward shut ($0$) or open ($1$) and you\n      can watch the product $z$ shrink or grow, channel by channel.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step &rarr;": {
+   "zh": "步进 &rarr;",
+   "src": "Step &rarr;",
+   "tags": []
+  },
+  "&larr; Back": {
+   "zh": "&larr; 上一步",
+   "src": "&larr; Back",
+   "tags": []
+  },
+  "Reset": {
+   "zh": "重置",
+   "src": "Reset",
+   "tags": []
+  },
+  "Auto-play": {
+   "zh": "自动播放",
+   "src": "Auto-play",
+   "tags": []
+  },
+  "Gate bias (shifts $\\sigma$ branch) @@T0@@$b$ = @@T1@@0.0@@T2@@@@T3@@": {
+   "zh": "门控偏置（移动 $\\sigma$ 分支）@@T0@@$b$ = @@T1@@0.0@@T2@@@@T3@@",
+   "src": "Gate bias (shifts $\\sigma$ branch) <span>$b$ = <span id=\"biasVal\">0.0</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"biasVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "One gated residual block. Content ($\\tanh$) is modulated by the gate ($\\sigma$); the product is projected, then skips out and adds back.": {
+   "zh": "一个门控残差块。内容（$\\tanh$）被门（$\\sigma$）所调制；乘积经过投影，随后跳跃输出并加回。",
+   "src": "One gated residual block. Content ($\\tanh$) is modulated by the gate ($\\sigma$); the product is projected, then skips out and adds back.",
+   "tags": []
+  },
+  "@@T0@@@@T1@@@@T2@@ content&nbsp;tanh@@T3@@\n      @@T4@@@@T5@@@@T6@@ gate&nbsp;σ@@T7@@\n      @@T8@@@@T9@@@@T10@@ product&nbsp;z@@T11@@\n      @@T12@@@@T13@@@@T14@@ 1×1&nbsp;output@@T15@@": {
+   "zh": "@@T0@@@@T1@@@@T2@@ 内容&nbsp;tanh@@T3@@\n      @@T4@@@@T5@@@@T6@@ 门&nbsp;σ@@T7@@\n      @@T8@@@@T9@@@@T10@@ 乘积&nbsp;z@@T11@@\n      @@T12@@@@T13@@@@T14@@ 1×1&nbsp;输出@@T15@@",
+   "src": "<span><span class=\"legend-swatch\" style=\"background:#2c6fb7\"></span> content&nbsp;tanh</span>\n      <span><span class=\"legend-swatch\" style=\"background:#1e7770\"></span> gate&nbsp;σ</span>\n      <span><span class=\"legend-swatch\" style=\"background:#d9622b\"></span> product&nbsp;z</span>\n      <span><span class=\"legend-swatch\" style=\"background:#7a5ea8\"></span> 1×1&nbsp;output</span>",
+   "tags": [
+    "<span>",
+    "<span class=\"legend-swatch\" style=\"background:#2c6fb7\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"legend-swatch\" style=\"background:#1e7770\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"legend-swatch\" style=\"background:#d9622b\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"legend-swatch\" style=\"background:#7a5ea8\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Stage 0 / 7.@@T1@@ The input activation $x$ enters the block. Press @@T2@@Step@@T3@@ to send it through the dilated causal convolution.": {
+   "zh": "@@T0@@阶段 0 / 7。@@T1@@输入激活值 $x$ 进入该块。按下 @@T2@@步进@@T3@@ 将其送入膨胀因果卷积。",
+   "src": "<strong>Stage 0 / 7.</strong> The input activation $x$ enters the block. Press <em>Step</em> to send it through the dilated causal convolution.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Stage@@T1@@\n        @@T2@@0 / 7@@T3@@": {
+   "zh": "@@T0@@阶段@@T1@@\n        @@T2@@0 / 7@@T3@@",
+   "src": "<span class=\"stat-label\">Stage</span>\n        <span class=\"stat-value\" id=\"stageVal\">0 / 7</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"stageVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Mean gate $\\bar\\sigma$@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@平均门值 $\\bar\\sigma$@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Mean gate $\\bar\\sigma$</span>\n        <span class=\"stat-value\" id=\"gateVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"gateVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Signal let through@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@放行的信号@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Signal let through</span>\n        <span class=\"stat-value\" id=\"passVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"passVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Drive the gate to its extremes.@@T1@@ Slide the bias to $-4$: every\n      $\\sigma$ collapses toward $0$, the product $z$ flatlines, and almost nothing\n      reaches the output &mdash; yet the @@T2@@residual@@T3@@ path still carries $x$\n      forward untouched, so the block degrades gracefully to a no-op. Slide it to\n      $+4$: the valves open, and the full content passes. The gate is a learned,\n      per-channel volume knob.": {
+   "zh": "@@T0@@将门推向其极值。@@T1@@将偏置滑至 $-4$：每个 $\\sigma$ 都坍缩向 $0$，乘积 $z$ 变得平坦，几乎没有任何东西到达输出——然而@@T2@@残差@@T3@@路径仍原封不动地将 $x$ 向前携带，因此该块优雅地退化为一个空操作。将其滑至 $+4$：阀门开启，完整的内容得以通过。门是一个可学习的、逐通道的音量旋钮。",
+   "src": "<strong>Drive the gate to its extremes.</strong> Slide the bias to $-4$: every\n      $\\sigma$ collapses toward $0$, the product $z$ flatlines, and almost nothing\n      reaches the output &mdash; yet the <em>residual</em> path still carries $x$\n      forward untouched, so the block degrades gracefully to a no-op. Slide it to\n      $+4$: the valves open, and the full content passes. The gate is a learned,\n      per-channel volume knob.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "收获",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Why gate, skip, and residual all earn their place": {
+   "zh": "门控、跳跃与残差为何都当之无愧",
+   "src": "Why gate, skip, and residual all earn their place",
+   "tags": []
+  },
+  "@@T0@@The gate@@T1@@ gives the network a multiplicative, data-dependent switch. Additive activations like ReLU can only push; a $\\sigma$ valve can also @@T2@@hold back@@T3@@, which is what lets these models be selective about long-range context.": {
+   "zh": "@@T0@@门@@T1@@为网络提供了一个乘性的、依赖于数据的开关。诸如 ReLU 之类的加性激活只能推动；而 $\\sigma$ 阀门还能@@T2@@抑制@@T3@@，正是这一点使这些模型能够对长程上下文有所取舍。",
+   "src": "<strong>The gate</strong> gives the network a multiplicative, data-dependent switch. Additive activations like ReLU can only push; a $\\sigma$ valve can also <em>hold back</em>, which is what lets these models be selective about long-range context.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@The skip path@@T1@@ collects a contribution from every block and sums them at the output head, so even shallow-depth features reach the prediction without being overwritten.": {
+   "zh": "@@T0@@跳跃路径@@T1@@从每个块收集一份贡献，并在输出头部将它们求和，因此即便是浅层的特征也能抵达预测而不被覆写。",
+   "src": "<strong>The skip path</strong> collects a contribution from every block and sums them at the output head, so even shallow-depth features reach the prediction without being overwritten.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@The residual path@@T1@@ makes each block compute a @@T2@@correction@@T3@@ $x \\leftarrow x + f(x)$ rather than a full replacement. Gradients flow back through the identity term unattenuated &mdash; the same trick that lets ResNets and Transformers stack dozens of layers.": {
+   "zh": "@@T0@@残差路径@@T1@@使每个块计算的是一个@@T2@@修正量@@T3@@ $x \\leftarrow x + f(x)$，而非一次彻底的替换。梯度经由恒等项回传而不衰减——这正是使 ResNet 与 Transformer 能够堆叠数十层的同一技巧。",
+   "src": "<strong>The residual path</strong> makes each block compute a <em>correction</em> $x \\leftarrow x + f(x)$ rather than a full replacement. Gradients flow back through the identity term unattenuated &mdash; the same trick that lets ResNets and Transformers stack dozens of layers.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Stack them.@@T1@@ WaveNet chains dozens of these blocks with dilations\n      cycling $1, 2, 4, \\dots, 512$. Each block is cheap, the residual keeps\n      optimisation stable, the skips aggregate multi-scale evidence, and the gates\n      decide, at every layer, which channels of the past deserve to speak.": {
+   "zh": "@@T0@@将它们堆叠起来。@@T1@@WaveNet 以循环的膨胀率 $1, 2, 4, \\dots, 512$ 将数十个这样的块串联起来。每个块代价低廉，残差使优化保持稳定，跳跃路径汇总多尺度的证据，而门则在每一层决定过去的哪些通道有资格发声。",
+   "src": "<strong>Stack them.</strong> WaveNet chains dozens of these blocks with dilations\n      cycling $1, 2, 4, \\dots, 512$. Each block is cheap, the residual keeps\n      optimisation stable, the skips aggregate multi-scale evidence, and the gates\n      decide, at every layer, which channels of the past deserve to speak.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 14: Convolutional Sequence Models": {
+   "zh": "ES 667 深度学习讲解系列之一 &middot; 第 14 讲：卷积序列模型",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 14: Convolutional Sequence Models",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "门控残差块",
+  "tagline": "逐步遍历 WaveNet/TCN 的这一单元：tanh 提出内容，sigmoid 加以门控，跳跃与残差路径使深层堆叠得以训练",
+  "summary": "按下步进，逐阶段揭示一个门控残差块：输入 x 经过膨胀因果卷积，分为 tanh 内容分支与 sigmoid 门控分支，二者相乘得到 z = tanh(W_f*x) o sigma(W_g*x)，经过一个 1x1 卷积，随后剥离一份跳跃副本并将一份残差副本加回 x。门控偏置旋钮可开启与关闭阀门，让你观察乘积 z 的增长与收缩。这是 WaveNet 与时间卷积网络背后的重复单元。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "一次一个阶段地遍历单个块：卷积、tanh 内容、sigmoid 门控、乘积、1x1 卷积、跳跃、残差相加。",
+   "观察门控激活 z = tanh(W_f*x) o sigma(W_g*x) 如何作为内容与门的逐元素乘积而形成。",
+   "转动门控偏置旋钮，看 sigmoid 阀门开启与关闭，对乘积 z 的每个通道进行缩放。",
+   "看跳跃路径剥离至输出头部，而残差路径加回 x，从而使深层堆叠保持可训练。",
+   "将门推向零，观察该块如何优雅地退化为空操作，而残差原封不动地携带 x 通过。"
+  ],
+  "tags": [
+   "门控激活",
+   "残差",
+   "WaveNet",
+   "TCN",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

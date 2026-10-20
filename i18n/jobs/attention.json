@@ -1,0 +1,1486 @@
+{
+ "slug": "attention",
+ "units": {
+  "Attention, Calculated": {
+   "zh": "注意力机制的精算",
+   "src": "Attention, Calculated",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "Pick an ambiguous word, drag its Query vector, and watch a Transformer\n          figure out which neighbors to listen to&mdash;with every dot product,\n          softmax weight, and value blend computed live as you move the arrows.": {
+   "zh": "选定一个歧义词，拖动其 Query 向量，观察 Transformer\n          如何判断该倾听哪些邻词&mdash;&mdash;随着箭头移动，每个点积、\n          softmax 权重与 value 混合都实时计算。",
+   "src": "Pick an ambiguous word, drag its Query vector, and watch a Transformer\n          figure out which neighbors to listen to&mdash;with every dot product,\n          softmax weight, and value blend computed live as you move the arrows.",
+   "tags": []
+  },
+  "@@T0@@~15 min@@T1@@\n          @@T2@@Deep Learning &middot; Transformers &middot; Attention@@T3@@": {
+   "zh": "@@T0@@约 15 分钟@@T1@@\n          @@T2@@深度学习 &middot; Transformer &middot; 注意力机制@@T3@@",
+   "src": "<span>~15 min</span>\n          <span>Deep Learning &middot; Transformers &middot; Attention</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "The ambiguity problem": {
+   "zh": "歧义问题",
+   "src": "The ambiguity problem",
+   "tags": []
+  },
+  "A word in isolation is almost meaningless. Consider the word\n          @@T0@@bank@@T1@@. Is it a @@T2@@river bank@@T3@@ or a\n          @@T4@@money bank@@T5@@? The word alone can't tell you&mdash;you have to\n          look at its neighbors.": {
+   "zh": "孤立的词几乎没有意义。以 @@T0@@bank@@T1@@ 为例。它指的是\n          @@T2@@河岸@@T3@@，还是\n          @@T4@@银行@@T5@@？单看这个词无法判断&mdash;&mdash;你必须\n          考察它的邻词。",
+   "src": "A word in isolation is almost meaningless. Consider the word\n          <strong>bank</strong>. Is it a <em>river bank</em> or a\n          <em>money bank</em>? The word alone can't tell you&mdash;you have to\n          look at its neighbors.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Self-attention is how Transformers let each word @@T0@@ask around@@T1@@.\n          Every word in a sentence says to every other word: \"Hey, how much\n          should I care about you?\" The answer comes back as a single number\n          between 0 and 1. Then each word rebuilds itself as a weighted mix of\n          its neighbors' meanings.": {
+   "zh": "自注意力机制正是 Transformer 让每个词 @@T0@@向周围询问@@T1@@ 的方式。\n          句子中的每个词都向其余所有词发问：“我应当\n          在多大程度上关注你？”答案以一个介于 0 与 1 之间的数值返回。\n          随后每个词以邻词含义的加权混合来重建自身。",
+   "src": "Self-attention is how Transformers let each word <em>ask around</em>.\n          Every word in a sentence says to every other word: \"Hey, how much\n          should I care about you?\" The answer comes back as a single number\n          between 0 and 1. Then each word rebuilds itself as a weighted mix of\n          its neighbors' meanings.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "This page makes all of that explicit. By the end you'll have pushed\n          raw scores through a softmax, watched a blended value vector form,\n          and built the intuition for why Transformers beat every prior\n          architecture at disambiguation.": {
+   "zh": "本页将上述过程全部显式展开。读到最后，你将亲手把\n          原始分数送入 softmax，观察混合 value 向量的形成，\n          并建立起关于 Transformer 何以在消歧任务上胜过此前\n          各类架构的直觉。",
+   "src": "This page makes all of that explicit. By the end you'll have pushed\n          raw scores through a softmax, watched a blended value vector form,\n          and built the intuition for why Transformers beat every prior\n          architecture at disambiguation.",
+   "tags": []
+  },
+  "Pick your sentence": {
+   "zh": "选择句子",
+   "src": "Pick your sentence",
+   "tags": []
+  },
+  "We'll work through a handful of classic ambiguous words. Pick one\n          and the whole page follows it:": {
+   "zh": "我们将逐一分析若干经典的歧义词。选定其中之一，\n          整页内容便随之展开：",
+   "src": "We'll work through a handful of classic ambiguous words. Pick one\n          and the whole page follows it:",
+   "tags": []
+  },
+  "\"The river bank\"": {
+   "zh": "“河岸”",
+   "src": "\"The river bank\"",
+   "tags": []
+  },
+  "\"I deposit money at the bank\"": {
+   "zh": "“我把钱存入银行”",
+   "src": "\"I deposit money at the bank\"",
+   "tags": []
+  },
+  "\"I ate an apple pie\"": {
+   "zh": "“我吃了一块苹果派”",
+   "src": "\"I ate an apple pie\"",
+   "tags": []
+  },
+  "\"Apple released a phone\"": {
+   "zh": "“苹果公司发布了一款手机”",
+   "src": "\"Apple released a phone\"",
+   "tags": []
+  },
+  "\"I caught a bass at the lake\"": {
+   "zh": "“我在湖里钓到一条鲈鱼”",
+   "src": "\"I caught a bass at the lake\"",
+   "tags": []
+  },
+  "\"The bank itself stood firm\" (self-attention)": {
+   "zh": "“河岸自身岿然不动”（自注意力机制）",
+   "src": "\"The bank itself stood firm\" (self-attention)",
+   "tags": []
+  },
+  "The focus word @@T0@@bank@@T1@@ needs to figure out whether it is\n          water-related or money-related by listening to its neighbors.": {
+   "zh": "焦点词 @@T0@@bank@@T1@@ 需要通过倾听其邻词，\n          判断其与水相关还是与金钱相关。",
+   "src": "The focus word <strong>bank</strong> needs to figure out whether it is\n          water-related or money-related by listening to its neighbors.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "Three roles for every word": {
+   "zh": "每个词承担的三种角色",
+   "src": "Three roles for every word",
+   "tags": []
+  },
+  "In a Transformer, every word is associated with three separate\n          vectors, each playing a different role:": {
+   "zh": "在 Transformer 中，每个词都关联着三个相互独立的\n          向量，各自扮演不同角色：",
+   "src": "In a Transformer, every word is associated with three separate\n          vectors, each playing a different role:",
+   "tags": []
+  },
+  "@@T0@@Query ($Q$):@@T1@@ \"What am I looking for?\" This is\n            the perspective of the word that wants to update itself.": {
+   "zh": "@@T0@@Query（$Q$）：@@T1@@“我在寻找什么？”\n            这是希望对自身进行更新的那个词的视角。",
+   "src": "<strong>Query ($Q$):</strong> \"What am I looking for?\" This is\n            the perspective of the word that wants to update itself.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Key ($K$):@@T1@@ \"What do I offer?\" Every other word\n            advertises its flavor here.": {
+   "zh": "@@T0@@Key（$K$）：@@T1@@“我能提供什么？”\n            其余每个词都在此展示自身的特征。",
+   "src": "<strong>Key ($K$):</strong> \"What do I offer?\" Every other word\n            advertises its flavor here.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Value ($V$):@@T1@@ \"If you decide to attend to me,\n            here is the actual meaning I contribute.\"": {
+   "zh": "@@T0@@Value（$V$）：@@T1@@“若你决定关注我，\n            以下便是我实际贡献的含义。”",
+   "src": "<strong>Value ($V$):</strong> \"If you decide to attend to me,\n            here is the actual meaning I contribute.\"",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Queries and keys determine @@T0@@how much@@T1@@ to attend. Values\n          determine @@T2@@what@@T3@@ gets mixed in. Keeping those two roles apart\n          is what makes attention expressive.": {
+   "zh": "Query 与 Key 决定关注的 @@T0@@程度@@T1@@。Value\n          决定 @@T2@@所混合的内容@@T3@@。将这两种角色区分开来，\n          正是注意力机制具备表达力的原因所在。",
+   "src": "Queries and keys determine <em>how much</em> to attend. Values\n          determine <em>what</em> gets mixed in. Keeping those two roles apart\n          is what makes attention expressive.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@The library analogy.@@T1@@\n          Imagine walking into a library with a question written on a sticky\n          note (your @@T2@@query@@T3@@). Every book has a spine label\n          (@@T4@@key@@T5@@) and a bunch of text inside (@@T6@@value@@T7@@). You match\n          your sticky note to the spine labels, pull out the books that fit,\n          and read their text. That's one step of attention.": {
+   "zh": "@@T0@@图书馆类比。@@T1@@\n          设想你走进一座图书馆，手里拿着一张写有问题的便笺\n          （即你的 @@T2@@query@@T3@@）。每本书都有书脊标签\n          （@@T4@@key@@T5@@），书内则有正文（@@T6@@value@@T7@@）。你将\n          便笺与书脊标签逐一比对，抽出相符的书，\n          再阅读其正文。这便是注意力机制的一步。",
+   "src": "<strong>The library analogy.</strong>\n          Imagine walking into a library with a question written on a sticky\n          note (your <em>query</em>). Every book has a spine label\n          (<em>key</em>) and a bunch of text inside (<em>value</em>). You match\n          your sticky note to the spine labels, pull out the books that fit,\n          and read their text. That's one step of attention.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Where Q, K, V actually come from": {
+   "zh": "Q、K、V 的实际来源",
+   "src": "Where Q, K, V actually come from",
+   "tags": []
+  },
+  "Step&nbsp;1 painted Q, K, V as three roles a word plays. Where do\n          those vectors physically come from? Each is a\n          @@T0@@linear projection@@T1@@ of the same input embedding\n          $x_i \\in \\mathbb{R}^{d_{\\text{model}}}$. Three matrices\n          $W_Q, W_K, W_V$ are learned once, shared across every position:": {
+   "zh": "第&nbsp;1 步将 Q、K、V 描述为一个词所扮演的三种角色。那么\n          这些向量在物理上从何而来？它们都是同一个输入嵌入\n          $x_i \\in \\mathbb{R}^{d_{\\text{model}}}$ 的\n          @@T0@@线性投影@@T1@@。三个矩阵\n          $W_Q, W_K, W_V$ 只需学习一次，并在所有位置间共享：",
+   "src": "Step&nbsp;1 painted Q, K, V as three roles a word plays. Where do\n          those vectors physically come from? Each is a\n          <strong>linear projection</strong> of the same input embedding\n          $x_i \\in \\mathbb{R}^{d_{\\text{model}}}$. Three matrices\n          $W_Q, W_K, W_V$ are learned once, shared across every position:",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Same input, three different rotations. The query rotation pulls\n          out the \"what am I looking for?\" features, the key rotation\n          pulls out the \"what do I advertise?\" features, and the value\n          rotation pulls out \"what do I deliver if attended to?\". One word\n          plays three roles because three separate matrices were trained to\n          read it three different ways.": {
+   "zh": "同一输入，三种不同的旋转。query 旋转提取出“我在寻找什么？”\n          这类特征，key 旋转提取出“我展示什么？”这类特征，\n          而 value 旋转则提取出“若被关注，我交付什么？”。一个词\n          之所以扮演三种角色，是因为有三个独立的矩阵经过训练，\n          以三种不同方式解读它。",
+   "src": "Same input, three different rotations. The query rotation pulls\n          out the \"what am I looking for?\" features, the key rotation\n          pulls out the \"what do I advertise?\" features, and the value\n          rotation pulls out \"what do I deliver if attended to?\". One word\n          plays three roles because three separate matrices were trained to\n          read it three different ways.",
+   "tags": []
+  },
+  "Worked example, real numbers": {
+   "zh": "算例：真实的数值",
+   "src": "Worked example, real numbers",
+   "tags": []
+  },
+  "Click any token to see its raw embedding $x_i$ pushed through\n          $W_Q$, $W_K$, $W_V$. We use $d_{\\text{model}}=4$ and\n          $d_k = d_v = 2$ so the matrices fit on screen &mdash; in\n          GPT-style models they're 768 or 4096, but the recipe is identical.\n          (Embeddings and projection matrices are pre-cooked here; in real\n          training they'd be learned by gradient descent &mdash; see\n          Step&nbsp;8.)": {
+   "zh": "点击任意词元，观察其原始嵌入 $x_i$ 经由\n          $W_Q$、$W_K$、$W_V$ 变换的过程。我们取 $d_{\\text{model}}=4$ 与\n          $d_k = d_v = 2$，以便矩阵能在屏幕上完整显示 &mdash; 在\n          GPT 类模型中它们为 768 或 4096，但计算方式完全相同。\n          （此处的嵌入与投影矩阵均为预先备好；在实际\n          训练中它们由梯度下降习得 &mdash; 参见\n          第&nbsp;8 步。）",
+   "src": "Click any token to see its raw embedding $x_i$ pushed through\n          $W_Q$, $W_K$, $W_V$. We use $d_{\\text{model}}=4$ and\n          $d_k = d_v = 2$ so the matrices fit on screen &mdash; in\n          GPT-style models they're 768 or 4096, but the recipe is identical.\n          (Embeddings and projection matrices are pre-cooked here; in real\n          training they'd be learned by gradient descent &mdash; see\n          Step&nbsp;8.)",
+   "tags": []
+  },
+  "Embedding $x_i$": {
+   "zh": "嵌入 $x_i$",
+   "src": "Embedding $x_i$",
+   "tags": []
+  },
+  "Pick a token to see its projection.": {
+   "zh": "选定一个词元以查看其投影。",
+   "src": "Pick a token to see its projection.",
+   "tags": []
+  },
+  "@@T0@@Why three matrices and not one?@@T1@@\n          A single rotation can express one feature view at a time. With\n          three independent matrices, the model can simultaneously make a\n          word \"ask for verbs\", \"advertise as a water-related noun\", and\n          \"deliver geography content\" &mdash; three orthogonal jobs in\n          three orthogonal subspaces.": {
+   "zh": "@@T0@@为何需要三个矩阵而非一个？@@T1@@\n          单次旋转一次只能表达一种特征视角。借助\n          三个相互独立的矩阵，模型可以同时让一个词\n          “请求动词”、“展示为与水相关的名词”，以及\n          “交付地理含义”&mdash;&mdash;三项正交的任务，\n          落在三个正交的子空间中。",
+   "src": "<strong>Why three matrices and not one?</strong>\n          A single rotation can express one feature view at a time. With\n          three independent matrices, the model can simultaneously make a\n          word \"ask for verbs\", \"advertise as a water-related noun\", and\n          \"deliver geography content\" &mdash; three orthogonal jobs in\n          three orthogonal subspaces.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Dot product = compatibility score": {
+   "zh": "点积 = 相容性得分",
+   "src": "Dot product = compatibility score",
+   "tags": []
+  },
+  "How do we measure how well a Query matches a Key? We use the\n          @@T0@@dot product@@T1@@. If the two vectors point the same way,\n          the score is large and positive. If they're perpendicular, zero. If\n          they point opposite ways, negative.": {
+   "zh": "如何度量一个 Query 与一个 Key 的匹配程度？我们使用\n          @@T0@@点积@@T1@@。若两个向量方向相同，\n          得分即为较大的正值。若彼此垂直，则为零。若\n          方向相反，则为负值。",
+   "src": "How do we measure how well a Query matches a Key? We use the\n          <strong>dot product</strong>. If the two vectors point the same way,\n          the score is large and positive. If they're perpendicular, zero. If\n          they point opposite ways, negative.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Drag the @@T0@@orange Query@@T1@@\n          arrow for the focus word, and the\n          @@T2@@blue Key@@T3@@\n          arrows for every other word. Watch the raw scores update live below.\n          Drag the query so it aligns with one specific key and you'll see\n          that word win.": {
+   "zh": "拖动焦点词的\n          @@T0@@橙色 Query@@T1@@\n          箭头，以及其余各词的\n          @@T2@@蓝色 Key@@T3@@\n          箭头。观察下方原始得分的实时更新。\n          将 query 拖至与某个特定的 key 对齐，你便能看到\n          该词胜出。",
+   "src": "Drag the <span style=\"color:var(--q-color);font-weight:bold\">orange Query</span>\n          arrow for the focus word, and the\n          <span style=\"color:var(--k-color);font-weight:bold\">blue Key</span>\n          arrows for every other word. Watch the raw scores update live below.\n          Drag the query so it aligns with one specific key and you'll see\n          that word win.",
+   "tags": [
+    "<span style=\"color:var(--q-color);font-weight:bold\">",
+    "</span>",
+    "<span style=\"color:var(--k-color);font-weight:bold\">",
+    "</span>"
+   ]
+  },
+  "2-D stand-in for the real high-dimensional Q/K space. All arrows\n            are constrained to the unit circle.": {
+   "zh": "以二维替代真实的高维 Q/K 空间。所有箭头\n            均被约束在单位圆上。",
+   "src": "2-D stand-in for the real high-dimensional Q/K space. All arrows\n            are constrained to the unit circle.",
+   "tags": []
+  },
+  "Word": {
+   "zh": "词",
+   "src": "Word",
+   "tags": []
+  },
+  "Query vector": {
+   "zh": "Query 向量",
+   "src": "Query vector",
+   "tags": []
+  },
+  "Key vector": {
+   "zh": "Key 向量",
+   "src": "Key vector",
+   "tags": []
+  },
+  "Dot product": {
+   "zh": "点积",
+   "src": "Dot product",
+   "tags": []
+  },
+  "@@T0@@Scaled dot product in real Transformers.@@T1@@\n          In production, the dot product is divided by\n          $\\sqrt{d_k}$ (where $d_k$ is the key dimension). With large\n          dimensions, raw dot products balloon and squash softmax to one-hot.\n          The scale factor keeps the gradient healthy. We ignore it in 2-D\n          because the effect is tiny.": {
+   "zh": "@@T0@@真实 Transformer 中的缩放点积。@@T1@@\n          在实际实现中，点积会除以\n          $\\sqrt{d_k}$（其中 $d_k$ 为 key 的维度）。当维度\n          很大时，原始点积会急剧膨胀，把 softmax 压成 one-hot。\n          该缩放因子使梯度保持健康。在二维情形下我们将其忽略，\n          因为影响微乎其微。",
+   "src": "<strong>Scaled dot product in real Transformers.</strong>\n          In production, the dot product is divided by\n          $\\sqrt{d_k}$ (where $d_k$ is the key dimension). With large\n          dimensions, raw dot products balloon and squash softmax to one-hot.\n          The scale factor keeps the gradient healthy. We ignore it in 2-D\n          because the effect is tiny.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Softmax turns scores into percentages": {
+   "zh": "Softmax 将得分转化为百分比",
+   "src": "Softmax turns scores into percentages",
+   "tags": []
+  },
+  "Raw dot products aren't weights&mdash;they can be negative, or\n          gigantic. We need them to behave like probabilities that sum to one.\n          @@T0@@Softmax@@T1@@ does exactly that:": {
+   "zh": "原始点积并不是权重&mdash;&mdash;它们可能为负，也可能\n          极大。我们需要让它们表现得像求和为 1 的概率。\n          @@T0@@Softmax@@T1@@ 恰好能做到这一点：",
+   "src": "Raw dot products aren't weights&mdash;they can be negative, or\n          gigantic. We need them to behave like probabilities that sum to one.\n          <strong>Softmax</strong> does exactly that:",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Exponentiating amplifies differences: a score that's just a bit\n          higher than the others rockets upward, dominating the weights. This\n          is why softmax is called \"soft\" argmax&mdash;it picks a winner, but\n          still passes non-zero signal to everyone else.": {
+   "zh": "取指数会放大差异：一个仅略高于其余项的得分\n          会急剧上升，从而在权重中占据主导。这\n          正是 softmax 被称为“软”argmax 的原因&mdash;&mdash;它选出一个赢家，\n          但仍向其余所有项传递非零信号。",
+   "src": "Exponentiating amplifies differences: a score that's just a bit\n          higher than the others rockets upward, dominating the weights. This\n          is why softmax is called \"soft\" argmax&mdash;it picks a winner, but\n          still passes non-zero signal to everyone else.",
+   "tags": []
+  },
+  "Step-by-step calculation (live)": {
+   "zh": "逐步计算（实时）",
+   "src": "Step-by-step calculation (live)",
+   "tags": []
+  },
+  "Here's the full pipeline applied to your current dragged arrangement.\n          Every number comes from the canvas above:": {
+   "zh": "以下是将完整流程应用于你当前拖拽所得布局的结果。\n          每个数值都来自上方画布：",
+   "src": "Here's the full pipeline applied to your current dragged arrangement.\n          Every number comes from the canvas above:",
+   "tags": []
+  },
+  "Raw score": {
+   "zh": "原始得分",
+   "src": "Raw score",
+   "tags": []
+  },
+  "exp(score)": {
+   "zh": "exp(score)",
+   "src": "exp(score)",
+   "tags": []
+  },
+  "Weight (softmax)": {
+   "zh": "权重（softmax）",
+   "src": "Weight (softmax)",
+   "tags": []
+  },
+  "@@T0@@Notice the winner-take-most behavior.@@T1@@\n          Make one of your dot products visibly larger than the rest. You'll\n          see its softmax weight jump above 80% while the others shrink to\n          single digits. Now nudge another key vector toward the query&mdash;\n          the new word steals a huge chunk of attention even for a tiny tilt.\n          Small changes in scores mean large changes in weights.": {
+   "zh": "@@T0@@注意这种赢家通吃的现象。@@T1@@\n          使你某个点积明显大于其余各项。你将\n          看到其 softmax 权重跃升至 80% 以上，而其余各项降至\n          个位数。此时再将另一个 key 向量微微拨向 query&mdash;&mdash;\n          即使仅倾斜极小的角度，新词也会夺走一大块注意力。\n          得分的微小变化意味着权重的巨大变化。",
+   "src": "<strong>Notice the winner-take-most behavior.</strong>\n          Make one of your dot products visibly larger than the rest. You'll\n          see its softmax weight jump above 80% while the others shrink to\n          single digits. Now nudge another key vector toward the query&mdash;\n          the new word steals a huge chunk of attention even for a tiny tilt.\n          Small changes in scores mean large changes in weights.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "Blend the values into a new meaning": {
+   "zh": "将各 value 混合为新的含义",
+   "src": "Blend the values into a new meaning",
+   "tags": []
+  },
+  "Now the payoff. The focus word rebuilds its meaning as a weighted sum\n          of the @@T0@@Value@@T1@@ vectors, with the softmax weights we\n          just computed:": {
+   "zh": "现在到了兑现的时刻。焦点词以各 @@T0@@Value@@T1@@ 向量的\n          加权和重建自身含义，所用权重正是我们\n          刚刚算出的 softmax 权重：",
+   "src": "Now the payoff. The focus word rebuilds its meaning as a weighted sum\n          of the <strong>Value</strong> vectors, with the softmax weights we\n          just computed:",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Below, the @@T0@@teal\n          arrows@@T1@@ are the value vectors for every word (drag them to\n          simulate different \"meanings\"). The dashed\n          @@T2@@orange arrow@@T3@@\n          is $V_{\\text{final}}$&mdash;the new contextual meaning for the focus\n          word. Watch it slide toward whichever value has the highest attention\n          weight.": {
+   "zh": "下方@@T0@@青色\n          箭头@@T1@@ 是每个词的 value 向量（可拖动它们以\n          模拟不同的“含义”）。虚线\n          @@T2@@橙色箭头@@T3@@\n          为 $V_{\\text{final}}$&mdash;&mdash;即焦点词的新上下文含义。\n          观察它滑向注意力权重最高的那个 value。",
+   "src": "Below, the <span style=\"color:var(--v-color);font-weight:bold\">teal\n          arrows</span> are the value vectors for every word (drag them to\n          simulate different \"meanings\"). The dashed\n          <span style=\"color:var(--warm);font-weight:bold\">orange arrow</span>\n          is $V_{\\text{final}}$&mdash;the new contextual meaning for the focus\n          word. Watch it slide toward whichever value has the highest attention\n          weight.",
+   "tags": [
+    "<span style=\"color:var(--v-color);font-weight:bold\">",
+    "</span>",
+    "<span style=\"color:var(--warm);font-weight:bold\">",
+    "</span>"
+   ]
+  },
+  "Blend of value vectors by the current attention weights. Dashed\n            orange: the output $V_{\\text{final}}$.": {
+   "zh": "按当前注意力权重对各 value 向量所作的混合。虚线\n            橙色箭头：输出 $V_{\\text{final}}$。",
+   "src": "Blend of value vectors by the current attention weights. Dashed\n            orange: the output $V_{\\text{final}}$.",
+   "tags": []
+  },
+  "@@T0@@Why keys and values are kept separate.@@T1@@\n          At first glance you might ask: why not use the value as both the key\n          @@T2@@and@@T3@@ the thing to be averaged? Because then you couldn't\n          express \"attend to the word @@T4@@river@@T5@@ because it's a water\n          cue, but grab its broader @@T6@@geography@@T7@@ meaning, not the raw\n          token.\" Keys ask \"does this match?\"; values answer \"here's what to\n          contribute if I do.\"": {
+   "zh": "@@T0@@为何要将 key 与 value 分开。@@T1@@\n          乍看之下你可能会问：为何不让 value 同时充当 key\n          @@T2@@以及@@T3@@ 被平均的对象？因为那样就无法\n          表达“关注 @@T4@@river@@T5@@ 这个词，因为它是一个水的\n          线索，但取用它更宽泛的 @@T6@@地理@@T7@@ 含义，而非原始\n          词元。”Key 询问“是否匹配？”；value 回答\n          “若匹配，我便贡献这些。”",
+   "src": "<strong>Why keys and values are kept separate.</strong>\n          At first glance you might ask: why not use the value as both the key\n          <em>and</em> the thing to be averaged? Because then you couldn't\n          express \"attend to the word <em>river</em> because it's a water\n          cue, but grab its broader <em>geography</em> meaning, not the raw\n          token.\" Keys ask \"does this match?\"; values answer \"here's what to\n          contribute if I do.\"",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "All at once &mdash; the matrix view": {
+   "zh": "一次完成 &mdash; 矩阵视角",
+   "src": "All at once &mdash; the matrix view",
+   "tags": []
+  },
+  "Real Transformers don't loop over tokens one at a time. They\n          stack all $N$ queries into a matrix $Q$, all $N$ keys into $K$,\n          all $N$ values into $V$, and produce the entire layer output in\n          a single matrix multiplication:": {
+   "zh": "真实的 Transformer 并不逐个遍历词元。它们\n          将全部 $N$ 个 query 堆叠为矩阵 $Q$，全部 $N$ 个 key 堆叠为 $K$，\n          全部 $N$ 个 value 堆叠为 $V$，并通过\n          一次矩阵乘法得出整层的输出：",
+   "src": "Real Transformers don't loop over tokens one at a time. They\n          stack all $N$ queries into a matrix $Q$, all $N$ keys into $K$,\n          all $N$ values into $V$, and produce the entire layer output in\n          a single matrix multiplication:",
+   "tags": []
+  },
+  "Here's that exact computation, run live on your current\n          sentence. The score matrix $S$ is the table of every query\n          against every key. Apply softmax to each row and you get the\n          attention weight matrix $A$. Multiply by $V$ and you get the\n          new embeddings $Y$ &mdash; one new vector per token, all in one\n          matmul.": {
+   "zh": "以下即为该计算的精确执行，实时作用于你当前\n          的句子。得分矩阵 $S$ 是每个 query\n          对每个 key 的表格。对每一行施加 softmax，便得到\n          注意力权重矩阵 $A$。再与 $V$ 相乘，即得\n          新的嵌入 $Y$ &mdash; 每个词元一个向量，全部在一次\n          矩阵乘法中完成。",
+   "src": "Here's that exact computation, run live on your current\n          sentence. The score matrix $S$ is the table of every query\n          against every key. Apply softmax to each row and you get the\n          attention weight matrix $A$. Multiply by $V$ and you get the\n          new embeddings $Y$ &mdash; one new vector per token, all in one\n          matmul.",
+   "tags": []
+  },
+  "Score $S = QK^\\top / \\sqrt{d_k}$": {
+   "zh": "得分 $S = QK^\\top / \\sqrt{d_k}$",
+   "src": "Score $S = QK^\\top / \\sqrt{d_k}$",
+   "tags": []
+  },
+  "softmax@@T0@@(row-wise)": {
+   "zh": "softmax@@T0@@（按行）",
+   "src": "softmax<br>(row-wise)",
+   "tags": [
+    "<br>"
+   ]
+  },
+  "Weights $A = \\mathrm{softmax}(S)$": {
+   "zh": "权重 $A = \\mathrm{softmax}(S)$",
+   "src": "Weights $A = \\mathrm{softmax}(S)$",
+   "tags": []
+  },
+  "Output $Y = AV$": {
+   "zh": "输出 $Y = AV$",
+   "src": "Output $Y = AV$",
+   "tags": []
+  },
+  "@@T0@@Inspect row:@@T1@@\n          @@T2@@@@T3@@\n          @@T4@@Pick a row to see one token's outgoing attention.@@T5@@": {
+   "zh": "@@T0@@查看行：@@T1@@\n          @@T2@@@@T3@@\n          @@T4@@选定一行以查看某个词元向外分配的注意力。@@T5@@",
+   "src": "<span>Inspect row:</span>\n          <span class=\"matrix-row-buttons\" id=\"matrix-row-buttons\"></span>\n          <span class=\"matrix-row-explain\" id=\"matrix-row-explain\">Pick a row to see one token's outgoing attention.</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span class=\"matrix-row-buttons\" id=\"matrix-row-buttons\">",
+    "</span>",
+    "<span class=\"matrix-row-explain\" id=\"matrix-row-explain\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Read it like a table.@@T1@@\n          Row $i$ of $A$ is \"how token $i$ distributes its attention\". It\n          must sum to 1 across the row. Column $j$ tells the opposite story:\n          \"who is paying attention to token $j$?\". The diagonal $A_{ii}$\n          is self-attention &mdash; how much each token listens to itself.": {
+   "zh": "@@T0@@将其当作表格来读。@@T1@@\n          $A$ 的第 $i$ 行是“词元 $i$ 如何分配其注意力”。\n          该行各项之和必为 1。第 $j$ 列则讲述相反的故事：\n          “谁在关注词元 $j$？”。对角线上的 $A_{ii}$\n          即自注意力 &mdash; 每个词元倾听自身的程度。",
+   "src": "<strong>Read it like a table.</strong>\n          Row $i$ of $A$ is \"how token $i$ distributes its attention\". It\n          must sum to 1 across the row. Column $j$ tells the opposite story:\n          \"who is paying attention to token $j$?\". The diagonal $A_{ii}$\n          is self-attention &mdash; how much each token listens to itself.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 7": {
+   "zh": "第 7 步",
+   "src": "Step 7",
+   "tags": []
+  },
+  "Three knobs that shape every Transformer": {
+   "zh": "塑造每个 Transformer 的三个旋钮",
+   "src": "Three knobs that shape every Transformer",
+   "tags": []
+  },
+  "The clean formula above hides three design choices that decide\n          whether the layer is useful or broken. Here they are with quick\n          interactives.": {
+   "zh": "上面简洁的公式掩盖了三个设计选择，它们决定\n          该层是有用还是失效。下面将逐一展示，并配以简短的\n          交互演示。",
+   "src": "The clean formula above hides three design choices that decide\n          whether the layer is useful or broken. Here they are with quick\n          interactives.",
+   "tags": []
+  },
+  "Knob 1 &mdash; Why divide by $\\sqrt{d_k}$?": {
+   "zh": "旋钮 1 &mdash; 为何要除以 $\\sqrt{d_k}$？",
+   "src": "Knob 1 &mdash; Why divide by $\\sqrt{d_k}$?",
+   "tags": []
+  },
+  "Dot products of two random $d_k$-dimensional vectors have\n          variance $d_k$. As $d_k$ grows, raw scores get huge, softmax\n          sharpens to one-hot, and gradients vanish. Dividing by\n          $\\sqrt{d_k}$ keeps the variance at 1 regardless of width.": {
+   "zh": "两个随机 $d_k$ 维向量的点积\n          方差为 $d_k$。随着 $d_k$ 增大，原始得分变得极大，softmax\n          变得尖锐而趋于 one-hot，梯度随之消失。除以\n          $\\sqrt{d_k}$ 可使方差保持在 1，与宽度无关。",
+   "src": "Dot products of two random $d_k$-dimensional vectors have\n          variance $d_k$. As $d_k$ grows, raw scores get huge, softmax\n          sharpens to one-hot, and gradients vanish. Dividing by\n          $\\sqrt{d_k}$ keeps the variance at 1 regardless of width.",
+   "tags": []
+  },
+  "@@T0@@divide by $\\sqrt{d_k}$@@T1@@": {
+   "zh": "@@T0@@除以 $\\sqrt{d_k}$@@T1@@",
+   "src": "<span>divide by $\\sqrt{d_k}$</span>",
+   "tags": [
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Sample of softmax weights for one query against 8 random keys": {
+   "zh": "一个 query 对 8 个随机 key 的 softmax 权重样本",
+   "src": "Sample of softmax weights for one query against 8 random keys",
+   "tags": []
+  },
+  "Histogram of max-weight across many random queries": {
+   "zh": "大量随机 query 下最大权重的直方图",
+   "src": "Histogram of max-weight across many random queries",
+   "tags": []
+  },
+  "Knob 2 &mdash; Causal masking": {
+   "zh": "旋钮 2 &mdash; 因果掩码",
+   "src": "Knob 2 &mdash; Causal masking",
+   "tags": []
+  },
+  "For a language model, the word at position $t$ must not peek at\n          positions $t+1, t+2, \\dots$ &mdash; or training would just teach\n          it to copy the next token. We zero out those entries\n          @@T0@@before@@T1@@ the softmax by adding $-\\infty$ to the upper\n          triangle. After softmax, the future is exactly 0.": {
+   "zh": "对于语言模型，位置 $t$ 处的词不得窥视\n          位置 $t+1, t+2, \\dots$ &mdash; 否则训练只会教它\n          复制下一个词元。我们在 softmax @@T0@@之前@@T1@@ 将这些元素\n          置零，方法是给上三角区域加上 $-\\infty$。\n          经 softmax 后，未来的权重恰为 0。",
+   "src": "For a language model, the word at position $t$ must not peek at\n          positions $t+1, t+2, \\dots$ &mdash; or training would just teach\n          it to copy the next token. We zero out those entries\n          <em>before</em> the softmax by adding $-\\infty$ to the upper\n          triangle. After softmax, the future is exactly 0.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Unmasked weights $A$": {
+   "zh": "未掩码的权重 $A$",
+   "src": "Unmasked weights $A$",
+   "tags": []
+  },
+  "+ mask": {
+   "zh": "+ 掩码",
+   "src": "+ mask",
+   "tags": []
+  },
+  "Causal $A_{\\text{causal}}$": {
+   "zh": "因果 $A_{\\text{causal}}$",
+   "src": "Causal $A_{\\text{causal}}$",
+   "tags": []
+  },
+  "Each row's surviving weights are renormalised by the softmax,\n          so an early token only sees itself, the next sees itself plus\n          one predecessor, and so on. This single trick is what makes\n          GPT-style models autoregressive.": {
+   "zh": "每行中保留下来的权重会经由 softmax 重新归一化，\n          因此靠前的词元只能看到自身，下一个词元看到自身及其\n          前一个词元，依此类推。正是这一技巧使\n          GPT 类模型具备自回归性质。",
+   "src": "Each row's surviving weights are renormalised by the softmax,\n          so an early token only sees itself, the next sees itself plus\n          one predecessor, and so on. This single trick is what makes\n          GPT-style models autoregressive.",
+   "tags": []
+  },
+  "Knob 3 &mdash; Multiple heads": {
+   "zh": "旋钮 3 &mdash; 多头",
+   "src": "Knob 3 &mdash; Multiple heads",
+   "tags": []
+  },
+  "One attention map can only express one relation at a time.\n          Real Transformers run $h$ heads in parallel &mdash; each with\n          its own $W_Q^{(h)}, W_K^{(h)}, W_V^{(h)}$ &mdash; then\n          concatenate their outputs. Different heads learn to specialise\n          (syntax, coreference, positional adjacency, topic).": {
+   "zh": "一张注意力图一次只能表达一种关系。\n          真实的 Transformer 并行运行 $h$ 个头 &mdash; 每个头都有\n          各自的 $W_Q^{(h)}, W_K^{(h)}, W_V^{(h)}$ &mdash; 随后\n          将其输出拼接。不同的头学会各自专精\n          （句法、指代、位置邻接、主题）。",
+   "src": "One attention map can only express one relation at a time.\n          Real Transformers run $h$ heads in parallel &mdash; each with\n          its own $W_Q^{(h)}, W_K^{(h)}, W_V^{(h)}$ &mdash; then\n          concatenate their outputs. Different heads learn to specialise\n          (syntax, coreference, positional adjacency, topic).",
+   "tags": []
+  },
+  "Each head sees the same input but uses a different rotation of\n          it (we simulate that here with four hand-picked rotations).\n          Real heads are learned, but the visual story is the same: they\n          notice different things.": {
+   "zh": "每个头看到的输入相同，但使用的旋转不同\n          （此处我们以四个手动选取的旋转来模拟）。\n          真实的多头是习得的，但其直观效果一致：它们\n          关注到不同的事物。",
+   "src": "Each head sees the same input but uses a different rotation of\n          it (we simulate that here with four hand-picked rotations).\n          Real heads are learned, but the visual story is the same: they\n          notice different things.",
+   "tags": []
+  },
+  "Step 8": {
+   "zh": "第 8 步",
+   "src": "Step 8",
+   "tags": []
+  },
+  "Positions: the bug attention secretly has": {
+   "zh": "位置：注意力机制暗藏的缺陷",
+   "src": "Positions: the bug attention secretly has",
+   "tags": []
+  },
+  "Self-attention is @@T0@@permutation-invariant@@T1@@. Shuffle\n          the order of the input tokens and the output is the same set of\n          new vectors, just reshuffled. For language that is fatal &mdash;\n          \"dog bites man\" and \"man bites dog\" should not be the same.": {
+   "zh": "自注意力机制具有 @@T0@@置换不变性@@T1@@。打乱\n          输入词元的顺序，输出仍是同一组新的向量，\n          只是重新排列而已。对语言而言这是致命的 &mdash;\n          “狗咬人”与“人咬狗”不应相同。",
+   "src": "Self-attention is <strong>permutation-invariant</strong>. Shuffle\n          the order of the input tokens and the output is the same set of\n          new vectors, just reshuffled. For language that is fatal &mdash;\n          \"dog bites man\" and \"man bites dog\" should not be the same.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Quick proof.@@T1@@ Reorder the tokens in $X$ by some\n          permutation $P$. Then $Q, K, V$ also permute: $Q' = PQ$,\n          $K' = PK$, $V' = PV$. The new attention output is\n          $\\mathrm{softmax}(PQ\\,(PK)^\\top/\\sqrt{d_k})\\,PV\n          = P\\,\\mathrm{softmax}(QK^\\top/\\sqrt{d_k})\\,V$. The set of output\n          vectors is identical; only their order changes.": {
+   "zh": "@@T0@@简证。@@T1@@ 用置换 $P$ 重排 $X$ 中的\n          词元。于是 $Q, K, V$ 也随之置换：$Q' = PQ$，\n          $K' = PK$，$V' = PV$。新的注意力输出为\n          $\\mathrm{softmax}(PQ\\,(PK)^\\top/\\sqrt{d_k})\\,PV\n          = P\\,\\mathrm{softmax}(QK^\\top/\\sqrt{d_k})\\,V$。输出\n          向量的集合完全相同，只是顺序发生了变化。",
+   "src": "<strong>Quick proof.</strong> Reorder the tokens in $X$ by some\n          permutation $P$. Then $Q, K, V$ also permute: $Q' = PQ$,\n          $K' = PK$, $V' = PV$. The new attention output is\n          $\\mathrm{softmax}(PQ\\,(PK)^\\top/\\sqrt{d_k})\\,PV\n          = P\\,\\mathrm{softmax}(QK^\\top/\\sqrt{d_k})\\,V$. The set of output\n          vectors is identical; only their order changes.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The fix &mdash; add a position signal": {
+   "zh": "解决之道 &mdash; 引入位置信号",
+   "src": "The fix &mdash; add a position signal",
+   "tags": []
+  },
+  "Before any attention runs, the model adds a position vector\n          $p_t \\in \\mathbb{R}^{d_{\\text{model}}}$ to each token's\n          embedding. The classic Vaswani et al. choice is sinusoidal:": {
+   "zh": "在任何注意力运算开始之前，模型会为每个词元的\n          嵌入加上一个位置向量\n          $p_t \\in \\mathbb{R}^{d_{\\text{model}}}$。Vaswani 等人的经典选择是正弦式编码：",
+   "src": "Before any attention runs, the model adds a position vector\n          $p_t \\in \\mathbb{R}^{d_{\\text{model}}}$ to each token's\n          embedding. The classic Vaswani et al. choice is sinusoidal:",
+   "tags": []
+  },
+  "Each dimension is a sinusoid with a different wavelength. The\n          short-wavelength dimensions distinguish nearby positions; the\n          long-wavelength ones carry far-apart structure. Together they\n          give every position a unique fingerprint &mdash; and crucially,\n          a fingerprint where @@T0@@relative@@T1@@ position can be linearly\n          decoded.": {
+   "zh": "每个维度都是波长不同的正弦曲线。\n          短波长的维度用于区分相近的位置；\n          长波长的维度则承载相距较远的结构。二者共同\n          为每个位置赋予唯一的指纹 &mdash; 更关键的是，\n          这一指纹使 @@T0@@相对@@T1@@ 位置可以被线性\n          解码。",
+   "src": "Each dimension is a sinusoid with a different wavelength. The\n          short-wavelength dimensions distinguish nearby positions; the\n          long-wavelength ones carry far-apart structure. Together they\n          give every position a unique fingerprint &mdash; and crucially,\n          a fingerprint where <em>relative</em> position can be linearly\n          decoded.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Sinusoidal positional encodings. Rows are positions, columns\n            are dimensions. Shorter wavelengths on the left, longer on\n            the right. Hover-pick a row in the controls below to see one\n            position's full vector.": {
+   "zh": "正弦式位置编码。行表示位置，列\n            表示维度。左侧波长较短，右侧\n            较长。在下方控件中悬停选定某一行，即可查看某个\n            位置的完整向量。",
+   "src": "Sinusoidal positional encodings. Rows are positions, columns\n            are dimensions. Shorter wavelengths on the left, longer on\n            the right. Hover-pick a row in the controls below to see one\n            position's full vector.",
+   "tags": []
+  },
+  "positions $T$ &nbsp;@@T0@@32@@T1@@": {
+   "zh": "位置数 $T$ &nbsp;@@T0@@32@@T1@@",
+   "src": "positions $T$ &nbsp;<span id=\"pe-T-val\">32</span>",
+   "tags": [
+    "<span id=\"pe-T-val\">",
+    "</span>"
+   ]
+  },
+  "dim $d$ &nbsp;@@T0@@32@@T1@@": {
+   "zh": "维度 $d$ &nbsp;@@T0@@32@@T1@@",
+   "src": "dim $d$ &nbsp;<span id=\"pe-d-val\">32</span>",
+   "tags": [
+    "<span id=\"pe-d-val\">",
+    "</span>"
+   ]
+  },
+  "highlight position &nbsp;@@T0@@5@@T1@@": {
+   "zh": "高亮位置 &nbsp;@@T0@@5@@T1@@",
+   "src": "highlight position &nbsp;<span id=\"pe-pos-val\">5</span>",
+   "tags": [
+    "<span id=\"pe-pos-val\">",
+    "</span>"
+   ]
+  },
+  "With vs without &mdash; permute the sentence": {
+   "zh": "有与无 &mdash; 重排句子",
+   "src": "With vs without &mdash; permute the sentence",
+   "tags": []
+  },
+  "Toggle the position signal on and off, then shuffle the words.\n          With positions, \"river bank\" and \"bank river\" produce different\n          attention; without, they're identical.": {
+   "zh": "开启或关闭位置信号，然后打乱词序。\n          有位置信号时，“river bank”与“bank river”产生的\n          注意力不同；无位置信号时二者完全相同。",
+   "src": "Toggle the position signal on and off, then shuffle the words.\n          With positions, \"river bank\" and \"bank river\" produce different\n          attention; without, they're identical.",
+   "tags": []
+  },
+  "Shuffle words": {
+   "zh": "打乱词序",
+   "src": "Shuffle words",
+   "tags": []
+  },
+  "Reset order": {
+   "zh": "重置顺序",
+   "src": "Reset order",
+   "tags": []
+  },
+  "@@T0@@add positional encoding@@T1@@": {
+   "zh": "@@T0@@加入位置编码@@T1@@",
+   "src": "<span>add positional encoding</span>",
+   "tags": [
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Token order": {
+   "zh": "词元顺序",
+   "src": "Token order",
+   "tags": []
+  },
+  "Attention weights for focus token": {
+   "zh": "焦点词元的注意力权重",
+   "src": "Attention weights for focus token",
+   "tags": []
+  },
+  "@@T0@@Modern variants.@@T1@@ The original sinusoidal\n          encoding is simple and extrapolates to longer sequences. Modern\n          systems often use @@T2@@learned@@T3@@ embeddings (BERT),\n          @@T4@@rotary@@T5@@ embeddings (RoPE, used in LLaMA &amp;\n          DeepSeek &mdash; rotates Q and K instead of adding to $X$), or\n          @@T6@@ALiBi@@T7@@ (a fixed bias added straight to the\n          score matrix). All solve the same problem: telling attention\n          where each token is.": {
+   "zh": "@@T0@@现代变体。@@T1@@ 原始的正弦式\n          编码简单，且可外推至更长的序列。现代\n          系统常采用 @@T2@@可学习@@T3@@ 嵌入（BERT）、\n          @@T4@@旋转式@@T5@@ 嵌入（RoPE，用于 LLaMA 与\n          DeepSeek &mdash; 它旋转 Q 与 K，而非将其加到 $X$ 上），或\n          @@T6@@ALiBi@@T7@@（一种直接加到\n          得分矩阵上的固定偏置）。它们解决的都是同一个问题：\n          告诉注意力机制每个词元位于何处。",
+   "src": "<strong>Modern variants.</strong> The original sinusoidal\n          encoding is simple and extrapolates to longer sequences. Modern\n          systems often use <strong>learned</strong> embeddings (BERT),\n          <strong>rotary</strong> embeddings (RoPE, used in LLaMA &amp;\n          DeepSeek &mdash; rotates Q and K instead of adding to $X$), or\n          <strong>ALiBi</strong> (a fixed bias added straight to the\n          score matrix). All solve the same problem: telling attention\n          where each token is.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 9": {
+   "zh": "第 9 步",
+   "src": "Step 9",
+   "tags": []
+  },
+  "Watch a tiny attention head learn": {
+   "zh": "观察一个微型注意力头的学习过程",
+   "src": "Watch a tiny attention head learn",
+   "tags": []
+  },
+  "Every Q, K, V in the article so far was hand-tuned to produce\n          the \"right\" answer. Real Transformers don't get those for\n          free &mdash; they discover them with gradient descent. Let's\n          train one in your browser, end-to-end, with manually-coded\n          backprop. Every parameter, every gradient, every step is in\n          plain JavaScript &mdash; nothing imported.": {
+   "zh": "本文此前出现的每个 Q、K、V 都是为产生\n          “正确”答案而手工调校的。真实的 Transformer 并不会\n          凭空获得它们 &mdash; 而是通过梯度下降发现它们。现在\n          让我们在浏览器中进行一次端到端的训练，反向传播全部\n          手工编码。每个参数、每个梯度、每一步都写于\n          纯 JavaScript 之中 &mdash; 未引入任何外部库。",
+   "src": "Every Q, K, V in the article so far was hand-tuned to produce\n          the \"right\" answer. Real Transformers don't get those for\n          free &mdash; they discover them with gradient descent. Let's\n          train one in your browser, end-to-end, with manually-coded\n          backprop. Every parameter, every gradient, every step is in\n          plain JavaScript &mdash; nothing imported.",
+   "tags": []
+  },
+  "The toy task &mdash; a soft lookup": {
+   "zh": "玩具任务 &mdash; 软查找",
+   "src": "The toy task &mdash; a soft lookup",
+   "tags": []
+  },
+  "We give the model a sequence of four tokens. The first three\n          are @@T0@@candidates@@T1@@: each carries a one-hot\n          identity in $\\{A, B, C\\}$ plus a random 3-dim payload. The\n          fourth is the @@T2@@query@@T3@@: a one-hot saying which\n          candidate's payload we want, with zeros for its payload slot.\n          The model has to output that payload at the query position\n          &mdash; a real \"look-up by name\" problem.": {
+   "zh": "我们给模型一个含四个词元的序列。前三个\n          是 @@T0@@候选@@T1@@：每个都携带 $\\{A, B, C\\}$ 中的 one-hot\n          标识，外加一个随机的三维负载。第\n          四个是 @@T2@@query@@T3@@：一个 one-hot，指明我们\n          想要哪个候选的负载，其负载槽位为零。\n          模型必须在该 query 位置输出对应的负载\n          &mdash; 一个真正的“按名查找”问题。",
+   "src": "We give the model a sequence of four tokens. The first three\n          are <strong>candidates</strong>: each carries a one-hot\n          identity in $\\{A, B, C\\}$ plus a random 3-dim payload. The\n          fourth is the <strong>query</strong>: a one-hot saying which\n          candidate's payload we want, with zeros for its payload slot.\n          The model has to output that payload at the query position\n          &mdash; a real \"look-up by name\" problem.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The only learnable parameters are the three projection\n          matrices $W_Q$, $W_K$, $W_V$. We initialise them to small\n          random Gaussians, run gradient descent on mean-squared error\n          at the query position, and watch the loss fall.": {
+   "zh": "唯一可学习的参数是三个投影\n          矩阵 $W_Q$、$W_K$、$W_V$。我们将其初始化为小幅度的\n          随机高斯值，在 query 位置处以均方误差为\n          目标运行梯度下降，并观察损失下降。",
+   "src": "The only learnable parameters are the three projection\n          matrices $W_Q$, $W_K$, $W_V$. We initialise them to small\n          random Gaussians, run gradient descent on mean-squared error\n          at the query position, and watch the loss fall.",
+   "tags": []
+  },
+  "Start training": {
+   "zh": "开始训练",
+   "src": "Start training",
+   "tags": []
+  },
+  "Reinitialise": {
+   "zh": "重新初始化",
+   "src": "Reinitialise",
+   "tags": []
+  },
+  "learning rate &nbsp;@@T0@@0.10@@T1@@": {
+   "zh": "学习率 &nbsp;@@T0@@0.10@@T1@@",
+   "src": "learning rate &nbsp;<span id=\"lr-val\">0.10</span>",
+   "tags": [
+    "<span id=\"lr-val\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@step @@T1@@0@@T2@@@@T3@@\n          @@T4@@loss @@T5@@—@@T6@@@@T7@@": {
+   "zh": "@@T0@@步数 @@T1@@0@@T2@@@@T3@@\n          @@T4@@损失 @@T5@@—@@T6@@@@T7@@",
+   "src": "<span class=\"train-stat\">step <strong id=\"mh-step\">0</strong></span>\n          <span class=\"train-stat\">loss <strong id=\"mh-loss\">—</strong></span>",
+   "tags": [
+    "<span class=\"train-stat\">",
+    "<strong id=\"mh-step\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"mh-loss\">",
+    "</strong>",
+    "</span>"
+   ]
+  },
+  "Loss curve (log scale)": {
+   "zh": "损失曲线（对数刻度）",
+   "src": "Loss curve (log scale)",
+   "tags": []
+  },
+  "Press @@T0@@Start training@@T1@@ to begin.": {
+   "zh": "按 @@T0@@开始训练@@T1@@ 即可开始。",
+   "src": "Press <em>Start training</em> to begin.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Attention weights on a fixed example": {
+   "zh": "固定样本上的注意力权重",
+   "src": "Attention weights on a fixed example",
+   "tags": []
+  },
+  "What the model is learning": {
+   "zh": "模型正在学习什么",
+   "src": "What the model is learning",
+   "tags": []
+  },
+  "@@T0@@What to watch for.@@T1@@\n          Within roughly 100 steps the loss drops by an order of\n          magnitude. The query row of the attention map snaps to (almost)\n          one-hot at the matching candidate. $W_Q$ and $W_K$ start\n          random, but quickly grow large entries on the id columns\n          (so the dot product picks up matching ids); $W_V$ grows\n          large entries on the value columns (so the right payload gets\n          carried through). Nobody told the model \"look up by id\" &mdash;\n          it discovered that strategy because it's the cheapest way to\n          drive the loss down.": {
+   "zh": "@@T0@@应留意的现象。@@T1@@\n          大约 100 步之内，损失下降一个数量级。\n          注意力图中 query 所在的一行会（几乎）跃变为\n          在相匹配的候选处呈 one-hot。$W_Q$ 与 $W_K$ 起初\n          随机，但很快在 id 列上长出较大的元素\n          （从而使点积捕捉到相匹配的 id）；$W_V$ 则在 value\n          列上长出较大的元素（从而使正确的负载得以\n          传递）。没有人告诉模型“按 id 查找” &mdash;\n          它自行发现了这一策略，因为这是压低损失的\n          最省力方式。",
+   "src": "<strong>What to watch for.</strong>\n          Within roughly 100 steps the loss drops by an order of\n          magnitude. The query row of the attention map snaps to (almost)\n          one-hot at the matching candidate. $W_Q$ and $W_K$ start\n          random, but quickly grow large entries on the id columns\n          (so the dot product picks up matching ids); $W_V$ grows\n          large entries on the value columns (so the right payload gets\n          carried through). Nobody told the model \"look up by id\" &mdash;\n          it discovered that strategy because it's the cheapest way to\n          drive the loss down.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 9 ½": {
+   "zh": "第 9 步半",
+   "src": "Step 9 ½",
+   "tags": []
+  },
+  "Two heads, two specialists": {
+   "zh": "两个头，两位专家",
+   "src": "Two heads, two specialists",
+   "tags": []
+  },
+  "Step 7 said multi-head exists; Step 9 trained one head. Now\n          watch @@T0@@two@@T1@@ heads train side-by-side on a task that\n          a single head cannot solve. Each head gets its own\n          $W_Q, W_K, W_V$ (and a final linear that combines the two\n          outputs). Loss flows through both.": {
+   "zh": "第 7 步说明了多头的存在；第 9 步训练了一个头。现在\n          观察 @@T0@@两个@@T1@@ 头在同一个单头无法解决的\n          任务上并排训练。每个头拥有各自的\n          $W_Q, W_K, W_V$（外加一个将两者输出合并的最终线性层）。\n          损失同时流经二者。",
+   "src": "Step 7 said multi-head exists; Step 9 trained one head. Now\n          watch <em>two</em> heads train side-by-side on a task that\n          a single head cannot solve. Each head gets its own\n          $W_Q, W_K, W_V$ (and a final linear that combines the two\n          outputs). Loss flows through both.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The task: two compatible lookups": {
+   "zh": "任务：两次相容的查找",
+   "src": "The task: two compatible lookups",
+   "tags": []
+  },
+  "The sequence has four tokens: two\n          @@T0@@type-A pairs@@T1@@ $(\\text{key}_A, \\text{val}_A)$\n          and two @@T2@@type-B pairs@@T3@@ $(\\text{key}_B,\n          \\text{val}_B)$. Each token's input is\n          $\\bigl[\\text{type}\\ (2)\\;|\\;\\text{key}\\ (3)\\;|\\;\\text{val}\\ (3)\\bigr]$.\n          The query token (token 4) carries\n          $\\bigl[\\text{type-A flag}\\ (1)\\;|\\;\\text{key}\\ (3)\\;|\\;\\text{type-B flag}\\ (1)\\;|\\;\\text{key}\\ (3)\\bigr]$\n          and we ask the model to output\n          $\\text{val}_A + \\text{val}_B$ at the query position. One head\n          can't disentangle the two lookups; two heads can.": {
+   "zh": "该序列有四个词元：两个\n          @@T0@@A 型对@@T1@@ $(\\text{key}_A, \\text{val}_A)$\n          与两个 @@T2@@B 型对@@T3@@ $(\\text{key}_B,\n          \\text{val}_B)$。每个词元的输入为\n          $\\bigl[\\text{type}\\ (2)\\;|\\;\\text{key}\\ (3)\\;|\\;\\text{val}\\ (3)\\bigr]$。\n          query 词元（第 4 个词元）携带\n          $\\bigl[\\text{type-A flag}\\ (1)\\;|\\;\\text{key}\\ (3)\\;|\\;\\text{type-B flag}\\ (1)\\;|\\;\\text{key}\\ (3)\\bigr]$，\n          我们要求模型在 query 位置输出\n          $\\text{val}_A + \\text{val}_B$。单个头\n          无法将这两次查找解耦；两个头可以。",
+   "src": "The sequence has four tokens: two\n          <strong>type-A pairs</strong> $(\\text{key}_A, \\text{val}_A)$\n          and two <strong>type-B pairs</strong> $(\\text{key}_B,\n          \\text{val}_B)$. Each token's input is\n          $\\bigl[\\text{type}\\ (2)\\;|\\;\\text{key}\\ (3)\\;|\\;\\text{val}\\ (3)\\bigr]$.\n          The query token (token 4) carries\n          $\\bigl[\\text{type-A flag}\\ (1)\\;|\\;\\text{key}\\ (3)\\;|\\;\\text{type-B flag}\\ (1)\\;|\\;\\text{key}\\ (3)\\bigr]$\n          and we ask the model to output\n          $\\text{val}_A + \\text{val}_B$ at the query position. One head\n          can't disentangle the two lookups; two heads can.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "learning rate &nbsp;@@T0@@0.05@@T1@@": {
+   "zh": "学习率 &nbsp;@@T0@@0.05@@T1@@",
+   "src": "learning rate &nbsp;<span id=\"mh-lr-val\">0.05</span>",
+   "tags": [
+    "<span id=\"mh-lr-val\">",
+    "</span>"
+   ]
+  },
+  "ablate to single head": {
+   "zh": "消融为单头",
+   "src": "ablate to single head",
+   "tags": []
+  },
+  "Head A attention (on a fixed example)": {
+   "zh": "头 A 的注意力（固定样本）",
+   "src": "Head A attention (on a fixed example)",
+   "tags": []
+  },
+  "Head B attention (on the same example)": {
+   "zh": "头 B 的注意力（同一样本）",
+   "src": "Head B attention (on the same example)",
+   "tags": []
+  },
+  "Loss curve": {
+   "zh": "损失曲线",
+   "src": "Loss curve",
+   "tags": []
+  },
+  "Head specialisation score": {
+   "zh": "头部特化程度得分",
+   "src": "Head specialisation score",
+   "tags": []
+  },
+  "How peaked each head is on its preferred type. Specialisation\n              rises after ~80 steps once the heads carve up the task.": {
+   "zh": "每个头在其偏好类型上的尖锐程度。约 80 步之后，\n              随着各头分割任务，特化程度开始上升。",
+   "src": "How peaked each head is on its preferred type. Specialisation\n              rises after ~80 steps once the heads carve up the task.",
+   "tags": []
+  },
+  "@@T0@@What to watch.@@T1@@\n          With @@T2@@two heads@@T3@@ the loss falls smoothly to near zero;\n          one head's heatmap focuses on the type-A pair, the other on the\n          type-B pair. Tick @@T4@@ablate to single head@@T5@@ and the\n          loss plateaus much higher &mdash; one attention pattern can't\n          point at two different things at once. This is the actual\n          reason real Transformers run 8 or 16 heads.": {
+   "zh": "@@T0@@应留意的现象。@@T1@@\n          在 @@T2@@两个头@@T3@@ 的情况下，损失平滑下降至接近零；\n          一个头的热图聚焦于 A 型对，另一个则聚焦于\n          B 型对。勾选 @@T4@@消融为单头@@T5@@，\n          损失会在高得多的水平上趋于平台 &mdash; 单个注意力模式\n          无法同时指向两个不同的事物。这正是\n          真实的 Transformer 采用 8 个或 16 个头的实际原因。",
+   "src": "<strong>What to watch.</strong>\n          With <em>two heads</em> the loss falls smoothly to near zero;\n          one head's heatmap focuses on the type-A pair, the other on the\n          type-B pair. Tick <em>ablate to single head</em> and the\n          loss plateaus much higher &mdash; one attention pattern can't\n          point at two different things at once. This is the actual\n          reason real Transformers run 8 or 16 heads.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 10": {
+   "zh": "第 10 步",
+   "src": "Step 10",
+   "tags": []
+  },
+  "Run it on all five sentences": {
+   "zh": "在全部五个句子上运行",
+   "src": "Run it on all five sentences",
+   "tags": []
+  },
+  "Here's one more look at the pipeline, this time fully automated. The\n          table below evaluates the same Q, K, V vectors (the pre-set \"sensible\"\n          ones for each ambiguous word) through the entire attention formula\n          and shows which neighbor dominates. Click a different sentence to\n          see a different winner.": {
+   "zh": "再来看一次这一流程，这次完全自动化。下方\n          的表格将同一组 Q、K、V 向量（为每个歧义词预设的“合理”\n          向量）代入完整的注意力公式求值，\n          并显示哪个邻词占据主导。点击不同的句子，\n          即可看到不同的胜出者。",
+   "src": "Here's one more look at the pipeline, this time fully automated. The\n          table below evaluates the same Q, K, V vectors (the pre-set \"sensible\"\n          ones for each ambiguous word) through the entire attention formula\n          and shows which neighbor dominates. Click a different sentence to\n          see a different winner.",
+   "tags": []
+  },
+  "Sentence": {
+   "zh": "句子",
+   "src": "Sentence",
+   "tags": []
+  },
+  "Focus word": {
+   "zh": "焦点词",
+   "src": "Focus word",
+   "tags": []
+  },
+  "Top-attended neighbor": {
+   "zh": "关注度最高的邻词",
+   "src": "Top-attended neighbor",
+   "tags": []
+  },
+  "Attention %": {
+   "zh": "注意力占比 %",
+   "src": "Attention %",
+   "tags": []
+  },
+  "Interpretation": {
+   "zh": "解读",
+   "src": "Interpretation",
+   "tags": []
+  },
+  "@@T0@@Observe.@@T1@@\n          In every one of the five sentences, the ambiguous word's query lines\n          up with exactly one neighbor that disambiguates it. \"Bank\" listens to\n          \"river\" in one case, to \"money\" in another. \"Apple\" tunes in to \"pie\"\n          versus \"phone\". @@T2@@That's@@T3@@ disambiguation by attention&mdash;no\n          hand-coded rules, just vector alignment.": {
+   "zh": "@@T0@@观察所得。@@T1@@\n          在五个句子中的每一个里，歧义词的 query 都恰好与一个\n          能够为其消歧的邻词对齐。“Bank”在一种情形下倾听\n          “river”，在另一种情形下倾听“money”。“Apple”则分别关注“pie”\n          与“phone”。@@T2@@这正是@@T3@@ 借助注意力实现的消歧 &mdash; 没有\n          手工编写的规则，只有向量的对齐。",
+   "src": "<strong>Observe.</strong>\n          In every one of the five sentences, the ambiguous word's query lines\n          up with exactly one neighbor that disambiguates it. \"Bank\" listens to\n          \"river\" in one case, to \"money\" in another. \"Apple\" tunes in to \"pie\"\n          versus \"phone\". <em>That's</em> disambiguation by attention&mdash;no\n          hand-coded rules, just vector alignment.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "Step 11": {
+   "zh": "第 11 步",
+   "src": "Step 11",
+   "tags": []
+  },
+  "Three things attention is @@T0@@not@@T1@@": {
+   "zh": "注意力机制 @@T0@@并非@@T1@@ 的三件事",
+   "src": "Three things attention is <em>not</em>",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Myth@@T1@@": {
+   "zh": "@@T0@@误解@@T1@@",
+   "src": "<span class=\"misconception-icon\">Myth</span>",
+   "tags": [
+    "<span class=\"misconception-icon\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@\"Attention is just a weighted average, nothing new.\"@@T1@@@@T2@@\n              The weights themselves are @@T3@@computed from the data@@T4@@\n              through $QK^\\top$&mdash;they depend on every pair of tokens. No\n              static weighted sum gives you that. It's a function whose\n              coefficients are learned on the fly.": {
+   "zh": "@@T0@@“注意力不过是加权平均，并无新意。”@@T1@@@@T2@@\n              权重本身是通过 $QK^\\top$ @@T3@@由数据计算得出@@T4@@\n              的 &mdash; 它们依赖于每一对词元。没有任何\n              静态的加权和能做到这一点。它是一个\n              系数在运行时被学得的函数。",
+   "src": "<strong>\"Attention is just a weighted average, nothing new.\"</strong><br />\n              The weights themselves are <em>computed from the data</em>\n              through $QK^\\top$&mdash;they depend on every pair of tokens. No\n              static weighted sum gives you that. It's a function whose\n              coefficients are learned on the fly.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@\"Attention tells you what the model cares about.\"@@T1@@@@T2@@\n              Attention weights are @@T3@@one@@T4@@ signal inside a deep model.\n              Cutting a low-weight neighbor doesn't necessarily change the\n              prediction, and the same logit can be reached via many weight\n              patterns. Reading them as explanations is risky.": {
+   "zh": "@@T0@@“注意力能告诉你模型关注什么。”@@T1@@@@T2@@\n              注意力权重只是深度模型内部的 @@T3@@一种@@T4@@ 信号。\n              剔除一个低权重的邻词未必会改变\n              预测结果，而同一个 logit 可以经由多种权重\n              模式达到。将其解读为解释是有风险的。",
+   "src": "<strong>\"Attention tells you what the model cares about.\"</strong><br />\n              Attention weights are <em>one</em> signal inside a deep model.\n              Cutting a low-weight neighbor doesn't necessarily change the\n              prediction, and the same logit can be reached via many weight\n              patterns. Reading them as explanations is risky.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@\"Every word attends to every other word equally in cost.\"@@T1@@@@T2@@\n              Self-attention is $O(n^2)$ in sequence length: doubling the\n              sentence quadruples the compute. That's why long-context models\n              use tricks (sparse, linear, sliding-window) to cut this down.": {
+   "zh": "@@T0@@“每个词对每个其他词的注意力代价相同。”@@T1@@@@T2@@\n              自注意力机制在序列长度上为 $O(n^2)$：句子长度加倍，\n              计算量变为四倍。这正是长上下文模型\n              采用各种技巧（稀疏、线性、滑动窗口）来削减开销的原因。",
+   "src": "<strong>\"Every word attends to every other word equally in cost.\"</strong><br />\n              Self-attention is $O(n^2)$ in sequence length: doubling the\n              sentence quadruples the compute. That's why long-context models\n              use tricks (sparse, linear, sliding-window) to cut this down.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<br />"
+   ]
+  },
+  "Step 12": {
+   "zh": "第 12 步",
+   "src": "Step 12",
+   "tags": []
+  },
+  "What we still swept under the rug": {
+   "zh": "我们仍然略去未谈的内容",
+   "src": "What we still swept under the rug",
+   "tags": []
+  },
+  "You've now seen every number of one head, one layer, with\n          positions, with masking, with multi-head, and with training.\n          A real Transformer keeps going:": {
+   "zh": "至此你已看到单头、单层，含位置编码、含掩码、\n          含多头、含训练的每一个数值。\n          真实的 Transformer 还有更多：",
+   "src": "You've now seen every number of one head, one layer, with\n          positions, with masking, with multi-head, and with training.\n          A real Transformer keeps going:",
+   "tags": []
+  },
+  "@@T0@@Many stacked layers.@@T1@@ The output of one\n            attention block becomes the input to the next. After a few\n            layers, \"bank\" carries meaning shaped by @@T2@@chains@@T3@@ of\n            inference across the whole sentence. ViT-Base stacks 12,\n            GPT-3 stacks 96, GPT-4 reportedly more.": {
+   "zh": "@@T0@@多层堆叠。@@T1@@ 一个\n            注意力块的输出成为下一块的输入。经过若干\n            层之后，“bank”所承载的含义由横跨整个句子的\n            @@T2@@推理链@@T3@@ 塑造而成。ViT-Base 堆叠 12 层，\n            GPT-3 堆叠 96 层，据报道 GPT-4 更多。",
+   "src": "<strong>Many stacked layers.</strong> The output of one\n            attention block becomes the input to the next. After a few\n            layers, \"bank\" carries meaning shaped by <em>chains</em> of\n            inference across the whole sentence. ViT-Base stacks 12,\n            GPT-3 stacks 96, GPT-4 reportedly more.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@Residual streams + LayerNorm.@@T1@@ Each block is\n            wrapped in $x \\leftarrow x + \\mathrm{Attn}(x)$ followed by a\n            LayerNorm and an MLP. The residual lets information skip\n            unchanged through layers and is now believed to be the actual\n            \"memory tape\" the model writes onto.": {
+   "zh": "@@T0@@残差流 + LayerNorm。@@T1@@ 每个块都被包裹为\n            $x \\leftarrow x + \\mathrm{Attn}(x)$，随后接一个\n            LayerNorm 和一个 MLP。残差使信息可以原封不动地\n            跨层传递，如今它被认为正是模型写入其上的\n            “记忆带”。",
+   "src": "<strong>Residual streams + LayerNorm.</strong> Each block is\n            wrapped in $x \\leftarrow x + \\mathrm{Attn}(x)$ followed by a\n            LayerNorm and an MLP. The residual lets information skip\n            unchanged through layers and is now believed to be the actual\n            \"memory tape\" the model writes onto.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Cross-attention.@@T1@@ In encoder-decoder models\n            (translation, T5, image-to-text), $Q$ comes from the decoder\n            but $K, V$ come from the encoder &mdash; the decoder\n            \"asks the source\" instead of itself. Mechanically the same\n            formula.": {
+   "zh": "@@T0@@交叉注意力。@@T1@@ 在编码器-解码器模型\n            （翻译、T5、图像到文本）中，$Q$ 来自解码器，\n            而 $K, V$ 来自编码器 &mdash; 解码器\n            “询问源端”而非询问自身。在机制上是同一个\n            公式。",
+   "src": "<strong>Cross-attention.</strong> In encoder-decoder models\n            (translation, T5, image-to-text), $Q$ comes from the decoder\n            but $K, V$ come from the encoder &mdash; the decoder\n            \"asks the source\" instead of itself. Mechanically the same\n            formula.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Efficient attention.@@T1@@ $O(N^2)$ blows up at\n            long context. FlashAttention reorders the matmul to fit in\n            SRAM; sliding-window (Mistral), sparse (Longformer),\n            state-space (Mamba), and linear-attention (Linformer)\n            variants trade a little expressivity for $O(N)$ or\n            $O(N \\log N)$.": {
+   "zh": "@@T0@@高效注意力。@@T1@@ $O(N^2)$ 在\n            长上下文下会急剧膨胀。FlashAttention 重排矩阵乘法以适配\n            SRAM；滑动窗口（Mistral）、稀疏（Longformer）、\n            状态空间（Mamba）以及线性注意力（Linformer）\n            等变体则牺牲少许表达力，换取 $O(N)$ 或\n            $O(N \\log N)$ 的复杂度。",
+   "src": "<strong>Efficient attention.</strong> $O(N^2)$ blows up at\n            long context. FlashAttention reorders the matmul to fit in\n            SRAM; sliding-window (Mistral), sparse (Longformer),\n            state-space (Mamba), and linear-attention (Linformer)\n            variants trade a little expressivity for $O(N)$ or\n            $O(N \\log N)$.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@KV cache for inference.@@T1@@ When a chatbot\n            generates text token by token, the keys and values of all\n            previous tokens are cached and reused. That cache is most of\n            what fills GPU memory in production deployments.": {
+   "zh": "@@T0@@推理时的 KV 缓存。@@T1@@ 当聊天机器人\n            逐个词元地生成文本时，此前所有词元的 key 与 value\n            都会被缓存并重复使用。在生产部署中，这一缓存\n            占据了 GPU 显存的大部分。",
+   "src": "<strong>KV cache for inference.</strong> When a chatbot\n            generates text token by token, the keys and values of all\n            previous tokens are cached and reused. That cache is most of\n            what fills GPU memory in production deployments.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Final takeaway.@@T1@@\n          Self-attention is a Transformer's universal way of asking\n          \"which neighbors should I listen to?\" You just computed every\n          step of that answer by hand &mdash; from the projection\n          matrices that produce Q, K, V, through the matrix-form\n          softmax, through positional fixes, through gradient descent on\n          a real toy. Stacking this operation in depth and width, with\n          residuals, MLPs, and a billion-token training set, is what\n          builds GPT-level understanding from raw tokens.": {
+   "zh": "@@T0@@最后总结。@@T1@@\n          自注意力机制是 Transformer 用来询问\n          “我该倾听哪些邻词？”的通用方式。你刚刚手工\n          计算了这一答案的每一个步骤 &mdash; 从产生 Q、K、V 的\n          投影矩阵，到矩阵形式的\n          softmax，到位置信息的修正，再到在一个真实的玩具任务上\n          运行梯度下降。将这一运算在深度与宽度上堆叠起来，\n          配以残差、MLP 以及十亿级词元的训练集，便是\n          从原始词元构建出 GPT 级理解力的方式。",
+   "src": "<strong>Final takeaway.</strong>\n          Self-attention is a Transformer's universal way of asking\n          \"which neighbors should I listen to?\" You just computed every\n          step of that answer by hand &mdash; from the projection\n          matrices that produce Q, K, V, through the matrix-form\n          softmax, through positional fixes, through gradient descent on\n          a real toy. Stacking this operation in depth and width, with\n          residuals, MLPs, and a billion-token training set, is what\n          builds GPT-level understanding from raw tokens.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Choose ambiguous word": {
+   "zh": "选择歧义词",
+   "src": "Choose ambiguous word",
+   "tags": []
+  },
+  "Choose token": {
+   "zh": "选择词元",
+   "src": "Choose token",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "注意力机制的精算",
+  "tagline": "从 Q/K/V 投影出发，到在浏览器中实时训练的微型注意力头",
+  "summary": "十二个交互步骤：从单词歧义一路走到软查找任务上的手工反向传播 &mdash; 涵盖矩阵形式的注意力、缩放点积、因果掩码、多头、正弦式位置编码，以及一个重排句子的演示。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "看 Q、K、V 从何而来 &mdash; 点击一个词元，观察其 4 维嵌入经由 W_Q、W_K、W_V 推出 2 维 query/key/value 向量。",
+   "实时检视完整的 N×N 矩阵形式注意力（得分 → softmax → 加权 V），适用于六个歧义句中的任意一个。",
+   "三旋钮演练场：缩放点积（对 d_k 的滑块，配 softmax 尖锐度直方图）、因果掩码、四路并行多头注意力图。",
+   "正弦式位置编码热图，配有 T 与 d 的滑块，以及一个“重排句子”演示，说明注意力为何需要位置信息。",
+   "在浏览器中端到端观察一个微型注意力头学习软查找任务 &mdash; 纯 JS 手工反向传播，损失曲线与注意力热图实时演化。"
+  ],
+  "tags": [
+   "Transformer",
+   "注意力机制",
+   "深度学习",
+   "交互式",
+   "训练"
+  ]
+ },
+ "js": {
+  "Working with the sentence @@T0@@[[[0]]]@@T1@@. [[[1]]]": {
+   "zh": "正在处理句子 @@T0@@[[[0]]]@@T1@@。[[[1]]]",
+   "exprs": [
+    "${s.sentence}",
+    "${s.caption}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "Working with the sentence <strong>${s.sentence}</strong>. ${s.caption}"
+  },
+  "[[[0]]]\\\\,\\\\begin{pmatrix}[[[1]]]\\\\\\\\[[[2]]]\\\\end{pmatrix}": {
+   "zh": "[[[0]]]\\\\,\\\\begin{pmatrix}[[[1]]]\\\\\\\\[[[2]]]\\\\end{pmatrix}",
+   "exprs": [
+    "${weights[i].toFixed(2)}",
+    "${v.x.toFixed(2)}",
+    "${v.y.toFixed(2)}"
+   ],
+   "tags": [],
+   "src": "${weights[i].toFixed(2)}\\\\,\\\\begin{pmatrix}${v.x.toFixed(2)}\\\\\\\\${v.y.toFixed(2)}\\\\end{pmatrix}"
+  },
+  "V_{\\\\text{final}} = [[[0]]] = \\\\begin{pmatrix}[[[1]]]\\\\\\\\[[[2]]]\\\\end{pmatrix}": {
+   "zh": "V_{\\\\text{final}} = [[[0]]] = \\\\begin{pmatrix}[[[1]]]\\\\\\\\[[[2]]]\\\\end{pmatrix}",
+   "exprs": [
+    "${terms}",
+    "${Vf.x.toFixed(2)}",
+    "${Vf.y.toFixed(2)}"
+   ],
+   "tags": [],
+   "src": "V_{\\\\text{final}} = ${terms} = \\\\begin{pmatrix}${Vf.x.toFixed(2)}\\\\\\\\${Vf.y.toFixed(2)}\\\\end{pmatrix}"
+  },
+  "repeat([[[0]]], minmax(0, 1fr))": {
+   "zh": "repeat([[[0]]], minmax(0, 1fr))",
+   "exprs": [
+    "${cols}"
+   ],
+   "tags": [],
+   "src": "repeat(${cols}, minmax(0, 1fr))"
+  },
+  "repeat([[[0]]], auto)": {
+   "zh": "repeat([[[0]]], auto)",
+   "exprs": [
+    "${rows}"
+   ],
+   "tags": [],
+   "src": "repeat(${rows}, auto)"
+  },
+  "auto repeat([[[0]]], minmax(0, 1fr))": {
+   "zh": "auto repeat([[[0]]], minmax(0, 1fr))",
+   "exprs": [
+    "${N}"
+   ],
+   "tags": [],
+   "src": "auto repeat(${N}, minmax(0, 1fr))"
+  },
+  "Same input embedding, three rotations, three roles.": {
+   "zh": "相同的输入嵌入，三种旋转，三种角色。",
+   "exprs": [],
+   "tags": [],
+   "src": "Same input embedding, three rotations, three roles."
+  },
+  "Row @@T0@@[[[0]]]@@T1@@ sends ": {
+   "zh": "第 @@T0@@[[[0]]]@@T1@@ 行向以下位置发送 ",
+   "exprs": [
+    "${words[state.matrixRow]}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "Row <strong>${words[state.matrixRow]}</strong> sends "
+  },
+  "[[[0]]]% of its attention to ": {
+   "zh": "其 [[[0]]]% 的注意力：",
+   "exprs": [
+    "${(row[topIdx] * 100).toFixed(0)}"
+   ],
+   "tags": [],
+   "src": "${(row[topIdx] * 100).toFixed(0)}% of its attention to "
+  },
+  "max weight = @@T0@@[[[0]]]%@@T1@@, ": {
+   "zh": "最大权重 = @@T0@@[[[0]]]%@@T1@@，",
+   "exprs": [
+    "${(maxW * 100).toFixed(1)}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "max weight = <strong>${(maxW * 100).toFixed(1)}%</strong>, "
+  },
+  "entropy = [[[0]]] (max [[[1]]] = uniform)": {
+   "zh": "熵 = [[[0]]]（最大值 [[[1]]] = 均匀分布）",
+   "exprs": [
+    "${entropy.toFixed(2)}",
+    "${Math.log(N).toFixed(2)}"
+   ],
+   "tags": [],
+   "src": "entropy = ${entropy.toFixed(2)} (max ${Math.log(N).toFixed(2)} = uniform)"
+  },
+  "Average peak weight across 500 random draws: @@T0@@[[[0]]]%@@T1@@": {
+   "zh": "500 次随机采样下的平均峰值权重：@@T0@@[[[0]]]%@@T1@@",
+   "exprs": [
+    "${(avgMax * 100).toFixed(1)}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "Average peak weight across 500 random draws: <strong>${(avgMax * 100).toFixed(1)}%</strong>"
+  },
+  "hm-multi-[[[0]]]": {
+   "zh": "hm-multi-[[[0]]]",
+   "exprs": [
+    "${idx}"
+   ],
+   "tags": [],
+   "src": "hm-multi-${idx}"
+  },
+  "Candidates carry ids [@@T0@@[[[0]]]@@T1@@]; ": {
+   "zh": "候选携带的 id 为 [@@T0@@[[[0]]]@@T1@@]；",
+   "exprs": [
+    "${ex.ids.map(labelOf).join(', ')}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "Candidates carry ids [<strong>${ex.ids.map(labelOf).join(', ')}</strong>]; "
+  },
+  "query asks for \"@@T0@@[[[0]]]@@T1@@\" → ": {
+   "zh": "query 请求的是“@@T0@@[[[0]]]@@T1@@”→ ",
+   "exprs": [
+    "${labelOf(ex.targetId)}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "query asks for \"<strong>${labelOf(ex.targetId)}</strong>\" → "
+  },
+  "the query row should peak at column @@T0@@c[[[0]]]@@T1@@.": {
+   "zh": "query 所在行应在第 @@T0@@c[[[0]]]@@T1@@ 列处达到峰值。",
+   "exprs": [
+    "${ex.targetSlot + 1}"
+   ],
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ],
+   "src": "the query row should peak at column <strong>c${ex.targetSlot + 1}</strong>."
+  },
+  "Training&hellip; gradient steps land roughly 6× per frame.": {
+   "zh": "训练中&hellip;每帧大约执行 6 次梯度步。",
+   "exprs": [],
+   "tags": [],
+   "src": "Training&hellip; gradient steps land roughly 6× per frame."
+  },
+  "Paused at step [[[0]]]. Press @@T0@@Start training@@T1@@ to keep going.": {
+   "zh": "已在第 [[[0]]] 步暂停。按 @@T0@@开始训练@@T1@@ 以继续。",
+   "exprs": [
+    "${trainState.step}"
+   ],
+   "tags": [
+    "<em>",
+    "</em>"
+   ],
+   "src": "Paused at step ${trainState.step}. Press <em>Start training</em> to keep going."
+  },
+  "\"The river bank\"": {
+   "zh": "“河岸”",
+   "exprs": [],
+   "tags": [],
+   "src": "\"The river bank\""
+  },
+  "Focus word \"bank\" — is it water or money?": {
+   "zh": "焦点词“bank” &mdash; 指水还是指钱？",
+   "exprs": [],
+   "tags": [],
+   "src": "Focus word \"bank\" — is it water or money?"
+  },
+  "\"I deposit money at the bank\"": {
+   "zh": "“我把钱存入银行”",
+   "exprs": [],
+   "tags": [],
+   "src": "\"I deposit money at the bank\""
+  },
+  "Same word \"bank\" — but \"money\" should now dominate.": {
+   "zh": "同一个词“bank” &mdash; 但此时应由“money”占据主导。",
+   "exprs": [],
+   "tags": [],
+   "src": "Same word \"bank\" — but \"money\" should now dominate."
+  },
+  "\"I ate an apple pie\"": {
+   "zh": "“我吃了一块苹果派”",
+   "exprs": [],
+   "tags": [],
+   "src": "\"I ate an apple pie\""
+  },
+  "Focus word \"apple\" — fruit or tech company?": {
+   "zh": "焦点词“apple” &mdash; 指水果还是指科技公司？",
+   "exprs": [],
+   "tags": [],
+   "src": "Focus word \"apple\" — fruit or tech company?"
+  },
+  "\"Apple released a phone\"": {
+   "zh": "“苹果公司发布了一款手机”",
+   "exprs": [],
+   "tags": [],
+   "src": "\"Apple released a phone\""
+  },
+  "Same focus word \"Apple\" — but \"phone\" should win now.": {
+   "zh": "同一个焦点词“Apple” &mdash; 但此时应由“phone”胜出。",
+   "exprs": [],
+   "tags": [],
+   "src": "Same focus word \"Apple\" — but \"phone\" should win now."
+  },
+  "\"I caught a bass at the lake\"": {
+   "zh": "“我在湖里钓到一条鲈鱼”",
+   "exprs": [],
+   "tags": [],
+   "src": "\"I caught a bass at the lake\""
+  },
+  "Focus word \"bass\" — fish or musical instrument?": {
+   "zh": "焦点词“bass” &mdash; 指鱼还是指乐器？",
+   "exprs": [],
+   "tags": [],
+   "src": "Focus word \"bass\" — fish or musical instrument?"
+  },
+  "\"The bank itself stood firm\"": {
+   "zh": "“河岸自身岿然不动”",
+   "exprs": [],
+   "tags": [],
+   "src": "\"The bank itself stood firm\""
+  },
+  "When self-attention favors the focus token itself · \"bank\" carries its own meaning forward.": {
+   "zh": "当自注意力机制偏向焦点词元自身时 · “bank”将自身含义向前传递。",
+   "exprs": [],
+   "tags": [],
+   "src": "When self-attention favors the focus token itself · \"bank\" carries its own meaning forward."
+  },
+  "Drag any dot": {
+   "zh": "拖动任意圆点",
+   "exprs": [],
+   "tags": [],
+   "src": "Drag any dot"
+  },
+  "Q: focus word\\'s search": {
+   "zh": "Q：焦点词的检索",
+   "exprs": [],
+   "tags": [],
+   "src": "Q: focus word\\'s search"
+  },
+  "K: each word\\'s label": {
+   "zh": "K：各词的标签",
+   "exprs": [],
+   "tags": [],
+   "src": "K: each word\\'s label"
+  },
+  "Drag any V vector": {
+   "zh": "拖动任意 V 向量",
+   "exprs": [],
+   "tags": [],
+   "src": "Drag any V vector"
+  },
+  "water-side bank": {
+   "zh": "水侧词义的 bank",
+   "exprs": [],
+   "tags": [],
+   "src": "water-side bank"
+  },
+  "financial bank": {
+   "zh": "金融词义的 bank",
+   "exprs": [],
+   "tags": [],
+   "src": "financial bank"
+  },
+  "financial action": {
+   "zh": "金融行为",
+   "exprs": [],
+   "tags": [],
+   "src": "financial action"
+  },
+  "apple the fruit": {
+   "zh": "水果之 apple",
+   "exprs": [],
+   "tags": [],
+   "src": "apple the fruit"
+  },
+  "eating context": {
+   "zh": "进食语境",
+   "exprs": [],
+   "tags": [],
+   "src": "eating context"
+  },
+  "Apple the company": {
+   "zh": "公司之 Apple",
+   "exprs": [],
+   "tags": [],
+   "src": "Apple the company"
+  },
+  "product launch": {
+   "zh": "产品发布",
+   "exprs": [],
+   "tags": [],
+   "src": "product launch"
+  },
+  "bass the fish": {
+   "zh": "鱼类之 bass",
+   "exprs": [],
+   "tags": [],
+   "src": "bass the fish"
+  },
+  "fishing action": {
+   "zh": "捕鱼行为",
+   "exprs": [],
+   "tags": [],
+   "src": "fishing action"
+  },
+  "reflexive marker": {
+   "zh": "自指标记",
+   "exprs": [],
+   "tags": [],
+   "src": "reflexive marker"
+  },
+  "neighbor wins": {
+   "zh": "邻词胜出",
+   "exprs": [],
+   "tags": [],
+   "src": "neighbor wins"
+  },
+  "Pick a row to see one token\\'s outgoing attention.": {
+   "zh": "选定一行以查看某个词元向外分配的注意力。",
+   "exprs": [],
+   "tags": [],
+   "src": "Pick a row to see one token\\'s outgoing attention."
+  },
+  "identity rotation — same Q/K-space as steps 1–6.": {
+   "zh": "恒等旋转 &mdash; 与第 1&ndash;6 步相同的 Q/K 空间。",
+   "exprs": [],
+   "tags": [],
+   "src": "identity rotation — same Q/K-space as steps 1–6."
+  },
+  "rotates Q and K opposite ways — bonds tokens whose features point against each other.": {
+   "zh": "将 Q 与 K 反向旋转 &mdash; 使特征彼此相向的词元建立关联。",
+   "exprs": [],
+   "tags": [],
+   "src": "rotates Q and K opposite ways — bonds tokens whose features point against each other."
+  },
+  "small mirror twist — sharpens self-similarity, useful for \"stay put\" heads.": {
+   "zh": "小幅镜像扭转 &mdash; 增强自相似性，适用于“保持原位”的头。",
+   "exprs": [],
+   "tags": [],
+   "src": "small mirror twist — sharpens self-similarity, useful for \"stay put\" heads."
+  },
+  "pe-T-val": {
+   "zh": "pe-T-val",
+   "exprs": [],
+   "tags": [],
+   "src": "pe-T-val"
+  },
+  "dimension index →": {
+   "zh": "维度索引 →",
+   "exprs": [],
+   "tags": [],
+   "src": "dimension index →"
+  },
+  "position ↓": {
+   "zh": "位置 ↓",
+   "exprs": [],
+   "tags": [],
+   "src": "position ↓"
+  },
+  "→ high frequency dies off": {
+   "zh": "→ 高频逐渐衰减",
+   "exprs": [],
+   "tags": [],
+   "src": "→ high frequency dies off"
+  },
+  "Press Start training to begin.": {
+   "zh": "按“开始训练”即可开始。",
+   "exprs": [],
+   "tags": [],
+   "src": "Press Start training to begin."
+  },
+  "Press <em>Start training</em> to begin.": {
+   "zh": "按 <em>开始训练</em> 即可开始。",
+   "exprs": [],
+   "tags": [],
+   "src": "Press <em>Start training</em> to begin."
+  },
+  "Pause training": {
+   "zh": "暂停训练",
+   "exprs": [],
+   "tags": [],
+   "src": "Pause training"
+  },
+  "Start training": {
+   "zh": "开始训练",
+   "exprs": [],
+   "tags": [],
+   "src": "Start training"
+  },
+  "mh-heatA": {
+   "zh": "mh-heatA",
+   "exprs": [],
+   "tags": [],
+   "src": "mh-heatA"
+  },
+  "mh-heatB": {
+   "zh": "mh-heatB",
+   "exprs": [],
+   "tags": [],
+   "src": "mh-heatB"
+  },
+  "Head A on type-A token": {
+   "zh": "头 A 在 A 型词元上",
+   "exprs": [],
+   "tags": [],
+   "src": "Head A on type-A token"
+  },
+  "Head B on type-B token": {
+   "zh": "头 B 在 B 型词元上",
+   "exprs": [],
+   "tags": [],
+   "src": "Head B on type-B token"
+  }
+ }
+}

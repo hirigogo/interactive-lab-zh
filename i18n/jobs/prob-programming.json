@@ -1,0 +1,523 @@
+{
+ "slug": "prob-programming",
+ "units": {
+  "Probabilistic Programming, in Practice": {
+   "zh": "概率编程实践",
+   "src": "Probabilistic Programming, in Practice",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "PyMC, NumPyro, Stan — the productive recipe for Bayesian\n          modelling. Declare the model, pick an inference engine,\n          inspect diagnostics. Two live demos in the browser plus\n          the checklist of what to look at after every run.": {
+   "zh": "PyMC、NumPyro、Stan —— 贝叶斯建模的高效配方。声明模型，选择推断引擎，检查诊断信息。本页包含浏览器中的两个实时演示，以及每次运行后应查看内容的清单。",
+   "src": "PyMC, NumPyro, Stan — the productive recipe for Bayesian\n          modelling. Declare the model, pick an inference engine,\n          inspect diagnostics. Two live demos in the browser plus\n          the checklist of what to look at after every run.",
+   "tags": []
+  },
+  "@@T0@@~20 min@@T1@@\n          @@T2@@Bayesian &middot; MCMC &middot; VI@@T3@@": {
+   "zh": "@@T0@@约 20 分钟@@T1@@\n          @@T2@@贝叶斯 &middot; MCMC &middot; VI@@T3@@",
+   "src": "<span>~20 min</span>\n          <span>Bayesian &middot; MCMC &middot; VI</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Step 1": {
+   "zh": "第 1 步",
+   "src": "Step 1",
+   "tags": []
+  },
+  "What a PPL is — and isn't": {
+   "zh": "概率编程语言（PPL）是什么 —— 以及不是什么",
+   "src": "What a PPL is — and isn't",
+   "tags": []
+  },
+  "A probabilistic programming language lets you write a\n          generative model as code. You declare priors, sampling\n          distributions, observations; the runtime takes care of\n          posterior inference. The same model can be run with HMC,\n          NUTS, ADVI, SMC, or Laplace approximation depending on a\n          one-line switch.": {
+   "zh": "概率编程语言让你以代码的形式编写生成模型。你声明先验、采样分布、观测；运行时负责后验推断。同一个模型只需改动一行开关，就可以用 HMC、NUTS、ADVI、SMC 或拉普拉斯近似来运行。",
+   "src": "A probabilistic programming language lets you write a\n          generative model as code. You declare priors, sampling\n          distributions, observations; the runtime takes care of\n          posterior inference. The same model can be run with HMC,\n          NUTS, ADVI, SMC, or Laplace approximation depending on a\n          one-line switch.",
+   "tags": []
+  },
+  "Tool": {
+   "zh": "工具",
+   "src": "Tool",
+   "tags": []
+  },
+  "Backend": {
+   "zh": "后端",
+   "src": "Backend",
+   "tags": []
+  },
+  "Strengths": {
+   "zh": "优势",
+   "src": "Strengths",
+   "tags": []
+  },
+  "Quirks": {
+   "zh": "特点",
+   "src": "Quirks",
+   "tags": []
+  },
+  "@@T0@@Stan@@T1@@": {
+   "zh": "",
+   "src": "<strong>Stan</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Custom + C++": {
+   "zh": "自研 + C++",
+   "src": "Custom + C++",
+   "tags": []
+  },
+  "Best NUTS sampler; rock-solid for hierarchical models": {
+   "zh": "最好的 NUTS 采样器；对分层模型极为稳健",
+   "src": "Best NUTS sampler; rock-solid for hierarchical models",
+   "tags": []
+  },
+  "Different language; slower compile": {
+   "zh": "使用不同的语言；编译较慢",
+   "src": "Different language; slower compile",
+   "tags": []
+  },
+  "@@T0@@PyMC@@T1@@": {
+   "zh": "",
+   "src": "<strong>PyMC</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "PyTensor / JAX": {
+   "zh": "",
+   "src": "PyTensor / JAX",
+   "tags": []
+  },
+  "Pythonic; large user base; rich tools (ArviZ)": {
+   "zh": "Python 风格；用户基础庞大；工具丰富（ArviZ）",
+   "src": "Pythonic; large user base; rich tools (ArviZ)",
+   "tags": []
+  },
+  "Compile time on first run": {
+   "zh": "首次运行时有编译时间",
+   "src": "Compile time on first run",
+   "tags": []
+  },
+  "@@T0@@NumPyro@@T1@@": {
+   "zh": "",
+   "src": "<strong>NumPyro</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "JAX": {
+   "zh": "",
+   "src": "JAX",
+   "tags": []
+  },
+  "Fast NUTS via JAX; GPU-friendly; cleanest deep-learning interop": {
+   "zh": "通过 JAX 实现快速 NUTS；对 GPU 友好；与深度学习的互操作最为干净",
+   "src": "Fast NUTS via JAX; GPU-friendly; cleanest deep-learning interop",
+   "tags": []
+  },
+  "Smaller community than PyMC": {
+   "zh": "社区比 PyMC 小",
+   "src": "Smaller community than PyMC",
+   "tags": []
+  },
+  "@@T0@@Turing.jl@@T1@@": {
+   "zh": "",
+   "src": "<strong>Turing.jl</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Julia": {
+   "zh": "",
+   "src": "Julia",
+   "tags": []
+  },
+  "Composes with Julia's ML stack; flexible": {
+   "zh": "可与 Julia 的机器学习技术栈组合；灵活",
+   "src": "Composes with Julia's ML stack; flexible",
+   "tags": []
+  },
+  "Julia-only": {
+   "zh": "仅限 Julia",
+   "src": "Julia-only",
+   "tags": []
+  },
+  "@@T0@@Pyro@@T1@@": {
+   "zh": "",
+   "src": "<strong>Pyro</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "PyTorch": {
+   "zh": "",
+   "src": "PyTorch",
+   "tags": []
+  },
+  "Stochastic VI on big models; good for BNNs / latent-variable": {
+   "zh": "可对大型模型做随机 VI；适合 BNN / 隐变量模型",
+   "src": "Stochastic VI on big models; good for BNNs / latent-variable",
+   "tags": []
+  },
+  "HMC less mature than NumPyro's": {
+   "zh": "HMC 不如 NumPyro 成熟",
+   "src": "HMC less mature than NumPyro's",
+   "tags": []
+  },
+  "@@T0@@Edward2 / TFP@@T1@@": {
+   "zh": "",
+   "src": "<strong>Edward2 / TFP</strong>",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "TensorFlow": {
+   "zh": "",
+   "src": "TensorFlow",
+   "tags": []
+  },
+  "Scales; ecosystem hooks": {
+   "zh": "可扩展；有生态系统的接口",
+   "src": "Scales; ecosystem hooks",
+   "tags": []
+  },
+  "API churn": {
+   "zh": "API 变动频繁",
+   "src": "API churn",
+   "tags": []
+  },
+  "@@T0@@The slogan.@@T1@@\n          You write the math once. The PPL handles the inference. Switching\n          between HMC and VI is a flag change, not a rewrite.": {
+   "zh": "@@T0@@一句口号。@@T1@@\n          你只需写一次数学。PPL 负责推断。在 HMC 与 VI 之间切换只是改一个标志，而非重写代码。",
+   "src": "<strong>The slogan.</strong>\n          You write the math once. The PPL handles the inference. Switching\n          between HMC and VI is a flag change, not a rewrite.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 2": {
+   "zh": "第 2 步",
+   "src": "Step 2",
+   "tags": []
+  },
+  "Pseudo-code template": {
+   "zh": "伪代码模板",
+   "src": "Pseudo-code template",
+   "tags": []
+  },
+  "with model:\n    theta = Beta(\"theta\", alpha=1, beta=1)        # prior\n    y = Binomial(\"y\", n=20, p=theta, observed=14) # likelihood + obs\n\n    trace = sample(2000, chains=4)                 # NUTS\n    az.plot_trace(trace)\n    az.summary(trace)                              # r-hat, ESS": {
+   "zh": "with model:\n    theta = Beta(\"theta\", alpha=1, beta=1)        # prior\n    y = Binomial(\"y\", n=20, p=theta, observed=14) # likelihood + obs\n\n    trace = sample(2000, chains=4)                 # NUTS\n    az.plot_trace(trace)\n    az.summary(trace)                              # r-hat, ESS",
+   "src": "with model:\n    theta = Beta(\"theta\", alpha=1, beta=1)        # prior\n    y = Binomial(\"y\", n=20, p=theta, observed=14) # likelihood + obs\n\n    trace = sample(2000, chains=4)                 # NUTS\n    az.plot_trace(trace)\n    az.summary(trace)                              # r-hat, ESS",
+   "tags": []
+  },
+  "Three things every PPL gives you:": {
+   "zh": "每个 PPL 都为你提供三样东西：",
+   "src": "Three things every PPL gives you:",
+   "tags": []
+  },
+  "@@T0@@Declarative model.@@T1@@ Variables are named,\n            distributions have priors, observations attach to data.": {
+   "zh": "@@T0@@声明式模型。@@T1@@ 变量有名称，分布有先验，观测与数据相绑定。",
+   "src": "<strong>Declarative model.</strong> Variables are named,\n            distributions have priors, observations attach to data.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Inference engine.@@T1@@ NUTS / HMC by default;\n            VI / Laplace on demand.": {
+   "zh": "@@T0@@推断引擎。@@T1@@ 默认使用 NUTS / HMC；按需使用 VI / 拉普拉斯近似。",
+   "src": "<strong>Inference engine.</strong> NUTS / HMC by default;\n            VI / Laplace on demand.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Diagnostics.@@T1@@ r-hat (between-chain\n            convergence), ESS (effective sample size), divergent\n            transitions, posterior predictive checks.": {
+   "zh": "@@T0@@诊断信息。@@T1@@ r-hat（链间收敛性）、ESS（有效样本量）、发散转移、后验预测检验。",
+   "src": "<strong>Diagnostics.</strong> r-hat (between-chain\n            convergence), ESS (effective sample size), divergent\n            transitions, posterior predictive checks.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 3": {
+   "zh": "第 3 步",
+   "src": "Step 3",
+   "tags": []
+  },
+  "Live: coin-bias model — HMC vs analytic": {
+   "zh": "实时：硬币偏置模型 —— HMC 与解析解对比",
+   "src": "Live: coin-bias model — HMC vs analytic",
+   "tags": []
+  },
+  "The simplest Bayesian model: $\\theta \\sim \\mathrm{Beta}(1, 1)$,\n          $y \\sim \\mathrm{Bernoulli}(\\theta)$. Beta-Binomial conjugacy\n          gives the analytic posterior; an HMC chain should match it.\n          Add data with the buttons and run HMC live.": {
+   "zh": "最简单的贝叶斯模型：$\\theta \\sim \\mathrm{Beta}(1, 1)$，$y \\sim \\mathrm{Bernoulli}(\\theta)$。Beta-二项共轭给出解析后验；一条 HMC 链应当与之吻合。用按钮添加数据，并实时运行 HMC。",
+   "src": "The simplest Bayesian model: $\\theta \\sim \\mathrm{Beta}(1, 1)$,\n          $y \\sim \\mathrm{Bernoulli}(\\theta)$. Beta-Binomial conjugacy\n          gives the analytic posterior; an HMC chain should match it.\n          Add data with the buttons and run HMC live.",
+   "tags": []
+  },
+  "+ heads": {
+   "zh": "+ 正面",
+   "src": "+ heads",
+   "tags": []
+  },
+  "+ tails": {
+   "zh": "+ 反面",
+   "src": "+ tails",
+   "tags": []
+  },
+  "Reset data": {
+   "zh": "重置数据",
+   "src": "Reset data",
+   "tags": []
+  },
+  "Run HMC chain (500)": {
+   "zh": "运行 HMC 链（500）",
+   "src": "Run HMC chain (500)",
+   "tags": []
+  },
+  "@@T0@@k / n @@T1@@0/0@@T2@@@@T3@@\n          @@T4@@r-hat @@T5@@—@@T6@@@@T7@@\n          @@T8@@ESS @@T9@@—@@T10@@@@T11@@": {
+   "zh": "@@T0@@k / n @@T1@@0/0@@T2@@@@T3@@\n          @@T4@@r-hat @@T5@@—@@T6@@@@T7@@\n          @@T8@@ESS @@T9@@—@@T10@@@@T11@@",
+   "src": "<span class=\"train-stat\">k / n <strong id=\"ppl-kn\">0/0</strong></span>\n          <span class=\"train-stat\">r-hat <strong id=\"ppl-rhat\">—</strong></span>\n          <span class=\"train-stat\">ESS <strong id=\"ppl-ess\">—</strong></span>",
+   "tags": [
+    "<span class=\"train-stat\">",
+    "<strong id=\"ppl-kn\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"ppl-rhat\">",
+    "</strong>",
+    "</span>",
+    "<span class=\"train-stat\">",
+    "<strong id=\"ppl-ess\">",
+    "</strong>",
+    "</span>"
+   ]
+  },
+  "Posterior: HMC samples vs analytic Beta": {
+   "zh": "后验：HMC 样本与解析 Beta 对比",
+   "src": "Posterior: HMC samples vs analytic Beta",
+   "tags": []
+  },
+  "HMC trace plot (chain 1)": {
+   "zh": "HMC 轨迹图（链 1）",
+   "src": "HMC trace plot (chain 1)",
+   "tags": []
+  },
+  "Step 4": {
+   "zh": "第 4 步",
+   "src": "Step 4",
+   "tags": []
+  },
+  "Live: 2-D Bayesian regression — HMC vs VI": {
+   "zh": "实时：二维贝叶斯回归 —— HMC 与 VI 对比",
+   "src": "Live: 2-D Bayesian regression — HMC vs VI",
+   "tags": []
+  },
+  "A Bayesian linear regression with a small dataset. HMC gives\n          honest posterior; mean-field VI fits a factorised Gaussian.\n          Watch the credible bands differ: VI is usually too narrow,\n          especially in directions where the parameters correlate.": {
+   "zh": "一个小数据集上的贝叶斯线性回归。HMC 给出诚实的后验；均值场 VI 拟合一个因子化的高斯分布。观察可信带如何不同：VI 通常过窄，尤其是在参数存在相关性的方向上。",
+   "src": "A Bayesian linear regression with a small dataset. HMC gives\n          honest posterior; mean-field VI fits a factorised Gaussian.\n          Watch the credible bands differ: VI is usually too narrow,\n          especially in directions where the parameters correlate.",
+   "tags": []
+  },
+  "New data": {
+   "zh": "新数据",
+   "src": "New data",
+   "tags": []
+  },
+  "HMC posterior over (slope, intercept)": {
+   "zh": "(斜率, 截距) 上的 HMC 后验",
+   "src": "HMC posterior over (slope, intercept)",
+   "tags": []
+  },
+  "VI Gaussian fit (mean-field)": {
+   "zh": "VI 高斯拟合（均值场）",
+   "src": "VI Gaussian fit (mean-field)",
+   "tags": []
+  },
+  "@@T0@@The VI trap.@@T1@@\n          Mean-field VI factorises across parameters, so it can't\n          represent correlated posteriors. The HMC contours often\n          slant; the VI contours always align with the axes. For\n          credible-interval-quality work, prefer HMC or full-rank VI.": {
+   "zh": "@@T0@@VI 的陷阱。@@T1@@\n          均值场 VI 在参数之间做因子化分解，因此无法表示相关的后验。HMC 的等高线常常是倾斜的；而 VI 的等高线总是与坐标轴平行。若要获得高质量的可信区间，宜选用 HMC 或满秩 VI。",
+   "src": "<strong>The VI trap.</strong>\n          Mean-field VI factorises across parameters, so it can't\n          represent correlated posteriors. The HMC contours often\n          slant; the VI contours always align with the axes. For\n          credible-interval-quality work, prefer HMC or full-rank VI.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 5": {
+   "zh": "第 5 步",
+   "src": "Step 5",
+   "tags": []
+  },
+  "The diagnostic checklist": {
+   "zh": "诊断清单",
+   "src": "The diagnostic checklist",
+   "tags": []
+  },
+  "@@T0@@r-hat &lt; 1.01.@@T1@@ Between-chain consensus\n            on each parameter. Above 1.05 = chains haven't converged;\n            run longer or reparameterise.": {
+   "zh": "@@T0@@r-hat &lt; 1.01。@@T1@@ 每个参数上的链间一致性。高于 1.05 = 链尚未收敛；请运行更久或重新参数化。",
+   "src": "<strong>r-hat &lt; 1.01.</strong> Between-chain consensus\n            on each parameter. Above 1.05 = chains haven't converged;\n            run longer or reparameterise.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@ESS &gt; 400.@@T1@@ Effective sample size.\n            Below this, your posterior summary is noisy.": {
+   "zh": "@@T0@@ESS &gt; 400。@@T1@@ 有效样本量。低于此值，你的后验摘要会有噪声。",
+   "src": "<strong>ESS &gt; 400.</strong> Effective sample size.\n            Below this, your posterior summary is noisy.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Divergent transitions.@@T1@@ NUTS-specific.\n            Even 5 divergences ≥ 0% of the chain means the geometry\n            is too curved — try a non-centred parameterisation or\n            increase @@T2@@target_accept@@T3@@.": {
+   "zh": "@@T0@@发散转移。@@T1@@ NUTS 特有的问题。哪怕只有 5 次发散（占链的 ≥ 0%）也意味着几何过于弯曲 —— 试试非中心化参数化，或增大 @@T2@@target_accept@@T3@@。",
+   "src": "<strong>Divergent transitions.</strong> NUTS-specific.\n            Even 5 divergences ≥ 0% of the chain means the geometry\n            is too curved — try a non-centred parameterisation or\n            increase <code>target_accept</code>.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<code>",
+    "</code>"
+   ]
+  },
+  "@@T0@@Posterior predictive checks.@@T1@@ Simulate\n            new data from the posterior and compare to observed.\n            Bad fit here ≫ any single diagnostic.": {
+   "zh": "@@T0@@后验预测检验。@@T1@@ 从后验模拟新数据，并与观测数据比较。此处拟合不佳，其重要性远胜过任何单一诊断。",
+   "src": "<strong>Posterior predictive checks.</strong> Simulate\n            new data from the posterior and compare to observed.\n            Bad fit here ≫ any single diagnostic.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Prior predictive checks.@@T1@@ Sample from\n            the prior alone. If those samples look implausible, your\n            prior is uninformative-in-a-bad-way.": {
+   "zh": "@@T0@@先验预测检验。@@T1@@ 仅从先验采样。若这些样本看起来不合理，则你的先验是以一种糟糕的方式无信息的。",
+   "src": "<strong>Prior predictive checks.</strong> Sample from\n            the prior alone. If those samples look implausible, your\n            prior is uninformative-in-a-bad-way.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@LOO / WAIC.@@T1@@ Cross-validated predictive\n            accuracy for model comparison. ArviZ ships both.": {
+   "zh": "@@T0@@LOO / WAIC。@@T1@@ 用于模型比较的交叉验证预测精度。ArviZ 两者都提供。",
+   "src": "<strong>LOO / WAIC.</strong> Cross-validated predictive\n            accuracy for model comparison. ArviZ ships both.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Step 6": {
+   "zh": "第 6 步",
+   "src": "Step 6",
+   "tags": []
+  },
+  "What PPLs are for (and not for)": {
+   "zh": "PPL 适合（以及不适合）做什么",
+   "src": "What PPLs are for (and not for)",
+   "tags": []
+  },
+  "@@T0@@Good fits.@@T1@@ Hierarchical models, small\n            data, calibrated uncertainty, parameter interpretation,\n            scientific models with mechanistic priors.": {
+   "zh": "@@T0@@合适的场景。@@T1@@ 分层模型、少数据、校准良好的不确定性、参数解释、带机制性先验的科学模型。",
+   "src": "<strong>Good fits.</strong> Hierarchical models, small\n            data, calibrated uncertainty, parameter interpretation,\n            scientific models with mechanistic priors.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Reach for instead:@@T1@@ deep learning on\n            millions of examples (gradient descent is faster), pure\n            point-estimation (sklearn / XGBoost), production serving\n            (PPLs are great in research, awkward in production).": {
+   "zh": "@@T0@@改用其他方案：@@T1@@ 数百万样本上的深度学习（梯度下降更快）、纯点估计（sklearn / XGBoost）、生产环境部署（PPL 在研究里很棒，在生产里则很别扭）。",
+   "src": "<strong>Reach for instead:</strong> deep learning on\n            millions of examples (gradient descent is faster), pure\n            point-estimation (sklearn / XGBoost), production serving\n            (PPLs are great in research, awkward in production).",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@The deep BNN gap.@@T1@@ Bayesian neural nets\n            are hard. PyMC + NUTS chokes past a few thousand parameters;\n            VI on Bayesian-deep is biased. SWAG, Laplace, deep\n            ensembles, and SGLD are the practical compromises.": {
+   "zh": "@@T0@@深度 BNN 的鸿沟。@@T1@@ 贝叶斯神经网络很难。PyMC + NUTS 在参数超过几千个后就难以为继；对贝叶斯深度模型做 VI 是有偏的。SWAG、拉普拉斯近似、深度集成与 SGLD 是实用的折中方案。",
+   "src": "<strong>The deep BNN gap.</strong> Bayesian neural nets\n            are hard. PyMC + NUTS chokes past a few thousand parameters;\n            VI on Bayesian-deep is biased. SWAG, Laplace, deep\n            ensembles, and SGLD are the practical compromises.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Cross-link.@@T1@@ The @@T2@@Bayesian posterior playground@@T3@@\n            covers MCMC vs VI from a different angle; the\n            @@T4@@Neural Processes@@T5@@\n            article shows the amortised-inference alternative.": {
+   "zh": "@@T0@@交叉链接。@@T1@@ @@T2@@贝叶斯后验演练场@@T3@@ 从另一个角度讲述 MCMC 与 VI；@@T4@@神经过程@@T5@@ 一文展示了摊销推断这一替代方案。",
+   "src": "<strong>Cross-link.</strong> The <a href=\"../bayesian-posterior/index.html\">Bayesian posterior playground</a>\n            covers MCMC vs VI from a different angle; the\n            <a href=\"../neural-processes/index.html\">Neural Processes</a>\n            article shows the amortised-inference alternative.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<a href=\"../bayesian-posterior/index.html\">",
+    "</a>",
+    "<a href=\"../neural-processes/index.html\">",
+    "</a>"
+   ]
+  }
+ },
+ "meta": {
+  "title": "概率编程实践",
+  "tagline": "PyMC / NumPyro / Stan 是同一个思想 —— 声明一个模型，交给推断引擎",
+  "summary": "用代码写一个贝叶斯模型；用 HMC 采样；检查 r-hat 与 ESS；与 VI 比较。一个实时的硬币偏置模型加一个二维回归，在你的浏览器中并排运行 NUTS 风格的 MCMC 与高斯 VI，配有轨迹图和你在 PyMC / NumPyro / Stan 中会看到的诊断信息。",
+  "difficulty": "中级",
+  "collection": "概率与统计推断",
+  "highlights": [
+   "PPL 配方：声明模型、选择推断方式（HMC / VI）、检查诊断信息。",
+   "实时的硬币偏置模型：HMC 轨迹 + 后验直方图 + 解析 Beta 后验。",
+   "二维贝叶斯回归：在小数据集上比较 HMC 与 VI 的拟合。",
+   "r-hat、ESS、发散转移、后验预测检验 —— 各自有何用途。"
+  ],
+  "tags": [
+   "概率编程",
+   "HMC",
+   "VI",
+   "PyMC",
+   "NumPyro",
+   "交互式"
+  ]
+ },
+ "js": {
+  "blue bars: HMC samples · teal curve: analytic Beta": {
+   "zh": "蓝色柱：HMC 样本 · 青色曲线：解析 Beta",
+   "exprs": [],
+   "tags": [],
+   "src": "blue bars: HMC samples · teal curve: analytic Beta"
+  },
+  "Press Run HMC chain to populate.": {
+   "zh": "请点击「运行 HMC 链」以填充数据。",
+   "exprs": [],
+   "tags": [],
+   "src": "Press Run HMC chain to populate."
+  },
+  "ppl-flipH": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": "ppl-flipH"
+  },
+  "ppl-flipT": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": "ppl-flipT"
+  },
+  "ppl-runHMC": {
+   "zh": "",
+   "exprs": [],
+   "tags": [],
+   "src": "ppl-runHMC"
+  }
+ }
+}

@@ -1,0 +1,277 @@
+{
+ "slug": "classifier-guidance",
+ "units": {
+  "Guidance Bends the Trajectory": {
+   "zh": "引导机制使轨迹发生弯折",
+   "src": "Guidance Bends the Trajectory",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解文章库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../index.html\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../index.html\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "A diffusion model generates by starting from pure noise and running a learned\n      @@T0@@reverse@@T1@@ process that walks each sample back toward the data. Left alone it is\n      @@T2@@unconditional@@T3@@ &mdash; samples scatter across every mode. Add a\n      @@T4@@guidance@@T5@@ term pointing at a chosen class and the trajectories bend toward\n      it. Turn the knob up and they bend harder&hellip; and collapse onto the class's centre. Fidelity\n      up, diversity down. Watch it happen below.": {
+   "zh": "扩散模型从纯噪声出发，运行一个习得的 @@T0@@反向@@T1@@ 过程，\n      将每个样本逐步带回数据分布，从而完成生成。若不加干预，它是\n      @@T2@@无条件的@@T3@@ &mdash; 样本散布于各个众数之上。加入一个\n      指向所选类别的 @@T4@@引导@@T5@@ 项，轨迹便会朝其弯折。\n      将旋钮调大，弯折愈发强烈&hellip;并最终坍缩到该类别的中心。保真度\n      上升，多样性下降。请在下方观察这一过程。",
+   "src": "A diffusion model generates by starting from pure noise and running a learned\n      <em>reverse</em> process that walks each sample back toward the data. Left alone it is\n      <strong>unconditional</strong> &mdash; samples scatter across every mode. Add a\n      <strong>guidance</strong> term pointing at a chosen class and the trajectories bend toward\n      it. Turn the knob up and they bend harder&hellip; and collapse onto the class's centre. Fidelity\n      up, diversity down. Watch it happen below.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@~9 min@@T1@@\n      @@T2@@Deep Learning &middot; Diffusion Models &middot; Conditional Generation@@T3@@": {
+   "zh": "@@T0@@约 9 分钟@@T1@@\n      @@T2@@深度学习 &middot; 扩散模型 &middot; 条件生成@@T3@@",
+   "src": "<span>~9 min</span>\n      <span>Deep Learning &middot; Diffusion Models &middot; Conditional Generation</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "Sampling is following a score": {
+   "zh": "采样即为沿分数前行",
+   "src": "Sampling is following a score",
+   "tags": []
+  },
+  "The reverse process moves a sample $x$ in the direction of the @@T0@@score@@T1@@\n      $\\nabla_x \\log p(x)$ &mdash; uphill in probability &mdash; while slowly removing noise. That\n      unconditional score pulls each sample toward whichever data mode is nearest, so a batch ends\n      up spread over @@T2@@all@@T3@@ the modes.": {
+   "zh": "反向过程将样本 $x$ 沿 @@T0@@分数@@T1@@ $\\nabla_x \\log p(x)$ 的方向\n      移动 &mdash; 即朝概率上升的方向 &mdash; 同时缓慢地去除噪声。这一\n      无条件分数将每个样本拉向离它最近的数据众数，因此一个批次最终会\n      散布在 @@T2@@所有@@T3@@ 众数之上。",
+   "src": "The reverse process moves a sample $x$ in the direction of the <strong>score</strong>\n      $\\nabla_x \\log p(x)$ &mdash; uphill in probability &mdash; while slowly removing noise. That\n      unconditional score pulls each sample toward whichever data mode is nearest, so a batch ends\n      up spread over <em>all</em> the modes.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "To condition on a class $c$ we want the score of $p(x \\mid c)$. Bayes' rule splits it into the\n      unconditional score plus the gradient of a classifier, and guidance simply\n      @@T0@@over-weights@@T1@@ that second term by a scale $w$:": {
+   "zh": "要以类别 $c$ 为条件，我们需要 $p(x \\mid c)$ 的分数。Bayes 法则\n      将其拆分为无条件分数加上一个分类器的梯度，而引导机制只是\n      用一个尺度 $w$ 对第二项 @@T0@@加权放大@@T1@@：",
+   "src": "To condition on a class $c$ we want the score of $p(x \\mid c)$. Bayes' rule splits it into the\n      unconditional score plus the gradient of a classifier, and guidance simply\n      <em>over-weights</em> that second term by a scale $w$:",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "At $w = 0$ the class term vanishes and you sample unconditionally. As $w$ grows the pull\n      toward class $c$ dominates &mdash; the mechanism behind classifier and classifier-free\n      guidance alike.": {
+   "zh": "当 $w = 0$ 时，类别项消失，你便进行无条件采样。随着 $w$ 增大，\n      朝类别 $c$ 的牵引逐渐占据主导 &mdash; 无论是有分类器引导还是无分类器\n      引导，其机制皆在于此。",
+   "src": "At $w = 0$ the class term vanishes and you sample unconditionally. As $w$ grows the pull\n      toward class $c$ dominates &mdash; the mechanism behind classifier and classifier-free\n      guidance alike.",
+   "tags": []
+  },
+  "The Lab": {
+   "zh": "演练区",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Turn the knob, watch the pull": {
+   "zh": "转动旋钮，观察牵引",
+   "src": "Turn the knob, watch the pull",
+   "tags": []
+  },
+  "Three class blobs sit in the plane (the data distribution). Press @@T0@@Run@@T1@@ and a\n      batch of noisy samples runs the reverse process, leaving faint trails. With\n      @@T2@@guidance $w = 0$@@T3@@ they settle across all three blobs. Raise the\n      @@T4@@guidance scale@@T5@@ and pick a @@T6@@target class@@T7@@: the trajectories bend\n      toward that blob. Push $w$ high and they pile onto its centre &mdash; sharp, on-class, and\n      nearly identical.": {
+   "zh": "平面中有三个类别簇（即数据分布）。按 @@T0@@运行@@T1@@，\n      一批带噪样本便运行反向过程，留下浅淡的轨迹。在\n      @@T2@@引导 $w = 0$@@T3@@ 时，它们散布在全部三个簇上。提高\n      @@T4@@引导尺度@@T5@@ 并选定一个 @@T6@@目标类别@@T7@@：轨迹便会朝\n      该簇弯折。将 $w$ 推至很大时，它们堆积到该簇中心 &mdash; 清晰、属于该类，且\n      彼此几乎相同。",
+   "src": "Three class blobs sit in the plane (the data distribution). Press <strong>Run</strong> and a\n      batch of noisy samples runs the reverse process, leaving faint trails. With\n      <strong>guidance $w = 0$</strong> they settle across all three blobs. Raise the\n      <strong>guidance scale</strong> and pick a <strong>target class</strong>: the trajectories bend\n      toward that blob. Push $w$ high and they pile onto its centre &mdash; sharp, on-class, and\n      nearly identical.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Target class $c$": {
+   "zh": "目标类别 $c$",
+   "src": "Target class $c$",
+   "tags": []
+  },
+  "Class A": {
+   "zh": "类别 A",
+   "src": "Class A",
+   "tags": []
+  },
+  "Class B": {
+   "zh": "类别 B",
+   "src": "Class B",
+   "tags": []
+  },
+  "Class C": {
+   "zh": "类别 C",
+   "src": "Class C",
+   "tags": []
+  },
+  "Guidance scale @@T0@@$w$ = @@T1@@3.0@@T2@@@@T3@@": {
+   "zh": "引导尺度 @@T0@@$w$ = @@T1@@3.0@@T2@@@@T3@@",
+   "src": "Guidance scale <span>$w$ = <span id=\"wVal\">3.0</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"wVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Samples @@T0@@$n$ = @@T1@@60@@T2@@@@T3@@": {
+   "zh": "样本数 @@T0@@$n$ = @@T1@@60@@T2@@@@T3@@",
+   "src": "Samples <span>$n$ = <span id=\"nVal\">60</span></span>",
+   "tags": [
+    "<span>",
+    "<span id=\"nVal\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "Run reverse process": {
+   "zh": "运行反向过程",
+   "src": "Run reverse process",
+   "tags": []
+  },
+  "Trails: on": {
+   "zh": "轨迹：开启",
+   "src": "Trails: on",
+   "tags": []
+  },
+  "Large rings are the three class blobs; the selected one is highlighted. Dots are samples;\n        faint lines are their reverse-diffusion trajectories from noise to data. Change $w$ or the\n        target and press @@T0@@Run@@T1@@ to resample.": {
+   "zh": "大方环代表三个类别簇；被选中的那个以高亮显示。圆点为样本；\n        浅色线条是它们从噪声到数据的反向扩散轨迹。改变 $w$ 或\n        目标类别，然后按 @@T0@@运行@@T1@@ 重新采样。",
+   "src": "Large rings are the three class blobs; the selected one is highlighted. Dots are samples;\n        faint lines are their reverse-diffusion trajectories from noise to data. Change $w$ or the\n        target and press <em>Run</em> to resample.",
+   "tags": [
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@On-target fidelity@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@命中目标类别的保真度@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">On-target fidelity</span>\n        <span class=\"stat-value\" id=\"fidVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"fidVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Sample diversity (spread)@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@样本多样性（离散程度）@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Sample diversity (spread)</span>\n        <span class=\"stat-value\" id=\"divVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"divVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Guidance scale $w$@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@引导尺度 $w$@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Guidance scale $w$</span>\n        <span class=\"stat-value\" id=\"wStat\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"wStat\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Sweep $w$ from 0 upward and re-run.@@T1@@ Watch the two numbers move in opposite\n      directions: fidelity (fraction landing on the target class) climbs while diversity (how spread\n      out the samples are) falls. That trade is the signature of guidance &mdash; there is no setting\n      that maximizes both.": {
+   "zh": "@@T0@@将 $w$ 从 0 起逐步调高并重新运行。@@T1@@ 观察这两个数值朝相反\n      方向变化：保真度（落在目标类别上的比例）上升，而多样性（样本的分散\n      程度）下降。这种取舍正是引导机制的标志 &mdash; 不存在\n      同时使二者最大化的设定。",
+   "src": "<strong>Sweep $w$ from 0 upward and re-run.</strong> Watch the two numbers move in opposite\n      directions: fidelity (fraction landing on the target class) climbs while diversity (how spread\n      out the samples are) falls. That trade is the signature of guidance &mdash; there is no setting\n      that maximizes both.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "回报",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Fidelity and diversity pull against each other": {
+   "zh": "保真度与多样性彼此相抗",
+   "src": "Fidelity and diversity pull against each other",
+   "tags": []
+  },
+  "Guidance re-weights the sampling distribution toward roughly $p(x)\\,p(c\\mid x)^{w}$. A larger\n      exponent sharpens the class posterior: probability mass concentrates where the classifier is\n      most confident &mdash; the centre of the target blob. That is exactly what you want for\n      @@T0@@fidelity@@T1@@ (samples unmistakably belong to the class) and exactly what destroys\n      @@T2@@diversity@@T3@@ (the tails and neighbouring modes get starved).": {
+   "zh": "引导机制将采样分布重新加权为大致 $p(x)\\,p(c\\mid x)^{w}$。指数越大，\n      类别后验越尖锐：概率质量集中到分类器最有把握之处 &mdash;\n      即目标簇的中心。这正是 @@T0@@保真度@@T1@@ 所需要的\n      （样本毫无疑问地属于该类别），也恰好是摧毁\n      @@T2@@多样性@@T3@@ 的原因（尾部与相邻众数被剥夺了概率质量）。",
+   "src": "Guidance re-weights the sampling distribution toward roughly $p(x)\\,p(c\\mid x)^{w}$. A larger\n      exponent sharpens the class posterior: probability mass concentrates where the classifier is\n      most confident &mdash; the centre of the target blob. That is exactly what you want for\n      <em>fidelity</em> (samples unmistakably belong to the class) and exactly what destroys\n      <em>diversity</em> (the tails and neighbouring modes get starved).",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@$w = 0$:@@T1@@ pure unconditional sampling &mdash; every mode represented, maximal variety, no control.": {
+   "zh": "@@T0@@$w = 0$：@@T1@@ 纯无条件采样 &mdash; 每个众数都有体现，多样性最大，但无法控制。",
+   "src": "<strong>$w = 0$:</strong> pure unconditional sampling &mdash; every mode represented, maximal variety, no control.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Moderate $w$:@@T1@@ the sweet spot &mdash; clearly on-class while still varied. Real systems use small single-digit scales.": {
+   "zh": "@@T0@@中等 $w$：@@T1@@ 最佳区间 &mdash; 明确属于目标类别，同时仍具多样性。真实系统使用个位数的小尺度。",
+   "src": "<strong>Moderate $w$:</strong> the sweet spot &mdash; clearly on-class while still varied. Real systems use small single-digit scales.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Large $w$:@@T1@@ mode collapse &mdash; oversaturated, near-identical samples clustered at the class centre.": {
+   "zh": "@@T0@@很大的 $w$：@@T1@@ 众数坍缩 &mdash; 样本过度饱和、几乎完全相同，且聚集在类别中心。",
+   "src": "<strong>Large $w$:</strong> mode collapse &mdash; oversaturated, near-identical samples clustered at the class centre.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Classifier-free guidance.@@T1@@ Rather than train a separate noisy-image classifier,\n      modern systems train one network to predict both the conditional and unconditional score (by\n      randomly dropping the label). At sampling time they extrapolate\n      $\\tilde{\\varepsilon} = (1{+}w)\\,\\varepsilon_c - w\\,\\varepsilon_{\\varnothing}$, reaching the same\n      bent trajectories with no extra classifier. Same knob, same trade-off &mdash; this is the guidance\n      scale you set in Stable Diffusion or Imagen.": {
+   "zh": "@@T0@@无分类器引导。@@T1@@ 现代系统并不单独训练一个带噪图像分类器，\n      而是训练单一网络同时预测条件分数与无条件分数（通过\n      随机丢弃标签实现）。采样时它们作如下外推\n      $\\tilde{\\varepsilon} = (1{+}w)\\,\\varepsilon_c - w\\,\\varepsilon_{\\varnothing}$，从而在无需额外分类器的情况下\n      得到同样的弯折轨迹。同一个旋钮，同样的取舍 &mdash; 这正是你在 Stable Diffusion 或\n      Imagen 中设定的引导尺度。",
+   "src": "<strong>Classifier-free guidance.</strong> Rather than train a separate noisy-image classifier,\n      modern systems train one network to predict both the conditional and unconditional score (by\n      randomly dropping the label). At sampling time they extrapolate\n      $\\tilde{\\varepsilon} = (1{+}w)\\,\\varepsilon_c - w\\,\\varepsilon_{\\varnothing}$, reaching the same\n      bent trajectories with no extra classifier. Same knob, same trade-off &mdash; this is the guidance\n      scale you set in Stable Diffusion or Imagen.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 22: Diffusion Theory &amp; Guidance": {
+   "zh": "ES 667 深度学习讲解系列的一部分 &middot; 第 22 讲：扩散理论与引导机制",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 22: Diffusion Theory &amp; Guidance",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "引导机制使轨迹发生弯折",
+  "tagline": "引导机制将扩散采样导向某一类别 &mdash; 并以多样性换取保真度",
+  "summary": "扩散模型通过运行一个习得的反向过程，将噪声逐步带回数据分布，从而实现采样。在无条件情形下，样本散布于各个众数之上。引导项加入一股朝向所选类别的牵引，并由尺度 w 加权放大：当 w=0 时轨迹散布于所有众数之上，随着 w 增大，它们强烈弯折向目标类别，却坍缩到该类别中心。选定目标，扫描引导尺度，按运行，观察反向轨迹如何动态演化，而保真度与多样性两个数值朝相反方向变化。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "观察一段动画化的反向扩散过程，将一批带噪样本逐步带回三个数据众数。",
+   "将引导尺度从 0（无条件，所有众数）向上调节，观察轨迹朝所选类别弯折。",
+   "将尺度推高，观察样本坍缩到目标类别中心 &mdash; 众数坍缩的实例。",
+   "随着引导旋钮的转动，观察保真度与多样性两个数值朝相反方向变化。",
+   "将这一玩具模型与真实系统联系起来：同一个旋钮就是 Stable Diffusion 与 Imagen 中的无分类器引导。"
+  ],
+  "tags": [
+   "扩散模型",
+   "引导机制",
+   "条件生成",
+   "采样",
+   "交互式"
+  ]
+ },
+ "js": {}
+}

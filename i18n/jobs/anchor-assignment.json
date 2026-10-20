@@ -1,0 +1,312 @@
+{
+ "slug": "anchor-assignment",
+ "units": {
+  "Assigning Anchors by IoU": {
+   "zh": "依据 IoU 分配锚框",
+   "src": "Assigning Anchors by IoU",
+   "tags": []
+  },
+  "@@T0@@&larr; Explainer Library@@T1@@": {
+   "zh": "@@T0@@&larr; 讲解库@@T1@@",
+   "src": "<a class=\"back-link\" href=\"../\">&larr; Explainer Library</a>",
+   "tags": [
+    "<a class=\"back-link\" href=\"../\">",
+    "</a>"
+   ]
+  },
+  "Interactive Explainer": {
+   "zh": "交互式讲解",
+   "src": "Interactive Explainer",
+   "tags": []
+  },
+  "How does a detector answer &ldquo;where is the object?&rdquo; It doesn't, directly. It\n      pre-places thousands of candidate boxes &mdash; @@T0@@anchors@@T1@@ &mdash; and turns each one\n      into a yes/no question: @@T2@@does an object sit here?@@T3@@ The labels for that classifier come\n      from one number, the Intersection-over-Union between each anchor and the ground truth. Drag\n      the object below and watch the anchors take sides.": {
+   "zh": "检测器如何回答「物体在哪里？」它并不直接回答。它\n      预先放置数千个候选框&mdash;即 @@T0@@锚框@@T1@@ &mdash;并把每一个\n      变成一个是/否问题：@@T2@@这里是否有一个物体？@@T3@@ 该分类器的标签来自\n      一个数值，即每个锚框与真值之间的交并比。拖动\n      下方的物体，观察各锚框如何分边站队。",
+   "src": "How does a detector answer &ldquo;where is the object?&rdquo; It doesn't, directly. It\n      pre-places thousands of candidate boxes &mdash; <em>anchors</em> &mdash; and turns each one\n      into a yes/no question: <em>does an object sit here?</em> The labels for that classifier come\n      from one number, the Intersection-over-Union between each anchor and the ground truth. Drag\n      the object below and watch the anchors take sides.",
+   "tags": [
+    "<em>",
+    "</em>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "@@T0@@~7 min@@T1@@\n      @@T2@@Deep Learning &middot; Object Detection &middot; Anchors@@T3@@": {
+   "zh": "@@T0@@约 7 分钟@@T1@@\n      @@T2@@深度学习 &middot; 目标检测 &middot; 锚框@@T3@@",
+   "src": "<span>~7 min</span>\n      <span>Deep Learning &middot; Object Detection &middot; Anchors</span>",
+   "tags": [
+    "<span>",
+    "</span>",
+    "<span>",
+    "</span>"
+   ]
+  },
+  "Prelude": {
+   "zh": "前言",
+   "src": "Prelude",
+   "tags": []
+  },
+  "From localization to classification": {
+   "zh": "从定位到分类",
+   "src": "From localization to classification",
+   "tags": []
+  },
+  "Regressing a box out of thin air is hard. Anchor-based detectors sidestep it: they tile the\n      image with a fixed set of reference boxes at several scales and aspect ratios, then ask each\n      anchor a much easier question &mdash; is there an object overlapping me, yes or no? The overlap\n      is measured by Intersection over Union:": {
+   "zh": "凭空回归出一个框是困难的。基于锚框的检测器绕开了这一点：它们用一组\n      固定尺寸与宽高比的参考框平铺\n      图像，然后向每个锚框提出一个容易得多的问题&mdash;是否有物体与我重叠，是还是否？重叠程度\n      由交并比来度量：",
+   "src": "Regressing a box out of thin air is hard. Anchor-based detectors sidestep it: they tile the\n      image with a fixed set of reference boxes at several scales and aspect ratios, then ask each\n      anchor a much easier question &mdash; is there an object overlapping me, yes or no? The overlap\n      is measured by Intersection over Union:",
+   "tags": []
+  },
+  "Two thresholds turn that continuous overlap into training labels. An anchor is a\n      @@T0@@positive@@T1@@ (object) if its IoU is at least $\\tau_{\\text{pos}}$, a\n      @@T2@@negative@@T3@@ (background) if its IoU is below $\\tau_{\\text{neg}}$, and is\n      @@T4@@ignored@@T5@@ in between so ambiguous boxes don't send confusing gradients.": {
+   "zh": "两个阈值把这一连续的叠合度转化为训练标签。若锚框的 IoU 至少为\n      $\\tau_{\\text{pos}}$，则它是@@T0@@正样本@@T1@@（物体）；若其 IoU 低于\n      $\\tau_{\\text{neg}}$，则为@@T2@@负样本@@T3@@（背景）；介于两者之间者被\n      @@T4@@忽略@@T5@@，以免含糊的框发出令人困惑的梯度。",
+   "src": "Two thresholds turn that continuous overlap into training labels. An anchor is a\n      <strong>positive</strong> (object) if its IoU is at least $\\tau_{\\text{pos}}$, a\n      <strong>negative</strong> (background) if its IoU is below $\\tau_{\\text{neg}}$, and is\n      <strong>ignored</strong> in between so ambiguous boxes don't send confusing gradients.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>",
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "The Lab": {
+   "zh": "实验台",
+   "src": "The Lab",
+   "tags": []
+  },
+  "Drag the object, label the anchors": {
+   "zh": "拖动物体，为锚框打标签",
+   "src": "Drag the object, label the anchors",
+   "tags": []
+  },
+  "The @@T0@@blue@@T1@@ box is the ground-truth\n      object &mdash; drag it with the mouse or the sliders. Every thin box is an anchor; each grid\n      location carries six &mdash; three aspect ratios at two scales. Each anchor is colored\n      @@T2@@positive@@T3@@,\n      @@T4@@ignore@@T5@@, or\n      @@T6@@negative@@T7@@ by its IoU with the object,\n      and the best-matching anchor is drawn bold.": {
+   "zh": "@@T0@@蓝色@@T1@@框是作为真值的\n      物体&mdash;用鼠标或滑块拖动它。每一个细框都是一个锚框；每个网格\n      位置带有六个&mdash;即两个尺度下的三个宽高比。每个锚框按其与物体的 IoU\n      被染成@@T2@@正样本@@T3@@、\n      @@T4@@忽略@@T5@@或\n      @@T6@@负样本@@T7@@，\n      而匹配最佳的锚框以粗线绘制。",
+   "src": "The <span style=\"color:var(--accent);font-weight:600\">blue</span> box is the ground-truth\n      object &mdash; drag it with the mouse or the sliders. Every thin box is an anchor; each grid\n      location carries six &mdash; three aspect ratios at two scales. Each anchor is colored\n      <span style=\"color:var(--success);font-weight:600\">positive</span>,\n      <span style=\"color:var(--warm);font-weight:600\">ignore</span>, or\n      <span style=\"color:var(--muted);font-weight:600\">negative</span> by its IoU with the object,\n      and the best-matching anchor is drawn bold.",
+   "tags": [
+    "<span style=\"color:var(--accent);font-weight:600\">",
+    "</span>",
+    "<span style=\"color:var(--success);font-weight:600\">",
+    "</span>",
+    "<span style=\"color:var(--warm);font-weight:600\">",
+    "</span>",
+    "<span style=\"color:var(--muted);font-weight:600\">",
+    "</span>"
+   ]
+  },
+  "Centered object": {
+   "zh": "居中的物体",
+   "src": "Centered object",
+   "tags": []
+  },
+  "Small object": {
+   "zh": "小物体",
+   "src": "Small object",
+   "tags": []
+  },
+  "Wide object": {
+   "zh": "宽物体",
+   "src": "Wide object",
+   "tags": []
+  },
+  "Off to the side": {
+   "zh": "偏向一侧",
+   "src": "Off to the side",
+   "tags": []
+  },
+  "Object center $x$ @@T0@@4.6@@T1@@": {
+   "zh": "物体中心 $x$ @@T0@@4.6@@T1@@",
+   "src": "Object center $x$ <span id=\"gxVal\">4.6</span>",
+   "tags": [
+    "<span id=\"gxVal\">",
+    "</span>"
+   ]
+  },
+  "Object center $y$ @@T0@@3.4@@T1@@": {
+   "zh": "物体中心 $y$ @@T0@@3.4@@T1@@",
+   "src": "Object center $y$ <span id=\"gyVal\">3.4</span>",
+   "tags": [
+    "<span id=\"gyVal\">",
+    "</span>"
+   ]
+  },
+  "Object width $w$ @@T0@@2.60@@T1@@": {
+   "zh": "物体宽度 $w$ @@T0@@2.60@@T1@@",
+   "src": "Object width $w$ <span id=\"gwVal\">2.60</span>",
+   "tags": [
+    "<span id=\"gwVal\">",
+    "</span>"
+   ]
+  },
+  "Object height $h$ @@T0@@2.20@@T1@@": {
+   "zh": "物体高度 $h$ @@T0@@2.20@@T1@@",
+   "src": "Object height $h$ <span id=\"ghVal\">2.20</span>",
+   "tags": [
+    "<span id=\"ghVal\">",
+    "</span>"
+   ]
+  },
+  "Positive threshold $\\tau_{\\text{pos}}$ @@T0@@0.50@@T1@@": {
+   "zh": "正样本阈值 $\\tau_{\\text{pos}}$ @@T0@@0.50@@T1@@",
+   "src": "Positive threshold $\\tau_{\\text{pos}}$ <span id=\"posVal\">0.50</span>",
+   "tags": [
+    "<span id=\"posVal\">",
+    "</span>"
+   ]
+  },
+  "Negative threshold $\\tau_{\\text{neg}}$ @@T0@@0.30@@T1@@": {
+   "zh": "负样本阈值 $\\tau_{\\text{neg}}$ @@T0@@0.30@@T1@@",
+   "src": "Negative threshold $\\tau_{\\text{neg}}$ <span id=\"negVal\">0.30</span>",
+   "tags": [
+    "<span id=\"negVal\">",
+    "</span>"
+   ]
+  },
+  "Anchors classified by IoU with the object. Drag the blue box to move the ground truth.": {
+   "zh": "依与物体的 IoU 分类后的锚框。拖动蓝色框以移动真值。",
+   "src": "Anchors classified by IoU with the object. Drag the blue box to move the ground truth.",
+   "tags": []
+  },
+  "@@T0@@@@T1@@@@T2@@Positive (IoU &ge; &tau;@@T3@@pos@@T4@@)@@T5@@\n      @@T6@@@@T7@@@@T8@@Ignore@@T9@@\n      @@T10@@@@T11@@@@T12@@Negative@@T13@@\n      @@T14@@@@T15@@@@T16@@Ground truth@@T17@@": {
+   "zh": "@@T0@@@@T1@@@@T2@@正样本（IoU &ge; &tau;@@T3@@pos@@T4@@）@@T5@@\n      @@T6@@@@T7@@@@T8@@忽略@@T9@@\n      @@T10@@@@T11@@@@T12@@负样本@@T13@@\n      @@T14@@@@T15@@@@T16@@真值@@T17@@",
+   "src": "<span><span class=\"box\" style=\"border-color:var(--success)\"></span>Positive (IoU &ge; &tau;<sub>pos</sub>)</span>\n      <span><span class=\"box\" style=\"border-color:var(--warm)\"></span>Ignore</span>\n      <span><span class=\"box\" style=\"border-color:#b9b0a2\"></span>Negative</span>\n      <span><span class=\"box\" style=\"border-color:var(--accent);border-style:dashed\"></span>Ground truth</span>",
+   "tags": [
+    "<span>",
+    "<span class=\"box\" style=\"border-color:var(--success)\">",
+    "</span>",
+    "<sub>",
+    "</sub>",
+    "</span>",
+    "<span>",
+    "<span class=\"box\" style=\"border-color:var(--warm)\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"box\" style=\"border-color:#b9b0a2\">",
+    "</span>",
+    "</span>",
+    "<span>",
+    "<span class=\"box\" style=\"border-color:var(--accent);border-style:dashed\">",
+    "</span>",
+    "</span>"
+   ]
+  },
+  "@@T0@@Positive anchors@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@正样本锚框@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Positive anchors</span>\n        <span class=\"stat-value\" id=\"posCount\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"posCount\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Ignored anchors@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@被忽略的锚框@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Ignored anchors</span>\n        <span class=\"stat-value\" id=\"ignCount\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"ignCount\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Negative anchors@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@负样本锚框@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Negative anchors</span>\n        <span class=\"stat-value\" id=\"negCount\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"negCount\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Best anchor IoU@@T1@@\n        @@T2@@&mdash;@@T3@@": {
+   "zh": "@@T0@@最佳锚框 IoU@@T1@@\n        @@T2@@&mdash;@@T3@@",
+   "src": "<span class=\"stat-label\">Best anchor IoU</span>\n        <span class=\"stat-value\" id=\"bestVal\">&mdash;</span>",
+   "tags": [
+    "<span class=\"stat-label\">",
+    "</span>",
+    "<span class=\"stat-value\" id=\"bestVal\">",
+    "</span>"
+   ]
+  },
+  "@@T0@@Shrink the object small and drag it between grid points.@@T1@@ Its IoU with every\n      anchor can drop below $\\tau_{\\text{pos}}$ &mdash; zero positives by the threshold alone. That is\n      why the highest-IoU anchor is @@T2@@always@@T3@@ forced positive (drawn bold): without that rule,\n      tiny or oddly-sized objects would have no anchor to learn from and would simply be missed.": {
+   "zh": "@@T0@@把物体缩小，并把它拖到网格点之间。@@T1@@ 它与每一个\n      锚框的 IoU 都可能低于 $\\tau_{\\text{pos}}$ &mdash;仅凭阈值会得到零个正样本。这正\n      是为何 IoU 最高的锚框@@T2@@总是@@T3@@被强制判为正样本（以粗线绘制）：没有这条规则，\n      微小或形状古怪的物体将没有锚框可供学习，从而被直接漏掉。",
+   "src": "<strong>Shrink the object small and drag it between grid points.</strong> Its IoU with every\n      anchor can drop below $\\tau_{\\text{pos}}$ &mdash; zero positives by the threshold alone. That is\n      why the highest-IoU anchor is <em>always</em> forced positive (drawn bold): without that rule,\n      tiny or oddly-sized objects would have no anchor to learn from and would simply be missed.",
+   "tags": [
+    "<strong>",
+    "</strong>",
+    "<em>",
+    "</em>"
+   ]
+  },
+  "The Payoff": {
+   "zh": "回报",
+   "src": "The Payoff",
+   "tags": []
+  },
+  "Detection is classification plus a nudge": {
+   "zh": "检测即分类加上一次微调",
+   "src": "Detection is classification plus a nudge",
+   "tags": []
+  },
+  "Once anchors are labeled, the detector's job splits into two familiar pieces, trained together:": {
+   "zh": "一旦锚框被打了标签，检测器的任务便分成两个熟悉的部件，一同训练：",
+   "src": "Once anchors are labeled, the detector's job splits into two familiar pieces, trained together:",
+   "tags": []
+  },
+  "@@T0@@Classification.@@T1@@ For every anchor, predict object vs. background. Positives and negatives supply the labels; ignored anchors contribute no loss. This is the same cross-entropy you use anywhere else.": {
+   "zh": "@@T0@@分类。@@T1@@ 对每个锚框，预测物体与背景。正样本与负样本提供标签；被忽略的锚框不贡献损失。这就是你在别处使用的同一个交叉熵。",
+   "src": "<strong>Classification.</strong> For every anchor, predict object vs. background. Positives and negatives supply the labels; ignored anchors contribute no loss. This is the same cross-entropy you use anywhere else.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "@@T0@@Box regression.@@T1@@ For positive anchors only, predict a small offset $(\\Delta x, \\Delta y, \\Delta w, \\Delta h)$ that slides and stretches the anchor onto the ground truth &mdash; trained with the smooth-L1 loss from the previous explainer.": {
+   "zh": "@@T0@@框回归。@@T1@@ 仅对正样本锚框，预测一个小偏移 $(\\Delta x, \\Delta y, \\Delta w, \\Delta h)$，把锚框平移并拉伸到真值之上&mdash;使用上一篇讲解中的 smooth-L1 损失进行训练。",
+   "src": "<strong>Box regression.</strong> For positive anchors only, predict a small offset $(\\Delta x, \\Delta y, \\Delta w, \\Delta h)$ that slides and stretches the anchor onto the ground truth &mdash; trained with the smooth-L1 loss from the previous explainer.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Because anchors are dense and come in several shapes, some anchor is almost always close enough\n      to any object to serve as a starting point. &ldquo;Where is the object?&rdquo; becomes\n      &ldquo;which anchors say yes, and how should each nudge its box?&rdquo;": {
+   "zh": "由于锚框密集且形状多样，几乎总会有某个锚框\n      与任何物体的距离足够近，可以作为一个起点。「物体在哪里？」于是变成\n      「哪些锚框说『是』，以及每个锚框应如何微调它的框？」",
+   "src": "Because anchors are dense and come in several shapes, some anchor is almost always close enough\n      to any object to serve as a starting point. &ldquo;Where is the object?&rdquo; becomes\n      &ldquo;which anchors say yes, and how should each nudge its box?&rdquo;",
+   "tags": []
+  },
+  "@@T0@@Thresholds are a design knob.@@T1@@ Faster R-CNN's RPN uses $\\tau_{\\text{pos}}=0.7$\n      and $\\tau_{\\text{neg}}=0.3$; its second stage uses $0.5$. Raise $\\tau_{\\text{pos}}$ and you keep\n      only tight matches (cleaner positives, but fewer of them); widen the ignore band and you throw\n      away more ambiguous anchors. Every anchor-based detector is tuning exactly these numbers.": {
+   "zh": "@@T0@@阈值是一个设计旋钮。@@T1@@ Faster R-CNN 的 RPN 使用 $\\tau_{\\text{pos}}=0.7$\n      与 $\\tau_{\\text{neg}}=0.3$；其第二阶段使用 $0.5$。提高 $\\tau_{\\text{pos}}$，你便只保留\n      紧凑的匹配（更干净的正样本，但数量更少）；加宽忽略带，你便丢弃\n      更多含糊的锚框。每一个基于锚框的检测器都在调节的，恰恰就是这些数值。",
+   "src": "<strong>Thresholds are a design knob.</strong> Faster R-CNN's RPN uses $\\tau_{\\text{pos}}=0.7$\n      and $\\tau_{\\text{neg}}=0.3$; its second stage uses $0.5$. Raise $\\tau_{\\text{pos}}$ and you keep\n      only tight matches (cleaner positives, but fewer of them); widen the ignore band and you throw\n      away more ambiguous anchors. Every anchor-based detector is tuning exactly these numbers.",
+   "tags": [
+    "<strong>",
+    "</strong>"
+   ]
+  },
+  "Part of the ES 667 Deep Learning explainer series &middot; Lecture 10: Object Detection": {
+   "zh": "ES 667 深度学习讲解系列之一 &middot; 第 10 讲：目标检测",
+   "src": "Part of the ES 667 Deep Learning explainer series &middot; Lecture 10: Object Detection",
+   "tags": []
+  }
+ },
+ "meta": {
+  "title": "依据 IoU 分配锚框",
+  "tagline": "检测是伪装起来的分类：每个预置的锚框都在问「物体在这里吗？」，而 IoU 阈值提供标签。",
+  "summary": "基于锚框的检测器用固定网格的框、以多种尺度与宽高比平铺图像，然后把每个框当作一个是/否分类器来训练。把一个真值框拖过整个网格，观察每个锚框依据其与物体的 IoU 变为正样本、忽略或负样本。移动两个阈值，计数随之改变；匹配最佳的单个锚框始终被保留。这就是「物体在哪里」如何变成一个逐锚框的分类问题。",
+  "difficulty": "中级",
+  "collection": "深度学习",
+  "highlights": [
+   "把一个真值框拖过固定的锚框阵列，实时看到每一个被分类为正样本、忽略或负样本。",
+   "每个位置上的锚框有多种宽高比，因此宽物体匹配宽锚框，高物体匹配高锚框。",
+   "移动上、下两个 IoU 阈值，观察正样本、忽略与负样本的计数即刻重新平衡。",
+   "IoU 最高的单个锚框始终被保留为正样本，这与保证每个物体都有匹配的 RPN 规则一致。",
+   "看清为何检测实际上是逐锚框的分类加上框回归，而非神秘的「它在哪里」神谕。"
+  ],
+  "tags": [
+   "目标检测",
+   "锚框",
+   "IoU",
+   "RPN",
+   "交互式"
+  ]
+ },
+ "js": {}
+}
